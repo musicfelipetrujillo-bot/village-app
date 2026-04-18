@@ -75,4 +75,10 @@ Font body:    DM Sans
 V1 fully live → V2 → V3 → V4+Home. Never start next vertical until current is in production.
 
 ## Current Status
-🔴 Not started — all planning complete, ready to scaffold.
+🟡 **V1 Phase 1 complete** — Auth + onboarding built.
+
+| Phase | Status | Notes |
+|---|---|---|
+| Phase 0 | ✅ Done | Monorepo, Expo, Supabase config, shared types |
+| Phase 1 | ✅ Done | Splash, Onboarding (3 slides), SignUp, Login, ForgotPassword, OnboardingProfile |
+| Phase 2 | 🔴 Next | Specialist search: seed data, geo-query, List + Map + Profile screens |
