@@ -1,0 +1,1077 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>The Village</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #F5F0E8;
+    --rust: #B85C38;
+    --rust-dark: #9A4A2B;
+    --rust-light: #D4744F;
+    --brown-deep: #2C1A0E;
+    --brown-mid: #4A2E1A;
+    --olive: #5C6B3A;
+    --olive-light: #7A8A50;
+    --gold: #C4A35A;
+    --text-dark: #1C1008;
+    --text-mid: #5A3E28;
+    --text-light: #9A8070;
+    --white: #FDFAF5;
+    --card-bg: #FFFFFF;
+    --nav-h: 72px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    background: var(--cream);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    overflow: hidden;
+  }
+
+  .phone-shell {
+    width: 100%;
+    max-width: 390px;
+    height: 100vh;
+    background: var(--cream);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* STATUS BAR */
+  .status-bar {
+    background: var(--cream);
+    padding: 12px 24px 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-dark);
+    flex-shrink: 0;
+  }
+  .status-dots { letter-spacing: 2px; }
+
+  /* SCROLL AREA */
+  .screen {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-bottom: calc(var(--nav-h) + 8px);
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+  }
+  .screen::-webkit-scrollbar { display: none; }
+
+  /* HEADER */
+  .app-header {
+    padding: 12px 20px 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--cream);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .app-logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    color: var(--text-dark);
+  }
+  .app-logo span { color: var(--rust); font-style: italic; }
+  .avatar {
+    width: 38px; height: 38px;
+    background: var(--rust);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-size: 16px;
+  }
+
+  /* GREETING */
+  .greeting {
+    padding: 4px 20px 16px;
+  }
+  .greeting-sub { font-size: 13px; color: var(--text-light); font-weight: 400; }
+  .greeting-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px;
+    color: var(--text-dark);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  /* HERO CARD */
+  .hero-card {
+    margin: 0 16px 20px;
+    background: var(--rust);
+    border-radius: 18px;
+    padding: 22px 20px;
+    color: white;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.15s;
+  }
+  .hero-card:active { transform: scale(0.98); }
+  .hero-card::after {
+    content: '🌿';
+    position: absolute;
+    right: 16px; top: 16px;
+    font-size: 48px;
+    opacity: 0.3;
+  }
+  .hero-tag {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    opacity: 0.8;
+    margin-bottom: 8px;
+  }
+  .hero-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 24px;
+    line-height: 1.2;
+    margin-bottom: 10px;
+    font-weight: 700;
+  }
+  .hero-desc {
+    font-size: 13px;
+    line-height: 1.5;
+    opacity: 0.88;
+    margin-bottom: 18px;
+  }
+  .hero-btn {
+    display: inline-block;
+    background: rgba(255,255,255,0.2);
+    border: 1.5px solid rgba(255,255,255,0.5);
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 9px 16px;
+    border-radius: 50px;
+  }
+
+  /* SECTION LABEL */
+  .section-label {
+    padding: 0 20px 10px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.8px;
+    text-transform: uppercase;
+    color: var(--text-light);
+  }
+
+  /* QUICK ACCESS GRID */
+  .qa-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    padding: 0 16px 20px;
+  }
+  .qa-card {
+    background: var(--card-bg);
+    border-radius: 14px;
+    padding: 16px;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    position: relative;
+  }
+  .qa-card:active { transform: scale(0.97); }
+  .qa-icon { font-size: 28px; margin-bottom: 10px; display: block; }
+  .qa-title { font-size: 14px; font-weight: 600; color: var(--text-dark); margin-bottom: 3px; }
+  .qa-sub { font-size: 12px; color: var(--text-light); }
+  .new-badge {
+    position: absolute;
+    top: 12px; right: 12px;
+    background: var(--rust);
+    color: white;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    padding: 3px 7px;
+    border-radius: 50px;
+    text-transform: uppercase;
+  }
+
+  /* BOTTOM NAV */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 390px;
+    height: var(--nav-h);
+    background: var(--white);
+    border-top: 1px solid rgba(0,0,0,0.08);
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    padding: 0 8px;
+    z-index: 100;
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.06);
+  }
+  .nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    padding: 8px 10px;
+    cursor: pointer;
+    flex: 1;
+    position: relative;
+  }
+  .nav-icon { font-size: 22px; transition: transform 0.2s; }
+  .nav-label {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: var(--text-light);
+    transition: color 0.2s;
+  }
+  .nav-item.active .nav-label { color: var(--rust); }
+  .nav-item.active .nav-icon { transform: scale(1.1); }
+  .nav-dot {
+    position: absolute;
+    bottom: 4px;
+    width: 4px; height: 4px;
+    background: var(--rust);
+    border-radius: 50%;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .nav-item.active .nav-dot { opacity: 1; }
+
+  /* PAGE TRANSITIONS */
+  .page { display: none; animation: fadeSlide 0.25s ease; }
+  .page.active { display: block; }
+  @keyframes fadeSlide {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ===== MILK PAGE ===== */
+  .page-header {
+    padding: 16px 20px 12px;
+    position: sticky; top: 0;
+    background: var(--cream);
+    z-index: 10;
+  }
+  .page-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 26px;
+    color: var(--text-dark);
+    font-style: italic;
+  }
+  .page-sub { font-size: 13px; color: var(--text-light); margin-top: 2px; }
+
+  .map-placeholder {
+    margin: 0 16px 16px;
+    background: linear-gradient(135deg, #e8f0d8 0%, #d4e4b8 100%);
+    border-radius: 16px;
+    height: 160px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .map-dots {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 30px;
+  }
+  .map-pin {
+    width: 32px; height: 32px;
+    background: var(--rust);
+    border-radius: 50% 50% 50% 0;
+    transform: rotate(-45deg);
+    box-shadow: 0 2px 8px rgba(184,92,56,0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .map-pin::after {
+    content: '';
+    width: 10px; height: 10px;
+    background: white;
+    border-radius: 50%;
+    transform: rotate(45deg);
+  }
+  .map-label {
+    position: absolute;
+    top: 12px; left: 16px;
+    background: white;
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-dark);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  }
+  .map-label span { color: var(--rust); }
+
+  .donor-list { padding: 0 16px 20px; }
+  .donor-card {
+    background: white;
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 10px;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    cursor: pointer;
+    transition: transform 0.15s;
+  }
+  .donor-card:active { transform: scale(0.98); }
+  .donor-avatar {
+    width: 46px; height: 46px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+  .donor-info { flex: 1; }
+  .donor-name { font-size: 15px; font-weight: 600; color: var(--text-dark); }
+  .donor-dist { font-size: 12px; color: var(--text-light); margin-bottom: 6px; }
+  .trust-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: #F0F7E8;
+    color: var(--olive);
+    font-size: 10px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 50px;
+  }
+  .donor-price { font-size: 14px; font-weight: 700; color: var(--rust); white-space: nowrap; }
+
+  /* ===== EXPERTS PAGE ===== */
+  .specialist-grid { padding: 0 16px 20px; }
+  .specialist-card {
+    background: white;
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 10px;
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    cursor: pointer;
+    transition: transform 0.15s;
+  }
+  .specialist-card:active { transform: scale(0.98); }
+  .spec-icon {
+    width: 52px; height: 52px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    flex-shrink: 0;
+  }
+  .spec-icon.rust-bg { background: #FDEEE8; }
+  .spec-icon.olive-bg { background: #EEF2E6; }
+  .spec-icon.gold-bg { background: #F7F0E0; }
+  .spec-name { font-size: 15px; font-weight: 600; color: var(--text-dark); }
+  .spec-role { font-size: 12px; color: var(--text-light); margin-bottom: 6px; }
+  .spec-avail { font-size: 11px; color: var(--olive); font-weight: 600; }
+  .spec-price { font-size: 14px; font-weight: 700; color: var(--rust); margin-left: auto; white-space: nowrap; }
+  .book-btn {
+    background: var(--rust);
+    color: white;
+    border: none;
+    border-radius: 50px;
+    padding: 7px 14px;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  /* ===== VILLAGE PAGE ===== */
+  .room-list { padding: 0 16px 20px; }
+  .room-card {
+    border-radius: 16px;
+    padding: 18px;
+    margin-bottom: 12px;
+    cursor: pointer;
+    transition: transform 0.15s;
+    position: relative;
+    overflow: hidden;
+  }
+  .room-card:active { transform: scale(0.98); }
+  .room-card.rust { background: var(--rust); color: white; }
+  .room-card.olive { background: var(--olive); color: white; }
+  .room-card.brown { background: var(--brown-mid); color: white; }
+  .room-card.cream { background: white; color: var(--text-dark); box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+  .room-emoji { font-size: 32px; margin-bottom: 10px; display: block; }
+  .room-name { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+  .room-desc { font-size: 12px; opacity: 0.85; margin-bottom: 12px; line-height: 1.4; }
+  .room-meta { display: flex; gap: 12px; align-items: center; }
+  .live-dot {
+    width: 7px; height: 7px;
+    background: #5DCA6A;
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.6; transform: scale(1.3); }
+  }
+  .room-count { font-size: 12px; opacity: 0.8; font-weight: 500; }
+  .anon-tag {
+    background: rgba(255,255,255,0.2);
+    border-radius: 50px;
+    padding: 3px 9px;
+    font-size: 10px;
+    font-weight: 600;
+  }
+
+  /* ===== DISCOVER PAGE ===== */
+  .discover-list { padding: 0 16px 20px; }
+  .discover-card {
+    background: white;
+    border-radius: 16px;
+    margin-bottom: 12px;
+    overflow: hidden;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    cursor: pointer;
+    transition: transform 0.15s;
+  }
+  .discover-card:active { transform: scale(0.98); }
+  .discover-banner {
+    height: 90px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 40px;
+  }
+  .discover-body { padding: 14px 16px; }
+  .discover-tag {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--rust);
+    margin-bottom: 4px;
+  }
+  .discover-title { font-size: 16px; font-weight: 600; color: var(--text-dark); margin-bottom: 4px; }
+  .discover-sub { font-size: 12px; color: var(--text-light); }
+  .perks-row {
+    display: flex;
+    gap: 10px;
+    padding: 0 16px 16px;
+    overflow-x: auto;
+  }
+  .perks-row::-webkit-scrollbar { display: none; }
+  .perk-chip {
+    background: white;
+    border-radius: 50px;
+    padding: 8px 14px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-dark);
+    white-space: nowrap;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  /* MODAL OVERLAY */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 200;
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .modal-overlay.open { display: flex; animation: fadeIn 0.2s ease; }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  .modal {
+    background: var(--cream);
+    border-radius: 22px 22px 0 0;
+    width: 100%;
+    max-width: 390px;
+    padding: 20px 20px 40px;
+    animation: slideUp 0.3s ease;
+  }
+  @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  .modal-handle {
+    width: 36px; height: 4px;
+    background: rgba(0,0,0,0.15);
+    border-radius: 2px;
+    margin: 0 auto 18px;
+  }
+  .modal-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    color: var(--text-dark);
+    margin-bottom: 6px;
+  }
+  .modal-sub { font-size: 13px; color: var(--text-light); margin-bottom: 20px; }
+  .modal-cta {
+    width: 100%;
+    background: var(--rust);
+    color: white;
+    border: none;
+    border-radius: 14px;
+    padding: 15px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 14px;
+  }
+  .modal-secondary {
+    width: 100%;
+    background: transparent;
+    color: var(--text-light);
+    border: none;
+    padding: 12px;
+    font-size: 14px;
+    cursor: pointer;
+    margin-top: 6px;
+  }
+  .info-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+    font-size: 14px;
+  }
+  .info-row:last-of-type { border-bottom: none; }
+  .info-label { color: var(--text-light); }
+  .info-val { font-weight: 600; color: var(--text-dark); }
+</style>
+</head>
+<body>
+
+<div class="phone-shell">
+
+  <!-- STATUS BAR -->
+  <div class="status-bar">
+    <span>9:41</span>
+    <span class="status-dots">• • •</span>
+  </div>
+
+  <!-- SCROLLABLE SCREEN -->
+  <div class="screen" id="mainScreen">
+
+    <!-- HOME PAGE -->
+    <div class="page active" id="page-home">
+      <div class="app-header">
+        <div class="app-logo">The <span>Village</span></div>
+        <div class="avatar">👤</div>
+      </div>
+      <div class="greeting">
+        <div class="greeting-sub">Good morning,</div>
+        <div class="greeting-name">Sofia ✨</div>
+      </div>
+
+      <!-- Hero card -->
+      <div class="hero-card" onclick="showModal('milestones')">
+        <div class="hero-tag">Baby · Week 14</div>
+        <div class="hero-title">Tummy time &amp;<br>social smiling</div>
+        <div class="hero-desc">Your baby is discovering hands and starting to track moving objects. 3–5 tummy time sessions daily now.</div>
+        <div class="hero-btn">SEE ALL MILESTONES →</div>
+      </div>
+
+      <div class="section-label">Quick Access</div>
+      <div class="qa-grid">
+        <div class="qa-card" onclick="navTo('milk')">
+          <span class="new-badge">NEW</span>
+          <span class="qa-icon">🤱</span>
+          <div class="qa-title">Milk Connect</div>
+          <div class="qa-sub">3 moms nearby</div>
+        </div>
+        <div class="qa-card" onclick="navTo('experts')">
+          <span class="qa-icon">🩺</span>
+          <div class="qa-title">Book Specialist</div>
+          <div class="qa-sub">Next available: today</div>
+        </div>
+        <div class="qa-card" onclick="showModal('perks')">
+          <span class="qa-icon">🎁</span>
+          <div class="qa-title">Today's Perks</div>
+          <div class="qa-sub">10 active discounts</div>
+        </div>
+        <div class="qa-card" onclick="navTo('village')">
+          <span class="qa-icon">💬</span>
+          <div class="qa-title">Village Chat</div>
+          <div class="qa-sub">24 moms active</div>
+        </div>
+      </div>
+
+      <div class="section-label">My Baby · Week 14</div>
+      <div style="padding: 0 16px 20px;">
+        <div style="background:white;border-radius:16px;padding:18px;box-shadow:0 1px 4px rgba(0,0,0,0.06);">
+          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;">
+            <div style="background:#FDEEE8;border-radius:10px;padding:10px 14px;flex:1;min-width:100px;">
+              <div style="font-size:10px;font-weight:700;color:var(--rust);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Milestone</div>
+              <div style="font-size:13px;font-weight:600;color:var(--text-dark);">Social Smiling 😊</div>
+            </div>
+            <div style="background:#EEF2E6;border-radius:10px;padding:10px 14px;flex:1;min-width:100px;">
+              <div style="font-size:10px;font-weight:700;color:var(--olive);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Sleep</div>
+              <div style="font-size:13px;font-weight:600;color:var(--text-dark);">14–17 hrs/day</div>
+            </div>
+          </div>
+          <div style="font-size:13px;color:var(--text-light);line-height:1.5;">This week: Rolling tummy-to-back practice, tracking faces, and cooing back when spoken to.</div>
+        </div>
+      </div>
+
+      <div class="section-label">Upcoming Events</div>
+      <div style="padding:0 16px 28px;">
+        <div onclick="showModal('event')" style="background:var(--brown-mid);border-radius:16px;padding:18px;cursor:pointer;display:flex;align-items:center;gap:16px;">
+          <div style="font-size:36px;">🌸</div>
+          <div>
+            <div style="font-size:13px;color:rgba(255,255,255,0.6);margin-bottom:3px;">This Saturday · Miami</div>
+            <div style="font-family:'Playfair Display',serif;font-size:18px;color:white;font-weight:700;">New Moms Meetup</div>
+            <div style="font-size:12px;color:rgba(255,255,255,0.6);margin-top:2px;">Wynwood · 10am · Free</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MILK PAGE -->
+    <div class="page" id="page-milk">
+      <div class="page-header">
+        <div class="app-logo" style="margin-bottom:2px;">The <span style="color:var(--rust);font-style:italic;">Village</span></div>
+        <div class="page-title">Milk Connect</div>
+        <div class="page-sub">3 donors near you · Miami</div>
+      </div>
+
+      <div class="map-placeholder">
+        <div class="map-label">📍 Miami, FL · <span>3 donors</span></div>
+        <div class="map-dots">
+          <div class="map-pin" style="margin-top:-20px;"></div>
+          <div class="map-pin" style="margin-top:30px;transform:rotate(-45deg) scale(0.8);background:var(--olive);"></div>
+          <div class="map-pin" style="margin-top:-10px;transform:rotate(-45deg) scale(0.9);background:var(--gold);"></div>
+        </div>
+      </div>
+
+      <div class="section-label">Donors Near You</div>
+      <div class="donor-list">
+        <div class="donor-card" onclick="showModal('donor1')">
+          <div class="donor-avatar" style="background:#FDEEE8;">👩</div>
+          <div class="donor-info">
+            <div class="donor-name">Sarah M.</div>
+            <div class="donor-dist">0.8 mi away · Brickell</div>
+            <div class="trust-badge">✓ Trust Badge · Verified</div>
+          </div>
+          <div class="donor-price">$1.50/oz</div>
+        </div>
+        <div class="donor-card" onclick="showModal('donor2')">
+          <div class="donor-avatar" style="background:#EEF2E6;">👩‍🦱</div>
+          <div class="donor-info">
+            <div class="donor-name">Maria L.</div>
+            <div class="donor-dist">1.2 mi away · Coral Gables</div>
+            <div class="trust-badge">✓ Trust Badge · Bloodwork ✓</div>
+          </div>
+          <div class="donor-price">$1.00/oz</div>
+        </div>
+        <div class="donor-card" onclick="showModal('donor3')">
+          <div class="donor-avatar" style="background:#F7F0E0;">👱‍♀️</div>
+          <div class="donor-info">
+            <div class="donor-name">Jess T.</div>
+            <div class="donor-dist">2.1 mi away · Coconut Grove</div>
+            <div class="trust-badge">✓ Trust Badge · Verified</div>
+          </div>
+          <div class="donor-price">$0.75/oz</div>
+        </div>
+        <div style="background:var(--rust);border-radius:14px;padding:16px;text-align:center;cursor:pointer;" onclick="showModal('becomedonor')">
+          <div style="color:white;font-weight:700;font-size:15px;margin-bottom:3px;">Become a Donor 🤱</div>
+          <div style="color:rgba(255,255,255,0.8);font-size:12px;">Earn ~$1,200/mo · Complete questionnaire</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EXPERTS PAGE -->
+    <div class="page" id="page-experts">
+      <div class="page-header">
+        <div class="app-logo" style="margin-bottom:2px;">The <span style="color:var(--rust);font-style:italic;">Village</span></div>
+        <div class="page-title">Specialists</div>
+        <div class="page-sub">Verified · On-demand · Affordable</div>
+      </div>
+
+      <div class="specialist-grid">
+        <div class="specialist-card" onclick="showModal('ibclc')">
+          <div class="spec-icon rust-bg">🤱</div>
+          <div style="flex:1;">
+            <div class="spec-name">IBCLC</div>
+            <div class="spec-role">Lactation Consultant</div>
+            <div class="spec-avail">Available today</div>
+          </div>
+          <div style="text-align:right;">
+            <div class="spec-price">$85/session</div>
+            <button class="book-btn" style="margin-top:6px;" onclick="event.stopPropagation();showModal('ibclc')">Book</button>
+          </div>
+        </div>
+        <div class="specialist-card" onclick="showModal('doula')">
+          <div class="spec-icon olive-bg">🤝</div>
+          <div style="flex:1;">
+            <div class="spec-name">Postpartum Doula</div>
+            <div class="spec-role">In-person or virtual</div>
+            <div class="spec-avail">Available tomorrow</div>
+          </div>
+          <div style="text-align:right;">
+            <div class="spec-price">$70/hr</div>
+            <button class="book-btn" style="margin-top:6px;background:var(--olive);" onclick="event.stopPropagation();showModal('doula')">Book</button>
+          </div>
+        </div>
+        <div class="specialist-card" onclick="showModal('sleep')">
+          <div class="spec-icon gold-bg">😴</div>
+          <div style="flex:1;">
+            <div class="spec-name">Sleep Coach</div>
+            <div class="spec-role">Package-based programs</div>
+            <div class="spec-avail">2 slots left</div>
+          </div>
+          <div style="text-align:right;">
+            <div class="spec-price">$120/pkg</div>
+            <button class="book-btn" style="margin-top:6px;" onclick="event.stopPropagation();showModal('sleep')">Book</button>
+          </div>
+        </div>
+        <div class="specialist-card" onclick="showModal('dietitian')">
+          <div class="spec-icon rust-bg">🥗</div>
+          <div style="flex:1;">
+            <div class="spec-name">Dietitian</div>
+            <div class="spec-role">Nutrition &amp; feeding</div>
+            <div class="spec-avail">Available today</div>
+          </div>
+          <div style="text-align:right;">
+            <div class="spec-price">$95/session</div>
+            <button class="book-btn" style="margin-top:6px;" onclick="event.stopPropagation();showModal('dietitian')">Book</button>
+          </div>
+        </div>
+        <div class="specialist-card" onclick="showModal('nurse')">
+          <div class="spec-icon olive-bg">🌙</div>
+          <div style="flex:1;">
+            <div class="spec-name">Night Nurse</div>
+            <div class="spec-role">Overnight newborn care</div>
+            <div class="spec-avail">Weekend slots</div>
+          </div>
+          <div style="text-align:right;">
+            <div class="spec-price">$45/hr</div>
+            <button class="book-btn" style="margin-top:6px;background:var(--olive);" onclick="event.stopPropagation();showModal('nurse')">Book</button>
+          </div>
+        </div>
+        <div class="specialist-card" onclick="showModal('therapist')">
+          <div class="spec-icon gold-bg">🧠</div>
+          <div style="flex:1;">
+            <div class="spec-name">PPD Therapist</div>
+            <div class="spec-role">Mental health support</div>
+            <div class="spec-avail">Available today</div>
+          </div>
+          <div style="text-align:right;">
+            <div class="spec-price">$110/session</div>
+            <button class="book-btn" style="margin-top:6px;" onclick="event.stopPropagation();showModal('therapist')">Book</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VILLAGE PAGE -->
+    <div class="page" id="page-village">
+      <div class="page-header">
+        <div class="app-logo" style="margin-bottom:2px;">The <span style="color:var(--rust);font-style:italic;">Village</span></div>
+        <div class="page-title">Community Rooms</div>
+        <div class="page-sub">Live · Local · Moderated</div>
+      </div>
+
+      <div class="room-list">
+        <div class="room-card rust" onclick="showModal('room1')">
+          <span class="room-emoji">🌿</span>
+          <div class="room-name">Miami Moms · Week 10–16</div>
+          <div class="room-desc">Your birth month crew. Share wins, struggles, questions. Stage-matched moms only.</div>
+          <div class="room-meta">
+            <div class="live-dot"></div>
+            <div class="room-count">24 moms active now</div>
+            <div class="anon-tag">Anonymous mode</div>
+          </div>
+        </div>
+        <div class="room-card olive" onclick="showModal('room2')">
+          <span class="room-emoji">🤱</span>
+          <div class="room-name">Breastfeeding Support</div>
+          <div class="room-desc">No judgment, all support. IBCLC-moderated. Share your journey, get real answers.</div>
+          <div class="room-meta">
+            <div class="live-dot"></div>
+            <div class="room-count">12 moms active now</div>
+          </div>
+        </div>
+        <div class="room-card brown" onclick="showModal('room3')">
+          <span class="room-emoji">💜</span>
+          <div class="room-name">Postpartum Feelings</div>
+          <div class="room-desc">A safe space. 1 in 5 experience PPD. You're not alone. Always anonymous.</div>
+          <div class="room-meta">
+            <div class="live-dot"></div>
+            <div class="room-count">8 moms active now</div>
+            <div class="anon-tag">Always anonymous</div>
+          </div>
+        </div>
+        <div class="room-card cream" onclick="showModal('room4')">
+          <span class="room-emoji">😴</span>
+          <div class="room-name" style="color:var(--text-dark);">Sleep Sanity Club</div>
+          <div class="room-desc" style="opacity:1;color:var(--text-light);">Tips, tricks, and solidarity for the sleep-deprived. Sleep coach drops in weekly.</div>
+          <div class="room-meta">
+            <div class="live-dot"></div>
+            <div class="room-count" style="color:var(--text-light);">18 moms active</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DISCOVER PAGE -->
+    <div class="page" id="page-discover">
+      <div class="page-header">
+        <div class="app-logo" style="margin-bottom:2px;">The <span style="color:var(--rust);font-style:italic;">Village</span></div>
+        <div class="page-title">Discover ✦</div>
+        <div class="page-sub">Events · Perks · Gear · Partners</div>
+      </div>
+
+      <div class="section-label">Brand Perks</div>
+      <div class="perks-row">
+        <div class="perk-chip" onclick="showModal('pampers')">🍼 Pampers 20% off</div>
+        <div class="perk-chip" onclick="showModal('nanit')">📷 Nanit 15% off</div>
+        <div class="perk-chip" onclick="showModal('elvie')">💧 Elvie Deal</div>
+        <div class="perk-chip" onclick="showModal('spoon')">🥄 Little Spoon</div>
+      </div>
+
+      <div class="section-label">Events Near You</div>
+      <div class="discover-list">
+        <div class="discover-card" onclick="showModal('event')">
+          <div class="discover-banner" style="background:linear-gradient(135deg,#FDEEE8,#F5C4AA);">🌸</div>
+          <div class="discover-body">
+            <div class="discover-tag">Event · Free · Miami</div>
+            <div class="discover-title">New Moms Meetup</div>
+            <div class="discover-sub">This Saturday · Wynwood · 10am – 12pm</div>
+          </div>
+        </div>
+        <div class="discover-card" onclick="showModal('webinar')">
+          <div class="discover-banner" style="background:linear-gradient(135deg,#EEF2E6,#C8D8A0);">🍼</div>
+          <div class="discover-body">
+            <div class="discover-tag">Webinar · Free</div>
+            <div class="discover-title">Sleep Training 101</div>
+            <div class="discover-sub">Wednesday 8pm · With Certified Sleep Coach</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-label">Baby Gear Exchange</div>
+      <div style="padding: 0 16px 28px;">
+        <div style="background:var(--brown-mid);border-radius:16px;padding:20px;cursor:pointer;" onclick="showModal('gear')">
+          <div style="font-size:30px;margin-bottom:10px;">🛒</div>
+          <div style="font-family:'Playfair Display',serif;font-size:20px;color:white;margin-bottom:6px;font-weight:700;">Baby Gear Exchange</div>
+          <div style="font-size:13px;color:rgba(255,255,255,0.7);margin-bottom:14px;">Strollers, bassinets, pumps — verified sellers, local pickup.</div>
+          <div style="background:var(--rust);color:white;border-radius:50px;padding:10px 20px;font-size:13px;font-weight:700;display:inline-block;">Browse Listings →</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- end .screen -->
+
+  <!-- BOTTOM NAV -->
+  <div class="bottom-nav">
+    <div class="nav-item active" id="nav-home" onclick="navTo('home')">
+      <div class="nav-icon">🏠</div>
+      <div class="nav-label">Home</div>
+      <div class="nav-dot"></div>
+    </div>
+    <div class="nav-item" id="nav-milk" onclick="navTo('milk')">
+      <div class="nav-icon">🤱</div>
+      <div class="nav-label">Milk</div>
+      <div class="nav-dot"></div>
+    </div>
+    <div class="nav-item" id="nav-experts" onclick="navTo('experts')">
+      <div class="nav-icon">🩺</div>
+      <div class="nav-label">Experts</div>
+      <div class="nav-dot"></div>
+    </div>
+    <div class="nav-item" id="nav-village" onclick="navTo('village')">
+      <div class="nav-icon">💬</div>
+      <div class="nav-label">Village</div>
+      <div class="nav-dot"></div>
+    </div>
+    <div class="nav-item" id="nav-discover" onclick="navTo('discover')">
+      <div class="nav-icon">✦</div>
+      <div class="nav-label">Discover</div>
+      <div class="nav-dot"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL OVERLAY -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+  <div class="modal" id="modalContent">
+    <div class="modal-handle"></div>
+    <div id="modalBody"></div>
+  </div>
+</div>
+
+<script>
+const modals = {
+  milestones: {
+    title: 'Week 14 Milestones 🌱',
+    sub: 'What to expect this week',
+    content: `
+      <div class="info-row"><span class="info-label">Motor</span><span class="info-val">Pushing up on tummy</span></div>
+      <div class="info-row"><span class="info-label">Social</span><span class="info-val">Big social smiles</span></div>
+      <div class="info-row"><span class="info-label">Communication</span><span class="info-val">Cooing &amp; vocalizing</span></div>
+      <div class="info-row"><span class="info-label">Sleep</span><span class="info-val">14–17 hrs/day</span></div>
+      <div class="info-row"><span class="info-label">Feeding</span><span class="info-val">Every 2–4 hours</span></div>
+      <div class="info-row"><span class="info-label">Tummy Time</span><span class="info-val">3–5 sessions/day</span></div>
+    `,
+    cta: 'See Full Timeline'
+  },
+  donor1: {
+    title: 'Sarah M. 👩',
+    sub: '0.8 mi · Brickell · Trust Badge Verified',
+    content: `
+      <div class="info-row"><span class="info-label">Price</span><span class="info-val">$1.50/oz</span></div>
+      <div class="info-row"><span class="info-label">Supply</span><span class="info-val">~200 oz available</span></div>
+      <div class="info-row"><span class="info-label">Diet</span><span class="info-val">Dairy-free, no caffeine</span></div>
+      <div class="info-row"><span class="info-label">Medications</span><span class="info-val">None</span></div>
+      <div class="info-row"><span class="info-label">Bloodwork</span><span class="info-val">Linked ✓</span></div>
+    `,
+    cta: 'Message Sarah'
+  },
+  donor2: {
+    title: 'Maria L. 👩‍🦱',
+    sub: '1.2 mi · Coral Gables · Bloodwork Verified',
+    content: `
+      <div class="info-row"><span class="info-label">Price</span><span class="info-val">$1.00/oz</span></div>
+      <div class="info-row"><span class="info-label">Supply</span><span class="info-val">~150 oz available</span></div>
+      <div class="info-row"><span class="info-label">Diet</span><span class="info-val">Balanced, organic</span></div>
+      <div class="info-row"><span class="info-label">Medications</span><span class="info-val">Prenatal vitamins only</span></div>
+      <div class="info-row"><span class="info-label">Bloodwork</span><span class="info-val">Linked ✓</span></div>
+    `,
+    cta: 'Message Maria'
+  },
+  donor3: {
+    title: 'Jess T. 👱‍♀️',
+    sub: '2.1 mi · Coconut Grove · Trust Badge Verified',
+    content: `
+      <div class="info-row"><span class="info-label">Price</span><span class="info-val">$0.75/oz</span></div>
+      <div class="info-row"><span class="info-label">Supply</span><span class="info-val">~300 oz available</span></div>
+      <div class="info-row"><span class="info-label">Diet</span><span class="info-val">Gluten-free</span></div>
+      <div class="info-row"><span class="info-label">Medications</span><span class="info-val">None</span></div>
+    `,
+    cta: 'Message Jess'
+  },
+  becomedonor: {
+    title: 'Become a Donor 🤱',
+    sub: 'Help a mom. Earn ~$1,200/mo.',
+    content: `
+      <div class="info-row"><span class="info-label">Step 1</span><span class="info-val">Complete questionnaire</span></div>
+      <div class="info-row"><span class="info-label">Step 2</span><span class="info-val">Build Trust Badge</span></div>
+      <div class="info-row"><span class="info-label">Step 3</span><span class="info-val">Post private listing</span></div>
+      <div class="info-row"><span class="info-label">Step 4</span><span class="info-val">Connect &amp; exchange</span></div>
+      <div class="info-row"><span class="info-label">You Earn</span><span class="info-val" style="color:var(--rust);">~$1,200/mo</span></div>
+    `,
+    cta: 'Start Questionnaire'
+  },
+  ibclc: {
+    title: 'Book IBCLC 🤱',
+    sub: 'Lactation Consultant · $85/session',
+    content: `
+      <div class="info-row"><span class="info-label">Format</span><span class="info-val">Telehealth or in-person</span></div>
+      <div class="info-row"><span class="info-label">Duration</span><span class="info-val">60 minutes</span></div>
+      <div class="info-row"><span class="info-label">Next Available</span><span class="info-val" style="color:var(--olive);">Today, 3:00 PM</span></div>
+      <div class="info-row"><span class="info-label">Price</span><span class="info-val">$85 (vs $250 elsewhere)</span></div>
+    `,
+    cta: 'Confirm Booking · $85'
+  },
+  doula: {
+    title: 'Book Postpartum Doula 🤝',
+    sub: 'In-person or virtual · $70/hr',
+    content: `
+      <div class="info-row"><span class="info-label">Format</span><span class="info-val">In-person or virtual</span></div>
+      <div class="info-row"><span class="info-label">Min. hours</span><span class="info-val">2 hours</span></div>
+      <div class="info-row"><span class="info-label">Next Available</span><span class="info-val" style="color:var(--olive);">Tomorrow, 10:00 AM</span></div>
+      <div class="info-row"><span class="info-label">Price</span><span class="info-val">$70/hr</span></div>
+    `,
+    cta: 'Confirm Booking'
+  },
+  sleep: {
+    title: 'Sleep Coach Program 😴',
+    sub: 'Package-based · $120/package',
+    content: `
+      <div class="info-row"><span class="info-label">Includes</span><span class="info-val">3 sessions + plan</span></div>
+      <div class="info-row"><span class="info-label">Duration</span><span class="info-val">2 weeks</span></div>
+      <div class="info-row"><span class="info-label">Slots</span><span class="info-val" style="color:var(--rust);">2 left this week</span></div>
+      <div class="info-row"><span class="info-label">Price</span><span class="info-val">$120 total</span></div>
+    `,
+    cta: 'Book Package · $120'
+  },
+  dietitian: { title: 'Perinatal Dietitian 🥗', sub: 'Nutrition & feeding support · $95/session', content: `<div class="info-row"><span class="info-label">Format</span><span class="info-val">Telehealth</span></div><div class="info-row"><span class="info-label">Next Available</span><span class="info-val" style="color:var(--olive);">Today, 5:00 PM</span></div><div class="info-row"><span class="info-label">Price</span><span class="info-val">$95/session</span></div>`, cta: 'Book Session · $95' },
+  nurse: { title: 'Night Nurse 🌙', sub: 'Overnight newborn support · $45/hr', content: `<div class="info-row"><span class="info-label">Format</span><span class="info-val">In-person</span></div><div class="info-row"><span class="info-label">Hours</span><span class="info-val">8pm–7am typical</span></div><div class="info-row"><span class="info-label">Price</span><span class="info-val">$45/hr</span></div>`, cta: 'Book Night Nurse' },
+  therapist: { title: 'PPD Therapist 🧠', sub: 'Mental health + PPD support · $110/session', content: `<div class="info-row"><span class="info-label">Format</span><span class="info-val">Telehealth</span></div><div class="info-row"><span class="info-label">Next Available</span><span class="info-val" style="color:var(--olive);">Today, 6:00 PM</span></div><div class="info-row"><span class="info-label">Confidential</span><span class="info-val">Yes ✓</span></div><div class="info-row"><span class="info-label">Price</span><span class="info-val">$110/session</span></div>`, cta: 'Book Session · $110' },
+  room1: { title: 'Miami Moms · Week 10–16 🌿', sub: '24 moms active now · Anonymous mode available', content: `<div class="info-row"><span class="info-label">Members</span><span class="info-val">847 Miami moms</span></div><div class="info-row"><span class="info-label">Stage</span><span class="info-val">Weeks 10–16</span></div><div class="info-row"><span class="info-label">Moderated</span><span class="info-val">Yes ✓</span></div><div class="info-row"><span class="info-label">Anonymous</span><span class="info-val">Optional</span></div>`, cta: 'Join Room' },
+  room2: { title: 'Breastfeeding Support 🤱', sub: 'IBCLC-moderated · 12 active now', content: `<div class="info-row"><span class="info-label">Moderator</span><span class="info-val">Certified IBCLC</span></div><div class="info-row"><span class="info-label">Members</span><span class="info-val">1,240 moms</span></div><div class="info-row"><span class="info-label">Q&A</span><span class="info-val">Daily drop-in</span></div>`, cta: 'Join Room' },
+  room3: { title: 'Postpartum Feelings 💜', sub: 'Always anonymous · Safe space', content: `<div class="info-row"><span class="info-label">Always Anonymous</span><span class="info-val">Yes ✓</span></div><div class="info-row"><span class="info-label">Crisis Resources</span><span class="info-val">Pinned ✓</span></div><div class="info-row"><span class="info-label">Members</span><span class="info-val">562 moms</span></div>`, cta: 'Enter Room' },
+  room4: { title: 'Sleep Sanity Club 😴', sub: 'Sleep coach drops in weekly', content: `<div class="info-row"><span class="info-label">Members</span><span class="info-val">2,100 moms</span></div><div class="info-row"><span class="info-label">Coach Drop-in</span><span class="info-val">Every Wednesday</span></div><div class="info-row"><span class="info-label">Active Now</span><span class="info-val">18 moms</span></div>`, cta: 'Join Room' },
+  event: { title: 'New Moms Meetup 🌸', sub: 'This Saturday · Wynwood · 10am – 12pm', content: `<div class="info-row"><span class="info-label">Location</span><span class="info-val">Wynwood Arts District</span></div><div class="info-row"><span class="info-label">Date</span><span class="info-val">This Saturday 10am</span></div><div class="info-row"><span class="info-label">Cost</span><span class="info-val">Free ✓</span></div><div class="info-row"><span class="info-label">Spots Left</span><span class="info-val">12 of 30</span></div>`, cta: 'RSVP · Free' },
+  webinar: { title: 'Sleep Training 101 🍼', sub: 'Wednesday 8pm · Certified Sleep Coach', content: `<div class="info-row"><span class="info-label">Format</span><span class="info-val">Zoom Webinar</span></div><div class="info-row"><span class="info-label">Date</span><span class="info-val">Wednesday 8:00 PM</span></div><div class="info-row"><span class="info-label">Cost</span><span class="info-val">Free ✓</span></div>`, cta: 'Register · Free' },
+  perks: { title: "Today's Perks 🎁", sub: '10 active discounts for you', content: `<div class="info-row"><span class="info-label">Pampers</span><span class="info-val">20% off diapers</span></div><div class="info-row"><span class="info-label">Nanit</span><span class="info-val">15% off monitor</span></div><div class="info-row"><span class="info-label">Elvie</span><span class="info-val">$30 off pump</span></div><div class="info-row"><span class="info-label">Little Spoon</span><span class="info-val">First box free</span></div>`, cta: 'Claim All Perks' },
+  pampers: { title: 'Pampers 20% Off 🍼', sub: 'Exclusive Village partner deal', content: `<div class="info-row"><span class="info-label">Discount</span><span class="info-val">20% off</span></div><div class="info-row"><span class="info-label">Min. Order</span><span class="info-val">None</span></div><div class="info-row"><span class="info-label">Expires</span><span class="info-val">This Sunday</span></div>`, cta: 'Claim Deal' },
+  nanit: { title: 'Nanit 15% Off 📷', sub: 'Baby monitor deal', content: `<div class="info-row"><span class="info-label">Discount</span><span class="info-val">15% off monitors</span></div><div class="info-row"><span class="info-label">Code</span><span class="info-val">VILLAGE15</span></div>`, cta: 'Copy Code' },
+  elvie: { title: 'Elvie Pump Deal 💧', sub: '$30 off wearable pump', content: `<div class="info-row"><span class="info-label">Discount</span><span class="info-val">$30 off</span></div><div class="info-row"><span class="info-label">Valid</span><span class="info-val">New customers only</span></div>`, cta: 'Claim Deal' },
+  spoon: { title: 'Little Spoon 🥄', sub: 'First box free for Village members', content: `<div class="info-row"><span class="info-label">Deal</span><span class="info-val">First box free</span></div><div class="info-row"><span class="info-label">For</span><span class="info-val">Babies 4mo+</span></div>`, cta: 'Claim Free Box' },
+  gear: { title: 'Baby Gear Exchange 🛒', sub: 'Verified sellers · Local pickup', content: `<div class="info-row"><span class="info-label">Strollers</span><span class="info-val">14 listings nearby</span></div><div class="info-row"><span class="info-label">Bassinets</span><span class="info-val">8 listings nearby</span></div><div class="info-row"><span class="info-label">Pumps</span><span class="info-val">22 listings nearby</span></div><div class="info-row"><span class="info-label">Fee</span><span class="info-val">Free to list ✓</span></div>`, cta: 'Browse All Listings' },
+};
+
+function navTo(tab) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + tab).classList.add('active');
+  document.getElementById('nav-' + tab).classList.add('active');
+  document.getElementById('mainScreen').scrollTop = 0;
+}
+
+function showModal(key) {
+  const m = modals[key];
+  if (!m) return;
+  document.getElementById('modalBody').innerHTML = `
+    <div class="modal-title">${m.title}</div>
+    <div class="modal-sub">${m.sub}</div>
+    ${m.content}
+    <button class="modal-cta" onclick="closeModalDirect()">${m.cta}</button>
+    <button class="modal-secondary" onclick="closeModalDirect()">Close</button>
+  `;
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function closeModal(e) {
+  if (e.target === document.getElementById('modalOverlay')) closeModalDirect();
+}
+function closeModalDirect() {
+  document.getElementById('modalOverlay').classList.remove('open');
+}
+</script>
+</body>
+</html>
