@@ -1,11 +1,10 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Text } from 'react-native';
-
-// Tab screens — stubs, filled in per vertical
-// import HomeScreen from '@screens/home/HomeScreen';
+import { Text, View } from 'react-native';
+import { ExpertsNavigator } from './ExpertsNavigator';
+import HomeScreen from '@screens/home/HomeScreen';
+// Placeholders — replaced as verticals are built:
 // import MilkNavigator from './MilkNavigator';
-// import ExpertsNavigator from './ExpertsNavigator';
 // import ConnectNavigator from './ConnectNavigator';
 // import GearNavigator from './GearNavigator';
 // import MeScreen from '@screens/me/MeScreen';
@@ -42,23 +41,20 @@ export function AppNavigator() {
         },
         tabBarIcon: ({ color }) => {
           const tab = TABS.find((t) => t.name === route.name);
-          return <Text style={{ fontSize: 22 }}>{tab?.icon}</Text>;
+          return <Text style={{ fontSize: 19 }}>{tab?.icon}</Text>;
         },
       })}
     >
-      {TABS.map((tab) => (
-        <Tab.Screen
-          key={tab.name}
-          name={tab.name}
-          component={PlaceholderScreen}
-          options={{ title: tab.name }}
-        />
-      ))}
+      <Tab.Screen name="Home"    component={HomeScreen} options={{ title: 'Home' }} />
+      <Tab.Screen name="Milk"    component={PlaceholderScreen} options={{ title: 'Milk' }} />
+      <Tab.Screen name="Experts" component={ExpertsNavigator} options={{ title: 'Experts' }} />
+      <Tab.Screen name="Connect" component={PlaceholderScreen} options={{ title: 'Connect' }} />
+      <Tab.Screen name="Gear"    component={PlaceholderScreen} options={{ title: 'Gear' }} />
+      <Tab.Screen name="Me"      component={PlaceholderScreen} options={{ title: 'Me' }} />
     </Tab.Navigator>
   );
 }
 
-// Temporary placeholder — replaced as each vertical is built
 function PlaceholderScreen() {
-  return null;
+  return <View style={{ flex: 1, backgroundColor: '#F5F0E8' }} />;
 }

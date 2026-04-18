@@ -81,4 +81,5 @@ V1 fully live → V2 → V3 → V4+Home. Never start next vertical until current
 |---|---|---|
 | Phase 0 | ✅ Done | Monorepo, Expo, Supabase config, shared types |
 | Phase 1 | ✅ Done | Splash, Onboarding (3 slides), SignUp, Login, ForgotPassword, OnboardingProfile |
-| Phase 2 | 🔴 Next | Specialist search: seed data, geo-query, List + Map + Profile screens |
+| Phase 2 | ✅ Done | specialists_near RPC, API layer, Zustand store, ExpertsHome + SpecialistProfile + ReviewCard |
+| Phase 3 | 🔴 Next | Favorites + ReviewSubmit (rating UI, optimistic updates, rating recalculation trigger) |
