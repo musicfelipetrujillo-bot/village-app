@@ -1,0 +1,2 @@
+-- 005_v2_milk_rls — see docs/MASTER_PLAN.md for full schema
+-- TODO: implement when vertical is ready to build

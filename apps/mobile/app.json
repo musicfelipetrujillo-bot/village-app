@@ -1,0 +1,68 @@
+{
+  "expo": {
+    "name": "The Village",
+    "slug": "the-village-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#F5F0E8"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.thevillage.app",
+      "buildNumber": "1",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "The Village uses your location to find nearby donors, specialists, and events.",
+        "NSLocationAlwaysUsageDescription": "The Village uses your location to find nearby donors, specialists, and events.",
+        "NSCameraUsageDescription": "Used to take profile photos and gear listing photos.",
+        "NSPhotoLibraryUsageDescription": "Used to upload profile photos and gear listing photos.",
+        "NSUserNotificationsUsageDescription": "Notifications for appointments, new donors, and community messages."
+      }
+    },
+    "android": {
+      "package": "com.thevillage.app",
+      "versionCode": 1,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#F5F0E8"
+      },
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE"
+      ]
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/notification-icon.png",
+          "color": "#B85C38"
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "The Village uses your location to find nearby donors, specialists, and events."
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "eas": {
+        "projectId": "your-eas-project-id"
+      }
+    }
+  }
+}

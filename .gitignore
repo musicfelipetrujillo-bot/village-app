@@ -1,12 +1,46 @@
 node_modules/
+.pnpm-store/
+
+# Environment
 .env
 .env.local
 .env.*.local
-*.log
-.DS_Store
-dist/
-build/
+!.env.example
+
+# Expo / React Native
 .expo/
+dist/
+web-build/
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+
+# Supabase
+supabase/.branches
+supabase/.temp
+
+# Build outputs
+build/
+dist/
+
+# Turbo
 .turbo/
-supabase/.temp/
-*.orig
+
+# OS
+.DS_Store
+*.log
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# TypeScript
+*.tsbuildinfo

@@ -1,0 +1,2 @@
+-- 012_v4_gear — see docs/MASTER_PLAN.md for full schema
+-- TODO: implement when vertical is ready to build

@@ -1,0 +1,2 @@
+-- 010_v4_events — see docs/MASTER_PLAN.md for full schema
+-- TODO: implement when vertical is ready to build

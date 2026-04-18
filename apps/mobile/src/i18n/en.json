@@ -1,0 +1,51 @@
+{
+  "home": {
+    "greeting": "Good morning,",
+    "quickAccess": "Quick Access",
+    "milkConnect": "Milk Connect",
+    "milkConnectSub": "donors nearby",
+    "bookSpecialist": "Book Specialist",
+    "bookSpecialistSub": "Available today · EN/ES",
+    "askVillage": "Ask The Village",
+    "askVillageSub": "Bilingual AI · Always on",
+    "villageChat": "Village Chat",
+    "villageChatSub": "moms active now",
+    "gearSwap": "Baby Gear Swap",
+    "gearSwapSub": "listings near you · CPSC-checked"
+  },
+  "milk": {
+    "title": "Milk Connect",
+    "subtitle": "Matched to your neighborhood",
+    "donorsNearYou": "Donors Near You",
+    "becomeDonar": "Become a Donor 🤱",
+    "becomeDonorSub": "Earn ~$1,200/mo · 5-min questionnaire",
+    "disclaimer": "Always consult your pediatrician before using donor milk."
+  },
+  "experts": {
+    "title": "Specialists",
+    "subtitle": "Verified · Near Miami · EN & ES"
+  },
+  "connect": {
+    "title": "Connect",
+    "subtitle": "Ask AI · Community rooms · Events near you",
+    "tabAI": "Ask AI",
+    "tabCommunity": "Community",
+    "tabEvents": "Events"
+  },
+  "gear": {
+    "title": "Baby Gear Swap",
+    "subtitle": "CPSC-checked · Local pickup · Moms only"
+  },
+  "me": {
+    "title": "Me",
+    "preferences": "My Preferences",
+    "account": "My Account",
+    "crisisTitle": "Crisis Resources · Always Available"
+  },
+  "crisis": {
+    "mentalHealth": "Mental health crisis: text or call 988",
+    "psi": "PSI Postpartum helpline: (800) 944-4773",
+    "miami": "Miami-Dade crisis line: (305) 358-4357",
+    "emergency": "Emergency: 911"
+  }
+}

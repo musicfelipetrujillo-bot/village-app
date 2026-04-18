@@ -1,7 +1,7 @@
 # The Village App — Complete Master Plan
 ## All 4 Verticals + Home Dashboard
 
-> Source of truth: `/Users/felipetrujillo/Desktop/village-app.html`
+> Source of truth: `/Users/gp/Desktop/The Village/the-village-app-v2.html`
 > Implementation order: V1 → V2 → V3 → V4+Home (one vertical live before starting next)
 
 ---
@@ -10,13 +10,16 @@
 
 The Village is a maternal health platform for moms (expecting + postpartum). 5-tab mobile app:
 
-| Tab | Vertical | Core Function |
-|---|---|---|
-| 🏠 Home | Dashboard | Milestone tracker, quick access, personalized feed |
-| 🤱 Milk | V2 — Milk Connect | Peer breast milk donor marketplace |
-| 🩺 Experts | V1 — Specialist Directory | Find & book OB/GYN, Doula, Midwife, etc. |
-| 💬 Village | V3 — Community Rooms | Live, moderated chat rooms by stage |
-| ✦ Discover | V4 — Discover | Events, brand perks, baby gear exchange |
+| Tab | Icon | Vertical | Core Function |
+|---|---|---|---|
+| Home | 🏠 | Dashboard | Milestone card, quick access grid, baby snapshot, events, perks |
+| Milk | 🤱 | V2 — Milk Connect | Peer breast milk donor marketplace |
+| Experts | 🩺 | V1 — Specialist Directory | Find & book specialists (9 types) |
+| Connect | 💬 | V3 — Community + AI + Events | 3-way toggle: AI chat / community rooms / events |
+| Gear | 🛒 | V4 — Gear Marketplace | Baby gear exchange (CPSC-checked, own tab) |
+| Me | 👤 | Profile | Baby card, settings, crisis resources |
+
+> **v2 nav change:** 6 tabs (was 5). Gear promoted to own tab. Village+AI+Events merged into Connect. Discover retired as a separate tab. Me is now a dedicated tab.
 
 ---
 
@@ -81,7 +84,8 @@ CREATE TABLE specialists (
   npi_verified BOOLEAN DEFAULT FALSE, npi_verified_at TIMESTAMPTZ,
   full_name TEXT NOT NULL, credentials TEXT NOT NULL,
   specialty TEXT NOT NULL CHECK (specialty IN (
-    'ob_gyn','midwife','doula','lactation_consultant','pediatrician')),
+    'ob_gyn','midwife','doula','lactation_consultant','pediatrician',
+    'sleep_coach','pelvic_floor_pt','perinatal_dietitian','ppd_therapist')),
   bio TEXT, photo_url TEXT, practice_name TEXT,
   address_line1 TEXT, city TEXT, state TEXT, zip_code TEXT,
   lat DECIMAL(10,7), lng DECIMAL(10,7),
@@ -189,12 +193,17 @@ CREATE TABLE npi_cache (
 ```
 AuthStack: Splash → Onboarding (3-step) → SignUp → Login → ForgotPassword → OnboardingProfile
 
-AppNavigator (Bottom Tabs):
-├── Search Tab
-│   ├── SearchHomeScreen       (search bar + specialty pills + AI match entry)
+AppNavigator (6 Bottom Tabs — v2):
+├── Home Tab (🏠)
+│   ├── HomeScreen             (greeting, HeroMilestoneCard, QuickAccessGrid ×5,
+│   │                           BabySnapshotCard, EventsRow, PerksRow)
+│   └── → deep links to Milk / Experts / Connect / Gear tabs
+│
+├── Milk Tab (🤱) → V2 screens (see V2 section)
+│
+├── Experts Tab (🩺)
+│   ├── ExpertsHomeScreen      (filter chips + specialist cards)
 │   ├── FilterScreen           (language, insurance, telehealth, distance)
-│   ├── ResultsListScreen      (sorted SpecialistCards)
-│   ├── ResultsMapScreen       (Google Maps + specialty-colored pins)
 │   ├── SpecialistProfileScreen ← HIGHEST TRAFFIC
 │   │   ├── ProfileHeroSection (avatar, name, credentials, telehealth badge)
 │   │   ├── ActionBar (Favorite ♥ | Book | Message | Share)
@@ -207,10 +216,33 @@ AppNavigator (Bottom Tabs):
 │   ├── BookingConfirmScreen
 │   ├── ReviewSubmitScreen
 │   └── MessagingScreen
-├── My Village Tab → FavoritesScreen (saved providers grid)
-├── Appointments Tab → List → Detail → TelehealthLaunch (WebView)
-├── AI Assistant Tab → AIHome → Match | Triage | ProfileQA → AIConversation
-└── Profile Tab → Profile → Edit → Insurance → Language (en/es/ht) → Notifications → Account
+│
+├── Connect Tab (💬)  ← 3-way toggle: AI / Community / Events
+│   ├── ConnectScreen
+│   │   ├── [AI view]          AI card + quick questions + specialist-reviewed guides
+│   │   ├── [Community view]   Room cards (stage-matched, topic, support, ES)
+│   │   └── [Events view]      Event cards (geo-filtered, in-person + virtual)
+│   ├── AIConversationScreen
+│   ├── RoomChatScreen         (V3 — see V3 section)
+│   └── EventDetailScreen + RsvpConfirmScreen
+│
+├── Gear Tab (🛒)  ← V4 Gear Marketplace (own tab)
+│   ├── GearBrowseScreen       (CPSC safety banner, category chips, listing cards)
+│   ├── GearListingDetailScreen
+│   ├── GearSellerProfileScreen
+│   ├── GearMessageThreadScreen
+│   ├── CreateListingScreen
+│   ├── GearCheckoutScreen     (Stripe PaymentSheet + buyer protection)
+│   └── MyListingsScreen
+│
+└── Me Tab (👤)
+    ├── MeScreen               (profile hero, baby card, settings sections,
+    │                           crisis resources always pinned at bottom)
+    ├── EditProfileScreen
+    ├── BabyProfileScreen
+    ├── LanguageScreen         (EN / ES)
+    ├── PrivacyScreen
+    └── HelpScreen
 ```
 
 ## V1 — 7 AI Skills (Claude Haiku)
@@ -923,23 +955,24 @@ village-app/
 │   ├── mobile/src/
 │   │   ├── screens/
 │   │   │   ├── auth/           (Splash, Onboarding, SignUp, Login, ForgotPassword, OnboardingProfile)
-│   │   │   ├── search/         (V1: SearchHome, Filter, ResultsList, ResultsMap, SpecialistProfile,
+│   │   │   ├── home/           (Home, MilestoneDetail, MilestoneTimeline,
+│   │   │   │                        BabyProfileSetup, DailyCheckin, CheckinResponse)
+│   │   │   ├── experts/        (V1: ExpertsHome, Filter, SpecialistProfile,
 │   │   │   │                        Booking, Payment, BookingConfirm, ReviewSubmit, Messaging)
 │   │   │   ├── milk/           (V2: MilkConnectHome, DonorMap, DonorSearch, DonorProfile,
 │   │   │   │                        SavedDonors, DonorDashboard, DonorListings, DonorOrders,
 │   │   │   │                        BecomeDonorIntro, DonorQuestionnaire, TrustBadgeBuilder,
 │   │   │   │                        CreateListing, StripeOnboarding, MessageThreads, MessageDetail)
-│   │   │   ├── community/      (V3: CommunityHome, RoomChat, RoomInfo, AnonymousOnboarding,
-│   │   │   │                        ExpertEvent, ModeratorDashboard, CrisisFlagDetail, RoomSearch)
-│   │   │   ├── home/           (V4: Home, MilestoneDetail, MilestoneTimeline,
-│   │   │   │                        BabyProfileSetup, DailyCheckin, CheckinResponse)
-│   │   │   └── discover/       (V4: DiscoverHome, EventsList, EventDetail, WebinarDetail,
-│   │   │                            RsvpConfirm, MyRsvps, PerksList, PerkDetail, PerkClaim,
-│   │   │                            MyClaims, GearBrowse, GearListingDetail, GearSellerProfile,
-│   │   │                            GearMessageThread, CreateListing, GearCheckout, MyListings)
+│   │   │   ├── connect/        (V3+AI+Events: ConnectHome, AIConversation,
+│   │   │   │                        RoomChat, RoomInfo, AnonymousOnboarding,
+│   │   │   │                        ExpertEvent, ModeratorDashboard, CrisisFlagDetail,
+│   │   │   │                        EventDetail, RsvpConfirm, MyRsvps)
+│   │   │   ├── gear/           (V4: GearBrowse, GearListingDetail, GearSellerProfile,
+│   │   │   │                        GearMessageThread, CreateListing, GearCheckout, MyListings)
+│   │   │   └── me/             (MeScreen, EditProfile, BabyProfile, Language, Privacy, Help)
 │   │   ├── components/         (shared + per-vertical component folders)
 │   │   ├── navigation/         (RootNavigator, AuthStack, AppNavigator + all stack navigators)
-│   │   ├── store/              (Zustand: auth, user, search, favorites, ai, milk, community, discover)
+│   │   ├── store/              (Zustand: auth, user, experts, favorites, ai, milk, connect, gear, me)
 │   │   ├── hooks/              (per-vertical hook files)
 │   │   ├── api/                (per-resource API fetch wrappers)
 │   │   ├── utils/              (distance, formatters, validators, crisisDeeplinks, constants)

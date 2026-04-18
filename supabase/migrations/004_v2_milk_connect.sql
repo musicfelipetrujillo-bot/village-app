@@ -1,0 +1,2 @@
+-- 004_v2_milk_connect — see docs/MASTER_PLAN.md for full schema
+-- TODO: implement when vertical is ready to build

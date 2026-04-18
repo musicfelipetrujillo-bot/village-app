@@ -1,0 +1,2 @@
+-- 007_v3_community_rls — see docs/MASTER_PLAN.md for full schema
+-- TODO: implement when vertical is ready to build

@@ -1,0 +1,51 @@
+{
+  "home": {
+    "greeting": "Buenos días,",
+    "quickAccess": "Acceso rápido",
+    "milkConnect": "Leche Materna",
+    "milkConnectSub": "donadoras cerca",
+    "bookSpecialist": "Reservar especialista",
+    "bookSpecialistSub": "Disponible hoy · EN/ES",
+    "askVillage": "Preguntar al Village",
+    "askVillageSub": "IA bilingüe · Siempre activa",
+    "villageChat": "Chat del Village",
+    "villageChatSub": "mamás activas ahora",
+    "gearSwap": "Intercambio de artículos",
+    "gearSwapSub": "artículos cerca · Verificados CPSC"
+  },
+  "milk": {
+    "title": "Leche Materna",
+    "subtitle": "Adaptado a tu vecindario",
+    "donorsNearYou": "Donadoras cercanas",
+    "becomeDonar": "Conviértete en donadora 🤱",
+    "becomeDonorSub": "Gana ~$1,200/mes · Cuestionario de 5 min",
+    "disclaimer": "Siempre consulta a tu pediatra antes de usar leche de donadora."
+  },
+  "experts": {
+    "title": "Especialistas",
+    "subtitle": "Verificados · Cerca de Miami · EN y ES"
+  },
+  "connect": {
+    "title": "Conectar",
+    "subtitle": "Preguntar a IA · Salas de comunidad · Eventos",
+    "tabAI": "Preguntar IA",
+    "tabCommunity": "Comunidad",
+    "tabEvents": "Eventos"
+  },
+  "gear": {
+    "title": "Intercambio de artículos",
+    "subtitle": "Verificados CPSC · Recogida local · Solo mamás"
+  },
+  "me": {
+    "title": "Yo",
+    "preferences": "Mis preferencias",
+    "account": "Mi cuenta",
+    "crisisTitle": "Recursos de crisis · Siempre disponibles"
+  },
+  "crisis": {
+    "mentalHealth": "Crisis de salud mental: llama o escribe al 988",
+    "psi": "Línea de ayuda PSI: (800) 944-4773",
+    "miami": "Línea de crisis Miami-Dade: (305) 358-4357",
+    "emergency": "Emergencia: 911"
+  }
+}

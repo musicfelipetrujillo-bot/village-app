@@ -2,16 +2,26 @@
 
 ## What This Is
 A maternal health platform for expecting and postpartum moms. 4 verticals built sequentially:
-- **V1 Specialists** (🩺) — Find & book OB/GYN, Doula, Midwife, Lactation, Pediatrician
+- **V1 Specialists** (🩺) — Find & book OB/GYN, Doula, Midwife, Lactation, Pediatrician, Sleep Coach, Pelvic Floor PT, Perinatal Dietitian, PPD Therapist
 - **V2 Milk Connect** (🤱) — Peer breast milk donor marketplace
 - **V3 Community** (💬) — Live moderated chat rooms by pregnancy stage
-- **V4 Discover + Home** (✦/🏠) — Events, brand perks, gear exchange, milestone tracker
+- **V4 Gear + Home** (🛒/🏠) — Gear marketplace, events, brand perks, milestone tracker
+
+## Navigation (6 tabs — v2)
+| Tab | Icon | Content |
+|---|---|---|
+| Home | 🏠 | Milestone card, quick access grid, baby snapshot, events, perks |
+| Milk | 🤱 | V2 — Milk Connect donor marketplace |
+| Experts | 🩺 | V1 — Specialist directory & booking |
+| Connect | 💬 | AI chat + Community rooms + Events (3-way toggle) |
+| Gear | 🛒 | V4 — Baby gear marketplace (CPSC-checked) |
+| Me | 👤 | Profile, baby card, settings, crisis resources |
 
 ## Full Plan
 See `docs/MASTER_PLAN.md` — contains all DB schemas, API routes, screens, AI skills, and build sequences for all 4 verticals.
 
 ## UI Reference
-See `docs/prototype.html` — open in browser. This is the source of truth for all UI, colors, navigation, and copy.
+See `/Users/gp/Desktop/The Village/the-village-app-v2.html` — open in browser. This is the source of truth for all UI, colors, navigation, and copy. **v2 is canonical — supersedes any prior prototype.**
 
 ## Tech Stack
 - **Mobile**: React Native + Expo (managed workflow)
@@ -35,8 +45,10 @@ See `docs/prototype.html` — open in browser. This is the source of truth for a
 --brown-deep: #2C1A0E
 --brown-mid:  #4A2E1A
 --olive:      #5C6B3A
+--olive-light: #7A8A50
 --gold:       #C4A35A
 --text-dark:  #1C1008
+--text-mid:   #5A3E28
 --text-light: #9A8070
 --white:      #FDFAF5
 
