@@ -1,0 +1,127 @@
+name: Supabase scheduled crons
+
+# Replaces the pg_cron HTTP-callout schedules from migrations 014/023/025/039
+# (left in place as no-ops on hosted Free Tier — they fail silently because
+# `app.supabase_url` and `app.service_role_key` GUCs require superuser-only
+# `ALTER DATABASE` which Supabase Free Tier locks). This workflow is the
+# operational executor of those schedules until we either upgrade to Pro+
+# (where Supabase support unlocks the GUCs) or refactor to Supabase Vault.
+#
+# Pure SQL pg_cron jobs — `daily-checkin-reminder` (mig 025) and
+# `presence-cleanup` (mig 014, currently commented out) — continue to run
+# in pg_cron because they don't make HTTP calls and don't need the GUCs.
+#
+# `room-weekly-summaries-sunday` (mig 028) is intentionally NOT listed here:
+# the Connect tab is hidden by product decision (see project memory
+# `feedback_connect_tab_hidden.md`); re-add when V3 ships.
+#
+# Required GitHub Secrets (Settings → Secrets and variables → Actions):
+#   SUPABASE_PROJECT_REF        — e.g. albyndcruwopulazvpjs
+#   SUPABASE_SERVICE_ROLE_KEY   — service-role JWT from Supabase dashboard
+
+on:
+  schedule:
+    # Times in UTC. Match the original pg_cron schedules exactly.
+    - cron: '*/30 * * * *'   # appointment-reminders   (was */15; bumped to */30 to stay within GH Actions free-tier minute cap; reminder windows are ±30min so SMS still arrives <30min before the appointment)
+    - cron: '0 7 * * *'      # review-summary-refresh   (3am ET)
+    - cron: '10 5 * * 0'     # ai-milestone-explainer-weekly (Sunday 00:10 ET)
+    - cron: '10 9 * * *'     # home-feed-curator-daily  (05:10 ET)
+    - cron: '0 6 * * *'      # gear-cpsc-recall-sync    (02:00 ET)
+    - cron: '0 4 * * *'      # ai-weekly-journey-fill-nightly (00:00 ET)
+  workflow_dispatch:
+    inputs:
+      function:
+        description: 'Function name to invoke on-demand'
+        required: true
+        type: choice
+        options:
+          - appointment-reminder
+          - refresh-stale-summaries
+          - ai-milestone-explainer
+          - home-feed-curator
+          - gear-cpsc-recall-sync
+          - ai-weekly-journey-fill
+      body:
+        description: 'JSON body to send (defaults to {} or per-function default)'
+        required: false
+        default: ''
+
+permissions:
+  contents: read
+
+jobs:
+  invoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Route schedule to function
+        id: route
+        env:
+          SCHEDULE: ${{ github.event.schedule }}
+          DISPATCH_FN: ${{ github.event.inputs.function }}
+          DISPATCH_BODY: ${{ github.event.inputs.body }}
+        run: |
+          set -euo pipefail
+          # workflow_dispatch path
+          if [ -n "${DISPATCH_FN}" ]; then
+            FN="${DISPATCH_FN}"
+            BODY="${DISPATCH_BODY:-}"
+          else
+            case "${SCHEDULE}" in
+              '*/30 * * * *') FN='appointment-reminder';     BODY='{}' ;;
+              '0 7 * * *')     FN='refresh-stale-summaries';  BODY='{}' ;;
+              '10 5 * * 0')    FN='ai-milestone-explainer';   BODY='{}' ;;
+              '10 9 * * *')    FN='home-feed-curator';        BODY='{"mode":"batch"}' ;;
+              '0 6 * * *')     FN='gear-cpsc-recall-sync';    BODY='{}' ;;
+              '0 4 * * *')     FN='ai-weekly-journey-fill';   BODY='{"mode":"missing","limit":5}' ;;
+              *)
+                echo "::error::Unknown schedule: ${SCHEDULE}"
+                exit 1
+                ;;
+            esac
+          fi
+          # Default body if dispatch didn't pass one
+          if [ -z "${BODY}" ]; then
+            case "${FN}" in
+              'home-feed-curator')        BODY='{"mode":"batch"}' ;;
+              'ai-weekly-journey-fill')   BODY='{"mode":"missing","limit":5}' ;;
+              *)                          BODY='{}' ;;
+            esac
+          fi
+          echo "fn=${FN}"   >> "$GITHUB_OUTPUT"
+          echo "body=${BODY}" >> "$GITHUB_OUTPUT"
+          echo "Will invoke: ${FN} with body ${BODY}"
+
+      - name: Invoke Supabase Edge Function
+        env:
+          PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+          SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          FN: ${{ steps.route.outputs.fn }}
+          BODY: ${{ steps.route.outputs.body }}
+        run: |
+          set -euo pipefail
+          if [ -z "${PROJECT_REF}" ] || [ -z "${SERVICE_ROLE_KEY}" ]; then
+            echo "::error::SUPABASE_PROJECT_REF and SUPABASE_SERVICE_ROLE_KEY must be set as repo secrets"
+            exit 1
+          fi
+          URL="https://${PROJECT_REF}.supabase.co/functions/v1/${FN}"
+          # Capture body + http status; print body for log visibility.
+          # `--max-time 240` keeps us inside Supabase Edge Function 60s wall
+          # time (4x cushion for long-tail retries) and inside the job's
+          # 5min timeout-minutes guard.
+          HTTP=$(curl -sS -o /tmp/resp.json -w '%{http_code}' \
+            --max-time 240 \
+            -X POST "${URL}" \
+            -H "Authorization: Bearer ${SERVICE_ROLE_KEY}" \
+            -H "Content-Type: application/json" \
+            -d "${BODY}" || echo "000")
+          echo "HTTP ${HTTP}"
+          echo '--- response ---'
+          cat /tmp/resp.json || true
+          echo
+          # 2xx is success; non-2xx fails the job so it shows red in the
+          # Actions tab and triggers email/notification per repo settings.
+          case "${HTTP}" in
+            2*) exit 0 ;;
+            *)  echo "::error::Function ${FN} returned HTTP ${HTTP}"; exit 1 ;;
+          esac
