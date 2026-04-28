@@ -24,10 +24,13 @@ on:
     # Times in UTC. Match the original pg_cron schedules exactly.
     - cron: '*/30 * * * *'   # appointment-reminders   (was */15; bumped to */30 to stay within GH Actions free-tier minute cap; reminder windows are ±30min so SMS still arrives <30min before the appointment)
     - cron: '0 7 * * *'      # review-summary-refresh   (3am ET)
-    - cron: '10 5 * * 0'     # ai-milestone-explainer-weekly (Sunday 00:10 ET)
+    - cron: '10 5 * * *'     # ai-milestone-explainer-nightly (00:10 ET) — drips 5 stale rows/night to fit under 60s edge-fn wall
     - cron: '10 9 * * *'     # home-feed-curator-daily  (05:10 ET)
     - cron: '0 6 * * *'      # gear-cpsc-recall-sync    (02:00 ET)
     - cron: '0 4 * * *'      # ai-weekly-journey-fill-nightly (00:00 ET)
+    - cron: '0 9 * * *'      # events-ingest-ics-daily  (05:00 ET) — pull partner ICS feeds
+    - cron: '30 9 * * *'     # ai-event-screen-sweep    (05:30 ET) — Haiku-screen newly-ingested events
+    - cron: '45 9 * * *'     # events-geocode-sweep     (05:45 ET) — geocode any text-only LOCATION rows
   workflow_dispatch:
     inputs:
       function:
@@ -41,6 +44,9 @@ on:
           - home-feed-curator
           - gear-cpsc-recall-sync
           - ai-weekly-journey-fill
+          - events-ingest-ics
+          - ai-event-screen
+          - events-geocode
       body:
         description: 'JSON body to send (defaults to {} or per-function default)'
         required: false
@@ -70,10 +76,13 @@ jobs:
             case "${SCHEDULE}" in
               '*/30 * * * *') FN='appointment-reminder';     BODY='{}' ;;
               '0 7 * * *')     FN='refresh-stale-summaries';  BODY='{}' ;;
-              '10 5 * * 0')    FN='ai-milestone-explainer';   BODY='{}' ;;
+              '10 5 * * *')    FN='ai-milestone-explainer';   BODY='{"mode":"stale","limit":5}' ;;
               '10 9 * * *')    FN='home-feed-curator';        BODY='{"mode":"batch"}' ;;
               '0 6 * * *')     FN='gear-cpsc-recall-sync';    BODY='{}' ;;
               '0 4 * * *')     FN='ai-weekly-journey-fill';   BODY='{"mode":"missing","limit":5}' ;;
+              '0 9 * * *')     FN='events-ingest-ics';        BODY='{"mode":"all"}' ;;
+              '30 9 * * *')    FN='ai-event-screen';          BODY='{"mode":"all","limit":50}' ;;
+              '45 9 * * *')    FN='events-geocode';           BODY='{"mode":"all","limit":50}' ;;
               *)
                 echo "::error::Unknown schedule: ${SCHEDULE}"
                 exit 1
@@ -85,6 +94,10 @@ jobs:
             case "${FN}" in
               'home-feed-curator')        BODY='{"mode":"batch"}' ;;
               'ai-weekly-journey-fill')   BODY='{"mode":"missing","limit":5}' ;;
+              'ai-milestone-explainer')   BODY='{"mode":"stale","limit":5}' ;;
+              'events-ingest-ics')        BODY='{"mode":"all"}' ;;
+              'ai-event-screen')          BODY='{"mode":"all","limit":50}' ;;
+              'events-geocode')           BODY='{"mode":"all","limit":50}' ;;
               *)                          BODY='{}' ;;
             esac
           fi
