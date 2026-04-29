@@ -5,6 +5,10 @@ node_modules/
 .env
 .env.local
 .env.*.local
+.env.*-bak
+.env.backup-*
+.env.*.backup
+ALL_DOCS.txt
 !.env.example
 
 # Expo / React Native

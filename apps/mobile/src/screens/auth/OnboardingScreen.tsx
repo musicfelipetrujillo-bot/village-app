@@ -1,13 +1,21 @@
 // Onboarding — 3 slides matching v2 prototype
 // Slide 0: Welcome  Slide 1: Language  Slide 2: Location
+//
+// i18n note: copy is read via `useT()`, which falls back to the pre-auth
+// language store (AsyncStorage-backed) until the user signs in. Picking
+// Español on slide 1 writes through `usePreAuthLanguage.setLanguage`, which
+// updates the store synchronously — slides 0 and 2 re-render in the chosen
+// language without leaving the screen.
 import React, { useRef, useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, Dimensions,
-  ScrollView, Animated,
+  ScrollView,
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { COLORS } from '@utils/constants';
+import { COLORS, FONTS } from '@utils/constants';
 import type { AuthStackParamList } from '@/navigation/AuthStack';
+import { useT } from '@/i18n';
+import { usePreAuthLanguage } from '@store/preAuthLanguage';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'Onboarding'>;
 
@@ -15,8 +23,10 @@ const { width } = Dimensions.get('window');
 const SLIDES = ['welcome', 'language', 'location'] as const;
 
 export default function OnboardingScreen({ navigation }: Props) {
+  const t = useT();
+  const selectedLang = usePreAuthLanguage((s) => s.language);
+  const setPreAuthLang = usePreAuthLanguage((s) => s.setLanguage);
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [selectedLang, setSelectedLang] = useState<'en' | 'es'>('en');
   const scrollRef = useRef<ScrollView>(null);
 
   const goNext = () => {
@@ -31,10 +41,20 @@ export default function OnboardingScreen({ navigation }: Props) {
 
   const enterApp = () => navigation.navigate('SignUp', { language: selectedLang });
 
+  // Fire-and-forget so the UI doesn't await AsyncStorage on tap.
+  const pickLang = (lang: 'en' | 'es') => {
+    void setPreAuthLang(lang);
+  };
+
   return (
     <View style={styles.container}>
       {/* Progress dots */}
-      <View style={styles.progressRow}>
+      <View
+        style={styles.progressRow}
+        accessibilityRole="progressbar"
+        accessibilityLabel={`Step ${currentSlide + 1} of ${SLIDES.length}`}
+        accessibilityValue={{ min: 1, max: SLIDES.length, now: currentSlide + 1 }}
+      >
         {SLIDES.map((_, i) => (
           <View
             key={i}
@@ -55,18 +75,27 @@ export default function OnboardingScreen({ navigation }: Props) {
         <View style={styles.slide}>
           <Text style={styles.emoji}>🌿</Text>
           <Text style={styles.title}>
-            Your village is{' '}
-            <Text style={styles.titleAccent}>waiting</Text>
+            {t('onboardingSlides.welcomeTitleLine1')}{' '}
+            <Text style={styles.titleAccent}>{t('onboardingSlides.welcomeTitleAccent')}</Text>
           </Text>
           <Text style={styles.sub}>
-            Breast milk donors · Specialists · Events · Support — all in your Miami
-            neighborhood. En español también.
+            {t('onboardingSlides.welcomeSub')}
           </Text>
-          <TouchableOpacity style={styles.btn} onPress={goNext}>
-            <Text style={styles.btnText}>Get Started</Text>
+          <TouchableOpacity
+            style={styles.btn}
+            onPress={goNext}
+            accessibilityRole="button"
+            accessibilityLabel={t('onboardingSlides.welcomeCtaA11y')}
+          >
+            <Text style={styles.btnText}>{t('onboardingSlides.welcomeCta')}</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.btnSecondary} onPress={() => navigation.navigate('Login')}>
-            <Text style={styles.btnSecondaryText}>I already have an account</Text>
+          <TouchableOpacity
+            style={styles.btnSecondary}
+            onPress={() => navigation.navigate('Login')}
+            accessibilityRole="link"
+            accessibilityLabel={t('onboardingSlides.welcomeHaveAccountA11y')}
+          >
+            <Text style={styles.btnSecondaryText}>{t('onboardingSlides.welcomeHaveAccount')}</Text>
           </TouchableOpacity>
         </View>
 
@@ -74,16 +103,19 @@ export default function OnboardingScreen({ navigation }: Props) {
         <View style={styles.slide}>
           <Text style={styles.emoji}>💬</Text>
           <Text style={styles.title}>
-            Choose your{' '}
-            <Text style={styles.titleAccent}>language</Text>
+            {t('onboardingSlides.languageTitleLine1')}{' '}
+            <Text style={styles.titleAccent}>{t('onboardingSlides.languageTitleAccent')}</Text>
           </Text>
           <Text style={styles.sub}>
-            You can switch anytime.{'\n'}Puedes cambiar cuando quieras.
+            {t('onboardingSlides.languageSub')}
           </Text>
-          <View style={styles.langRow}>
+          <View style={styles.langRow} accessibilityRole="radiogroup">
             <TouchableOpacity
               style={[styles.langOption, selectedLang === 'en' && styles.langSelected]}
-              onPress={() => setSelectedLang('en')}
+              onPress={() => pickLang('en')}
+              accessibilityRole="radio"
+              accessibilityLabel="English"
+              accessibilityState={{ selected: selectedLang === 'en' }}
             >
               <Text style={styles.langFlag}>🇺🇸</Text>
               <Text style={styles.langLabel}>English</Text>
@@ -91,15 +123,23 @@ export default function OnboardingScreen({ navigation }: Props) {
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.langOption, selectedLang === 'es' && styles.langSelected]}
-              onPress={() => setSelectedLang('es')}
+              onPress={() => pickLang('es')}
+              accessibilityRole="radio"
+              accessibilityLabel="Español"
+              accessibilityState={{ selected: selectedLang === 'es' }}
             >
               <Text style={styles.langFlag}>🇨🇴</Text>
               <Text style={styles.langLabel}>Español</Text>
               <Text style={styles.langSub}>ES</Text>
             </TouchableOpacity>
           </View>
-          <TouchableOpacity style={styles.btn} onPress={goNext}>
-            <Text style={styles.btnText}>Continue</Text>
+          <TouchableOpacity
+            style={styles.btn}
+            onPress={goNext}
+            accessibilityRole="button"
+            accessibilityLabel={t('onboardingSlides.languageContinueA11y', { lang: selectedLang === 'en' ? 'English' : 'Español' })}
+          >
+            <Text style={styles.btnText}>{t('onboardingSlides.languageContinue')}</Text>
           </TouchableOpacity>
         </View>
 
@@ -107,23 +147,19 @@ export default function OnboardingScreen({ navigation }: Props) {
         <View style={styles.slide}>
           <Text style={styles.emoji}>📍</Text>
           <Text style={styles.title}>
-            We found your{' '}
-            <Text style={styles.titleAccent}>neighborhood</Text>
+            {t('onboardingSlides.locationTitleLine1')}{' '}
+            <Text style={styles.titleAccent}>{t('onboardingSlides.locationTitleAccent')}</Text>
           </Text>
           <Text style={styles.sub}>
-            Everything in The Village is matched to where you are.
-            Breast milk donors, specialists, and events near you.
+            {t('onboardingSlides.locationSub')}
           </Text>
-          <View style={styles.locationCard}>
-            <Text style={styles.locationCity}>Miami, FL</Text>
-            <Text style={styles.locationState}>Miami-Dade County · Location verified ✓</Text>
-            <Text style={styles.locationNearby}>3 donors · 12 specialists · 2 events nearby</Text>
-          </View>
-          <TouchableOpacity style={styles.btn} onPress={enterApp}>
-            <Text style={styles.btnText}>Enter The Village →</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.btnSecondary} onPress={enterApp}>
-            <Text style={styles.btnSecondaryText}>Set radius preference later</Text>
+          <TouchableOpacity
+            style={styles.btn}
+            onPress={enterApp}
+            accessibilityRole="button"
+            accessibilityLabel={t('onboardingSlides.locationCtaA11y')}
+          >
+            <Text style={styles.btnText}>{t('onboardingSlides.locationCta')}</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -159,14 +195,14 @@ const styles = StyleSheet.create({
   },
   emoji: { fontSize: 72, marginBottom: 24 },
   title: {
-    fontFamily: 'serif',
+    fontFamily: FONTS.header,
     fontSize: 34,
     color: COLORS.textDark,
     lineHeight: 40,
     textAlign: 'center',
     marginBottom: 12,
   },
-  titleAccent: { color: COLORS.rust, fontStyle: 'italic' },
+  titleAccent: { fontFamily: FONTS.headerItalic, color: COLORS.rust },
   sub: {
     fontSize: 15,
     color: COLORS.textLight,
@@ -174,6 +210,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 32,
     maxWidth: 280,
+    fontFamily: FONTS.body,
   },
 
   btn: {
@@ -185,7 +222,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 12,
   },
-  btnText: { color: 'white', fontSize: 16, fontWeight: '700' },
+  btnText: { color: 'white', fontSize: 16, fontFamily: FONTS.bodySemiBold },
   btnSecondary: {
     width: '100%',
     maxWidth: 280,
@@ -195,7 +232,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     alignItems: 'center',
   },
-  btnSecondaryText: { color: COLORS.textLight, fontSize: 14 },
+  btnSecondaryText: { color: COLORS.textLight, fontSize: 14, fontFamily: FONTS.body },
 
   langRow: { flexDirection: 'row', gap: 12, marginBottom: 32, width: '100%', maxWidth: 280 },
   langOption: {
@@ -210,24 +247,6 @@ const styles = StyleSheet.create({
   },
   langSelected: { borderColor: COLORS.rust, backgroundColor: '#FFF0EB' },
   langFlag: { fontSize: 32, marginBottom: 8 },
-  langLabel: { fontSize: 14, fontWeight: '700', color: COLORS.textDark },
-  langSub: { fontSize: 12, color: COLORS.textLight },
-
-  locationCard: {
-    backgroundColor: '#e8f0d8',
-    borderRadius: 18,
-    padding: 24,
-    width: '100%',
-    maxWidth: 280,
-    marginBottom: 28,
-  },
-  locationCity: {
-    fontFamily: 'serif',
-    fontSize: 24,
-    color: COLORS.textDark,
-    fontWeight: '700',
-    marginBottom: 4,
-  },
-  locationState: { fontSize: 14, color: COLORS.textMid, marginBottom: 12 },
-  locationNearby: { fontSize: 12, color: COLORS.olive, fontWeight: '600' },
+  langLabel: { fontSize: 14, fontFamily: FONTS.bodySemiBold, color: COLORS.textDark },
+  langSub: { fontSize: 12, color: COLORS.textLight, fontFamily: FONTS.body },
 });

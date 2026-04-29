@@ -1,7 +1,7 @@
 // Matches v2 prototype specialist card exactly
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { COLORS } from '@utils/constants';
+import { COLORS, FONTS } from '@utils/constants';
 import type { Specialist, SpecialtyType } from 'shared/src/types/v1';
 
 const SPECIALTY_CONFIG: Record<SpecialtyType, { emoji: string; bg: string; label: string }> = {
@@ -37,7 +37,14 @@ export function SpecialistCard({ specialist, onPress }: Props) {
 
       {/* Info */}
       <View style={styles.info}>
-        <Text style={styles.name}>{specialist.full_name}</Text>
+        <View style={styles.nameRow}>
+          <Text style={styles.name}>{specialist.full_name}</Text>
+          {specialist.npi_verified && (
+            <View style={styles.npiBadge}>
+              <Text style={styles.npiBadgeText}>✓ NPI</Text>
+            </View>
+          )}
+        </View>
         <Text style={styles.role}>{config.label} · {distText}</Text>
         {langLabel ? <Text style={styles.lang}>🌐 {langLabel}</Text> : null}
         <Text style={[styles.avail, !specialist.accepting_patients && styles.urgent]}>
@@ -62,43 +69,51 @@ export function SpecialistCard({ specialist, onPress }: Props) {
 }
 
 const styles = StyleSheet.create({
+  // More vertical breathing room — was 16/2-margin rows, now 18/6 so each
+  // line in the info column has space to read instead of stacking tight.
   card: {
     backgroundColor: 'white',
-    borderRadius: 14,
-    padding: 16,
+    borderRadius: 16,
+    paddingVertical: 18,
+    paddingHorizontal: 18,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 14,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06,
-    shadowRadius: 4,
-    elevation: 2,
+    borderWidth: 1,
+    borderColor: 'rgba(0,0,0,0.05)',
   },
   icon: {
-    width: 52,
-    height: 52,
-    borderRadius: 14,
+    width: 56,
+    height: 56,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
   },
-  iconEmoji: { fontSize: 26 },
+  iconEmoji: { fontSize: 28 },
 
   info: { flex: 1 },
-  name: { fontSize: 15, fontWeight: '600', color: COLORS.textDark, marginBottom: 2 },
-  role: { fontSize: 12, color: COLORS.textLight, marginBottom: 2 },
-  lang: { fontSize: 11, color: COLORS.olive, fontWeight: '600', marginBottom: 2 },
-  avail: { fontSize: 11, color: COLORS.olive, fontWeight: '600' },
+  nameRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 6, flexWrap: 'wrap' },
+  name: { fontSize: 16, fontFamily: FONTS.bodySemiBold, color: COLORS.textDark },
+  npiBadge: {
+    backgroundColor: '#EEF2E6',
+    borderRadius: 50,
+    paddingVertical: 2,
+    paddingHorizontal: 7,
+  },
+  npiBadgeText: { fontSize: 9, fontFamily: FONTS.bodySemiBold, color: COLORS.olive, letterSpacing: 0.3 },
+  role: { fontSize: 12, color: COLORS.textLight, marginBottom: 6, fontFamily: FONTS.body, lineHeight: 16 },
+  lang: { fontSize: 11, color: COLORS.olive, fontFamily: FONTS.bodyMedium, marginBottom: 6, lineHeight: 15 },
+  avail: { fontSize: 11, color: COLORS.olive, fontFamily: FONTS.bodyMedium, lineHeight: 15 },
   urgent: { color: COLORS.rust },
 
-  right: { alignItems: 'flex-end', gap: 6, flexShrink: 0 },
-  price: { fontSize: 13, fontWeight: '700', color: COLORS.rust },
+  right: { alignItems: 'flex-end', gap: 8, flexShrink: 0 },
+  price: { fontSize: 13, fontFamily: FONTS.bodySemiBold, color: COLORS.rust },
   bookBtn: {
-    backgroundColor: COLORS.rust,
-    borderRadius: 50,
-    paddingVertical: 7,
-    paddingHorizontal: 14,
+    backgroundColor: COLORS.yolkLight,
+    borderRadius: 999,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
   },
-  bookBtnText: { color: 'white', fontSize: 11, fontWeight: '700' },
+  bookBtnText: { color: COLORS.brownDeep, fontSize: 11, fontFamily: FONTS.bodySemiBold, letterSpacing: 0.3 },
 });

@@ -1,0 +1,664 @@
+import React, { useEffect } from 'react';
+import {
+  View, Text, StyleSheet, ScrollView,
+  TouchableOpacity, ActivityIndicator,
+} from 'react-native';
+import { KenBurnsImage } from '@components/shared/KenBurnsImage';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useAuthStore } from '@store/auth';
+import { useMilkStore } from '@store/milk';
+import { COLORS, FONTS } from '@utils/constants';
+import { useT } from '@/i18n';
+import type { MilkStackParamList } from '@/navigation/MilkNavigator';
+
+type Props = NativeStackScreenProps<MilkStackParamList, 'MilkHome'>;
+
+const BADGE_LABEL_KEYS: Record<string, string> = {
+  none: 'milk.badgeNone',
+  basic: 'milk.badgeBasic',
+  verified: 'milk.badgeVerified',
+  verified_bloodwork: 'milk.badgeVerifiedBloodwork',
+};
+
+const BADGE_COLOR: Record<string, string> = {
+  none: '#9A8070',
+  basic: '#D87530',
+  verified: '#6B7C3F',
+  verified_bloodwork: '#2E7D32',
+};
+
+export default function MilkConnectHomeScreen({ navigation }: Props) {
+  const user = useAuthStore((s) => s.user);
+  const t = useT();
+  const { donorProfile, trustBadge, loading, fetchDonorData } = useMilkStore();
+
+  useEffect(() => {
+    if (user?.id) fetchDonorData(user.id);
+  }, [user?.id]);
+
+  if (loading) {
+    return (
+      <View style={styles.center}>
+        <ActivityIndicator color={COLORS.rust} />
+      </View>
+    );
+  }
+
+  return (
+    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      {/* Magazine-cover hero — full-bleed photo dominates the top of the
+          screen. ActionBar (back + inbox/orders) overlays the top of the
+          photo with cream text on the warm scrim. Bottom of the photo
+          carries the page eyebrow + Playfair italic title + sub. Photo
+          and title are merged into a single block — the photo IS the
+          page header. Slight bottom radius softens the transition into
+          the cream content area below. */}
+      <View style={styles.heroHeader} accessibilityElementsHidden importantForAccessibility="no">
+        {/* Photo: Hu Chen on Unsplash — adult hand cupping baby's hand,
+            faceless intimacy crop. Reads as "connection / quiet
+            generosity" without showing identity. Free commercial.
+            Source: https://unsplash.com/photos/tCbTGNwrFNM */}
+        <KenBurnsImage
+          source={{ uri: 'https://images.unsplash.com/photo-1552819289-824d37ca69d2?w=1200&h=1400&fit=crop&crop=center&q=85' }}
+          style={styles.heroHeaderImage}
+        />
+        {/* Two-layer soft-frost — warm brownDeep scrim + cream haze
+            desaturates the photo into an editorial / watercolor feel
+            without pulling in expo-blur (which would force a native
+            rebuild). The cream layer is what does most of the
+            "frosted" lift; the brown layer keeps text contrast. */}
+        <View style={styles.heroHeaderScrimTop} />
+        <View style={styles.heroHeaderScrimMid} />
+        <View style={styles.heroHeaderScrimBottom} />
+        <View style={styles.heroHeaderHaze} />
+
+        {/* ActionBar overlay — back link + icon buttons. Cream text on
+            the scrim. paddingTop covers iOS safe-area without a SafeArea
+            wrapper since the screen sits inside a stack header-less
+            navigator. */}
+        <View style={styles.heroActionBar}>
+          <TouchableOpacity
+            onPress={() => navigation.getParent()?.navigate('Village' as never)}
+            accessibilityRole="button"
+            accessibilityLabel={t('common.backToVillage')}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <Text style={styles.heroBackText}>{t('common.backToVillage')}</Text>
+          </TouchableOpacity>
+          <View style={styles.heroActionsRight}>
+            <TouchableOpacity
+              style={styles.heroIconBtn}
+              onPress={() => navigation.navigate('MilkOrders')}
+              accessibilityRole="button"
+              accessibilityLabel={t('milk.ordersA11y')}
+            >
+              <Text style={styles.heroIcon}>📦</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.heroIconBtn}
+              onPress={() => navigation.navigate('MilkMessageThreads')}
+              accessibilityRole="button"
+              accessibilityLabel={t('milk.messagesA11y')}
+            >
+              <Text style={styles.heroIcon}>💬</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Magazine-cover copy — page eyebrow + Playfair italic title +
+            sub. Anchored bottom-left like a magazine cover line. */}
+        <View style={styles.heroCopy}>
+          <View style={styles.heroEyebrowRow}>
+            <View style={styles.heroEyebrowBar} />
+            <Text style={styles.heroEyebrowText}>{t('milk.eyebrow')}</Text>
+          </View>
+          <Text style={styles.heroTitle}>{t('milk.homeTitle')}</Text>
+          <Text style={styles.heroSub}>{t('milk.homeSub')}</Text>
+        </View>
+      </View>
+
+      {/* Donor dashboard — quieter, editorial. Playfair italic name + stat,
+          single-line slim badge, two minimal actions. */}
+      {donorProfile && (
+        <View style={styles.dashboardCard}>
+          <View style={styles.dashboardRow}>
+            <View style={styles.dashboardLeft}>
+              <Text style={styles.dashboardName}>{donorProfile.display_name}</Text>
+              <Text
+                style={[
+                  styles.badgeText,
+                  { color: BADGE_COLOR[trustBadge?.badge_level ?? 'none'] },
+                ]}
+              >
+                · {t(BADGE_LABEL_KEYS[trustBadge?.badge_level ?? 'none'])}
+              </Text>
+            </View>
+            <View style={styles.dashboardStats}>
+              <Text style={styles.statValue}>{donorProfile.supply_oz_available}</Text>
+              <Text style={styles.statLabel}>{t('milk.ozAvailable')}</Text>
+            </View>
+          </View>
+          <View style={styles.dashboardActions}>
+            <TouchableOpacity
+              style={styles.dashboardBtn}
+              onPress={() => navigation.navigate('DonorDashboard')}
+            >
+              <Text style={styles.dashboardBtnText}>{t('milk.myDashboard')}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.dashboardBtn, styles.dashboardBtnSecondary]}
+              onPress={() => navigation.navigate('DonorListingManager')}
+            >
+              <Text style={[styles.dashboardBtnText, { color: COLORS.rust }]}>{t('milk.manageListings')}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
+
+      {/* AI Match — soft warm card with a single rust accent dot. Replaces the
+          dark/black variant which fought with the cream editorial palette. */}
+      <TouchableOpacity
+        style={styles.matchCard}
+        onPress={() => navigation.navigate('MilkMatch')}
+        activeOpacity={0.85}
+      >
+        <View style={styles.matchAccent} />
+        <View style={styles.matchTextWrap}>
+          <Text style={styles.matchTitle}>{t('milk.matchTitle')}</Text>
+          <Text style={styles.matchSub}>{t('milk.matchSub')}</Text>
+        </View>
+        <Text style={styles.matchArrow}>→</Text>
+      </TouchableOpacity>
+
+      {/* Magazine-style section break — full-bleed hairline anchors each
+          editorial block so adjacent sections don't visually fuse on cream. */}
+      <View style={styles.sectionDivider} />
+
+      {/* Find a donor — centered editorial card, no thumb. The hero banner
+          above the title carries the imagery for the whole page. */}
+      <View style={styles.section}>
+        <View style={styles.sectionTextCenter}>
+          <View style={styles.eyebrowChipCenter}>
+            <Text style={styles.eyebrowNum}>01</Text>
+            <Text style={styles.eyebrowDash}>—</Text>
+            <Text style={styles.eyebrow}>{t('milk.findDonorEyebrow')}</Text>
+          </View>
+          <Text style={styles.sectionTitleCenter}>{t('milk.findDonorTitle')}</Text>
+          <Text style={styles.sectionBodyCenter}>{t('milk.findDonorBody')}</Text>
+        </View>
+        <View style={styles.browseRow}>
+          <TouchableOpacity
+            style={[styles.primaryBtn, { flex: 1 }]}
+            onPress={() => navigation.navigate('DonorSearchList')}
+          >
+            <Text style={styles.primaryBtnText}>{t('milk.browseNearby')}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.savedBtn}
+            onPress={() => navigation.navigate('SavedDonors')}
+          >
+            <Text style={styles.savedBtnText}>{t('milk.saved')}</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      {/* Become a donor — quiet typed numbered list, no rust circles.
+          Inline "02 — LABEL" eyebrow matches section 01 (reference-UI
+          editorial pattern: italic numeral + em-dash + small caps). */}
+      {!donorProfile && <View style={styles.sectionDivider} />}
+      {!donorProfile && (
+        <View style={styles.becomeDonorCard}>
+          <View style={styles.sectionTextCenter}>
+            <View style={styles.eyebrowChipCenter}>
+              <Text style={styles.eyebrowNum}>02</Text>
+              <Text style={styles.eyebrowDash}>—</Text>
+              <Text style={styles.eyebrow}>{t('milk.becomeDonorEyebrow')}</Text>
+            </View>
+            <Text style={styles.sectionTitleCenter}>{t('milk.becomeDonorTitle')}</Text>
+            <Text style={styles.sectionBodyCenter}>
+              {t('milk.becomeDonorSubPre')}
+              <Text style={styles.boldRust}>{t('milk.becomeDonorAmount')}</Text>
+              {t('milk.becomeDonorSubPost')}
+            </Text>
+          </View>
+          <View style={styles.stepList}>
+            {(['milk.step1', 'milk.step2', 'milk.step3'] as const).map((stepKey, i) => (
+              <View key={stepKey} style={styles.stepRow2}>
+                <Text style={styles.stepNumInline}>{`0${i + 1}`}</Text>
+                <Text style={styles.stepLabel}>{t(stepKey)}</Text>
+              </View>
+            ))}
+          </View>
+          <TouchableOpacity
+            style={styles.primaryBtn}
+            onPress={() => navigation.navigate('BecomeDonorIntro')}
+          >
+            <Text style={styles.primaryBtnText}>{t('milk.getStarted')}</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {/* Trust & safety note — italic, quiet. */}
+      <Text style={styles.safetyNoteText}>{t('milk.safetyNote')}</Text>
+    </ScrollView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#F5F0E8' },
+  content: { paddingBottom: 24 },
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#F5F0E8' },
+
+  header: {
+    // Editorial header — cream-on-cream like every other vertical
+    // (Experts, Gear, Events, Perks). Top action bar separated from
+    // the title block so the eyebrow → title → subtitle stack reads
+    // as a magazine page rather than app chrome.
+    backgroundColor: COLORS.cream,
+    paddingTop: 56,
+    paddingBottom: 0,
+    paddingHorizontal: 20,
+  },
+  actionBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  backToVillage: { paddingVertical: 4, paddingRight: 8 },
+  backToVillageText: { fontSize: 14, color: COLORS.rust, fontFamily: FONTS.bodySemiBold },
+  headerActions: { flexDirection: 'row', gap: 8 },
+  headerIconBtn: {
+    width: 40, height: 40, borderRadius: 20,
+    backgroundColor: '#FFF',
+    borderWidth: 1, borderColor: 'rgba(0,0,0,0.08)',
+    alignItems: 'center', justifyContent: 'center',
+  },
+  headerIcon: { fontSize: 18 },
+
+  // Title block — relative so the YolkCircle / LeafSprig can absolute-position
+  // around the eyebrow + title without escaping the header column.
+  titleBlock: {
+    position: 'relative',
+    paddingTop: 4,
+    paddingBottom: 14,
+  },
+  eyebrowRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 6 },
+  // Section eyebrow row — sits naturally on the section's paper bubble
+  // (no inner chip). The bubble itself gives the eyebrow its visual
+  // backing; an extra chip-inside-bubble was visual double-duty.
+  eyebrowChip: {
+    flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start',
+    marginBottom: 8,
+  },
+  eyebrowBar: {
+    width: 22, height: 2, backgroundColor: COLORS.rust,
+    marginRight: 10, borderRadius: 1,
+  },
+  // Reference-UI inline numbering: italic Playfair numeral + em-dash +
+  // small-caps label. The whole row sits inside an `eyebrowChip` (above)
+  // which gives it its cream-tone thumbnail bg.
+  // includeFontPadding:false + matching lineHeight keep the numeral on the
+  // optical line of the dash + small caps when flex alignItems:'center'.
+  eyebrowNum: {
+    fontSize: 20, lineHeight: 22,
+    fontFamily: FONTS.headerItalic, fontStyle: 'italic',
+    color: COLORS.rust,
+    marginRight: 10,
+    includeFontPadding: false,
+    textAlignVertical: 'center',
+  },
+  eyebrowDash: {
+    fontSize: 14, lineHeight: 22,
+    fontFamily: FONTS.body,
+    color: COLORS.textMid,
+    marginRight: 10,
+    includeFontPadding: false,
+    textAlignVertical: 'center',
+  },
+  eyebrow: {
+    fontSize: 11, lineHeight: 22, letterSpacing: 1.6,
+    fontFamily: FONTS.bodySemiBold,
+    color: COLORS.rust,
+    textTransform: 'uppercase',
+    includeFontPadding: false,
+    textAlignVertical: 'center',
+  },
+  headerTitle: {
+    fontSize: 38, lineHeight: 44,
+    fontFamily: FONTS.headerItalic, fontStyle: 'italic',
+    color: COLORS.brownDeep,
+    marginBottom: 4,
+  },
+  headerSub: {
+    fontSize: 14, lineHeight: 20,
+    color: COLORS.textMid, fontFamily: FONTS.body,
+    maxWidth: 320,
+  },
+  headerHairline: {
+    height: 1,
+    backgroundColor: 'rgba(44,26,14,0.08)',
+    marginHorizontal: -20,
+  },
+
+  // Donor dashboard — slim white card, no shadow stack. Playfair italic name
+  // + slim inline badge. One rust filled CTA + one rust outline.
+  dashboardCard: {
+    marginHorizontal: 20, marginTop: 14,
+    backgroundColor: '#FFF',
+    borderRadius: 18,
+    padding: 16,
+    borderWidth: 1, borderColor: 'rgba(0,0,0,0.05)',
+  },
+  dashboardRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 },
+  dashboardLeft: { flex: 1, paddingRight: 12 },
+  dashboardName: {
+    fontSize: 22, fontFamily: FONTS.headerItalic, fontStyle: 'italic',
+    color: COLORS.brownDeep, marginBottom: 4,
+  },
+  badgeText: {
+    fontSize: 12, fontFamily: FONTS.bodySemiBold,
+    letterSpacing: 0.4,
+  },
+  dashboardStats: { alignItems: 'flex-end' },
+  statValue: {
+    fontSize: 32, fontFamily: FONTS.headerItalic, fontStyle: 'italic',
+    color: COLORS.rust, lineHeight: 36,
+  },
+  statLabel: { fontSize: 11, color: COLORS.textLight, fontFamily: FONTS.bodyMedium, letterSpacing: 0.5 },
+  dashboardActions: { flexDirection: 'row', gap: 10 },
+  // Donor dashboard primary CTA — yolk pill matching the global primary
+  // pattern. Secondary keeps its rust outline so the pair reads as
+  // "filled / outline" not "two filled pills".
+  dashboardBtn: {
+    flex: 1, backgroundColor: COLORS.yolkLight, borderRadius: 999,
+    paddingVertical: 12, paddingHorizontal: 16, alignItems: 'center',
+  },
+  dashboardBtnSecondary: {
+    backgroundColor: 'transparent', borderWidth: 1, borderColor: COLORS.rust,
+  },
+  dashboardBtnText: { fontSize: 13, fontFamily: FONTS.bodySemiBold, color: COLORS.brownDeep, letterSpacing: 0.3 },
+
+  // AI Match — cream-on-cream warm card with a single rust accent line on
+  // the left edge instead of a full dark fill. Quieter, more editorial.
+  matchCard: {
+    flexDirection: 'row', alignItems: 'center', gap: 12,
+    marginHorizontal: 20, marginTop: 10,
+    paddingVertical: 14, paddingHorizontal: 16, borderRadius: 16,
+    backgroundColor: '#FFF',
+    borderWidth: 1, borderColor: 'rgba(0,0,0,0.05)',
+  },
+  matchAccent: {
+    width: 4, height: 36, borderRadius: 2,
+    backgroundColor: COLORS.rust,
+  },
+  matchTextWrap: { flex: 1 },
+  matchTitle: {
+    fontSize: 17, fontFamily: FONTS.headerItalic, fontStyle: 'italic',
+    color: COLORS.brownDeep,
+  },
+  matchSub: { fontSize: 13, color: COLORS.textMid, marginTop: 2, lineHeight: 18, fontFamily: FONTS.body },
+  matchArrow: { fontSize: 20, color: COLORS.rust, fontFamily: FONTS.bodySemiBold },
+
+  // Spacer between editorial bubbles — replaces the hairline divider now
+  // that each section is its own paper-bg card. Pure spacing so adjacent
+  // bubbles breathe without an extra rule line competing with the rounded
+  // edges.
+  sectionDivider: {
+    height: 14,
+  },
+
+  // Magazine-cover hero — full-bleed photo dominates the top of the
+  // screen. The photo IS the page header: actionBar overlays the top,
+  // editorial copy (eyebrow + Playfair italic title + sub) overlays the
+  // bottom. Slight bottom radius softens the transition into the cream
+  // content below; top is flush to the screen edge for the magazine feel.
+  heroHeader: {
+    height: 420,
+    position: 'relative',
+    backgroundColor: COLORS.brownDeep,
+    overflow: 'hidden',
+    marginBottom: 8,
+  },
+  heroHeaderImage: { width: '100%', height: '100%' },
+  // Three-layer faux gradient scrim — light at top, mid behind action
+  // bar, deep at bottom for masthead text contrast. Substitutes for
+  // expo-linear-gradient (not installed). Cream haze on top desaturates
+  // the photo into watercolor / editorial feel. Magazine-cover read.
+  heroHeaderScrimTop: {
+    position: 'absolute', left: 0, right: 0, top: 0, height: '40%',
+    backgroundColor: 'rgba(44,26,14,0.10)',
+  },
+  heroHeaderScrimMid: {
+    position: 'absolute', left: 0, right: 0, top: '40%', height: '30%',
+    backgroundColor: 'rgba(44,26,14,0.28)',
+  },
+  heroHeaderScrimBottom: {
+    position: 'absolute', left: 0, right: 0, bottom: 0, height: '40%',
+    backgroundColor: 'rgba(44,26,14,0.55)',
+  },
+  heroHeaderHaze: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(245,240,232,0.18)',
+  },
+  heroActionBar: {
+    position: 'absolute',
+    top: 0, left: 0, right: 0,
+    paddingTop: 56, paddingHorizontal: 20, paddingBottom: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  heroBackText: {
+    fontSize: 14,
+    color: COLORS.cream,
+    fontFamily: FONTS.bodySemiBold,
+  },
+  heroActionsRight: { flexDirection: 'row', gap: 8 },
+  heroIconBtn: {
+    width: 36, height: 36, borderRadius: 18,
+    backgroundColor: 'rgba(253,250,245,0.18)',
+    alignItems: 'center', justifyContent: 'center',
+  },
+  heroIcon: { fontSize: 16 },
+
+  // Magazine cover-line — bottom-left anchor (editorial cover convention).
+  // Eyebrow row + Playfair italic page title + sub. White headline reads
+  // strongest on the warm scrim; cream secondaries soften.
+  heroCopy: {
+    position: 'absolute',
+    left: 22, right: 22, bottom: 28,
+  },
+  heroEyebrowRow: {
+    flexDirection: 'row', alignItems: 'center', marginBottom: 8,
+  },
+  heroEyebrowBar: {
+    width: 22, height: 2, backgroundColor: COLORS.cream,
+    marginRight: 10, borderRadius: 1, opacity: 0.85,
+  },
+  heroEyebrowText: {
+    fontSize: 11, lineHeight: 16, letterSpacing: 1.6,
+    fontFamily: FONTS.bodySemiBold,
+    color: COLORS.cream,
+    textTransform: 'uppercase',
+    opacity: 0.92,
+  },
+  heroTitle: {
+    fontSize: 36, lineHeight: 42,
+    fontFamily: FONTS.headerItalic, fontStyle: 'italic',
+    color: '#FFF',
+    marginBottom: 8,
+  },
+  heroSub: {
+    fontSize: 14, lineHeight: 20,
+    fontFamily: FONTS.body,
+    color: COLORS.cream,
+    opacity: 0.9,
+    maxWidth: 340,
+  },
+  heroBannerImage: {
+    width: '100%', height: '100%',
+  },
+  // Warm scrim — soft brownDeep at low opacity so the cream copy
+  // overlay reads on bright photo crops without flattening the image.
+  heroBannerScrim: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(44,26,14,0.28)',
+  },
+  // Overlay copy column — bottom-left anchor (editorial cover convention)
+  // with generous padding so the copy doesn't crowd the image edges.
+  heroBannerOverlay: {
+    position: 'absolute', left: 20, right: 20, bottom: 18,
+  },
+  heroBannerEyebrow: {
+    fontSize: 11, letterSpacing: 1.6,
+    fontFamily: FONTS.bodySemiBold,
+    color: COLORS.cream,
+    textTransform: 'uppercase',
+    marginBottom: 6,
+    opacity: 0.92,
+  },
+  heroBannerLead: {
+    fontSize: 28, lineHeight: 32,
+    fontFamily: FONTS.headerItalic, fontStyle: 'italic',
+    color: '#FFF',
+    marginBottom: 6,
+  },
+  heroBannerSub: {
+    fontSize: 13, lineHeight: 18, fontFamily: FONTS.body,
+    color: COLORS.cream,
+    opacity: 0.88,
+    maxWidth: 320,
+  },
+
+  // Editorial sections — wrapped in a warm cream "bubble" so the whole
+  // section (eyebrow chip + title + body + photo + CTAs) reads as one
+  // discrete card lifted off the page cream. `paper` (#FDFAF5) is warmer
+  // than grey — keeps the cream-on-cream rhythm without flattening to a
+  // utilitarian neutral. Generous padding + 18px radius matches the hero-
+  // card scale in editorial-system.md.
+  // `position: relative` so abstract decorative marks anchor inside the
+  // bubble.
+  section: {
+    backgroundColor: COLORS.paper,
+    borderRadius: 18,
+    paddingHorizontal: 20, paddingTop: 18, paddingBottom: 16,
+    marginHorizontal: 20,
+    position: 'relative',
+    // Soft elevation — warm shadow tinted to brownDeep instead of pure
+    // black so the lift reads "ceramic on linen" rather than UI-stock grey.
+    shadowColor: COLORS.brownDeep,
+    shadowOpacity: 0.10,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 4,
+  },
+
+  // Bold serif (Playfair 700) — non-italic. Per editorial-system.md, section
+  // titles are bold-serif so the eyebrow → title → body stack reads as a
+  // declarative magazine subhead, not a soft pull quote. Page-level titles
+  // (headerTitle above) stay italic — italic is reserved for the page lead.
+  sectionTitle: {
+    fontSize: 24, lineHeight: 30,
+    fontFamily: FONTS.headerBold,
+    color: COLORS.brownDeep, marginBottom: 6,
+  },
+  sectionBody: {
+    fontSize: 14, color: COLORS.textMid, lineHeight: 20,
+    marginBottom: 12, fontFamily: FONTS.body, maxWidth: 360,
+  },
+  // Discover-spread row: text column flexes, thumbnail anchors right.
+  // alignItems:'flex-start' so a tall text block doesn't stretch the
+  // thumb vertically — it stays a fixed 84pt square against the top.
+  sectionRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 16,
+  },
+  sectionText: { flex: 1 },
+  // Centered variants — used when a section has no thumb. Eyebrow chip
+  // also re-aligned center so the whole "01 — FOR RECIPIENTS" row sits
+  // mid-column. alignItems on the wrapper centers the chip; textAlign
+  // centers the title + body.
+  sectionTextCenter: { alignItems: 'center' },
+  eyebrowChipCenter: {
+    flexDirection: 'row', alignItems: 'center',
+    alignSelf: 'center', marginBottom: 8,
+  },
+  sectionTitleCenter: {
+    fontSize: 24, lineHeight: 30,
+    fontFamily: FONTS.headerBold,
+    color: COLORS.brownDeep, marginBottom: 6,
+    textAlign: 'center',
+  },
+  sectionBodyCenter: {
+    fontSize: 14, color: COLORS.textMid, lineHeight: 20,
+    marginBottom: 12, fontFamily: FONTS.body,
+    textAlign: 'center', maxWidth: 360,
+  },
+  // Photo thumbnail — moodboard's Discover spread anchors each section
+  // row with an editorial crop. Cream backgroundColor is the loading
+  // fallback so the layout doesn't pop when the remote image resolves.
+  // overflow:hidden so the image respects the rounded corners.
+  sectionThumb: {
+    width: 84, height: 84, borderRadius: 14,
+    backgroundColor: '#EFE6D8',
+    overflow: 'hidden',
+  },
+  sectionThumbImage: {
+    width: '100%', height: '100%',
+  },
+  browseRow: { flexDirection: 'row', gap: 10 },
+  // Primary CTA — yolk pill, matching the moodboard's "Continue Week N"
+  // pattern from the manual + home hero. brownDeep text on yolk reads as
+  // warm and intentional rather than the rust-on-cream button look that
+  // was competing with the rust accent typography.
+  primaryBtn: {
+    backgroundColor: COLORS.yolkLight, borderRadius: 999,
+    paddingVertical: 14, paddingHorizontal: 18, alignItems: 'center',
+  },
+  primaryBtnText: { fontSize: 15, fontFamily: FONTS.bodySemiBold, color: COLORS.brownDeep, letterSpacing: 0.3 },
+  // Secondary CTA — outline pill in the same yolk-pill rhythm (radius 999)
+  // so the two buttons read as a paired set rather than two different shapes.
+  savedBtn: {
+    backgroundColor: 'transparent', borderRadius: 999,
+    paddingVertical: 14, paddingHorizontal: 22, alignItems: 'center',
+    borderWidth: 1, borderColor: COLORS.rust,
+  },
+  savedBtnText: { fontSize: 15, fontFamily: FONTS.bodySemiBold, color: COLORS.rust, letterSpacing: 0.3 },
+
+  // Become-a-donor — same editorial structure as the find-a-donor section
+  // above; same paper bubble so both sections sit as twin cards on the page.
+  becomeDonorCard: {
+    backgroundColor: COLORS.paper,
+    borderRadius: 18,
+    paddingHorizontal: 20, paddingTop: 18, paddingBottom: 16,
+    marginHorizontal: 20,
+    position: 'relative',
+    shadowColor: COLORS.brownDeep,
+    shadowOpacity: 0.10,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 4,
+  },
+  boldRust: { color: COLORS.rust, fontFamily: FONTS.bodySemiBold },
+  stepList: { marginBottom: 14, gap: 10 },
+  stepRow2: {
+    flexDirection: 'row', alignItems: 'center', gap: 12,
+    paddingVertical: 6,
+    borderBottomWidth: 1, borderBottomColor: 'rgba(44,26,14,0.06)',
+  },
+  stepNumInline: {
+    fontSize: 18, fontFamily: FONTS.headerItalic, fontStyle: 'italic',
+    color: COLORS.rust, width: 28,
+  },
+  stepLabel: { flex: 1, fontSize: 14, color: COLORS.brownDeep, fontFamily: FONTS.bodyMedium },
+
+  // Safety note — italic body, quieter than a card. Anchored at the bottom.
+  safetyNoteText: {
+    fontSize: 12, color: COLORS.textLight, lineHeight: 18,
+    textAlign: 'center',
+    fontFamily: FONTS.body, fontStyle: 'italic',
+    paddingHorizontal: 32, paddingTop: 18, paddingBottom: 6,
+  },
+});

@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { COLORS } from '@utils/constants';
+import { COLORS, FONTS } from '@utils/constants';
 import type { Review } from 'shared/src/types/v1';
 
 interface Props { review: Review }
@@ -45,20 +45,20 @@ const styles = StyleSheet.create({
   },
   header: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8, flexWrap: 'wrap' },
   stars: { fontSize: 14, color: COLORS.gold },
-  date: { fontSize: 11, color: COLORS.textLight },
+  date: { fontSize: 11, color: COLORS.textLight, fontFamily: FONTS.body },
   verifiedBadge: {
     backgroundColor: '#EEF2E6',
     borderRadius: 50,
     paddingVertical: 2,
     paddingHorizontal: 8,
   },
-  verifiedText: { fontSize: 10, fontWeight: '700', color: COLORS.olive },
-  body: { fontSize: 13, color: COLORS.textDark, lineHeight: 20 },
+  verifiedText: { fontSize: 10, fontFamily: FONTS.bodySemiBold, color: COLORS.olive },
+  body: { fontSize: 13, color: COLORS.textDark, lineHeight: 20, fontFamily: FONTS.body },
   aiNote: {
     marginTop: 8,
     backgroundColor: '#FFF8E8',
     borderRadius: 8,
     padding: 8,
   },
-  aiNoteText: { fontSize: 11, color: '#8B6914', lineHeight: 16 },
+  aiNoteText: { fontSize: 11, color: '#8B6914', lineHeight: 16, fontFamily: FONTS.body },
 });

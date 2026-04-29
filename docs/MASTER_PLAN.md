@@ -23,6 +23,28 @@ The Village is a maternal health platform for moms (expecting + postpartum). 5-t
 
 ---
 
+## Current Status (as of 2026-04-27)
+
+This document is the **original** plan. Implementation has diverged from it in a few load-bearing places — **`CLAUDE.md` is the live status table; this section is the diff so future readers don't act on stale spec.**
+
+| Original plan | Current reality | Source of truth |
+|---|---|---|
+| V3 Connect tab ships in C1–C7 | **Connect tab hidden** by product decision; C3/C6/C7 deferred indefinitely. C1/C2/C4/C5 code lives in repo as scaffolding only. | `feedback_connect_tab_hidden.md`, `project_v3_community_scope.md` |
+| V4 phases labeled D1–D6 (Discover) | Renamed **G1–G8** (Gear+Home). G1–G8 all shipped 2026-04-22→04-23. | `CLAUDE.md` V4 build table |
+| V4 Gear ships with Stripe Connect + 5% fee + 48h buyer-protection hold (G8) | **Cash-only MVP.** No Stripe checkout, no in-app payments, no platform fee. SafeMeetingGuide + GearLegalDisclosure modals carry the off-platform copy. | `project_v4_gear_cash_only.md`, Risk & Compliance §2.7 NN#5 |
+| Backend on Node.js + Express | Supabase-direct (RLS for CRUD). Edge Functions only for AI/webhooks/SMS. | `CLAUDE.md` Architecture Rules |
+| pg_cron for scheduled jobs | pg_cron HTTP-callouts no-op on Free Tier (locked GUCs). **GH Actions workflow** at `.github/workflows/supabase-crons.yml` is the operational executor until Pro upgrade. | `project_hosted_deploy.md` |
+| Discharge GTM not in original plan | Hospital discharge bundle is now the **primary distribution channel**; postpartum 0–6 wks is the canonical journey; copy must be clinician-handoff-grade. | `project_hospital_discharge_distribution.md` |
+| V4 G2 events were 4 seeded placeholders | **V4 G2 Pass 2 ingest pipeline is live** (2026-04-27): partner ICS feeds → AI screen (Haiku) → geocode → reviewer queue. Inert until first feed registered (`docs/ops/v4-g2-partner-feed-onboarding.sql` has the template). | Migrations 045/046/047 |
+
+**Remaining open backlog** (in priority order):
+1. **A2.c Delete Account** — code + retention-policy attorney review
+2. **G5 CPSC attorney sign-off** — prohibited-items policy + 24hr takedown SOP
+3. **Phase B clinical advisor sign-off** — weekly-journey curriculum review
+4. **eBay Marketplace Insights API application** — 4–6wk approval, gates G5 smart-pricing fallback
+
+---
+
 ## Shared Tech Stack
 
 | Layer | Tool |
@@ -42,14 +64,18 @@ The Village is a maternal health platform for moms (expecting + postpartum). 5-t
 
 ---
 
-## Master Implementation Order
+## Master Implementation Order (actual)
 
 ```
-Phase 0:   Infrastructure & monorepo (all shared)
-V1 Phases 1–10:  Specialist Directory LIVE
-V2 Phases M1–M5: Milk Connect LIVE
-V3 Phases C1–C7: Community Rooms LIVE
-V4 Phases D1–D6: Discover + Home Dashboard LIVE
+Phase 0:           ✅ Infrastructure & monorepo
+V1 Phases 1–10:    ✅ Specialist Directory LIVE
+V2 Phases M1–M5:   ✅ Milk Connect LIVE
+V3 Phases C1–C7:   ◐  C1/C2/C4/C5 code-complete; tab hidden by product call.
+                       C3 (anon mode), C6 (expert events), C7 (launch gates) deferred.
+V4 Phases G1–G8:   ✅ Gear + Home LIVE (cash-only). G2 Pass 2 ingest pipeline live 2026-04-27.
+A1 / A2.a / A2.b:  ✅ Me/Account, distance pref, notification prefs + quiet hours LIVE.
+A2.c:              ⚪ Delete Account — pending counsel review of retention rules.
+Phase B:           ◐  Weekly Journey shipped; clinical advisor sign-off pending.
 ```
 
 ---
@@ -691,17 +717,19 @@ Channel room:{roomId}:presence:
 - **Calendly:** Webhook `invitee.event_scheduled` → creates `room_events` row → OneSignal push to room members
 - **OneSignal Tags:** `room_{id}_notif_all`, `room_{id}_notif_mentions`, `moderators_{id}` — max 1 push per room per 15min
 
-## V3 — Build Sequence (12 weeks / 7 phases)
+## V3 — Build Sequence (status as of 2026-04-27)
 
-| Phase | Weeks | Goal |
+> **Connect tab is hidden by product decision** (`feedback_connect_tab_hidden.md`). The C-phases below describe code that exists in the repo as scaffolding; do not invest further here without an explicit reverse on the visibility call. C3/C6/C7 are deferred indefinitely per `project_v3_community_scope.md`.
+
+| Phase | Status | Goal |
 |---|---|---|
-| C1 | 1–2 | DB migration + RLS audit (`user_anonymous_identities` USING FALSE verified), seed 4 rooms + crisis resources, room discovery screen, join/leave |
-| C2 | 3–4 | Live chat core: messages API (no AI yet), Supabase Realtime subscription, RoomChatScreen UI, reactions |
-| C3 | 5 | Anonymous mode: alias generation, AnonymousOnboardingScreen with legal disclosure, AnonBubble component |
-| C4 | 6–7 | AI safety pipeline: Crisis Detection + Content Moderation on write path (Promise.all, 3s timeout), CrisisResourcesSheet, Twilio moderator SMS, ModeratorDashboardScreen |
-| C5 | 8–9 | AI companion (@village trigger), icebreaker on join, room auto-match, weekly summary cron |
-| C6 | 10 | Expert events (Calendly webhook), ExpertEventScreen, RSVP, OneSignal push notifications |
-| C7 | 11–12 | Load test (100 concurrent users), security audit (anon table RLS), crisis drill, moderator runbook, legal review, 50-user beta |
+| C1 | ✅ Done | DB migration + RLS audit (`user_anonymous_identities` USING FALSE verified), seed 4 rooms + crisis resources, room discovery screen, join/leave |
+| C2 | ✅ Done | Live chat core: messages API, Supabase Realtime subscription, RoomChatScreen UI, reactions |
+| C3 | ⚪ Deferred | Anonymous mode: alias generation, AnonymousOnboardingScreen with legal disclosure, AnonBubble component |
+| C4 | ✅ Done (code) | AI safety pipeline: Crisis Detection + Content Moderation on write path (Promise.all, 3s timeout), CrisisResourcesSheet, Twilio moderator SMS, ModeratorDashboardScreen |
+| C5 | ✅ Done (code) | AI companion (@village trigger), icebreaker on join, room auto-match, weekly summary cron |
+| C6 | ⚪ Deferred | Expert events (Calendly webhook), ExpertEventScreen, RSVP, OneSignal push notifications |
+| C7 | ⚪ Deferred | Load test (100 concurrent users), security audit (anon table RLS), crisis drill, moderator runbook, legal review, 50-user beta |
 
 **Critical files:** `003_community_rooms.sql` · `ai/crisisDetectionService.ts` · `services/community/anonymousIdentityService.ts` · `routes/community/messages.routes.ts` (the full write-path orchestrator)
 
@@ -930,18 +958,22 @@ DiscoverStack:
 - **OneSignal (6 notification types):** Daily check-in (9am local), milestone week advance (Sunday midnight), event reminders (24h + 1h before RSVP), deal expiry (24h warning), gear message received (real-time), waitlist spot opened (real-time)
 - **Affiliate tracking:** UTM deeplinks built server-side; partner redemption webhook with `X-Partner-Secret` validation updates `deal_claims.status='redeemed'`
 
-## V4 — Build Sequence (12 weeks / 6 phases)
+## V4 — Build Sequence (status as of 2026-04-27)
 
-| Phase | Weeks | Goal |
+> Phases were renamed from D1–D6 to **G1–G8** during build. All eight shipped 2026-04-22→04-23. Live status table is in `CLAUDE.md`; this is the as-built summary.
+
+| Phase | Status | Goal |
 |---|---|---|
-| D1 | 1–2 | `baby_profiles` + `milestone_library` migrations, seed 52 weeks of content, BabyProfileSetupScreen, MilestoneDetailScreen, basic `GET /home/feed` (no AI yet) |
-| D2 | 3–4 | Events tables (PostGIS), events API with geo-filter, EventsListScreen + EventDetailScreen + RSVP |
-| D3 | 5–6 | Brand perks tables + API, perk claim with affiliate UTM, PerksListScreen + PerkClaimScreen; gear tables + browse/create listing screens |
-| D4 | 7–8 | Full HomeScreen with all 6 component blocks; DiscoverHomeScreen tying all 3 sections; gear messaging + Stripe checkout |
-| D5 | 9–10 | All 6 AI skills integrated; OneSignal setup with all 6 notification types; calendar integration; cron jobs (milestone explainer, notification scheduler, deal expiry alerts) |
-| D6 | 11–12 | Waitlist auto-promotion, MyRsvps/MyClaims/MyListings screens, buyer protection flow, analytics instrumentation, app store update with Discover tab screenshots |
+| G1 | ✅ Done | `baby_profiles` + `milestone_library` migrations, seed 52 weeks of content, HomeScreen + HeroMilestoneCard + BabySnapshotCard, BabyProfileSetupScreen, MilestoneDetailScreen, MilestoneTimelineScreen |
+| G2 | ✅ Done | Events tables (PostGIS), events API with geo-filter, EventsListScreen + EventDetailScreen + RsvpConfirm + MyRsvps. **Pass 2 (2026-04-27):** partner ICS feeds → AI screen → geocode → reviewer queue (mig 045/046/047) |
+| G3 | ✅ Done | Brand perks tables + API, perk claim with per-click SubID + FTC disclosure, PerksListScreen + PerkClaimScreen + MyClaimsScreen; affiliate webhook scaffolding (Impact/ShareASale/CJ/direct) |
+| G4 | ✅ Done | Gear tables w/ allowlist CHECK enum (no car_seat/breast_pump/sleep_positioner), GearBrowse + Detail + CreateListing + MyListings + SavedGear; Supabase Storage `gear-listings` bucket |
+| G5 | ✅ Done (code) · ⚠️ legal sign-off pending | CPSC recall integration (cache + live SaferProducts.gov + nightly sweep), Claude vision identify, UPC barcode scanner, hard-block recall modal. Awaiting attorney review of prohibited-items policy + 24hr takedown SOP |
+| G6 | ✅ Done | Gear 1:1 messaging w/ SafeMeetingGuide + GearLegalDisclosure + ReportListing modals; threads + read receipts + report SLA |
+| G7 | ✅ Done | Daily check-in (Haiku w/ crisis routing), home feed curator (Sonnet batch — milestone + checkin + events + perks + gear-tip + quickaccess), DailyCheckinScreen + CheckinResponseScreen + DiscoverHomeScreen |
+| G8 | ✅ Done (cash-only) | **Cash-only MVP** per Risk & Compliance §2.7 NN#5. No Stripe checkout / no platform fee / no buyer-protection hold. SafeMeetingGuide + GearLegalDisclosure copy carries the off-platform posture. Analytics instrumentation across 13 gear events (incl. CPSIA §19 audit trail) |
 
-**Critical files:** `007_events.sql` (PostGIS column unblocks all geo queries) · `home/home.service.ts` (orchestrates feed assembly) · `ai/skills/dailyCheckinCompanion.ts` (most user-facing AI, PPD safety guardrails) · `screens/discover/DiscoverHomeScreen.tsx`
+**Critical files:** `migrations/010_v4_events.sql` (PostGIS unblocks geo queries) · `home-feed-curator/index.ts` (Sonnet batch orchestrator) · `ai-daily-checkin/index.ts` (PPD-safety crisis routing) · `migrations/045_v4_g2_partner_event_feeds.sql` + `046_v4_g2_event_review_pipeline.sql` (self-sustaining ingest)
 
 ---
 
@@ -1064,5 +1096,5 @@ EXPO_PUBLIC_ONESIGNAL_APP_ID
 | Anonymous aliases server-only | Client never holds the user_id → alias mapping. Anonymity holds even if app is reverse-engineered. |
 | Haiku for real-time scans, cache system prompts | Haiku latency + cost is acceptable for per-message scans. Prompt caching cuts costs ~80% on repeated calls. |
 | Polling messages in V1 (30s), Realtime in V3 | V1 messages are async/low-frequency contact forms. V3 is live chat — realtime is required. |
-| 15% fee on Milk Connect, 5% on Gear Exchange | Milk Connect is higher-margin peer-to-peer healthcare product. Gear Exchange competes with Facebook Marketplace. |
-| Buyer protection 48h hold on Gear payouts | Holds seller payout until `pickup_confirmed_at` + 48h. Reduces fraud without requiring escrow. |
+| 15% fee on Milk Connect, **0% on Gear (cash-only)** | Milk is higher-margin peer-to-peer healthcare product. Gear shipped cash-only at MVP per Risk & Compliance §2.7 NN#5 to avoid FinCEN money-transmitter classification — no Stripe Connect, no platform fee. |
+| ~~Buyer protection 48h hold on Gear payouts~~ → **off-platform meet posture** | Original plan called for Stripe payment + 48h hold. **Cash-only path shipped instead** (`project_v4_gear_cash_only.md`): SafeMeetingGuide modal + GearLegalDisclosure addendum cover the off-platform terms. |

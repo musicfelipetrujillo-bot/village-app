@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "Expo (mobile) — Metro bundler",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--filter", "mobile", "dev"],
+      "port": 8081
+    },
+    {
+      "name": "Supabase local stack",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["supabase:start"],
+      "port": 54321
+    }
+  ]
+}

@@ -122,19 +122,39 @@ jobs:
           # `--max-time 240` keeps us inside Supabase Edge Function 60s wall
           # time (4x cushion for long-tail retries) and inside the job's
           # 5min timeout-minutes guard.
-          HTTP=$(curl -sS -o /tmp/resp.json -w '%{http_code}' \
-            --max-time 240 \
-            -X POST "${URL}" \
-            -H "Authorization: Bearer ${SERVICE_ROLE_KEY}" \
-            -H "Content-Type: application/json" \
-            -d "${BODY}" || echo "000")
-          echo "HTTP ${HTTP}"
-          echo '--- response ---'
-          cat /tmp/resp.json || true
-          echo
-          # 2xx is success; non-2xx fails the job so it shows red in the
+          #
+          # Retry-once policy (added 2026-04-27):
+          #   The Supabase edge gateway occasionally returns transient 403/5xx
+          #   during deploy rollovers; gear-cpsc-recall-sync caught one on
+          #   2026-04-27T12:06Z and self-healed 5 minutes later. Curl's native
+          #   `--retry` only retries 408/429/5xx, not 403 — so we wrap the call
+          #   in a small bash loop that retries any non-2xx once after 30s.
+          #   All cron-invoked functions here are idempotent (upserts on PK or
+          #   on (source_feed_id, source_uid)) so retry is safe.
+          ATTEMPT=0
+          MAX_ATTEMPTS=2
+          while :; do
+            ATTEMPT=$((ATTEMPT + 1))
+            HTTP=$(curl -sS -o /tmp/resp.json -w '%{http_code}' \
+              --max-time 240 \
+              -X POST "${URL}" \
+              -H "Authorization: Bearer ${SERVICE_ROLE_KEY}" \
+              -H "Content-Type: application/json" \
+              -d "${BODY}" || echo "000")
+            echo "Attempt ${ATTEMPT}/${MAX_ATTEMPTS}: HTTP ${HTTP}"
+            echo '--- response ---'
+            cat /tmp/resp.json || true
+            echo
+            case "${HTTP}" in
+              2*) exit 0 ;;
+            esac
+            if [ "${ATTEMPT}" -ge "${MAX_ATTEMPTS}" ]; then
+              break
+            fi
+            echo "Transient failure — sleeping 30s before retry"
+            sleep 30
+          done
+          # Both attempts non-2xx — fail the job so it shows red in the
           # Actions tab and triggers email/notification per repo settings.
-          case "${HTTP}" in
-            2*) exit 0 ;;
-            *)  echo "::error::Function ${FN} returned HTTP ${HTTP}"; exit 1 ;;
-          esac
+          echo "::error::Function ${FN} returned HTTP ${HTTP} after ${ATTEMPT} attempt(s)"
+          exit 1

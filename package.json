@@ -9,7 +9,7 @@
     "type-check": "turbo type-check",
     "mobile": "turbo dev --filter=mobile",
     "supabase:start": "supabase start",
-    "supabase:reset": "supabase db reset",
+    "supabase:reset": "supabase db reset && ./scripts/setup-local-gucs.sh",
     "supabase:types": "supabase gen types typescript --local > packages/shared/src/types/supabase.ts"
   },
   "devDependencies": {

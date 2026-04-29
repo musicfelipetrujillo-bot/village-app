@@ -1,0 +1,238 @@
+// V4 Phase G7 — Daily check-in prompt screen.
+// Mom taps a mood 1–5, optionally adds a sentence, submits. The submit goes
+// to upsert_daily_checkin → ai-daily-checkin → returns ai_reply + crisis flag.
+// On success we navigate to CheckinResponse to display the AI reply (and crisis
+// resources if flagged). If today already has a check-in, we prefill and let
+// her revise.
+import React, { useCallback, useEffect, useState } from 'react';
+import {
+  View, Text, StyleSheet, TouchableOpacity, TextInput,
+  ActivityIndicator, ScrollView, KeyboardAvoidingView, Platform, Alert,
+} from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { COLORS, FONTS } from '@utils/constants';
+import { homeApi, MOOD_OPTIONS } from '@api/home';
+import { useHomeStore } from '@store/home';
+import { useT } from '@/i18n';
+import type { HomeStackParamList } from '@/navigation/HomeNavigator';
+
+type Props = NativeStackScreenProps<HomeStackParamList, 'DailyCheckin'>;
+
+export default function DailyCheckinScreen({ navigation }: Props) {
+  const t = useT();
+  const setTodayCheckin = useHomeStore((s) => s.setTodayCheckin);
+  const [mood, setMood] = useState<number | null>(null);
+  const [energy, setEnergy] = useState<number | null>(null);
+  const [body, setBody] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+
+  // Prefill from today's check-in if one exists.
+  const load = useCallback(async () => {
+    try {
+      const existing = await homeApi.getTodayCheckin();
+      if (existing) {
+        setMood(existing.mood_score);
+        setEnergy(existing.energy_score);
+        setBody(existing.user_response ?? '');
+      }
+    } catch (err) {
+      console.error('[checkin] load', err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useFocusEffect(useCallback(() => { load(); }, [load]));
+  useEffect(() => { load(); }, [load]);
+
+  const onSubmit = async () => {
+    if (mood == null || submitting) return;
+    setSubmitting(true);
+    try {
+      const row = await homeApi.submitCheckin({
+        mood_score: mood,
+        energy_score: energy,
+        user_response: body.trim() ? body.trim() : null,
+      });
+      setTodayCheckin(row);
+      navigation.replace('CheckinResponse', { checkinId: row.id });
+    } catch (err) {
+      Alert.alert(t('checkin.failedTitle'), err instanceof Error ? err.message : t('checkin.failedBody'));
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      style={styles.container}
+      keyboardVerticalOffset={0}
+    >
+      <View style={styles.header}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          accessibilityRole="button"
+          accessibilityLabel={t('checkin.backA11y')}
+        >
+          <Text style={styles.back}>← {t('common.back')}</Text>
+        </TouchableOpacity>
+        <Text style={styles.title}>{t('checkin.headerTitle')}</Text>
+        <View style={{ width: 50 }} />
+      </View>
+
+      {loading ? (
+        <View style={styles.center}><ActivityIndicator color={COLORS.rust} /></View>
+      ) : (
+        <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+          <Text style={styles.heading}>{t('checkin.heading')}</Text>
+          <Text style={styles.sub}>{t('checkin.sub')}</Text>
+
+          <View style={styles.moodRow}>
+            {MOOD_OPTIONS.map((opt) => {
+              const moodLabel = t(opt.labelKey);
+              return (
+                <TouchableOpacity
+                  key={opt.score}
+                  style={[styles.moodChip, mood === opt.score && styles.moodChipActive]}
+                  onPress={() => setMood(opt.score)}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('checkin.moodA11y', { label: moodLabel })}
+                  accessibilityState={{ selected: mood === opt.score }}
+                >
+                  <Text style={styles.moodEmoji}>{opt.emoji}</Text>
+                  <Text style={[styles.moodLabel, mood === opt.score && styles.moodLabelActive]}>
+                    {moodLabel}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+
+          <Text style={styles.sectionLabel}>{t('checkin.energyLabel')}</Text>
+          <View
+            style={styles.energyRow}
+            accessibilityRole="radiogroup"
+            accessibilityLabel={t('checkin.energyLabel')}
+          >
+            {[1, 2, 3, 4, 5].map((n) => (
+              <TouchableOpacity
+                key={n}
+                style={[styles.dot, energy === n && styles.dotActive]}
+                onPress={() => setEnergy(energy === n ? null : n)}
+                accessibilityRole="radio"
+                accessibilityLabel={t('checkin.energyA11y', { n })}
+                accessibilityState={{ selected: energy === n }}
+              >
+                <Text style={[styles.dotText, energy === n && styles.dotTextActive]}>{n}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          <Text style={styles.sectionLabel}>{t('checkin.notesLabel')}</Text>
+          <TextInput
+            style={styles.input}
+            value={body}
+            onChangeText={setBody}
+            placeholder={t('checkin.notesPlaceholder')}
+            placeholderTextColor={COLORS.textLight}
+            multiline
+            maxLength={1000}
+          />
+          <Text style={styles.counter}>{body.length}/1000</Text>
+
+          <View style={styles.disclaimerBox}>
+            <Text style={styles.disclaimerText}>{t('checkin.disclaimer')}</Text>
+          </View>
+
+          <TouchableOpacity
+            style={[styles.submit, (mood == null || submitting) && styles.submitDisabled]}
+            onPress={onSubmit}
+            disabled={mood == null || submitting}
+            accessibilityRole="button"
+            accessibilityLabel={t('checkin.submitA11y')}
+          >
+            {submitting ? (
+              <ActivityIndicator color="#FFF" />
+            ) : (
+              <Text style={styles.submitText}>{t('checkin.submitText')}</Text>
+            )}
+          </TouchableOpacity>
+        </ScrollView>
+      )}
+    </KeyboardAvoidingView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: COLORS.cream },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  header: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingTop: 56, paddingBottom: 12, paddingHorizontal: 16,
+    backgroundColor: '#FFF',
+    borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.06)',
+  },
+  back: { fontSize: 15, color: COLORS.rust, fontFamily: FONTS.bodySemiBold },
+  title: { fontSize: 17, fontFamily: FONTS.bodySemiBold, color: COLORS.brownDeep },
+
+  content: { padding: 20, paddingBottom: 80 },
+  // Playfair Display Italic — same family as the "Village" wordmark accent.
+  heading: { fontSize: 26, fontFamily: FONTS.headerItalic, fontStyle: 'italic', color: COLORS.brownDeep },
+  sub: { fontSize: 14, color: COLORS.textMid, marginTop: 4, marginBottom: 18 },
+
+  moodRow: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
+  moodChip: {
+    flex: 1, minWidth: 58, alignItems: 'center',
+    paddingVertical: 14, borderRadius: 14,
+    backgroundColor: '#FFF',
+    borderWidth: 1.5, borderColor: 'rgba(0,0,0,0.08)',
+  },
+  moodChipActive: { backgroundColor: COLORS.rust, borderColor: COLORS.rust },
+  moodEmoji: { fontSize: 28 },
+  moodLabel: { fontSize: 11, fontFamily: FONTS.bodySemiBold, color: COLORS.textMid, marginTop: 4 },
+  moodLabelActive: { color: '#FFF' },
+
+  sectionLabel: { fontSize: 13, fontFamily: FONTS.bodySemiBold, color: COLORS.brownDeep, marginTop: 20, marginBottom: 8 },
+  // `flex:1` on each dot + small gap means the row scales to whatever width is
+  // available — no horizontal scroll on iPhone SE (320pt) and no awkward
+  // emptiness on Pro Max. `aspectRatio:1` keeps them circular as flex stretches
+  // them. `maxWidth:56` caps the size on tablets so dots don't become huge.
+  energyRow: { flexDirection: 'row', gap: 8 },
+  dot: {
+    flex: 1,
+    aspectRatio: 1,
+    maxWidth: 56,
+    minHeight: 42,
+    borderRadius: 999,
+    alignItems: 'center', justifyContent: 'center',
+    backgroundColor: '#FFF',
+    borderWidth: 1.5, borderColor: 'rgba(0,0,0,0.08)',
+  },
+  dotActive: { backgroundColor: COLORS.olive, borderColor: COLORS.olive },
+  dotText: { fontSize: 14, fontFamily: FONTS.bodySemiBold, color: COLORS.textMid },
+  dotTextActive: { color: '#FFF' },
+
+  input: {
+    backgroundColor: '#FFF', borderRadius: 14, padding: 14,
+    fontSize: 15, color: COLORS.brownDeep, minHeight: 110, textAlignVertical: 'top',
+    borderWidth: 1, borderColor: 'rgba(0,0,0,0.06)',
+  },
+  counter: { alignSelf: 'flex-end', fontSize: 11, color: COLORS.textLight, marginTop: 4 },
+
+  disclaimerBox: {
+    marginTop: 18, backgroundColor: 'rgba(184,92,56,0.06)',
+    borderRadius: 12, padding: 12,
+    borderWidth: 1, borderColor: 'rgba(184,92,56,0.15)',
+  },
+  disclaimerText: { fontSize: 12, color: COLORS.textMid, lineHeight: 17 },
+
+  submit: {
+    marginTop: 22, backgroundColor: COLORS.yolkLight, borderRadius: 999,
+    paddingVertical: 15, alignItems: 'center',
+  },
+  submitDisabled: { opacity: 0.4 },
+  submitText: { color: COLORS.brownDeep, fontSize: 15, fontFamily: FONTS.bodySemiBold, letterSpacing: 0.3 },
+});

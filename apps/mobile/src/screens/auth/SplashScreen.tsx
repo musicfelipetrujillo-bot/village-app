@@ -1,14 +1,22 @@
 import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, Animated } from 'react-native';
+import { View, Text, StyleSheet, Animated, Image } from 'react-native';
+
+// Wordmark — soft serif "The Village" with the small coral heart accent.
+// Replaces the prior text-rendered approximation; the image is the
+// canonical brand mark and ships rasterized so font-loading races can't
+// flash the wrong typography on cold launch.
+const WORDMARK = require('../../../assets/brand/the-village-wordmark.png');
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { COLORS } from '@utils/constants';
+import { COLORS, FONTS } from '@utils/constants';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@store/auth';
 import type { AuthStackParamList } from '@/navigation/AuthStack';
+import { useT } from '@/i18n';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'Splash'>;
 
 export default function SplashScreen({ navigation }: Props) {
+  const t = useT();
   const fadeAnim = new Animated.Value(0);
   const setSession = useAuthStore((s) => s.setSession);
 
@@ -44,10 +52,13 @@ export default function SplashScreen({ navigation }: Props) {
   return (
     <View style={styles.container}>
       <Animated.View style={{ opacity: fadeAnim, alignItems: 'center' }}>
-        <Text style={styles.logo}>
-          The <Text style={styles.logoAccent}>Village</Text>
-        </Text>
-        <Text style={styles.tagline}>your maternal village</Text>
+        <Image
+          source={WORDMARK}
+          style={styles.wordmark}
+          resizeMode="contain"
+          accessibilityLabel="The Village"
+        />
+        <Text style={styles.tagline}>{t('splash.tagline')}</Text>
       </Animated.View>
     </View>
   );
@@ -60,15 +71,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  logo: {
-    fontFamily: 'serif',
-    fontSize: 42,
-    color: COLORS.textDark,
-    fontWeight: '400',
-  },
-  logoAccent: {
-    color: COLORS.rust,
-    fontStyle: 'italic',
+  wordmark: {
+    width: 280,
+    height: 118,
+    marginBottom: 4,
   },
   tagline: {
     fontSize: 14,
@@ -76,6 +82,6 @@ const styles = StyleSheet.create({
     marginTop: 8,
     letterSpacing: 1.5,
     textTransform: 'uppercase',
-    fontWeight: '500',
+    fontFamily: FONTS.bodyMedium,
   },
 });

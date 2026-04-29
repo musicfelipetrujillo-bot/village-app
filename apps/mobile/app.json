@@ -8,44 +8,52 @@
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#F5F0E8"
     },
     "ios": {
       "supportsTablet": false,
+      "icon": "./assets/icon.png",
       "bundleIdentifier": "com.thevillage.app",
       "buildNumber": "1",
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "The Village uses your location to find nearby donors, specialists, and events.",
         "NSLocationAlwaysUsageDescription": "The Village uses your location to find nearby donors, specialists, and events.",
-        "NSCameraUsageDescription": "Used to take profile photos and gear listing photos.",
+        "NSCameraUsageDescription": "Used to take profile photos, gear listing photos, and scan product barcodes.",
         "NSPhotoLibraryUsageDescription": "Used to upload profile photos and gear listing photos.",
-        "NSUserNotificationsUsageDescription": "Notifications for appointments, new donors, and community messages."
+        "NSPhotoLibraryAddUsageDescription": "Save photos you take in The Village to your library.",
+        "NSMicrophoneUsageDescription": "Only used if you record video when listing an item.",
+        "NSCalendarsUsageDescription": "Add events you RSVP to your calendar.",
+        "NSCalendarsFullAccessUsageDescription": "Add events you RSVP to your calendar.",
+        "NSContactsUsageDescription": "Share The Village with contacts you choose.",
+        "NSUserNotificationsUsageDescription": "Notifications for appointments, new donors, and community messages.",
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
       "package": "com.thevillage.app",
       "versionCode": 1,
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#F5F0E8"
       },
       "permissions": [
-        "ACCESS_FINE_LOCATION",
-        "ACCESS_COARSE_LOCATION",
-        "CAMERA",
-        "READ_EXTERNAL_STORAGE",
-        "WRITE_EXTERNAL_STORAGE"
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.READ_CALENDAR",
+        "android.permission.WRITE_CALENDAR",
+        "android.permission.POST_NOTIFICATIONS",
+        "android.permission.READ_MEDIA_IMAGES"
       ]
     },
     "plugins": [
-      "expo-router",
       "expo-secure-store",
       [
         "expo-notifications",
         {
-          "icon": "./assets/notification-icon.png",
           "color": "#B85C38"
         }
       ],
@@ -54,15 +62,68 @@
         {
           "locationAlwaysAndWhenInUsePermission": "The Village uses your location to find nearby donors, specialists, and events."
         }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow The Village to access your camera to take listing photos and scan product barcodes.",
+          "microphonePermission": "Only used if you record video when listing an item.",
+          "recordAudioAndroid": false
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow The Village to access your photos to upload profile and listing images.",
+          "cameraPermission": "Allow The Village to access your camera to take listing photos."
+        }
+      ],
+      [
+        "expo-calendar",
+        {
+          "calendarPermission": "Add events you RSVP to your calendar."
+        }
+      ],
+      "@sentry/react-native",
+      [
+        "@stripe/stripe-react-native",
+        {
+          "merchantIdentifier": "merchant.com.thevillage.app"
+        }
+      ],
+      "expo-font",
+      [
+        "onesignal-expo-plugin",
+        {
+          "mode": "production"
+        }
       ]
     ],
-    "experiments": {
-      "typedRoutes": true
-    },
     "extra": {
       "eas": {
-        "projectId": "your-eas-project-id"
+        "build": {
+          "experimental": {
+            "ios": {
+              "appExtensions": [
+                {
+                  "targetName": "OneSignalNotificationServiceExtension",
+                  "bundleIdentifier": "com.thevillage.app.OneSignalNotificationServiceExtension",
+                  "entitlements": {
+                    "com.apple.security.application-groups": [
+                      "group.com.thevillage.app.onesignal"
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "projectId": "4b786f88-d387-4aba-a420-dfae6db88671"
       }
-    }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "owner": "villagepeople"
   }
 }

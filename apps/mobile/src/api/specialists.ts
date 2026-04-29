@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase';
+import { getPreferredRadiusMiles } from '@store/user';
 import type { Specialist, Review, SpecialtyType } from 'shared/src/types/v1';
 
 export interface SearchFilters {
@@ -16,7 +17,7 @@ export const specialistsApi = {
     const { data, error } = await supabase.rpc('specialists_near', {
       lat: filters.lat,
       lng: filters.lng,
-      radius_miles: filters.radiusMiles ?? 10,
+      radius_miles: filters.radiusMiles ?? getPreferredRadiusMiles(),
       specialty_filter: filters.specialty ?? null,
       language_filter: filters.language ?? null,
       insurance_filter: filters.insurance ?? null,
@@ -97,5 +98,14 @@ export const specialistsApi = {
       .select('specialist_id')
       .eq('user_id', userId);
     return (data ?? []).map((f: any) => f.specialist_id);
+  },
+
+  getFavoriteSpecialists: async (userId: string): Promise<Specialist[]> => {
+    const { data, error } = await supabase
+      .from('favorites')
+      .select('specialists(*)')
+      .eq('user_id', userId);
+    if (error) throw error;
+    return (data ?? []).map((f: any) => f.specialists).filter(Boolean);
   },
 };
