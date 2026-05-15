@@ -1,25 +1,27 @@
 // ManualCategory — context-driven chapter pages (v9 design).
 //
+// Pixel-faithful port of /private/tmp/manual-recipe-v9-context.html.
+// All decorative colors hardcoded from the v9 CSS variables (NOT routed
+// through brand-v2 cinnamon tokens) so this screen reads exactly as
+// the mockup intends, regardless of any future brand-token shifts.
+//
 // Mom tab → mom × {feel, heal, nourish, rest, tips}
 // Baby tab → baby × {feed, sleep, grow, care, tips}
 //
-// Each category renders as a magazine-style chapter with five
-// identity-distinct cards (one screen, five "papers"):
+// Five identity-distinct papers per chapter:
 //   (1) Week hero — pink-cream w/ decorative yolks, big Playfair italic
-//       week number, cinnamon arrow CTA → routes to weekly guide
-//   (2) The Manual — book-spread paper, bold coco book spine on the
+//       week number, RUST arrow CTA → routes to weekly guide
+//   (2) The Manual — book-spread paper, bold COCO book spine on the
 //       left edge, Roman numeral chapters, italic "p. N" folio mark
-//   (3) Ask Specialist — clinical-chart paper, sage "For your visit"
+//   (3) Ask Specialist — clinical-chart paper, SAGE "For your visit"
 //       file-folder tab on top-left edge, Q1/Q2/Q3 form labels,
 //       sage corner-fold mark top-right, signed-off footer stamp
 //   (4) Quick Watches — coco-cream, video thumbnail strip, durations
 //   (5) Mom Hacks — sage-cream, vertical bullet list, scattered sage
 //       dots, villie bee mascot tucked in the corner
 //
-// Brand: italics deliberately appear on each card title (one per
-// card, not one per screen) to drive the chapter-of-a-book editorial
-// feel. Cinnamon usage is restricted to CTAs + italic accent words
-// + the Week hero arrow circle.
+// Italics deliberately appear on each card title (one per card, not
+// one per screen) — chapter-of-a-book editorial feel.
 //
 // Videos are short (≤2 min, DB-enforced), Mux-hosted, EN+ES caption-aware.
 // Tapping a thumbnail opens ManualVideoScreen for the full-screen player.
@@ -27,12 +29,11 @@
 // surfaced as a "Watched" overlay on the thumbnail.
 import React, { useState } from 'react';
 import {
-  View, Text, StyleSheet, TouchableOpacity, ScrollView,
-  Image,
+  View, Text, StyleSheet, TouchableOpacity, ScrollView, Image,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation, useRoute, useFocusEffect, type RouteProp } from '@react-navigation/native';
-import { COLORS, FONTS } from '@utils/constants';
+import { FONTS } from '@utils/constants';
 import { useT } from '@/i18n';
 import { useUserStore } from '@store/user';
 import { useHomeStore } from '@store/home';
@@ -49,9 +50,39 @@ type ParamList = {
   ManualCategory: { audience: ManualAudience; category: string; label: string };
 };
 
+// ═══════════════════════════════════════════════════════════════════════
+// V9 palette — exact CSS variable values from the v9 mockup.
+// Use these directly for this screen; do NOT route through COLORS.coco/
+// rust since those resolve to brand-v2 cinnamon (#C07840), which is a
+// different shade than the v9 mockup's --coco (#AD795B) / --rust
+// (#B85C38). The screen is meant to look exactly like the mockup.
+// ═══════════════════════════════════════════════════════════════════════
+const V9 = {
+  paper: '#FDFAF5',
+  bgPink: '#FAEDE3',
+  bgBook: '#FBF3E0',
+  bgChart: '#EDE9DC',
+  bgCoco: '#F4E2D1',
+  bgSage: '#EBEFD9',
+
+  bark: '#3D1F0D',
+  barkSoft: '#5C3F26',
+
+  rust: '#B85C38',
+  rustDeep: '#9A4A2B',
+  sage: '#8B9A6B',
+  sageDeep: '#6B7A4B',
+  coco: '#AD795B',
+  cocoDeep: '#8E5E40',
+  sand: '#EADBA8',
+  sandDeep: '#D9C58E',
+
+  pink: '#E8C4B6',
+  pinkDeep: '#C99580',
+  pinkSoft: '#F2D5C5',
+} as const;
+
 // ── Chapter masthead — "[prefix] [italic accent]." ─────────────────────
-// The italic word is the chapter verb/noun, rendered in cinnamon italic.
-// This is the editorial "Time to heal." / "Real-world tips." pattern.
 const HERO_TITLE: Record<string, { prefix: string; em: string }> = {
   'mom/feel':    { prefix: 'Time to',    em: 'feel.'    },
   'mom/heal':    { prefix: 'Time to',    em: 'heal.'    },
@@ -93,9 +124,6 @@ const WEEK_BODY: Record<string, string> = {
   'baby/tips':   'The tiny things that change everything.',
 };
 
-// Inline manual bullets per (audience, category) — read at a glance, no tap.
-// Each row is a single sentence the user can scan in under 5 seconds.
-// Renders as Roman-numeral chapter rows inside the book-spread card.
 const MANUAL_BULLETS: Record<string, string[]> = {
   'mom/feel': [
     'Hormones drop hard at days 3–5. Tears without a reason are normal.',
@@ -125,8 +153,6 @@ const MANUAL_BULLETS: Record<string, string[]> = {
   'baby/tips':   ['White noise = vacuum cleaner pitch, not ocean.', 'Swaddle until they fight it. Then sleep sack.', 'Pacifier dipped in breastmilk takes faster.'],
 };
 
-// Specialist questions per (audience, category) — 3 you can read out loud.
-// Renders as Q1/Q2/Q3 form-label rows inside the clinical-chart card.
 const SPECIALIST_QS: Record<string, string[]> = {
   'mom/feel':    ['Is what I am feeling baby blues or PPD?', 'When should I worry about my mood?', 'Can I be screened today?'],
   'mom/heal':    ['Is my bleeding amount normal for this week?', 'When can I expect stitches to fully heal?', 'What activity is safe right now?'],
@@ -140,8 +166,6 @@ const SPECIALIST_QS: Record<string, string[]> = {
   'baby/tips':   ['Any sleep coach you trust?', 'Best swaddle brand at this age?', 'Pacifier or no pacifier?'],
 };
 
-// Mom hacks — 3 short, real, try-tonight items. Vertical bullet list
-// inside the Mom Hacks card.
 const MOM_HACKS: Record<string, string[]> = {
   'mom/feel':    ['Step outside for 10 minutes of morning light.', 'Tell one person exactly how you feel today.', 'Stop reading mom Instagram for 48 hours.'],
   'mom/heal':    ['Frozen pads ("padsicles") for the first 3 days.', 'Peri bottle, warm water, before and after.', "Don't stand longer than 20 min in week 1."],
@@ -155,19 +179,7 @@ const MOM_HACKS: Record<string, string[]> = {
   'baby/tips':   ['Diaper before feed, not after, to avoid spit-up.', 'Onesies that snap from the side at 3 am.', 'Two diaper stations, not one.'],
 };
 
-// Roman numerals for the book-spread chapter rows.
 const ROMAN = ['I', 'II', 'III', 'IV', 'V'];
-
-// Card hero keys. Each card has its own routing target (currently stubs).
-type HeroKey = 'week' | 'manual' | 'questions' | 'videos' | 'hacks';
-
-// Per-card paper tint — five distinct "papers" so the screen reads as
-// five different chapters of one book.
-const BG_WEEK   = '#FAEDE3'; // pink-cream
-const BG_BOOK   = '#FBF3E0'; // warm book paper
-const BG_CHART  = '#EDE9DC'; // cooler clinical paper
-const BG_COCO   = '#F4E2D1'; // coco-cream (videos)
-const BG_SAGE   = '#EBEFD9'; // sage-cream (hacks)
 
 export default function ManualCategoryScreen() {
   const navigation = useNavigation<any>();
@@ -177,14 +189,10 @@ export default function ManualCategoryScreen() {
   const { audience, category } = route.params;
 
   const [videos, setVideos] = useState<ManualVideo[]>([]);
-  const [loading, setLoading] = useState(true);
 
-  // Reload on every focus so a video the user just watched flips its
-  // "Watched" badge without manual pull-to-refresh. Cheap RPC, small list.
   useFocusEffect(
     React.useCallback(() => {
       let cancelled = false;
-      setLoading(true);
       (async () => {
         try {
           const list = await listManualVideos(audience, category, lang);
@@ -192,8 +200,6 @@ export default function ManualCategoryScreen() {
         } catch (e) {
           console.error('manual-category load', e);
           if (!cancelled) setVideos([]);
-        } finally {
-          if (!cancelled) setLoading(false);
         }
       })();
       return () => { cancelled = true; };
@@ -206,8 +212,6 @@ export default function ManualCategoryScreen() {
     } as never);
   };
 
-  // Current week — uses baby_profiles.current_week_number, fallback to 1
-  // so the eyebrow always reads "Week N". Same hook used by ManualHome.
   const babyProfile = useHomeStore((s) => s.babyProfile);
   const week = Math.max(1, babyProfile?.current_week_number ?? 1);
 
@@ -219,11 +223,8 @@ export default function ManualCategoryScreen() {
   const questions  = SPECIALIST_QS[key]  ?? [];
   const hacks      = MOM_HACKS[key]      ?? [];
 
-  // Hero-box CTA tap — currently logs; each will route to its own
-  // surface in a follow-up pass.
-  const onHeroPress = (k: HeroKey) => {
-    console.log('hero-box pressed', { audience, category, k });
-  };
+  // (No card-level onPress for now — wiring real destinations is a follow-up.
+  // The HeroKey type stays exported for that future routing layer.)
 
   return (
     <View style={styles.container}>
@@ -232,70 +233,97 @@ export default function ManualCategoryScreen() {
         <TouchableOpacity onPress={() => navigation.goBack()} accessibilityRole="button" accessibilityLabel={t('common.back')}>
           <Text style={styles.back}>‹ {t('common.back')}</Text>
         </TouchableOpacity>
-        <Text style={styles.audienceTag}>
-          {audience === 'mom' ? t('manual.eyebrowMom') : t('manual.eyebrowBaby')}
-        </Text>
+        {/* Liquid-glass pill — VISIBLE body on cream bg. iOS 26 pills
+            still read as distinct shapes, not invisible films. Higher
+            opacity backdrop + coco hairline border + softer top highlight. */}
+        <View style={styles.audienceTagPill}>
+          {/* Subtle top-edge specular — visible but not blown out */}
+          <LinearGradient
+            colors={['rgba(255,255,255,0.55)', 'rgba(255,255,255,0)']}
+            start={{ x: 0, y: 0 }} end={{ x: 0, y: 0.55 }}
+            style={StyleSheet.absoluteFill as any}
+            pointerEvents="none"
+          />
+          {/* Faint warm wash bottom-half for depth */}
+          <LinearGradient
+            colors={['rgba(255,255,255,0)', 'rgba(173,121,91,0.10)']}
+            start={{ x: 0, y: 0.5 }} end={{ x: 0, y: 1 }}
+            style={StyleSheet.absoluteFill as any}
+            pointerEvents="none"
+          />
+          <Text style={styles.audienceTag}>
+            {audience === 'mom' ? 'Mom' : 'Baby'}
+          </Text>
+        </View>
       </View>
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        {/* ─── Masthead — eyebrow + chapter title + sub-lead + bee mascot ─── */}
+        {/* ─── Masthead ─── */}
         <View style={styles.masthead}>
           <View style={styles.villieMasthead} pointerEvents="none">
             <Image source={VILLIE_BEE} style={styles.villieMastheadImg} resizeMode="contain" />
           </View>
-          <View style={styles.fieldGuideRow}>
-            <View style={styles.fieldGuideBar} />
-            <Text style={styles.fieldGuideText}>A field guide</Text>
+          <View style={styles.eyebrowRow}>
+            <View style={[styles.eyebrowBar, { backgroundColor: V9.rust }]} />
+            <Text style={[styles.eyebrowText, { color: V9.rust }]}>A field guide</Text>
           </View>
-          <Text style={styles.title}>
-            {hero.prefix} <Text style={styles.italicAccent}>{hero.em}</Text>
-            <Text style={styles.heartDotInline}> ·</Text>
-          </Text>
+          <View style={styles.titleRow}>
+            <Text style={styles.title}>
+              {hero.prefix} <Text style={styles.italicAccent}>{hero.em}</Text>
+            </Text>
+            <View style={styles.heartDot} />
+          </View>
           {!!subLead && <Text style={styles.lead}>{subLead}</Text>}
         </View>
 
-        {/* ─── CARD 1 · Week hero ──────────────────────────────────────── */}
-        <TouchableOpacity
-          style={[styles.weekCard, { backgroundColor: BG_WEEK }]}
-          activeOpacity={0.92}
-          onPress={() => onHeroPress('week')}
-          accessibilityRole="button"
-          accessibilityLabel={`Week ${week}. ${weekBody}`}
-        >
+        {/* ─── CARD 1 · Week hero ─── */}
+        {/* Plain View (no TouchableOpacity wrapper) — card-level taps would
+            block the ScrollView's vertical drag. Inner CTAs become tappable
+            when we wire real destinations. */}
+        <View style={styles.weekCard} accessibilityLabel={`Week ${week}. ${weekBody}`}>
           <View style={styles.weekTopBar} />
           <View style={styles.weekYolkOuter} pointerEvents="none" />
           <View style={styles.weekYolkInner} pointerEvents="none" />
           <View style={styles.weekScribble} pointerEvents="none">
-            <View style={[styles.scribbleLine, { width: 20, transform: [{ rotate: '-6deg' }] }]} />
-            <View style={[styles.scribbleLine, { width: 14, transform: [{ rotate: '2deg' }] }]} />
-            <View style={[styles.scribbleLine, { width: 16, transform: [{ rotate: '-3deg' }] }]} />
+            <View style={[styles.scribbleLineBark, { width: 20, transform: [{ rotate: '-6deg' }] }]} />
+            <View style={[styles.scribbleLineBark, { width: 14, transform: [{ rotate: '2deg' }] }]} />
+            <View style={[styles.scribbleLineBark, { width: 16, transform: [{ rotate: '-3deg' }] }]} />
           </View>
           <Text style={styles.weekEyebrow}>You{'’'}re in</Text>
           <Text style={styles.weekNum}>Week {week}</Text>
           <Text style={styles.weekBody}>{weekBody}</Text>
           <View style={styles.weekCta}>
             <Text style={styles.weekCtaText}>See your weekly guide →</Text>
+            {/* Glossy cinnamon CTA — confident button first, glass second.
+                Soft top highlight + faint bottom-inner shadow for depth.
+                No bright inner ring (read as plastic halo at this size). */}
             <View style={styles.weekCtaArrow}>
+              <LinearGradient
+                colors={['rgba(255,255,255,0.22)', 'rgba(255,255,255,0)']}
+                start={{ x: 0, y: 0 }} end={{ x: 0, y: 0.55 }}
+                style={[StyleSheet.absoluteFill as any, { borderRadius: 18 }]}
+                pointerEvents="none"
+              />
+              <LinearGradient
+                colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0.18)']}
+                start={{ x: 0, y: 0.6 }} end={{ x: 0, y: 1 }}
+                style={[StyleSheet.absoluteFill as any, { borderRadius: 18 }]}
+                pointerEvents="none"
+              />
               <Text style={styles.weekCtaArrowGlyph}>→</Text>
             </View>
           </View>
-        </TouchableOpacity>
+        </View>
 
-        {/* ─── CARD 2 · The Manual (book spread) ───────────────────────── */}
-        <TouchableOpacity
-          style={[styles.bookCard, { backgroundColor: BG_BOOK }]}
-          activeOpacity={0.94}
-          onPress={() => onHeroPress('manual')}
-          accessibilityRole="button"
-          accessibilityLabel="The manual. What to actually know."
-        >
+        {/* ─── CARD 2 · The Manual (book spread) ─── */}
+        <View style={styles.bookCard} accessibilityLabel="The manual. What to actually know.">
           <View style={styles.bookSpine} pointerEvents="none" />
           <View style={styles.bookSpineHighlight} pointerEvents="none" />
           <View style={styles.bookYolkRing} pointerEvents="none" />
 
-          <View style={styles.cocoEyebrowRow}>
-            <View style={styles.cocoEyebrowBar} />
-            <Text style={styles.cocoEyebrowText}>The manual</Text>
+          <View style={styles.eyebrowRow}>
+            <View style={[styles.eyebrowBar, { backgroundColor: V9.rust }]} />
+            <Text style={[styles.eyebrowText, { color: V9.rust }]}>The manual</Text>
           </View>
           <Text style={styles.bookTitle}>
             What to actually <Text style={styles.italicAccent}>know.</Text>
@@ -310,31 +338,35 @@ export default function ManualCategoryScreen() {
 
           <Text style={styles.bookCta}>Explore the manual →</Text>
           <Text style={styles.folio}>p. {week}</Text>
-        </TouchableOpacity>
+        </View>
 
-        {/* ─── CARD 3 · Ask Specialist (clinical chart) ────────────────── */}
+        {/* ─── CARD 3 · Ask Specialist (clinical chart) ─── */}
         <View style={styles.chartCardWrap}>
-          <View style={[styles.chartTab, { backgroundColor: BG_CHART }]}>
+          {/* Liquid-glass file-folder tab: chart paper base + subtle top-edge
+              specular highlight for the iOS 26 frosted feel. */}
+          <View style={styles.chartTab}>
+            <LinearGradient
+              colors={['rgba(255,255,255,0.40)', 'rgba(255,255,255,0)']}
+              start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }}
+              style={[StyleSheet.absoluteFill as any, { borderTopLeftRadius: 6, borderTopRightRadius: 6 }]}
+              pointerEvents="none"
+            />
             <Text style={styles.chartTabText}>For your visit</Text>
           </View>
-          <TouchableOpacity
-            style={[styles.chartCard, { backgroundColor: BG_CHART }]}
-            activeOpacity={0.94}
-            onPress={() => onHeroPress('questions')}
-            accessibilityRole="button"
-            accessibilityLabel="Ask your specialist. Bring these three."
-          >
+          <View style={styles.chartCard} accessibilityLabel="Ask your specialist. Bring these three.">
+            {/* Hard-cutoff sage corner-fold (50/50, not smooth) */}
             <LinearGradient
-              colors={[COLORS.sageDeep, 'transparent']}
+              colors={[V9.sageDeep, V9.sageDeep, 'transparent', 'transparent']}
+              locations={[0, 0.5, 0.5, 1]}
               start={{ x: 1, y: 0 }}
               end={{ x: 0, y: 1 }}
               style={styles.chartFold}
               pointerEvents="none"
             />
 
-            <View style={styles.sageEyebrowRow}>
-              <View style={styles.sageEyebrowBar} />
-              <Text style={styles.sageEyebrowText}>Ask your specialist</Text>
+            <View style={styles.eyebrowRow}>
+              <View style={[styles.eyebrowBar, { backgroundColor: V9.sageDeep }]} />
+              <Text style={[styles.eyebrowText, { color: V9.sageDeep }]}>Ask your specialist</Text>
             </View>
             <Text style={styles.chartTitle}>
               Bring these <Text style={styles.italicAccent}>three.</Text>
@@ -342,7 +374,14 @@ export default function ManualCategoryScreen() {
 
             {questions.map((q, i) => (
               <View key={i} style={[styles.qRow, i < questions.length - 1 && styles.qRowDivider]}>
+                {/* Liquid-glass Q-chip: sage base + soft top highlight */}
                 <View style={styles.qTag}>
+                  <LinearGradient
+                    colors={['rgba(255,255,255,0.25)', 'rgba(255,255,255,0)']}
+                    start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }}
+                    style={[StyleSheet.absoluteFill as any, { borderRadius: 3 }]}
+                    pointerEvents="none"
+                  />
                   <Text style={styles.qTagText}>Q{i + 1}</Text>
                 </View>
                 <Text style={styles.qText}>{q}</Text>
@@ -351,51 +390,36 @@ export default function ManualCategoryScreen() {
 
             <View style={styles.chartFooter}>
               <Text style={styles.chartStamp}>— signed, your week-{week} self</Text>
-              <Text style={styles.cardCta}>Save & explore →</Text>
+              <Text style={styles.cardCtaRust}>Save & explore →</Text>
             </View>
-          </TouchableOpacity>
+          </View>
         </View>
 
-        {/* ─── CARD 4 · Quick Watches ──────────────────────────────────── */}
-        <TouchableOpacity
-          style={[styles.softCard, { backgroundColor: BG_COCO }]}
-          activeOpacity={0.94}
-          onPress={() => onHeroPress('videos')}
-          accessibilityRole="button"
-          accessibilityLabel="Quick watches. Two minutes, exactly."
-        >
+        {/* ─── CARD 4 · Quick Watches ─── */}
+        <View style={styles.softCardCoco} accessibilityLabel="Quick watches. Two minutes, exactly.">
           <View style={styles.scribbleAbs} pointerEvents="none">
-            <View style={[styles.scribbleLine, { width: 20, transform: [{ rotate: '-6deg' }] }]} />
-            <View style={[styles.scribbleLine, { width: 14, transform: [{ rotate: '2deg' }] }]} />
-            <View style={[styles.scribbleLine, { width: 16, transform: [{ rotate: '-3deg' }] }]} />
+            <View style={[styles.scribbleLineCoco, { width: 20, transform: [{ rotate: '-6deg' }] }]} />
+            <View style={[styles.scribbleLineCoco, { width: 14, transform: [{ rotate: '2deg' }] }]} />
+            <View style={[styles.scribbleLineCoco, { width: 16, transform: [{ rotate: '-3deg' }] }]} />
           </View>
 
-          <View style={styles.cocoEyebrowRow}>
-            <View style={styles.cocoEyebrowBar} />
-            <Text style={styles.cocoEyebrowText}>Quick watches</Text>
+          <View style={styles.eyebrowRow}>
+            <View style={[styles.eyebrowBar, { backgroundColor: V9.rust }]} />
+            <Text style={[styles.eyebrowText, { color: V9.rust }]}>Quick watches</Text>
           </View>
           <Text style={styles.cardTitle}>
             Two minutes, <Text style={styles.italicAccent}>exactly.</Text>
           </Text>
 
+          {/* v9 spec: ALWAYS render exactly 3 slots in a row. Real video where
+              videos[i] exists; gradient placeholder otherwise. This keeps the
+              row layout intact when the DB has 0/1/2 videos (without this, a
+              single thumb would stretch to 100% via flex:1). */}
           <View style={styles.vidStrip}>
-            {loading || videos.length === 0
-              ? [0, 1, 2].map((i) => (
-                  <LinearGradient
-                    key={`sk-${i}`}
-                    colors={
-                      i === 0 ? ['#F2D5C5', '#C99580']
-                      : i === 1 ? ['#E5D2BA', '#AD795B']
-                      : ['#D8DEB7', '#8B9A6B']
-                    }
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 0.8, y: 1 }}
-                    style={styles.vidThumb}
-                  >
-                    <Text style={styles.vidPlaceholderGlyph}>▷</Text>
-                  </LinearGradient>
-                ))
-              : videos.slice(0, 3).map((v) => (
+            {[0, 1, 2].map((i) => {
+              const v = videos[i];
+              if (v) {
+                return (
                   <TouchableOpacity
                     key={v.id}
                     style={styles.vidThumb}
@@ -417,21 +441,31 @@ export default function ManualCategoryScreen() {
                       </View>
                     )}
                   </TouchableOpacity>
-                ))}
+                );
+              }
+              const gradient =
+                i === 0 ? [V9.pinkSoft, V9.pinkDeep] as const
+                : i === 1 ? ['#E5D2BA', V9.coco] as const
+                : ['#D8DEB7', V9.sage] as const;
+              return (
+                <LinearGradient
+                  key={`sk-${i}`}
+                  colors={gradient as unknown as readonly [string, string, ...string[]]}
+                  start={{ x: 0.15, y: 0 }}
+                  end={{ x: 0.85, y: 1 }}
+                  style={styles.vidThumb}
+                >
+                  <Text style={styles.vidPlaceholderGlyph}>▷</Text>
+                </LinearGradient>
+              );
+            })}
           </View>
 
-          <Text style={styles.cardCta}>Watch the row →</Text>
-        </TouchableOpacity>
+          <Text style={styles.cardCtaRust}>Watch the row →</Text>
+        </View>
 
-        {/* ─── CARD 5 · Mom Hacks ──────────────────────────────────────── */}
-        <TouchableOpacity
-          style={[styles.softCard, styles.hacksCard, { backgroundColor: BG_SAGE }]}
-          activeOpacity={0.94}
-          onPress={() => onHeroPress('hacks')}
-          accessibilityRole="button"
-          accessibilityLabel="Mom hacks. Try one tonight."
-        >
-          {/* Sage dot scatter */}
+        {/* ─── CARD 5 · Mom Hacks ─── */}
+        <View style={styles.softCardSage} accessibilityLabel="Mom hacks. Try one tonight.">
           <View style={styles.sageDots} pointerEvents="none">
             <View style={[styles.sageDot, { top: 14, left: 8, width: 6, height: 6 }]} />
             <View style={[styles.sageDot, { top: 4,  left: 28, width: 4, height: 4 }]} />
@@ -439,14 +473,13 @@ export default function ManualCategoryScreen() {
             <View style={[styles.sageDot, { top: 38, left: 18, width: 4, height: 4 }]} />
             <View style={[styles.sageDot, { top: 46, left: 36, width: 6, height: 6 }]} />
           </View>
-          {/* Bee mascot bottom-right */}
           <View style={styles.villieCardMascot} pointerEvents="none">
             <Image source={VILLIE_BEE} style={styles.villieCardMascotImg} resizeMode="contain" />
           </View>
 
-          <View style={styles.sageEyebrowRow}>
-            <View style={styles.sageEyebrowBar} />
-            <Text style={styles.sageEyebrowText}>Mom hacks &amp; tips</Text>
+          <View style={styles.eyebrowRow}>
+            <View style={[styles.eyebrowBar, { backgroundColor: V9.rust }]} />
+            <Text style={[styles.eyebrowText, { color: V9.rust }]}>Mom hacks &amp; tips</Text>
           </View>
           <Text style={styles.cardTitle}>
             Try one <Text style={styles.italicAccent}>tonight.</Text>
@@ -461,8 +494,8 @@ export default function ManualCategoryScreen() {
             ))}
           </View>
 
-          <Text style={styles.cardCta}>More hacks →</Text>
-        </TouchableOpacity>
+          <Text style={styles.cardCtaRust}>More hacks →</Text>
+        </View>
 
         <View style={{ height: 20 }} />
       </ScrollView>
@@ -470,18 +503,72 @@ export default function ManualCategoryScreen() {
   );
 }
 
+// ═══════════════════════════════════════════════════════════════════════
+// Shadow recipes — RN can't do CSS multi-shadow + inset, so each card
+// gets the "lifted off the page" shadow from v9 approximated via
+// elevation + shadowColor + shadowOffset.
+// ═══════════════════════════════════════════════════════════════════════
+const cardShadow = {
+  shadowColor: V9.coco,
+  shadowOpacity: 0.28,
+  shadowOffset: { width: 0, height: 8 },
+  shadowRadius: 18,
+  elevation: 4,
+};
+const weekCardShadow = {
+  shadowColor: V9.coco,
+  shadowOpacity: 0.30,
+  shadowOffset: { width: 0, height: 10 },
+  shadowRadius: 22,
+  elevation: 5,
+};
+const sageCardShadow = {
+  shadowColor: V9.sageDeep,
+  shadowOpacity: 0.30,
+  shadowOffset: { width: 0, height: 8 },
+  shadowRadius: 18,
+  elevation: 4,
+};
+const arrowShadow = {
+  shadowColor: V9.rust,
+  shadowOpacity: 0.45,
+  shadowOffset: { width: 0, height: 3 },
+  shadowRadius: 10,
+  elevation: 4,
+};
+
 const styles = StyleSheet.create({
   // ── Page chrome ──────────────────────────────────────────────────────
-  container: { flex: 1, backgroundColor: COLORS.cream },
+  container: { flex: 1, backgroundColor: V9.paper },
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingTop: 56, paddingBottom: 8, paddingHorizontal: 20,
-    backgroundColor: COLORS.cream,
+    backgroundColor: V9.paper,
   },
-  back: { fontSize: 13, color: COLORS.coco, fontFamily: FONTS.bodySemiBold },
+  back: { fontSize: 13, color: V9.coco, fontFamily: FONTS.bodySemiBold },
+
+  // ── Liquid-glass audience tag pill (iOS 26 styling) ─────────────────
+  // Visible-body recipe: high-opacity warm-tinted backdrop + soft top
+  // highlight + bottom warm wash + coco hairline border. Reads as a
+  // distinct glass lozenge against cream paper, not invisible film.
+  audienceTagPill: {
+    paddingHorizontal: 14, paddingVertical: 5,
+    borderRadius: 999,
+    overflow: 'hidden',
+    backgroundColor: 'rgba(253, 250, 245, 0.80)', // visible parchment glass
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(173, 121, 91, 0.32)', // visible coco hairline (was invisible white)
+    shadowColor: V9.coco,
+    shadowOpacity: 0.14,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 6,
+    elevation: 2,
+  },
   audienceTag: {
-    fontSize: 10, color: COLORS.coco, fontFamily: FONTS.bodySemiBold,
+    fontSize: 10.5, color: V9.coco, fontFamily: FONTS.bodySemiBold,
     letterSpacing: 1.6, textTransform: 'uppercase',
+    // ensure text sits above the gradient layers
+    zIndex: 2,
   },
   content: { paddingHorizontal: 20, paddingBottom: 60 },
 
@@ -494,144 +581,165 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   villieMastheadImg: { width: '100%', height: '100%' },
-  fieldGuideRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
-  fieldGuideBar: { width: 16, height: 1, backgroundColor: COLORS.coco, marginRight: 8 },
-  fieldGuideText: {
-    fontSize: 10, fontFamily: FONTS.bodySemiBold, color: COLORS.coco,
+
+  // Shared eyebrow row (label + 16x1 hairline bar)
+  eyebrowRow: { flexDirection: 'row', alignItems: 'center', zIndex: 2 },
+  eyebrowBar: { width: 16, height: 1, marginRight: 8 },
+  eyebrowText: {
+    fontSize: 10, fontFamily: FONTS.bodySemiBold,
     letterSpacing: 1.8, textTransform: 'uppercase',
   },
+
+  titleRow: {
+    flexDirection: 'row', alignItems: 'flex-end',
+    flexWrap: 'wrap', marginTop: 8, marginBottom: 6,
+  },
   title: {
-    fontFamily: FONTS.headerBold, fontSize: 38, lineHeight: 40,
-    letterSpacing: -1.2, color: COLORS.bark, marginTop: 0, marginBottom: 6,
+    fontFamily: FONTS.headerBold, fontSize: 40, lineHeight: 40,
+    letterSpacing: -1.2, color: V9.bark,
   },
   italicAccent: {
-    fontFamily: FONTS.headerItalic, color: COLORS.coco,
-    // RN will pick up fontStyle from the family, but force italic just in case
-    fontStyle: 'italic',
+    fontFamily: FONTS.headerItalic, fontStyle: 'italic',
+    color: V9.rust,
   },
-  heartDotInline: { color: COLORS.coco, fontFamily: FONTS.headerBold },
+  heartDot: {
+    width: 6, height: 6, borderRadius: 3,
+    backgroundColor: V9.rust,
+    marginLeft: 5, marginBottom: 8,
+  },
   lead: {
-    fontSize: 13, lineHeight: 19, color: COLORS.barkSoft,
-    fontFamily: FONTS.body, marginTop: 6, maxWidth: '94%',
+    fontSize: 13, lineHeight: 19, color: V9.barkSoft,
+    fontFamily: FONTS.body, marginTop: 6, maxWidth: '92%',
   },
 
-  // ── Shared scribble line (3-line decorative mark) ────────────────────
-  scribbleLine: { height: 1.2, backgroundColor: COLORS.bark, opacity: 0.55 },
+  // ── Shared scribbles ─────────────────────────────────────────────────
+  scribbleLineBark: { height: 1.1, backgroundColor: V9.bark, opacity: 0.55 },
+  scribbleLineCoco: { height: 1.1, backgroundColor: V9.cocoDeep, opacity: 0.65 },
 
   // ── CARD 1 · Week hero ───────────────────────────────────────────────
   weekCard: {
+    backgroundColor: V9.bgPink,
     borderRadius: 16,
     paddingVertical: 16, paddingHorizontal: 16,
     marginBottom: 12,
     position: 'relative', overflow: 'hidden',
     borderWidth: 1, borderColor: 'rgba(173,121,91,0.22)',
+    ...weekCardShadow,
   },
   weekTopBar: {
     position: 'absolute', top: 0, left: 18,
-    width: 34, height: 2, backgroundColor: COLORS.coco,
+    width: 34, height: 2, backgroundColor: V9.rust,
     zIndex: 3,
   },
   weekYolkOuter: {
     position: 'absolute', top: -22, right: -22,
     width: 96, height: 96, borderRadius: 48,
-    backgroundColor: '#E8C4B6', opacity: 0.85, zIndex: 0,
+    backgroundColor: V9.pink, opacity: 0.85, zIndex: 0,
   },
   weekYolkInner: {
     position: 'absolute', top: -4, right: -4,
     width: 54, height: 54, borderRadius: 27,
-    backgroundColor: '#AD795B', opacity: 0.55, zIndex: 0,
+    backgroundColor: V9.coco, opacity: 0.55, zIndex: 0,
   },
   weekScribble: {
     position: 'absolute', top: 24, right: 80,
     gap: 2, opacity: 0.55, zIndex: 1,
   },
   weekEyebrow: {
-    fontSize: 10, fontFamily: FONTS.bodySemiBold, color: COLORS.cocoDeep,
+    fontSize: 10, fontFamily: FONTS.bodySemiBold, color: V9.rustDeep,
     letterSpacing: 1.8, textTransform: 'uppercase',
     paddingTop: 6, zIndex: 2,
   },
   weekNum: {
     fontFamily: FONTS.headerItalic, fontStyle: 'italic',
-    fontSize: 34, lineHeight: 36, letterSpacing: -1,
-    color: COLORS.bark, marginTop: 4, marginBottom: 8, zIndex: 2,
+    fontSize: 36, lineHeight: 36, letterSpacing: -1,
+    color: V9.bark, marginTop: 4, marginBottom: 8, zIndex: 2,
   },
   weekBody: {
-    fontSize: 13, lineHeight: 18, color: COLORS.bark,
+    fontSize: 13, lineHeight: 18, color: V9.bark,
     fontFamily: FONTS.body, maxWidth: '78%', zIndex: 2,
   },
   weekCta: {
-    marginTop: 12, flexDirection: 'row', alignItems: 'center',
+    marginTop: 10, flexDirection: 'row', alignItems: 'center',
     justifyContent: 'space-between', zIndex: 2,
   },
   weekCtaText: {
-    fontSize: 12, fontFamily: FONTS.bodySemiBold, color: COLORS.cocoDeep,
+    fontSize: 12, fontFamily: FONTS.bodySemiBold, color: V9.rustDeep,
   },
   weekCtaArrow: {
     width: 36, height: 36, borderRadius: 18,
-    backgroundColor: COLORS.coco,
+    backgroundColor: V9.rust,
     alignItems: 'center', justifyContent: 'center',
-    shadowColor: COLORS.coco, shadowOpacity: 0.45,
-    shadowRadius: 10, shadowOffset: { width: 0, height: 3 },
-    elevation: 3,
+    overflow: 'hidden', // clip glass overlays to circle
+    ...arrowShadow,
   },
   weekCtaArrowGlyph: {
-    color: COLORS.paper, fontSize: 16, fontFamily: FONTS.bodyBold,
+    color: V9.paper,
+    fontSize: 18,
+    lineHeight: 18, // clamp to fontSize so the Text box is glyph-tight
+    fontFamily: FONTS.bodyBold,
     fontWeight: '700',
+    textAlign: 'center',
+    includeFontPadding: false, // Android: kill the extra font padding
+    marginTop: -1, // optical fudge — arrow glyph sits slightly low in most fonts
+    textAlignVertical: 'center', // Android: vertical center inside the Text box
   },
 
   // ── CARD 2 · Book spread ─────────────────────────────────────────────
   bookCard: {
+    backgroundColor: V9.bgBook,
     borderRadius: 16,
-    paddingVertical: 14, paddingLeft: 22, paddingRight: 16, paddingBottom: 30,
+    paddingTop: 14, paddingLeft: 22, paddingRight: 16, paddingBottom: 28,
     marginBottom: 10,
     position: 'relative', overflow: 'hidden',
     borderWidth: 1, borderColor: 'rgba(173,121,91,0.18)',
+    ...cardShadow,
   },
   bookSpine: {
     position: 'absolute', left: 0, top: 0, bottom: 0,
-    width: 4, backgroundColor: COLORS.coco, zIndex: 2,
+    width: 4, backgroundColor: V9.coco, zIndex: 2,
   },
   bookSpineHighlight: {
     position: 'absolute', left: 4, top: 0, bottom: 0,
-    width: 2, backgroundColor: 'rgba(173,121,91,0.18)', zIndex: 1,
+    width: 2, backgroundColor: 'rgba(173,121,91,0.25)', zIndex: 1,
   },
   bookYolkRing: {
     position: 'absolute', top: -22, right: -22,
     width: 74, height: 74, borderRadius: 37,
-    borderWidth: 1.6, borderColor: COLORS.coco,
+    borderWidth: 1.6, borderColor: V9.coco,
     opacity: 0.40, zIndex: 0,
   },
   bookTitle: {
     fontFamily: FONTS.headerBold, fontSize: 20, lineHeight: 22,
-    letterSpacing: -0.5, color: COLORS.bark,
+    letterSpacing: -0.5, color: V9.bark,
     marginTop: 6, marginBottom: 10, zIndex: 2,
   },
   chapterRow: {
     flexDirection: 'row', alignItems: 'flex-start',
-    paddingVertical: 7, zIndex: 2,
+    paddingVertical: 6, zIndex: 2,
   },
   chapterRowDivider: {
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: 'rgba(173,121,91,0.30)',
+    borderTopColor: 'rgba(173,121,91,0.18)',
   },
   chapterNum: {
     fontFamily: FONTS.headerItalic, fontStyle: 'italic',
-    fontSize: 13, color: COLORS.cocoDeep,
+    fontSize: 13, color: V9.cocoDeep,
     width: 28, paddingTop: 1,
   },
   chapterText: {
-    flex: 1, fontSize: 12, lineHeight: 17,
-    color: COLORS.bark, fontFamily: FONTS.body,
+    flex: 1, fontSize: 11.5, lineHeight: 16,
+    color: V9.bark, fontFamily: FONTS.body,
   },
   bookCta: {
-    fontSize: 12, fontFamily: FONTS.bodySemiBold,
-    color: COLORS.coco, letterSpacing: 0.4,
+    fontSize: 11.5, fontFamily: FONTS.bodySemiBold,
+    color: V9.rust, letterSpacing: 0.5,
     marginTop: 10, zIndex: 2,
   },
   folio: {
-    position: 'absolute', bottom: 10, right: 14,
+    position: 'absolute', bottom: 8, right: 14,
     fontFamily: FONTS.headerItalic, fontStyle: 'italic',
-    fontSize: 10, color: COLORS.coco, opacity: 0.55,
+    fontSize: 10, color: V9.coco, opacity: 0.55,
     zIndex: 2,
   },
 
@@ -639,54 +747,60 @@ const styles = StyleSheet.create({
   chartCardWrap: { position: 'relative', marginTop: 14, marginBottom: 10 },
   chartTab: {
     position: 'absolute', top: -14, left: 14,
-    paddingHorizontal: 12, paddingVertical: 4,
+    paddingHorizontal: 12, paddingTop: 3, paddingBottom: 4,
     borderTopLeftRadius: 6, borderTopRightRadius: 6,
     borderWidth: 1, borderBottomWidth: 0,
-    borderColor: 'rgba(107,122,75,0.30)',
+    borderColor: 'rgba(107,122,75,0.28)',
+    backgroundColor: V9.bgChart,
+    overflow: 'hidden', // clip glass highlight gradient
     zIndex: 3,
   },
   chartTabText: {
-    fontSize: 9, fontFamily: FONTS.bodySemiBold, color: COLORS.sageDeep,
+    fontSize: 9, fontFamily: FONTS.bodyBold, color: V9.sageDeep,
     letterSpacing: 1.8, textTransform: 'uppercase',
   },
   chartCard: {
+    backgroundColor: V9.bgChart,
     borderRadius: 14,
     paddingTop: 18, paddingHorizontal: 16, paddingBottom: 12,
     position: 'relative', overflow: 'hidden',
-    borderWidth: 1, borderColor: 'rgba(107,122,75,0.30)',
+    borderWidth: 1, borderColor: 'rgba(107,122,75,0.28)',
+    ...cardShadow,
+    shadowColor: V9.sageDeep,
   },
   chartFold: {
     position: 'absolute', top: 0, right: 0,
-    width: 36, height: 36,
+    width: 32, height: 32,
     opacity: 0.20, borderTopRightRadius: 14,
     zIndex: 1,
   },
   chartTitle: {
     fontFamily: FONTS.headerBold, fontSize: 20, lineHeight: 22,
-    letterSpacing: -0.5, color: COLORS.bark,
+    letterSpacing: -0.5, color: V9.bark,
     marginTop: 6, marginBottom: 8, zIndex: 2,
   },
   qRow: {
     flexDirection: 'row', alignItems: 'flex-start',
-    paddingVertical: 7, paddingBottom: 7,
+    paddingTop: 7, paddingBottom: 6,
     zIndex: 2,
   },
   qRowDivider: {
     borderBottomWidth: 1, borderStyle: 'dashed',
-    borderBottomColor: 'rgba(107,122,75,0.40)',
+    borderBottomColor: 'rgba(107,122,75,0.30)',
   },
   qTag: {
-    backgroundColor: COLORS.sageDeep,
+    backgroundColor: V9.sageDeep,
     paddingHorizontal: 5, paddingVertical: 2,
     borderRadius: 3, marginRight: 8, marginTop: 1,
+    overflow: 'hidden', // clip glass highlight gradient
   },
   qTagText: {
-    fontSize: 9, fontFamily: FONTS.bodyBold, color: COLORS.paper,
-    letterSpacing: 1.0,
+    fontSize: 9, fontFamily: FONTS.bodyBold, color: V9.paper,
+    letterSpacing: 0.8,
   },
   qText: {
-    flex: 1, fontSize: 12, lineHeight: 17,
-    color: COLORS.bark, fontFamily: FONTS.body,
+    flex: 1, fontSize: 11.5, lineHeight: 16,
+    color: V9.bark, fontFamily: FONTS.body,
   },
   chartFooter: {
     flexDirection: 'row', alignItems: 'center',
@@ -695,32 +809,44 @@ const styles = StyleSheet.create({
   },
   chartStamp: {
     fontFamily: FONTS.headerItalic, fontStyle: 'italic',
-    fontSize: 10, color: COLORS.sageDeep, opacity: 0.80,
+    fontSize: 10, color: V9.sageDeep, opacity: 0.75,
   },
 
-  // ── Shared "soft card" used for Quick Watches + Mom Hacks ────────────
-  softCard: {
+  // ── Shared "soft cards" used for Quick Watches + Mom Hacks ───────────
+  softCardCoco: {
+    backgroundColor: V9.bgCoco,
     borderRadius: 16,
     paddingVertical: 14, paddingHorizontal: 16,
     marginBottom: 10,
     position: 'relative', overflow: 'hidden',
     borderWidth: 1, borderColor: 'rgba(173,121,91,0.18)',
+    ...cardShadow,
+  },
+  softCardSage: {
+    backgroundColor: V9.bgSage,
+    borderRadius: 16,
+    paddingTop: 14, paddingBottom: 14, paddingLeft: 16, paddingRight: 80,
+    minHeight: 162,
+    marginBottom: 10,
+    position: 'relative', overflow: 'hidden',
+    borderWidth: 1, borderColor: 'rgba(107,122,75,0.22)',
+    ...sageCardShadow,
   },
   cardTitle: {
     fontFamily: FONTS.headerBold, fontSize: 20, lineHeight: 22,
-    letterSpacing: -0.5, color: COLORS.bark,
+    letterSpacing: -0.5, color: V9.bark,
     marginTop: 6, marginBottom: 6, zIndex: 2,
   },
-  cardCta: {
-    fontSize: 12, fontFamily: FONTS.bodySemiBold,
-    color: COLORS.coco, letterSpacing: 0.4,
+  cardCtaRust: {
+    fontSize: 11.5, fontFamily: FONTS.bodySemiBold,
+    color: V9.rust, letterSpacing: 0.5,
     marginTop: 8, zIndex: 2,
   },
 
-  // ── Scribble mark for Quick Watches top-right ────────────────────────
+  // Scribble for Quick Watches top-right (coco-deep, not bark)
   scribbleAbs: {
     position: 'absolute', top: 16, right: 16,
-    gap: 2, opacity: 0.65, zIndex: 1,
+    gap: 2, zIndex: 1,
   },
 
   // ── Video strip ──────────────────────────────────────────────────────
@@ -731,35 +857,31 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: 'rgba(61,31,13,0.08)',
     alignItems: 'center', justifyContent: 'center',
   },
-  vidPlaceholderGlyph: { fontSize: 22, color: COLORS.paper, opacity: 0.85 },
+  vidPlaceholderGlyph: { fontSize: 22, color: V9.paper, opacity: 0.85 },
   vidDuration: {
     position: 'absolute', bottom: 4, right: 4,
     backgroundColor: 'rgba(28,16,8,0.78)',
     paddingHorizontal: 4, paddingVertical: 1.5, borderRadius: 3,
   },
-  vidDurationText: { color: COLORS.paper, fontSize: 9, fontFamily: FONTS.bodySemiBold },
+  vidDurationText: { color: V9.paper, fontSize: 8.5, fontFamily: FONTS.bodySemiBold },
   vidWatched: {
     position: 'absolute', top: 4, left: 4,
     backgroundColor: 'rgba(92,107,58,0.92)',
     paddingHorizontal: 5, paddingVertical: 1.5, borderRadius: 3,
   },
   vidWatchedText: {
-    color: COLORS.paper, fontSize: 8, fontFamily: FONTS.bodySemiBold,
+    color: V9.paper, fontSize: 8, fontFamily: FONTS.bodySemiBold,
     letterSpacing: 0.4, textTransform: 'uppercase',
   },
 
-  // ── Mom Hacks card ───────────────────────────────────────────────────
-  hacksCard: {
-    paddingRight: 80, minHeight: 162,
-    borderColor: 'rgba(107,122,75,0.22)',
-  },
+  // ── Mom Hacks ────────────────────────────────────────────────────────
   sageDots: {
     position: 'absolute', bottom: -4, right: 36,
     width: 60, height: 60, opacity: 0.40, zIndex: 0,
   },
   sageDot: {
     position: 'absolute', borderRadius: 999,
-    backgroundColor: COLORS.sageDeep,
+    backgroundColor: V9.sageDeep,
   },
   villieCardMascot: {
     position: 'absolute', bottom: 4, right: 6,
@@ -771,24 +893,10 @@ const styles = StyleSheet.create({
   chipRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
   chipBulletSage: {
     width: 4, height: 4, borderRadius: 2,
-    backgroundColor: COLORS.sageDeep, marginTop: 6,
+    backgroundColor: V9.sageDeep, marginTop: 6,
   },
   chipText: {
-    flex: 1, fontSize: 12, lineHeight: 17,
-    color: COLORS.bark, fontFamily: FONTS.body,
-  },
-
-  // ── Shared eyebrow patterns ──────────────────────────────────────────
-  cocoEyebrowRow: { flexDirection: 'row', alignItems: 'center', zIndex: 2 },
-  cocoEyebrowBar: { width: 16, height: 1, backgroundColor: COLORS.coco, marginRight: 8 },
-  cocoEyebrowText: {
-    fontSize: 10, fontFamily: FONTS.bodySemiBold, color: COLORS.coco,
-    letterSpacing: 1.8, textTransform: 'uppercase',
-  },
-  sageEyebrowRow: { flexDirection: 'row', alignItems: 'center', zIndex: 2 },
-  sageEyebrowBar: { width: 16, height: 1, backgroundColor: COLORS.sageDeep, marginRight: 8 },
-  sageEyebrowText: {
-    fontSize: 10, fontFamily: FONTS.bodySemiBold, color: COLORS.sageDeep,
-    letterSpacing: 1.8, textTransform: 'uppercase',
+    flex: 1, fontSize: 11.5, lineHeight: 16,
+    color: V9.bark, fontFamily: FONTS.body,
   },
 });
