@@ -1691,7 +1691,7 @@ const styles = StyleSheet.create({
   welcomeCard: {
     backgroundColor: '#FCE9E4',
     borderRadius: 12,
-    paddingTop: 5,
+    paddingTop: 8,                 // was 5 — gives the eyebrow real breathing room under the top dash
     paddingBottom: 9,
     paddingLeft: 14,
     paddingRight: 10,
@@ -1708,10 +1708,10 @@ const styles = StyleSheet.create({
   welcomeTopBar: {
     position: 'absolute',
     top: 0,
-    left: 14,
-    width: 20,
+    left: 14,                      // matches welcomeCard.paddingLeft
+    width: 22,                     // compact-card dash width (22 / 24 / 32 scale)
     height: 2,
-    backgroundColor: '#945A41', // action-deep (WCAG-compliant accent)
+    backgroundColor: '#945A41',    // action-deep
   },
   welcomeRowTop: {
     flexDirection: 'row',
@@ -1732,9 +1732,9 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.body,
   },
   welcomeEyebrow: {
-    fontSize: 8.5,
+    fontSize: 9,                   // unified v9 eyebrow scale (was 8.5)
     fontFamily: FONTS.bodySemiBold,
-    letterSpacing: 1.9,
+    letterSpacing: 2.2,            // unified tracking (was 1.9)
     color: '#945A41',
     textTransform: 'uppercase',
     paddingTop: 0,
@@ -2124,9 +2124,11 @@ const styles = StyleSheet.create({
   },
   weekHeroTopBar: {
     position: 'absolute',
-    top: 0, left: 18,
-    width: 32, height: 2,
-    backgroundColor: '#B85C38', // rust
+    top: 0,
+    left: 14,                      // aligned to weekHeroCard.paddingHorizontal:14
+    width: 32,                     // hero-card dash width (largest in 22/24/32 scale)
+    height: 2,
+    backgroundColor: '#9A4A2B',    // rust-deep — matches weekHeroEyebrow color (was #B85C38)
     zIndex: 3,
   },
   weekHeroYolk: {
@@ -2184,9 +2186,9 @@ const styles = StyleSheet.create({
   },
   weekHeroEyebrow: {
     fontFamily: FONTS.bodySemiBold,
-    fontSize: 9,
-    letterSpacing: 2.2,
-    color: '#9A4A2B', // rust-deep
+    fontSize: 9,                   // unified v9 eyebrow scale ✓
+    letterSpacing: 2.2,            // unified tracking ✓
+    color: '#9A4A2B',              // rust-deep (now matches top-dash color)
     textTransform: 'uppercase',
     position: 'relative',
     zIndex: 2,
@@ -2223,7 +2225,7 @@ const styles = StyleSheet.create({
     lineHeight: 15,
     color: '#3D1F0D',
     maxWidth: '78%',
-    marginBottom: 8,
+    marginBottom: 6,               // was 8 — within-card rhythm tightened to match other gaps (2-4-6)
     fontFamily: FONTS.body,
     position: 'relative',
     zIndex: 2,
@@ -2232,6 +2234,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    marginTop: 4,                  // explicit small CTA separator instead of leaning on body's mb
     position: 'relative',
     zIndex: 2,
   },
@@ -2277,7 +2280,7 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
     paddingLeft: 12,
     paddingRight: 10,
-    marginBottom: 10,
+    marginBottom: 12,  // was 10 — unified with other v9 section spacing
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -2289,8 +2292,8 @@ const styles = StyleSheet.create({
   },
   checkinStripEyebrow: {
     fontFamily: FONTS.bodySemiBold,
-    fontSize: 8.5,
-    letterSpacing: 1.9,
+    fontSize: 9,                   // unified v9 eyebrow scale (was 8.5)
+    letterSpacing: 2.2,            // unified tracking (was 1.9)
     color: '#945A41',
     textTransform: 'uppercase',
     marginBottom: 2,
@@ -2345,9 +2348,11 @@ const styles = StyleSheet.create({
   },
   manualBlockTopBar: {
     position: 'absolute',
-    top: 0, left: 18,
-    width: 24, height: 2,
-    backgroundColor: '#AD795B', // coco
+    top: 0,
+    left: 12,                      // aligned to manualBlock.paddingHorizontal:12
+    width: 24,                     // container dash width (mid of 22/24/32 scale)
+    height: 2,
+    backgroundColor: '#AD795B',    // coco — book-spine accent
   },
   manualBlockHead: {
     flexDirection: 'row',
@@ -2367,9 +2372,9 @@ const styles = StyleSheet.create({
   },
   manualBlockEyebrow: {
     fontFamily: FONTS.bodySemiBold,
-    fontSize: 9.5,
-    letterSpacing: 2.5,
-    color: '#8E5E40',
+    fontSize: 9,                   // unified v9 eyebrow scale (was 9.5)
+    letterSpacing: 2.2,            // unified tracking (was 2.5)
+    color: '#8E5E40',              // coco-deep
     textTransform: 'uppercase',
   },
   manualBlockLink: {
