@@ -170,15 +170,21 @@ export default function HomeScreen() {
     scrollY.interpolate({ inputRange: [0, 500], outputRange: [0, 35], extrapolate: 'clamp' })
   ).current;
 
-  const checkinPromptShownRef = useRef(false);
-  useEffect(() => {
-    if (loading) return;
-    if (!babyProfile) return;          // wait for profile load — empty-state path doesn't need the prompt
-    if (todayCheckin) return;          // already checked in today
-    if (checkinPromptShownRef.current) return;
-    checkinPromptShownRef.current = true;
-    navigation.navigate('DailyCheckin');
-  }, [loading, babyProfile, todayCheckin, navigation]);
+  // v9 redesign: Daily check-in is now an INLINE STRIP below the Week hero
+  // rather than an auto-modal that pops on landing. The strip is more
+  // respectful of a tired postpartum mom's attention — no surprise modal
+  // when she opens Home — and creates a clear daily ritual anchor on the
+  // page. The old auto-modal effect is commented out below for reference.
+  //
+  // const checkinPromptShownRef = useRef(false);
+  // useEffect(() => {
+  //   if (loading) return;
+  //   if (!babyProfile) return;
+  //   if (todayCheckin) return;
+  //   if (checkinPromptShownRef.current) return;
+  //   checkinPromptShownRef.current = true;
+  //   navigation.navigate('DailyCheckin');
+  // }, [loading, babyProfile, todayCheckin, navigation]);
 
   const onRefresh = useCallback(() => {
     fetchAll();
@@ -273,33 +279,45 @@ export default function HomeScreen() {
         <EmptyBabyProfileCard onSetup={() => navigation.navigate('BabyProfileSetup')} />
       ) : (
         <>
-          {/* BABY snapshot — moved to the very top of the home stack so the
-              user lands on their baby's name + week before any editorial or
-              check-in prompts. */}
-          <BabySnapshotCard
-            name={babyProfile.baby_name}
-            age={formatAge(
+          {/* v9 Week hero — baby identity folded in (avatar + name + age),
+              then big italic week number, milestone headline, body, and a
+              glossy clay arrow CTA. Replaces the prior BabySnapshotCard +
+              WeeklyManualCombinedCard duo with a single editorial card. */}
+          <WeekHeroV9
+            babyName={babyProfile.baby_name ?? 'Baby'}
+            babyAge={formatAge(
               babyProfile.date_of_birth,
               (profile?.preferred_language ?? 'en') as 'en' | 'es',
             )}
-            weekNumber={babyProfile.current_week_number}
-            feedingMethod={babyProfile.feeding_method}
-            onEdit={() => navigation.navigate('BabyProfileSetup')}
-          />
-
-          {/* Combined Weekly + Manual editorial card — gradient top band with
-              large italic Playfair week number on the left and Manual mini-tile
-              panel on the right, checklist body below, footer CTAs for the
-              weekly guide and full manual. */}
-          <WeeklyManualCombinedCard
             feedCard={cards.find((c) => c.block === 'milestone')}
             weekNumber={babyProfile.current_week_number}
             fallbackDescription={
               currentMilestone?.description ?? t('home.milestoneFallbackDesc')
             }
-            onWeekPress={() =>
+            onPress={() =>
               navigation.navigate('WeeklyJourney', { week: babyProfile.current_week_number })
             }
+          />
+
+          {/* v9 Daily check-in strip — inline daily ritual. Pending vs
+              answered states surface different copy + arrow glyph. Replaces
+              the auto-modal-on-landing pattern with a respectful inline
+              prompt the user opts into. */}
+          <DailyCheckinStrip
+            state={todayCheckin ? 'answered' : 'pending'}
+            previewMood={todayCheckin?.mood_score}
+            onPress={() =>
+              todayCheckin
+                ? navigation.navigate('CheckinResponse', { checkinId: todayCheckin.id })
+                : navigation.navigate('DailyCheckin')
+            }
+          />
+
+          {/* v9 Manual block — parchment container with 5 chapter pills
+              (Feel/Heal/Nourish/Rest/Tips) in their signature colors.
+              Replaces the manual mini-panel that used to sit on the right
+              side of the combined card. */}
+          <ManualBlockHome
             onManualPress={() => tabParent?.navigate('Manual')}
             onCategoryPress={(audience, category, label) =>
               tabParent?.navigate('Manual', {
@@ -846,6 +864,169 @@ function WeeklyManualCombinedCard({
         </View>
       </View>
     </View>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// v9 Week hero — compact, mockup-aligned. Baby identity folded into the
+// top row (avatar + name + age), then "THIS WEEK" eyebrow, big Playfair
+// italic week number, headline, body, and a glossy clay arrow CTA.
+// Replaces WeeklyManualCombinedCard for the daily Home view.
+// ─────────────────────────────────────────────────────────────────────────
+function WeekHeroV9({
+  babyName, babyAge, feedCard, weekNumber, fallbackDescription, onPress,
+}: {
+  babyName: string;
+  babyAge: string;
+  feedCard: HomeFeedCard | undefined;
+  weekNumber: number;
+  fallbackDescription: string;
+  onPress: () => void;
+}) {
+  const t = useT();
+  const p = feedCard?.payload as unknown as MilestoneBlockPayload | undefined;
+  const headlineRaw = p?.description ?? fallbackDescription;
+  const headline = headlineRaw.match(/^[^.]+\./)?.[0] ?? headlineRaw;
+  const longCopy = p?.long_copy;
+  const body = longCopy
+    ? longCopy.split('. ').slice(0, 2).join('. ') + (longCopy.split('. ').length > 2 ? '.' : '')
+    : headlineRaw.replace(headline, '').trim();
+
+  const initial = babyName?.[0]?.toUpperCase() ?? '·';
+
+  return (
+    <TouchableOpacity
+      style={styles.weekHeroCard}
+      activeOpacity={0.94}
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={t('home.heroWeekFmt', { week: weekNumber })}
+    >
+      {/* Decorative yolks (top-right) */}
+      <View style={styles.weekHeroYolk} pointerEvents="none" />
+      <View style={styles.weekHeroYolkIn} pointerEvents="none" />
+      {/* Top rust dash */}
+      <View style={styles.weekHeroTopBar} />
+
+      {/* Baby identity row — avatar + name + age */}
+      <View style={styles.weekHeroBabyRow}>
+        <View style={styles.weekHeroBabyAvatar}>
+          <Text style={styles.weekHeroBabyInitial}>{initial}</Text>
+        </View>
+        <Text style={styles.weekHeroBabyName}>{babyName}</Text>
+        <Text style={styles.weekHeroBabyAge}>{babyAge}</Text>
+      </View>
+
+      <Text style={styles.weekHeroEyebrow}>This week</Text>
+      <Text style={styles.weekHeroNum}>{t('home.heroWeekFmt', { week: weekNumber })}</Text>
+      <Text style={styles.weekHeroHeadline} numberOfLines={2}>{headline}</Text>
+      {!!body && <Text style={styles.weekHeroBody} numberOfLines={2}>{body}</Text>}
+
+      <View style={styles.weekHeroCtaRow}>
+        <Text style={styles.weekHeroCtaText}>{t('home.heroCta')}</Text>
+        <View style={styles.weekHeroArrow}>
+          <Text style={styles.weekHeroArrowGlyph}>→</Text>
+        </View>
+      </View>
+    </TouchableOpacity>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// v9 Manual block — parchment container with 5 chapter pills.
+// Mirrors the brand kit page 12 pill row pattern. Each pill carries its
+// chapter signature color so the manual reads as 5 different "papers"
+// even before drilling in.
+// ─────────────────────────────────────────────────────────────────────────
+type ManualPillTone = 'feel' | 'heal' | 'nourish' | 'rest' | 'tips';
+const MANUAL_PILL_COLORS: Record<ManualPillTone, { bg: string; fg: string }> = {
+  feel:    { bg: '#EDA8A0', fg: '#3D1F0D' }, // salmon
+  heal:    { bg: '#606E46', fg: '#FDFAF5' }, // moss
+  nourish: { bg: '#E8B547', fg: '#3D1F0D' }, // honey
+  rest:    { bg: '#8FA0BD', fg: '#FDFAF5' }, // dusk
+  tips:    { bg: '#C07840', fg: '#FDFAF5' }, // cinnamon
+};
+function ManualBlockHome({
+  onManualPress, onCategoryPress,
+}: {
+  onManualPress: () => void;
+  onCategoryPress: (audience: 'mom' | 'baby', category: string, label: string) => void;
+}) {
+  return (
+    <View style={styles.manualBlock}>
+      {/* Top coco dash */}
+      <View style={styles.manualBlockTopBar} />
+      <View style={styles.manualBlockHead}>
+        <View style={styles.manualBlockEyebrowRow}>
+          <View style={styles.manualBlockEyebrowBar} />
+          <Text style={styles.manualBlockEyebrow}>The manual</Text>
+        </View>
+        <TouchableOpacity onPress={onManualPress} accessibilityRole="link" accessibilityLabel="All chapters">
+          <Text style={styles.manualBlockLink}>All chapters →</Text>
+        </TouchableOpacity>
+      </View>
+      <View style={styles.manualBlockPills}>
+        {(['feel', 'heal', 'nourish', 'rest', 'tips'] as ManualPillTone[]).map((tone) => {
+          const label = tone === 'feel' ? 'Feel' : tone === 'heal' ? 'Heal' : tone === 'nourish' ? 'Nourish' : tone === 'rest' ? 'Rest' : 'Tips';
+          const c = MANUAL_PILL_COLORS[tone];
+          return (
+            <TouchableOpacity
+              key={tone}
+              style={[styles.manualPill, { backgroundColor: c.bg }]}
+              onPress={() => onCategoryPress('mom', tone, label)}
+              activeOpacity={0.85}
+              accessibilityRole="button"
+              accessibilityLabel={`${label} chapter`}
+            >
+              <Text style={[styles.manualPillText, { color: c.fg }]}>{label}</Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+    </View>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// v9 Daily Check-in strip — inline daily ritual. Sits between the Week
+// hero and the Manual block. Two states: pending (cinnamon arrow, "How
+// are you feeling today?") and answered (mood preview, "Checked in
+// today"). Tap → opens DailyCheckin or CheckinResponse modal.
+// ─────────────────────────────────────────────────────────────────────────
+function DailyCheckinStrip({
+  state, previewMood, onPress,
+}: {
+  state: 'pending' | 'answered';
+  previewMood?: number;
+  onPress: () => void;
+}) {
+  const t = useT();
+  const isPending = state === 'pending';
+  const eyebrow = t('home.checkinPendingEyebrow');
+  const prompt = isPending ? t('home.checkinPrompt') : t('home.checkinAnsweredTitle');
+
+  return (
+    <TouchableOpacity
+      style={styles.checkinStrip}
+      onPress={onPress}
+      activeOpacity={0.85}
+      accessibilityRole="button"
+      accessibilityLabel={prompt}
+    >
+      <View style={{ flex: 1, minWidth: 0 }}>
+        <Text style={styles.checkinStripEyebrow}>{eyebrow}</Text>
+        <Text style={styles.checkinStripPrompt} numberOfLines={1}>{prompt}</Text>
+      </View>
+      <View style={styles.checkinStripArrow}>
+        <Text style={styles.checkinStripArrowGlyph}>
+          {isPending
+            ? '→'
+            : (typeof previewMood === 'number'
+                ? ['😞', '😕', '🙂', '😊', '🤩'][Math.max(0, Math.min(4, previewMood - 1))]
+                : '✓')}
+        </Text>
+      </View>
+    </TouchableOpacity>
   );
 }
 
@@ -1897,6 +2078,295 @@ const styles = StyleSheet.create({
   },
   statementMarkText: {
     fontSize: 16, color: COLORS.cocoDeep,
+  },
+
+  // ─────────────────────────────────────────────────────────────────
+  // v9 Week hero — paper-card with baby identity folded in. Compact
+  // (matches the home-v9 mockup). Replaces the rust-gradient
+  // WeeklyManualCombinedCard for the daily Home view.
+  // ─────────────────────────────────────────────────────────────────
+  weekHeroCard: {
+    backgroundColor: '#FAEDE3',
+    borderRadius: 18,
+    paddingTop: 11,
+    paddingBottom: 10,
+    paddingHorizontal: 14,
+    marginBottom: 12,
+    position: 'relative',
+    overflow: 'hidden',
+    shadowColor: '#AD795B',
+    shadowOpacity: 0.30,
+    shadowOffset: { width: 0, height: 10 },
+    shadowRadius: 24,
+    elevation: 3,
+  },
+  weekHeroTopBar: {
+    position: 'absolute',
+    top: 0, left: 18,
+    width: 32, height: 2,
+    backgroundColor: '#B85C38', // rust
+    zIndex: 3,
+  },
+  weekHeroYolk: {
+    position: 'absolute',
+    top: -36, right: -32,
+    width: 130, height: 130, borderRadius: 65,
+    backgroundColor: '#E8C4B6', // pink
+    opacity: 0.55,
+    zIndex: 0,
+  },
+  weekHeroYolkIn: {
+    position: 'absolute',
+    top: -8, right: 6,
+    width: 54, height: 54, borderRadius: 27,
+    backgroundColor: '#AD795B', // coco
+    opacity: 0.35,
+    zIndex: 0,
+  },
+  weekHeroBabyRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingTop: 2,
+    marginBottom: 4,
+    position: 'relative',
+    zIndex: 2,
+  },
+  weekHeroBabyAvatar: {
+    width: 30, height: 30, borderRadius: 15,
+    backgroundColor: '#C99580', // pink-deep → coco midpoint; gradient not in RN without lib
+    alignItems: 'center', justifyContent: 'center',
+    shadowColor: '#AD795B',
+    shadowOpacity: 0.30,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 5,
+    elevation: 2,
+  },
+  weekHeroBabyInitial: {
+    fontFamily: 'Caprasimo_400Regular',
+    fontSize: 16, lineHeight: 17,
+    color: '#FEFCF8',
+    letterSpacing: -0.4,
+  },
+  weekHeroBabyName: {
+    fontFamily: FONTS.headerBold,
+    fontSize: 13,
+    color: '#3D1F0D', // bark
+    letterSpacing: -0.2,
+  },
+  weekHeroBabyAge: {
+    fontSize: 10.5,
+    color: '#7A4A28', // walnut
+    marginLeft: 4,
+    fontFamily: FONTS.body,
+  },
+  weekHeroEyebrow: {
+    fontFamily: FONTS.bodySemiBold,
+    fontSize: 9,
+    letterSpacing: 2.2,
+    color: '#9A4A2B', // rust-deep
+    textTransform: 'uppercase',
+    position: 'relative',
+    zIndex: 2,
+  },
+  weekHeroNum: {
+    fontFamily: 'PlayfairDisplay_500Medium_Italic',
+    fontStyle: 'italic',
+    fontSize: 30,
+    lineHeight: 30,
+    color: '#3D1F0D',
+    letterSpacing: -1.1,
+    marginTop: 0,
+    marginBottom: 2,
+    position: 'relative',
+    zIndex: 2,
+  },
+  weekHeroHeadline: {
+    fontFamily: FONTS.headerBold,
+    fontSize: 14,
+    lineHeight: 16,
+    color: '#3D1F0D',
+    letterSpacing: -0.3,
+    marginBottom: 3,
+    maxWidth: '80%',
+    position: 'relative',
+    zIndex: 2,
+  },
+  weekHeroBody: {
+    fontSize: 11,
+    lineHeight: 15,
+    color: '#3D1F0D',
+    maxWidth: '78%',
+    marginBottom: 8,
+    fontFamily: FONTS.body,
+    position: 'relative',
+    zIndex: 2,
+  },
+  weekHeroCtaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    position: 'relative',
+    zIndex: 2,
+  },
+  weekHeroCtaText: {
+    fontFamily: FONTS.bodyBold,
+    fontSize: 11.5,
+    color: '#945A41', // action-deep (muted clay)
+    letterSpacing: 0.4,
+    fontWeight: '700',
+  },
+  weekHeroArrow: {
+    width: 28, height: 28, borderRadius: 14,
+    backgroundColor: '#B07355', // action — muted clay (less saturated than rust)
+    alignItems: 'center', justifyContent: 'center',
+    shadowColor: '#945A41',
+    shadowOpacity: 0.42,
+    shadowOffset: { width: 0, height: 3 },
+    shadowRadius: 10,
+    elevation: 3,
+  },
+  weekHeroArrowGlyph: {
+    color: '#FEFCF8',
+    fontSize: 13,
+    fontWeight: '700',
+    lineHeight: 13,
+    fontFamily: FONTS.bodyBold,
+  },
+
+  // ─────────────────────────────────────────────────────────────────
+  // v9 Daily Check-in strip — dashed parchment, signals "interactive
+  // daily prompt" without competing with the Week hero or Manual block.
+  // ─────────────────────────────────────────────────────────────────
+  checkinStrip: {
+    backgroundColor: 'rgba(254,252,248,0.85)',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(176,115,85,0.36)',
+    borderStyle: 'dashed',
+    paddingTop: 8,
+    paddingBottom: 8,
+    paddingLeft: 12,
+    paddingRight: 10,
+    marginBottom: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 10,
+    shadowColor: '#AD795B',
+    shadowOpacity: 0.06,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 6,
+  },
+  checkinStripEyebrow: {
+    fontFamily: FONTS.bodySemiBold,
+    fontSize: 8.5,
+    letterSpacing: 1.9,
+    color: '#945A41',
+    textTransform: 'uppercase',
+    marginBottom: 2,
+  },
+  checkinStripPrompt: {
+    fontFamily: FONTS.headerBold,
+    fontSize: 13,
+    lineHeight: 14,
+    color: '#3D1F0D',
+    letterSpacing: -0.2,
+  },
+  checkinStripArrow: {
+    width: 24, height: 24, borderRadius: 12,
+    backgroundColor: '#B07355',
+    alignItems: 'center', justifyContent: 'center',
+    shadowColor: '#945A41',
+    shadowOpacity: 0.42,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  checkinStripArrowGlyph: {
+    color: '#FEFCF8',
+    fontSize: 12,
+    fontWeight: '700',
+    lineHeight: 12,
+    fontFamily: FONTS.bodyBold,
+  },
+
+  // ─────────────────────────────────────────────────────────────────
+  // v9 Manual block — parchment container with 5 chapter pills.
+  // Brand kit page 12 pill row pattern.
+  // ─────────────────────────────────────────────────────────────────
+  manualBlock: {
+    backgroundColor: '#F5EFE0', // parchment, warmer than page bg
+    borderRadius: 14,
+    paddingTop: 9,
+    paddingBottom: 10,
+    paddingHorizontal: 12,
+    marginBottom: 12,
+    position: 'relative',
+    overflow: 'hidden',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(173,121,91,0.20)',
+    shadowColor: '#AD795B',
+    shadowOpacity: 0.20,
+    shadowOffset: { width: 0, height: 6 },
+    shadowRadius: 14,
+    elevation: 2,
+  },
+  manualBlockTopBar: {
+    position: 'absolute',
+    top: 0, left: 18,
+    width: 24, height: 2,
+    backgroundColor: '#AD795B', // coco
+  },
+  manualBlockHead: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    justifyContent: 'space-between',
+    marginBottom: 6,
+    paddingTop: 2,
+  },
+  manualBlockEyebrowRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  manualBlockEyebrowBar: {
+    width: 14, height: 1,
+    backgroundColor: '#8E5E40', // coco-deep
+  },
+  manualBlockEyebrow: {
+    fontFamily: FONTS.bodySemiBold,
+    fontSize: 9.5,
+    letterSpacing: 2.5,
+    color: '#8E5E40',
+    textTransform: 'uppercase',
+  },
+  manualBlockLink: {
+    fontFamily: FONTS.bodySemiBold,
+    fontSize: 11,
+    color: '#8E5E40',
+  },
+  manualBlockPills: {
+    flexDirection: 'row',
+    gap: 6,
+  },
+  manualPill: {
+    flex: 1,
+    borderRadius: 11,
+    paddingTop: 8,
+    paddingBottom: 7,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.20,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  manualPillText: {
+    fontFamily: FONTS.bodyBold,
+    fontSize: 11,
+    letterSpacing: -0.1,
+    fontWeight: '700',
   },
 
   // Combined Weekly + Manual card — editorial redesign (Brand Kit v5).
