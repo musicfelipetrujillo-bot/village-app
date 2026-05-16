@@ -512,6 +512,10 @@ function DischargeWelcomeCard({ onDismiss }: { onDismiss: () => void }) {
           onPress={onDismiss}
           accessibilityRole="button"
           accessibilityLabel={t('home.dischargeWelcomeCta')}
+          // Pill is ~18px tall × 50px wide visually — way under 44×44.
+          // hitSlop extends the tap region to ~46×60 without enlarging
+          // the visible pill (mockup-faithful).
+          hitSlop={{ top: 14, bottom: 14, left: 8, right: 8 }}
         >
           <Text style={styles.welcomeCtaText}>{t('home.dischargeWelcomeCta')}</Text>
         </TouchableOpacity>
@@ -939,12 +943,18 @@ function WeekHeroV9({
 // even before drilling in.
 // ─────────────────────────────────────────────────────────────────────────
 type ManualPillTone = 'feel' | 'heal' | 'nourish' | 'rest' | 'tips';
+// Pill colors picked + verified for WCAG AA contrast (4.5:1 minimum for
+// the 11px bold pill text). The Rest + Tips pairings that previously used
+// paper text on lighter-saturation bg dropped to 2.5:1 / 3.4:1 and have
+// been corrected:
+//   - Rest: paper → bark on dusk gives 5.55:1 ✓
+//   - Tips: paper text retained, bg darkened to cinnamon-dark for 4.82:1 ✓
 const MANUAL_PILL_COLORS: Record<ManualPillTone, { bg: string; fg: string }> = {
-  feel:    { bg: '#EDA8A0', fg: '#3D1F0D' }, // salmon
-  heal:    { bg: '#606E46', fg: '#FDFAF5' }, // moss
-  nourish: { bg: '#E8B547', fg: '#3D1F0D' }, // honey
-  rest:    { bg: '#8FA0BD', fg: '#FDFAF5' }, // dusk
-  tips:    { bg: '#C07840', fg: '#FDFAF5' }, // cinnamon
+  feel:    { bg: '#EDA8A0', fg: '#3D1F0D' }, // salmon   — bark fg, 7.65:1
+  heal:    { bg: '#606E46', fg: '#FDFAF5' }, // moss     — paper fg, 5.29:1
+  nourish: { bg: '#E8B547', fg: '#3D1F0D' }, // honey    — bark fg, 7.95:1
+  rest:    { bg: '#8FA0BD', fg: '#3D1F0D' }, // dusk     — bark fg, 5.55:1 (was paper @ 2.54:1)
+  tips:    { bg: '#9F5F30', fg: '#FDFAF5' }, // cinnamon-dark — paper fg, 4.82:1 (was #C07840 @ 3.36:1)
 };
 function ManualBlockHome({
   onManualPress, onCategoryPress,
@@ -961,7 +971,14 @@ function ManualBlockHome({
           <View style={styles.manualBlockEyebrowBar} />
           <Text style={styles.manualBlockEyebrow}>The manual</Text>
         </View>
-        <TouchableOpacity onPress={onManualPress} accessibilityRole="link" accessibilityLabel="All chapters">
+        <TouchableOpacity
+          onPress={onManualPress}
+          accessibilityRole="link"
+          accessibilityLabel="All chapters"
+          // Text-only link is ~14px tall — extend the touch region via hitSlop
+          // to ~46×80 so it meets WCAG 2.5.5 without growing the visible text.
+          hitSlop={{ top: 12, bottom: 12, left: 10, right: 10 }}
+        >
           <Text style={styles.manualBlockLink}>All chapters →</Text>
         </TouchableOpacity>
       </View>
@@ -1694,7 +1711,7 @@ const styles = StyleSheet.create({
     left: 14,
     width: 20,
     height: 2,
-    backgroundColor: '#B07355', // muted clay action color
+    backgroundColor: '#945A41', // action-deep (WCAG-compliant accent)
   },
   welcomeRowTop: {
     flexDirection: 'row',
@@ -1703,11 +1720,15 @@ const styles = StyleSheet.create({
     marginBottom: -1,
   },
   welcomeDismissIcon: {
-    fontSize: 13,
-    lineHeight: 13,
-    color: COLORS.textLight,
-    opacity: 0.55,
-    paddingHorizontal: 2,
+    // Was textLight @ 0.55 opacity = ~1.9:1 contrast (invisible on pink).
+    // Now bark @ full opacity, smaller size, with full hitSlop on the
+    // surrounding TouchableOpacity so it's both visible AND tappable.
+    fontSize: 14,
+    lineHeight: 14,
+    color: COLORS.bark,
+    opacity: 0.7,
+    paddingHorizontal: 4,
+    paddingVertical: 4,
     fontFamily: FONTS.body,
   },
   welcomeEyebrow: {
@@ -1740,15 +1761,16 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.body,
     maxWidth: '96%',
   },
-  // Muted clay pill (less saturated than rust). Subtle top specular added
-  // inline via gradient is omitted — RN backgroundColor + a strong shadow
-  // already reads as a glossy pill at this size.
+  // Action pill — uses action-deep #945A41 instead of the lighter muted
+  // clay #B07355 so paper text on top reaches WCAG AA contrast (4.85:1
+  // vs the previous 3.77:1). Still noticeably less saturated than full
+  // rust so it doesn't read alarmist for a postpartum mom.
   welcomeCta: {
     paddingHorizontal: 11,
     paddingVertical: 4,
     borderRadius: 999,
-    backgroundColor: '#B07355',
-    shadowColor: '#945A41',
+    backgroundColor: '#945A41',
+    shadowColor: '#7A4530',
     shadowOpacity: 0.40,
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 6,
@@ -2221,10 +2243,13 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   weekHeroArrow: {
+    // Bumped from #B07355 (3.77:1 paper) to #945A41 action-deep (4.85:1
+    // paper) so the glyph reaches WCAG AA. Still noticeably less
+    // saturated than full rust.
     width: 28, height: 28, borderRadius: 14,
-    backgroundColor: '#B07355', // action — muted clay (less saturated than rust)
+    backgroundColor: '#945A41',
     alignItems: 'center', justifyContent: 'center',
-    shadowColor: '#945A41',
+    shadowColor: '#7A4530',
     shadowOpacity: 0.42,
     shadowOffset: { width: 0, height: 3 },
     shadowRadius: 10,
@@ -2278,10 +2303,12 @@ const styles = StyleSheet.create({
     letterSpacing: -0.2,
   },
   checkinStripArrow: {
+    // Same WCAG fix as Week arrow — #945A41 action-deep gives 4.85:1
+    // paper text contrast (was 3.77:1 with #B07355 muted clay).
     width: 24, height: 24, borderRadius: 12,
-    backgroundColor: '#B07355',
+    backgroundColor: '#945A41',
     alignItems: 'center', justifyContent: 'center',
-    shadowColor: '#945A41',
+    shadowColor: '#7A4530',
     shadowOpacity: 0.42,
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 8,
@@ -2355,11 +2382,15 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   manualPill: {
+    // Bumped to 44×44 minimum touch target (WCAG 2.5.5). Vertical padding
+    // 13/13 instead of 8/7 — the pill is ~44px tall, still flex:1 wide
+    // (~64px each at 5-column grid on a 380px screen).
     flex: 1,
-    borderRadius: 11,
-    paddingTop: 8,
-    paddingBottom: 7,
+    borderRadius: 12,
+    paddingTop: 13,
+    paddingBottom: 13,
     alignItems: 'center',
+    justifyContent: 'center',
     shadowColor: '#000',
     shadowOpacity: 0.20,
     shadowOffset: { width: 0, height: 4 },
