@@ -2143,7 +2143,7 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   weekHeroBabyInitial: {
-    fontFamily: 'Caprasimo_400Regular',
+    fontFamily: FONTS.v2_wordmark, // Caprasimo_400Regular — the villie wordmark font
     fontSize: 16, lineHeight: 17,
     color: '#FEFCF8',
     letterSpacing: -0.4,
@@ -2170,7 +2170,11 @@ const styles = StyleSheet.create({
     zIndex: 2,
   },
   weekHeroNum: {
-    fontFamily: 'PlayfairDisplay_500Medium_Italic',
+    // PlayfairDisplay_600SemiBold_Italic — the only italic-weight Playfair
+    // we load in App.tsx (per FONTS.headerItalic / FONTS.v2_display_italic).
+    // The previous "_500Medium_Italic" string was a guess; it isn't loaded,
+    // so the system would silently fall back to the platform serif.
+    fontFamily: FONTS.headerItalic,
     fontStyle: 'italic',
     fontSize: 30,
     lineHeight: 30,
