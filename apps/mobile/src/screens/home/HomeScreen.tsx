@@ -8,13 +8,15 @@
 // and a 4-icon Help grid. Keeps the existing feed/curator wiring intact —
 // the personalized feed cards still render below the help grid so curator
 // output is visible without breaking the new aesthetic.
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useFocusEffect , useNavigation } from '@react-navigation/native';
 import {
   View, Text, StyleSheet, ScrollView, RefreshControl,
   TouchableOpacity, ActivityIndicator, Image, ImageSourcePropType,
+  Animated,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useNavigation } from '@react-navigation/native';
 import { COLORS, FONTS } from '@utils/constants';
 import { useAuthStore } from '@store/auth';
 import { useHomeStore } from '@store/home';
@@ -29,6 +31,7 @@ import {
   type PerksBlockPayload,
   type GearTipBlockPayload,
 } from '@api/home';
+import { weeklyJourneyApi, type ChecklistItem } from '@api/weekly-journey';
 import { isQuietHoursActive, formatHour12 } from '@utils/quietHours';
 import { useT } from '@/i18n';
 import CrisisResourcesSheet from '@components/community/CrisisResourcesSheet';
@@ -36,16 +39,45 @@ import { useAnalytics } from '@/hooks/useAnalytics';
 import {
   YolkCircle, YolkRing, ScribbleMark, DotCluster, LeafSprig, SparkleMark,
 } from '@components/shared/DecorativeMarks';
+import WarmGlowBackdrop from '@components/shared/WarmGlowBackdrop';
+import CardGlowAccent from '@components/shared/CardGlowAccent';
+import EditorialLede from '@components/shared/EditorialLede';
+import EditorialSectionHead from '@components/shared/EditorialSectionHead';
 
 // Versioned key — bump if we ever want a new orientation card to surface to
 // users who already dismissed the previous one.
 const DISCHARGE_WELCOME_KEY = 'village.dischargeWelcomeDismissed.v1';
 
-// Brand wordmark — same asset shipped on Splash/Login/SignUp. Used as the
-// quiet editorial header at the top of Home in place of the prior text-rendered
-// wordmark + dot. Sizing is small (~28px tall) so the greeting still anchors
-// the first fold per moodboard.
-const WORDMARK = require('../../../assets/brand/the-village-wordmark.png');
+// Brand wordmark — "villie" logotype with bee mark (1182×827, ≈1.43:1).
+const WORDMARK = require('../../../assets/brand/villie-wordmark-sm.png');
+// Villie bee — brand mark used as a decorative accent in the masthead.
+const VILLIE_BEE = require('../../../assets/brand/villie-bee.png');
+
+// Header banner variant — flip to compare looks.
+//   'A' = soft blush watercolor wash (static, editorial pink)
+//   'D' = time-of-day wash (blush sunrise → rust afternoon → olive dusk)
+//   'off' = no banner, flat cream
+const HOME_BANNER_VARIANT: 'A' | 'D' | 'off' = 'off';
+
+// Pre-rendered gradient PNGs (4×512 RGBA, ease-out alpha curve baked in).
+// We render a single <Image resizeMode="stretch"> over the header — RN
+// bilinear-scales the asset which gives a perfectly smooth gradient with
+// zero new native dependencies (no expo-linear-gradient, no react-native-svg).
+const BANNER_BLUSH      = require('../../../assets/gradients/banner-blush.png');
+const BANNER_YOLK       = require('../../../assets/gradients/banner-yolk.png');
+const BANNER_RUST       = require('../../../assets/gradients/banner-rust.png');
+const BANNER_RUST_LIGHT = require('../../../assets/gradients/banner-rust-light.png');
+const BANNER_OLIVE      = require('../../../assets/gradients/banner-olive.png');
+
+function getBannerAsset(variant: 'A' | 'D' | 'off'): ImageSourcePropType | null {
+  if (variant === 'off') return null;
+  if (variant === 'A') return BANNER_RUST_LIGHT;
+  const h = new Date().getHours();
+  if (h < 5)  return BANNER_OLIVE; // pre-dawn
+  if (h < 12) return BANNER_YOLK;  // morning
+  if (h < 18) return BANNER_RUST;  // afternoon
+  return BANNER_OLIVE;             // evening
+}
 
 export default function HomeScreen() {
   const navigation = useNavigation<any>();
@@ -114,6 +146,40 @@ export default function HomeScreen() {
     }
   }, [user, profile, fetchProfile, fetchAll, fetchUpcoming, fetchPerks]);
 
+  // Daily check-in auto-popup — when a user lands on Home and hasn't checked in
+  // today, push the DailyCheckin modal in front of them once per session. The
+  // modal route owns its own dismiss/submit flow and returns to Home when done.
+  // `checkinPromptShownRef` guards against re-firing (e.g. after `fetchAll`
+  // updates `todayCheckin` from null → object on submit) and against showing
+  // again if the user backs out without submitting on the same session.
+  const scrollY = useRef(new Animated.Value(0)).current;
+  const [animTrigger, setAnimTrigger] = useState(0);
+
+  // Fire bee fly-in after the screen gains focus — so the animation plays
+  // after the check-in modal is dismissed, not hidden behind it.
+  useFocusEffect(useCallback(() => {
+    setAnimTrigger(n => n + 1);
+  }, []));
+
+  // Stable parallax values for inline bee decorations (explore + greeting).
+  // Pre-computed in refs so the native driver never loses them across renders.
+  const exploreBeeX = useRef(
+    scrollY.interpolate({ inputRange: [0, 500], outputRange: [0, 50], extrapolate: 'clamp' })
+  ).current;
+  const greetingBeeX = useRef(
+    scrollY.interpolate({ inputRange: [0, 500], outputRange: [0, 35], extrapolate: 'clamp' })
+  ).current;
+
+  const checkinPromptShownRef = useRef(false);
+  useEffect(() => {
+    if (loading) return;
+    if (!babyProfile) return;          // wait for profile load — empty-state path doesn't need the prompt
+    if (todayCheckin) return;          // already checked in today
+    if (checkinPromptShownRef.current) return;
+    checkinPromptShownRef.current = true;
+    navigation.navigate('DailyCheckin');
+  }, [loading, babyProfile, todayCheckin, navigation]);
+
   const onRefresh = useCallback(() => {
     fetchAll();
     fetchUpcoming();
@@ -137,47 +203,56 @@ export default function HomeScreen() {
   const onHelpAskVillage = () => rootNav?.navigate('AIHelpChat');
 
   return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={styles.content}
-      refreshControl={<RefreshControl refreshing={loading} onRefresh={onRefresh} tintColor={COLORS.rust} />}
-    >
-      {/* App-bar: brand wordmark image + bell. Per moodboard v3 — quiet
-          editorial header that lets the greeting carry the page. */}
-      <View style={styles.appBar}>
+    <View style={styles.pageRoot}>
+      {/* Warm-glow backdrop — atmospheric mustard + apricot corner blobs over
+          cream, mirroring the editorial gradient effect from the design
+          artifact. Fixed behind the scroll so it stays anchored to the
+          viewport (doesn't scroll away with content). */}
+      <WarmGlowBackdrop scrollY={scrollY} triggerAnim={animTrigger} />
+      <Animated.ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.content}
+        refreshControl={<RefreshControl refreshing={loading} onRefresh={onRefresh} tintColor={COLORS.coco} />}
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+          { useNativeDriver: true }
+        )}
+        scrollEventThrottle={16}
+      >
+      {/* Header banner — pre-rendered gradient PNG bilinear-scaled by RN.
+          Single <Image> beats N stacked Views for smoothness because the GPU
+          interpolates pixels instead of stacking discrete slice rectangles. */}
+      {HOME_BANNER_VARIANT !== 'off' ? (
         <Image
-          source={WORDMARK}
-          style={styles.wordmarkImg}
-          resizeMode="contain"
-          accessibilityLabel={t('home.wordmark')}
+          source={getBannerAsset(HOME_BANNER_VARIANT)!}
+          resizeMode="stretch"
+          style={styles.headerBannerImage}
         />
-        <TouchableOpacity
-          style={styles.bellWrap}
-          accessibilityRole="button"
-          accessibilityLabel={t('home.notificationsA11y')}
-          onPress={() => navigation.navigate('Notifications')}
-        >
-          <Text style={styles.bellIcon}>🔔</Text>
-          <View style={styles.bellDot} />
-        </TouchableOpacity>
-      </View>
+      ) : null}
+
+      {/* App-bar: brand wordmark only. Notifications surface via the
+          Profile tab badge (tab bar) rather than a bell here. */}
+      <Image
+        source={WORDMARK}
+        style={styles.wordmarkImg}
+        resizeMode="contain"
+        accessibilityLabel="villie"
+      />
 
       <View style={styles.greetingBlock}>
-        <Text style={styles.greetingDate}>{formatHeaderDate()}</Text>
+        {/* Two small companion bees — drift right on scroll */}
+        <Animated.Image source={VILLIE_BEE} resizeMode="contain" accessible={false}
+          style={[styles.greetingBeeSmall1, { transform: [{ translateX: greetingBeeX }, { rotate: '10deg' }] }]} />
+        <Animated.Image source={VILLIE_BEE} resizeMode="contain" accessible={false}
+          style={[styles.greetingBeeSmall2, { transform: [{ translateX: greetingBeeX }, { rotate: '-18deg' }] }]} />
+        <View style={styles.greetingDateRow}>
+          <View style={styles.greetingDateBar} />
+          <Text style={styles.greetingDate}>{formatHeaderDate()}</Text>
+        </View>
         <Text style={styles.greetingName}>
           {greeting} <Text style={styles.greetingNameAccent}>{firstName}.</Text>
         </Text>
-        {babyProfile?.baby_name ? (
-          <Text style={styles.greetingBabyLine}>
-            {t('home.babyAgeLine', {
-              name: babyProfile.baby_name,
-              age: formatAge(
-                babyProfile.date_of_birth,
-                (profile?.preferred_language ?? 'en') as 'en' | 'es',
-              ),
-            })}
-          </Text>
-        ) : null}
+        <View style={styles.greetingRule} />
         <QuietHoursPill />
       </View>
 
@@ -190,132 +265,17 @@ export default function HomeScreen() {
         <DischargeWelcomeCard onDismiss={dismissWelcome} />
       ) : null}
 
-      {/* Daily check-in — full card, always visible above the weekly hero.
-          Crisis state gets full-bleed treatment (handled inside CheckinBanner);
-          pending/answered render as the compact pill row. */}
-      {todayCheckin?.crisis_flagged ? (
-        <CheckinBanner
-          state="crisis"
-          previewMood={todayCheckin?.mood_score}
-          onPress={() => navigation.navigate('CheckinResponse', { checkinId: todayCheckin.id })}
-        />
-      ) : (
-        <CheckinBanner
-          state={todayCheckin ? 'answered' : 'pending'}
-          previewMood={todayCheckin?.mood_score}
-          onPress={() => {
-            if (todayCheckin) {
-              navigation.navigate('CheckinResponse', { checkinId: todayCheckin.id });
-            } else {
-              navigation.navigate('DailyCheckin');
-            }
-          }}
-        />
-      )}
-
       {loading && !babyProfile ? (
         <View style={styles.loadingWrap}>
-          <ActivityIndicator color={COLORS.rust} />
+          <ActivityIndicator color={COLORS.coco} />
         </View>
       ) : !babyProfile ? (
         <EmptyBabyProfileCard onSetup={() => navigation.navigate('BabyProfileSetup')} />
       ) : (
         <>
-          {/* Weekly hero — separate card stacked under the check-in (was
-              merged into a twin spread; unmerged so each card has its own
-              full width and breathing room). */}
-          <HeroWeekCard
-            feedCard={cards.find((c) => c.block === 'milestone')}
-            fallback={{
-              weekNumber: currentMilestone?.week_number ?? babyProfile.current_week_number,
-              title: currentMilestone?.title ?? t('home.milestoneFallbackTitle'),
-              description: currentMilestone?.description ?? t('home.milestoneFallbackDesc'),
-              heroEmoji: currentMilestone?.hero_emoji ?? '✨',
-            }}
-            onPress={(week) => navigation.navigate('WeeklyJourney', { week })}
-          />
-
-          {/* Calm always-here crisis card — early-postpartum window only.
-              Sits below the twin so it never crowds the primary daily action,
-              but stays above the editorial sections so a fragile user can
-              find it without scrolling. */}
-          {earlyPostpartum ? (
-            <EarlyPostpartumCrisisCard onPress={openCrisisSheet} />
-          ) : null}
-
-          {/* Editorial statement hero — "It takes a village." Tap → Manual tab.
-              Single biggest visual hook from the moodboard reference. Cream paper
-              card w/ Playfair italic statement + serif subtitle + Diner pill CTA. */}
-          <TouchableOpacity
-            style={styles.statementCard}
-            onPress={() => tabParent?.navigate('Manual')}
-            activeOpacity={0.94}
-            accessibilityRole="button"
-            accessibilityLabel={t('home.statementA11y')}
-          >
-            {/* Hand-drawn moodboard marks — yolk circle behind eyebrow, leaf
-                sprig in upper-right, sparkle ✦ in lower-right. Scribble + dot
-                cluster removed — once the body grew longer they read as
-                clutter rather than texture. */}
-            <YolkCircle size={70} top={-12} left={-10} tint={COLORS.yolkLight} opacity={0.55} />
-            <LeafSprig size={56} top={6} right={14} tint={COLORS.olive} />
-            <Text style={styles.statementEyebrow}>{t('home.statementEyebrow')}</Text>
-            <Text style={styles.statementTitle}>
-              {t('home.statementTitleA')}{'\n'}
-              <Text style={styles.statementTitleItalic}>{t('home.statementTitleB')}</Text>
-            </Text>
-            <Text style={styles.statementBody}>{t('home.statementBody')}</Text>
-            <View style={styles.statementCta}>
-              <Text style={styles.statementCtaText}>{t('home.statementCta')} →</Text>
-            </View>
-            <SparkleMark size={20} bottom={20} right={22} tint={COLORS.dinerDark} />
-          </TouchableOpacity>
-
-          {/* EXPLORE — 2x2 photo grid mapping to the four product areas, mirroring
-              the moodboard's "Explore" section on Home. Each card jumps to the
-              corresponding tab/screen. */}
-          <View style={styles.sectionHeadingRow}>
-            <View style={styles.sectionAccentBar} />
-            <Text style={styles.sectionEyebrow}>{t('home.exploreEyebrow')}</Text>
-          </View>
-          <View style={styles.exploreGrid}>
-            <ExploreTile
-              label={t('home.exploreSpecialistsLabel')}
-              sub={t('home.exploreSpecialistsSub')}
-              photo={require('../../../assets/photos/specialist.jpg')}
-              tint={COLORS.blush}
-              onPress={() => tabParent?.navigate('Experts')}
-            />
-            <ExploreTile
-              label={t('home.exploreMilkLabel')}
-              sub={t('home.exploreMilkSub')}
-              photo={require('../../../assets/photos/milk.jpg')}
-              tint={COLORS.yolkLight}
-              onPress={() => tabParent?.navigate('Milk')}
-            />
-            <ExploreTile
-              label={t('home.exploreGearLabel')}
-              sub={t('home.exploreGearSub')}
-              photo={require('../../../assets/photos/gear.jpg')}
-              tint={COLORS.lime}
-              onPress={() => tabParent?.navigate('Gear')}
-            />
-            <ExploreTile
-              label={t('home.exploreEventsLabel')}
-              sub={t('home.exploreEventsSub')}
-              photo={require('../../../assets/photos/events.jpg')}
-              tint={COLORS.dinerLight}
-              onPress={() => navigation.navigate('EventsList')}
-            />
-          </View>
-
-          {/* BABY snapshot — quiet profile recap (name/age/week/feeding).
-              Used to live under a "BABY THIS WEEK" section heading + a
-              second BabyThisWeekCard, but that duplicated the twin's
-              right-half (week + description + weekly-guide CTA). The twin
-              now owns "your week"; the snapshot stays only as a small
-              reference tile so the baby profile doesn't visually compete
-              with the daily check-in / weekly journey above. */}
+          {/* BABY snapshot — moved to the very top of the home stack so the
+              user lands on their baby's name + week before any editorial or
+              check-in prompts. */}
           <BabySnapshotCard
             name={babyProfile.baby_name}
             age={formatAge(
@@ -327,19 +287,132 @@ export default function HomeScreen() {
             onEdit={() => navigation.navigate('BabyProfileSetup')}
           />
 
-          {/* HOW CAN WE HELP — 4 quick-launch tiles. Replaces a scrolled-deep
-              "What do you need today?" CTA: feeding help, emotional support,
-              find moms nearby, ask Village (AI). The most common 3-a.m.
-              questions, one tap away. */}
-          <View style={styles.sectionHeadingRow}>
-            <View style={styles.sectionAccentBar} />
-            <Text style={styles.sectionEyebrow}>{t('home.howCanWeHelp')}</Text>
+          {/* Combined Weekly + Manual editorial card — gradient top band with
+              large italic Playfair week number on the left and Manual mini-tile
+              panel on the right, checklist body below, footer CTAs for the
+              weekly guide and full manual. */}
+          <WeeklyManualCombinedCard
+            feedCard={cards.find((c) => c.block === 'milestone')}
+            weekNumber={babyProfile.current_week_number}
+            fallbackDescription={
+              currentMilestone?.description ?? t('home.milestoneFallbackDesc')
+            }
+            onWeekPress={() =>
+              navigation.navigate('WeeklyJourney', { week: babyProfile.current_week_number })
+            }
+            onManualPress={() => tabParent?.navigate('Manual')}
+            onCategoryPress={(audience, category, label) =>
+              tabParent?.navigate('Manual', {
+                screen: 'ManualCategory',
+                params: { audience, category, label },
+              })
+            }
+          />
+
+          {/* Daily check-in — now opens automatically as a popup modal when
+              the user lands on Home without a check-in for today (see the
+              `checkinPromptShownRef` effect at the top of the screen). The
+              inline CheckinBanner was removed; only the crisis-flagged
+              follow-up banner remains, since that one matters AFTER a
+              checkin has already been submitted and surfaces a hard signal
+              the user shouldn't miss. */}
+          {todayCheckin?.crisis_flagged ? (
+            <CheckinBanner
+              state="crisis"
+              previewMood={todayCheckin?.mood_score}
+              onPress={() => navigation.navigate('CheckinResponse', { checkinId: todayCheckin.id })}
+            />
+          ) : null}
+
+          {/* Calm always-here crisis card — early-postpartum window only.
+              Sits below the check-in so it never crowds the primary daily
+              action, but stays above the editorial sections so a fragile user
+              can find it without scrolling. */}
+          {earlyPostpartum ? (
+            <EarlyPostpartumCrisisCard onPress={openCrisisSheet} />
+          ) : null}
+
+          {/* HOW CAN WE HELP — 4 warm quick-launch tiles wrapped in a card
+              surface so it lifts off the gradient background when scrolled. */}
+          <View style={styles.helpCard}>
+            {/* Tiny bee bottom-right — brand playfulness, pointerEvents none */}
+            <Image
+              source={VILLIE_BEE}
+              resizeMode="contain"
+              accessible={false}
+              style={styles.helpCardBee}
+            />
+          <View style={styles.helpHeading}>
+            <View style={[styles.sectionHeadingRow, { paddingHorizontal: 0, marginTop: 0 }]}>
+              <View style={styles.sectionAccentBar} />
+              <Text style={styles.sectionEyebrow}>{t('home.howCanWeHelp')}</Text>
+            </View>
+            <Text style={styles.helpHeadingLead}>{t('home.helpSectionLead')}</Text>
+            <View style={styles.helpHeadingRule} />
           </View>
           <View style={styles.helpGrid}>
-            <HelpTile n="01" mark="yolkCircle" markTint={COLORS.rust}      label={t('home.helpFeeding')}    tint={COLORS.blush}      onPress={onHelpFeeding} />
-            <HelpTile n="02" mark="yolkRing"   markTint={COLORS.rust}      label={t('home.helpEmotional')}  tint={COLORS.yolkLight}  onPress={onHelpEmotional} />
-            <HelpTile n="03" mark="leafSprig"  markTint={COLORS.olive}     label={t('home.helpFindMoms')}   tint={COLORS.lime}       onPress={onHelpFindMoms} />
-            <HelpTile n="04" mark="sparkle"    markTint={COLORS.brownDeep} label={t('home.helpAskVillage')} tint={COLORS.dinerLight} onPress={onHelpAskVillage} />
+            {/* Brand Kit v5 help-tile palette — each tile gets a distinct
+                primary-or-secondary tint so the row reads as 4 different
+                "moments". Marks pick the coco/bark/sage that contrasts
+                strongest with each tint:
+                  • Feeding   — pink (primary)        + coco mark
+                  • Emotional — sandSoft (warm calm)  + coco mark
+                  • Find moms — sage @ light (calm)   + sage mark
+                  • Ask Villie— pinkSoft (quiet)      + bark mark
+            */}
+            <HelpTile mark="yolkCircle" markTint={COLORS.coco}  label={t('home.helpFeeding')}    sub={t('home.helpFeedingSub')}    tint={COLORS.pink}     onPress={onHelpFeeding} />
+            <HelpTile mark="yolkRing"   markTint={COLORS.coco}  label={t('home.helpEmotional')}  sub={t('home.helpEmotionalSub')}  tint={COLORS.sandSoft} onPress={onHelpEmotional} />
+            <HelpTile mark="leafSprig"  markTint={COLORS.sage}  label={t('home.helpFindMoms')}   sub={t('home.helpFindMomsSub')}   tint="#D8DFC4"          onPress={onHelpFindMoms} />
+            <HelpTile mark="sparkle"    markTint={COLORS.bark}  label={t('home.helpAskVillage')} sub={t('home.helpAskVillageSub')} tint={COLORS.pinkSoft} onPress={onHelpAskVillage} />
+          </View>
+          </View>
+
+          {/* WANDER VILLIE — card wrapping heading + 2x2 grid, matching helpCard. */}
+          <View style={styles.exploreCard}>
+            <Animated.Image
+              source={VILLIE_BEE}
+              resizeMode="contain"
+              accessible={false}
+              style={[styles.exploreHeadingBee, { transform: [{ translateX: exploreBeeX }, { rotate: '-12deg' }] }]}
+            />
+            <View style={[styles.sectionHeadingRow, { marginBottom: 4 }]}>
+              <View style={styles.sectionAccentBar} />
+              <Text style={styles.sectionEyebrow}>{t('home.exploreEyebrow')}</Text>
+              <Image source={VILLIE_BEE} resizeMode="contain" accessible={false}
+                style={styles.exploreEyebrowBee} />
+            </View>
+            <Text style={[styles.exploreHeadingLead, { paddingHorizontal: 12 }]}>{t('home.exploreLead')}</Text>
+            <View style={[styles.exploreHeadingRule, { marginHorizontal: 12 }]} />
+            <View style={styles.exploreGrid}>
+              <ExploreTile
+                label={t('home.exploreSpecialistsLabel')}
+                sub={t('home.exploreSpecialistsSub')}
+                photo={require('../../../assets/photos/specialist.jpg')}
+                tint={COLORS.pink}
+                onPress={() => tabParent?.navigate('Experts')}
+              />
+              <ExploreTile
+                label={t('home.exploreMilkLabel')}
+                sub={t('home.exploreMilkSub')}
+                photo={require('../../../assets/photos/milk.jpg')}
+                tint={COLORS.sandSoft}
+                onPress={() => tabParent?.navigate('Milk')}
+              />
+              <ExploreTile
+                label={t('home.exploreGearLabel')}
+                sub={t('home.exploreGearSub')}
+                photo={require('../../../assets/photos/gear.jpg')}
+                tint="#D8DFC4"
+                onPress={() => tabParent?.navigate('Gear')}
+              />
+              <ExploreTile
+                label={t('home.exploreEventsLabel')}
+                sub={t('home.exploreEventsSub')}
+                photo={require('../../../assets/photos/events.jpg')}
+                tint={COLORS.cocoSoft}
+                onPress={() => navigation.navigate('EventsList')}
+              />
+            </View>
           </View>
 
         </>
@@ -359,7 +432,8 @@ export default function HomeScreen() {
         onClose={() => setCrisisVisible(false)}
         lead={t('home.crisisCardSheetLead')}
       />
-    </ScrollView>
+    </Animated.ScrollView>
+    </View>
   );
 }
 
@@ -398,26 +472,34 @@ function DischargeWelcomeCard({ onDismiss }: { onDismiss: () => void }) {
       accessibilityRole="summary"
       accessibilityLabel={t('home.dischargeWelcomeA11y')}
     >
-      <TouchableOpacity
-        style={styles.welcomeDismiss}
-        onPress={onDismiss}
-        accessibilityRole="button"
-        accessibilityLabel={t('home.dischargeWelcomeDismissA11y')}
-        hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-      >
-        <Text style={styles.welcomeDismissIcon}>×</Text>
-      </TouchableOpacity>
-      <Text style={styles.welcomeEyebrow}>{t('home.dischargeWelcomeEyebrow')}</Text>
-      <Text style={styles.welcomeTitle}>{t('home.dischargeWelcomeTitle')}</Text>
+      {/* Top dash — coco hairline marker, signals "section moment" */}
+      <View style={styles.welcomeTopBar} />
+      {/* Row 1: eyebrow + dismiss × */}
+      <View style={styles.welcomeRowTop}>
+        <Text style={styles.welcomeEyebrow}>{t('home.dischargeWelcomeEyebrow')}</Text>
+        <TouchableOpacity
+          onPress={onDismiss}
+          accessibilityRole="button"
+          accessibilityLabel={t('home.dischargeWelcomeDismissA11y')}
+          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+        >
+          <Text style={styles.welcomeDismissIcon}>×</Text>
+        </TouchableOpacity>
+      </View>
+      {/* Row 2: title + Got it pill share the same row */}
+      <View style={styles.welcomeRowMid}>
+        <Text style={styles.welcomeTitle} numberOfLines={2}>{t('home.dischargeWelcomeTitle')}</Text>
+        <TouchableOpacity
+          style={styles.welcomeCta}
+          onPress={onDismiss}
+          accessibilityRole="button"
+          accessibilityLabel={t('home.dischargeWelcomeCta')}
+        >
+          <Text style={styles.welcomeCtaText}>{t('home.dischargeWelcomeCta')}</Text>
+        </TouchableOpacity>
+      </View>
+      {/* Row 3: short body — context for what villie covers */}
       <Text style={styles.welcomeBody}>{t('home.dischargeWelcomeBody')}</Text>
-      <TouchableOpacity
-        style={styles.welcomeCta}
-        onPress={onDismiss}
-        accessibilityRole="button"
-        accessibilityLabel={t('home.dischargeWelcomeCta')}
-      >
-        <Text style={styles.welcomeCtaText}>{t('home.dischargeWelcomeCta')}</Text>
-      </TouchableOpacity>
     </View>
   );
 }
@@ -472,7 +554,7 @@ function CheckinBanner({
     >
       {/* Soft yolk-circle accent in the upper-left corner — moodboard
           editorial mark. Sits behind the mood dot. */}
-      <YolkCircle size={48} top={-10} left={-12} tint={COLORS.yolkLight} opacity={0.55} />
+      <YolkCircle size={48} top={-10} left={-12} tint={COLORS.sandSoft} opacity={0.55} />
       <View style={styles.checkinCompactDot}>
         <Text style={styles.checkinCompactDotText}>{moodGlyph}</Text>
       </View>
@@ -551,7 +633,7 @@ function TodayWeekTwinCard({
           accessibilityRole="button"
           accessibilityLabel={t('home.heroWeekFmt', { week: weekNumber })}
         >
-          <YolkCircle size={56} top={-12} right={-12} tint={COLORS.yolkLight} opacity={0.55} />
+          <YolkCircle size={56} top={-12} right={-12} tint={COLORS.sandSoft} opacity={0.55} />
           <Text style={styles.twinHalfEyebrow}>{t('home.twinWeekEyebrow')}</Text>
           <Text style={styles.twinWeekText}>{t('home.heroWeekFmt', { week: weekNumber })}</Text>
           <Text style={styles.twinHalfBody} numberOfLines={2}>{description}</Text>
@@ -589,20 +671,181 @@ function HeroWeekCard({
       accessibilityRole="button"
       accessibilityLabel={t('home.heroWeekFmt', { week: weekNumber })}
     >
+      {/* Warm rust-light gradient tint — same asset as the page banner, at
+          50% opacity behind the card content. Carries the page's warm tone
+          into the focal hero card without competing with the text. */}
+      <Image
+        source={BANNER_RUST_LIGHT}
+        resizeMode="stretch"
+        style={styles.heroCardGradient}
+      />
+      {/* Inside-card editorial blobs — mustard top-right + apricot bottom-left,
+          mirroring the `.cardA .portrait .blob1/.blob2` pattern from the
+          Specialist Card Concepts artifact. Reuses the page-level glow PNGs
+          at lower opacity so the visual idiom matches. */}
+      <CardGlowAccent size={240} topRightOpacity={0.55} bottomLeftOpacity={0.30} />
       {/* Yolk-circle accent behind the right side — moodboard's "Sarah is 3
           weeks today" card mark. Sits behind the arrow pill. */}
-      <YolkCircle size={84} top={-18} right={-16} tint={COLORS.yolkLight} opacity={0.7} />
-      <ScribbleMark size={28} top={14} right={92} tint={COLORS.brownDeep} />
+      <YolkCircle size={84} top={-18} right={-16} tint={COLORS.sandSoft} opacity={0.7} />
+      <ScribbleMark size={28} top={14} right={92} tint={COLORS.bark} />
       <View style={styles.heroTextCol}>
         <Text style={styles.heroEyebrow}>{t('home.heroEyebrow')}</Text>
         <Text style={styles.heroWeekText}>{t('home.heroWeekFmt', { week: weekNumber })}</Text>
         <Text style={styles.heroTagline} numberOfLines={3}>{description}</Text>
-        <Text style={styles.heroCta}>{t('home.heroCta')}</Text>
-      </View>
-      <View style={styles.heroArrowPill}>
-        <Text style={styles.heroArrowPillText}>→</Text>
+        {/* CTA pill — sits on its own row at the bottom of the card, right-
+            aligned. Folds the prior bottom-right arrow circle and the
+            standalone link text into a single rust pill so the headline
+            stays a clean italic moment without a heavy button next to it. */}
+        <View style={styles.heroCtaPill}>
+          <Text style={styles.heroCtaPillText} numberOfLines={1}>{t('home.heroCta')}</Text>
+        </View>
       </View>
     </TouchableOpacity>
+  );
+}
+
+// Combined Weekly Guide + Manual card. Two sections share a single paper
+// surface: the top half is a shortened weekly preview (italic week numeral,
+// milestone tagline, up to 3 essential to-dos with inline toggle, "See your
+// Editorial hybrid card: gradient top band (left = Playfair italic week number +
+// milestone tagline, right = Manual mini-tiles), warm body with checklist preview,
+// footer row with two CTAs. To-do checkboxes stop propagation so a tick doesn't
+// fire nav into WeeklyJourney. Checklist data is fetched lazily via the existing
+// weekly-journey RPC (soft-fail — the card still renders without to-dos).
+function WeeklyManualCombinedCard({
+  feedCard, weekNumber, fallbackDescription, onWeekPress, onManualPress, onCategoryPress,
+}: {
+  feedCard: HomeFeedCard | undefined;
+  weekNumber: number;
+  fallbackDescription: string;
+  onWeekPress: () => void;
+  onManualPress: () => void;
+  onCategoryPress: (audience: 'mom' | 'baby', category: string, label: string) => void;
+}) {
+  const t = useT();
+  const lang = useUserStore((s) => s.profile?.preferred_language ?? 'en') as 'en' | 'es';
+  const p = feedCard?.payload as unknown as MilestoneBlockPayload | undefined;
+  // Teaser: first sentence only — stops at the first period so it reads as a
+  // punchy topic list rather than a full explanation. Full text lives in WeeklyJourney.
+  const rawDesc = p?.description ?? fallbackDescription;
+  const teaser = rawDesc.match(/^[^.]+\./)?.[0] ?? rawDesc;
+
+  // Weekly checklist data load + toggle removed when the hero card lost
+  // its inline checklist. Full list still lives on WeeklyJourneyScreen.
+
+  return (
+    <View style={styles.combinedCard}>
+      {/* Solid top band — one calm brand color so the focal point is the
+          week number, not a gradient. Matches the Restrained color strategy. */}
+      <View style={styles.combinedCardTop}>
+        {/* Bees — faint decorative accent in the gap between left and divider */}
+        <View pointerEvents="none" style={[styles.bee, { top: 6, right: 148, opacity: 0.09 }]}>
+          <Text style={{ fontSize: 20, transform: [{ rotate: '14deg' }] }}>🐝</Text>
+        </View>
+        <View pointerEvents="none" style={[styles.bee, { bottom: 8, right: 108, opacity: 0.07 }]}>
+          <Text style={{ fontSize: 13, transform: [{ rotate: '-22deg' }] }}>🐝</Text>
+        </View>
+
+        {/* Left: eyebrow + large italic Playfair week number + milestone tagline */}
+        <View style={styles.combinedCardLeft}>
+          <Text style={styles.combinedEyebrow}>{t('home.heroEyebrow')}</Text>
+          <View style={styles.combinedNumRow}>
+            <Text style={styles.combinedWeekNum}>{weekNumber}</Text>
+            <Text style={styles.combinedWkLabel}>WK</Text>
+          </View>
+          <TouchableOpacity onPress={onWeekPress} activeOpacity={0.7} accessibilityRole="button" accessibilityLabel="Read full milestone">
+            <Text style={styles.combinedTagline} numberOfLines={2}>{teaser}</Text>
+            <Text style={styles.combinedTaglineMore}>Read more →</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Vertical hairline divider */}
+        <View style={styles.combinedDivider} />
+
+        {/* Right: Manual mini-tile panel — mirrors the updated Manual tab.
+            Surfaces 5 high-frequency postpartum categories pulled from both
+            audiences (mom + baby) so a discharge-week user reaches both
+            sides of the manual without leaving the hero card. Order is the
+            same order they appear on the Manual home grid: mom Feel /
+            mom Heal / baby Feed / baby Sleep / mom Tips. */}
+        <View style={styles.combinedCardRight}>
+          <View>
+            <Text style={styles.combinedManualEyebrow}>MANUAL</Text>
+            <View style={styles.combinedTiles}>
+              <TouchableOpacity
+                style={[styles.combinedTile, { backgroundColor: COLORS.pinkDeep }]}
+                onPress={() => onCategoryPress('mom', 'feel', 'Feel')}
+                activeOpacity={0.8}
+                accessibilityRole="button"
+                accessibilityLabel="Feel — mom emotions guide"
+              >
+                <Text style={[styles.combinedTileLabel, { color: COLORS.paper }]}>Feel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.combinedTile, { backgroundColor: COLORS.sageDeep ?? COLORS.sage }]}
+                onPress={() => onCategoryPress('mom', 'heal', 'Heal')}
+                activeOpacity={0.8}
+                accessibilityRole="button"
+                accessibilityLabel="Heal — mom recovery guide"
+              >
+                <Text style={[styles.combinedTileLabel, { color: COLORS.paper }]}>Heal</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.combinedTile, { backgroundColor: COLORS.sand }]}
+                onPress={() => onCategoryPress('baby', 'feed', 'Feed')}
+                activeOpacity={0.8}
+                accessibilityRole="button"
+                accessibilityLabel="Feed — baby feeding guide"
+              >
+                <Text style={[styles.combinedTileLabel, { color: COLORS.paper }]}>Feed</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.combinedTile, { backgroundColor: COLORS.coco }]}
+                onPress={() => onCategoryPress('baby', 'sleep', 'Sleep')}
+                activeOpacity={0.8}
+                accessibilityRole="button"
+                accessibilityLabel="Sleep — baby sleep guide"
+              >
+                <Text style={[styles.combinedTileLabel, { color: COLORS.paper }]}>Sleep</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.combinedTile, { backgroundColor: COLORS.rust }]}
+                onPress={() => onCategoryPress('mom', 'tips', 'Tips')}
+                activeOpacity={0.8}
+                accessibilityRole="button"
+                accessibilityLabel="Tips — mom hacks"
+              >
+                <Text style={[styles.combinedTileLabel, { color: COLORS.paper }]}>Tips</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </View>
+
+      {/* Footer — two quiet links: jump to this week's guide, or to the full
+          manual. The week-N checklist that previously sat above has been
+          removed to keep the hero card focused on this-week-and-categories. */}
+      <View style={styles.combinedCardBody}>
+        <View style={styles.combinedFooterRow}>
+          <TouchableOpacity
+            onPress={onWeekPress}
+            activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel={t('home.heroCta')}
+          >
+            <Text style={styles.combinedFooterLinkText} numberOfLines={1}>{t('home.heroCta')}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={onManualPress}
+            activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel={t('home.statementA11y')}
+          >
+            <Text style={styles.combinedFooterLinkText} numberOfLines={1}>Full guide →</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </View>
   );
 }
 
@@ -630,7 +873,7 @@ function BabyThisWeekCard({
           the curated milestone payload happens to ship. The week's actual
           content lives in the title + body text. */}
       <View style={styles.babyEmojiBubble}>
-        <YolkRing size={48} top={6} left={6} tint={COLORS.rust} />
+        <YolkRing size={48} top={6} left={6} tint={COLORS.coco} />
       </View>
     </TouchableOpacity>
   );
@@ -695,29 +938,31 @@ type HelpMarkKind = 'yolkCircle' | 'yolkRing' | 'leafSprig' | 'dotCluster' | 'sp
 function HelpTileMark({ kind, tint }: { kind: HelpMarkKind; tint: string }) {
   return (
     <View style={styles.helpTileMarkWrap}>
-      {kind === 'yolkCircle' && <YolkCircle size={44} top={2} left={2} tint={tint} opacity={0.85} />}
-      {kind === 'yolkRing'   && <YolkRing   size={42} top={3} left={3} tint={tint} />}
-      {kind === 'leafSprig'  && <LeafSprig  size={48} top={0} left={0} tint={tint} />}
-      {kind === 'dotCluster' && <DotCluster        top={10} left={8} tint={tint} />}
-      {kind === 'sparkle'    && <SparkleMark size={36} top={4} left={6} tint={tint} />}
+      {kind === 'yolkCircle' && <YolkCircle size={30} top={2} left={2} tint={tint} opacity={0.85} />}
+      {kind === 'yolkRing'   && <YolkRing   size={28} top={3} left={3} tint={tint} />}
+      {kind === 'leafSprig'  && <LeafSprig  size={34} top={0} left={0} tint={tint} />}
+      {kind === 'dotCluster' && <DotCluster        top={6} left={4} tint={tint} />}
+      {kind === 'sparkle'    && <SparkleMark size={24} top={3} left={4} tint={tint} />}
     </View>
   );
 }
 
 function HelpTile({
-  mark, markTint, label, tint, n, onPress,
-}: { mark: HelpMarkKind; markTint: string; label: string; tint: string; n: string; onPress: () => void }) {
+  mark, markTint, label, sub, tint, onPress,
+}: { mark: HelpMarkKind; markTint: string; label: string; sub: string; tint: string; onPress: () => void }) {
   return (
     <TouchableOpacity
       style={[styles.helpTile, { backgroundColor: tint }]}
       onPress={onPress}
       accessibilityRole="button"
-      accessibilityLabel={label}
+      accessibilityLabel={`${label}. ${sub}`}
       activeOpacity={0.88}
     >
-      <Text style={styles.helpTileNumber}>{n}</Text>
       <HelpTileMark kind={mark} tint={markTint} />
-      <Text style={styles.helpTileLabel} numberOfLines={2}>{label}</Text>
+      <View style={styles.helpTileTextWrap}>
+        <Text style={styles.helpTileLabel} numberOfLines={2}>{label}</Text>
+        <Text style={styles.helpTileSub} numberOfLines={2}>{sub}</Text>
+      </View>
     </TouchableOpacity>
   );
 }
@@ -736,13 +981,14 @@ function EventsFeedCard({
   const rows = event_ids.map((id) => lookup.get(id)).filter(Boolean) as typeof allEvents;
   if (rows.length === 0) return null;
   return (
-    <View style={styles.feedBlock}>
-      <View style={styles.feedHeaderRow}>
-        <Text style={styles.feedHeader}>{t('home.feedEventsHeader')}</Text>
-        <TouchableOpacity onPress={onPressSeeAll} accessibilityRole="button">
-          <Text style={styles.feedHeaderLink}>{t('home.feedSeeAll')}</Text>
-        </TouchableOpacity>
-      </View>
+    <View>
+      <EditorialSectionHead
+        numeral="I."
+        eyebrow={t('home.feedEventsHeader').toUpperCase()}
+        rightLabel={t('home.feedSeeAll')}
+        onRightPress={onPressSeeAll}
+      />
+      <View style={styles.feedBlock}>
       {rows.map((e) => (
         <TouchableOpacity
           key={e.id}
@@ -757,6 +1003,7 @@ function EventsFeedCard({
           </Text>
         </TouchableOpacity>
       ))}
+      </View>
     </View>
   );
 }
@@ -773,13 +1020,14 @@ function PerksFeedCard({
   const items = payload.items.filter((i) => perkLookup[i.deal_id]);
   if (items.length === 0) return null;
   return (
-    <View style={styles.feedBlock}>
-      <View style={styles.feedHeaderRow}>
-        <Text style={styles.feedHeader}>{t('home.feedPerksHeader')}</Text>
-        <TouchableOpacity onPress={onPressSeeAll} accessibilityRole="button">
-          <Text style={styles.feedHeaderLink}>{t('home.feedSeeAll')}</Text>
-        </TouchableOpacity>
-      </View>
+    <View>
+      <EditorialSectionHead
+        numeral="II."
+        eyebrow={t('home.feedPerksHeader').toUpperCase()}
+        rightLabel={t('home.feedSeeAll')}
+        onRightPress={onPressSeeAll}
+      />
+      <View style={styles.feedBlock}>
       {items.map((it) => (
         <TouchableOpacity
           key={it.deal_id}
@@ -792,6 +1040,7 @@ function PerksFeedCard({
           <Text style={styles.eventRowReason} numberOfLines={2}>{it.reason}</Text>
         </TouchableOpacity>
       ))}
+      </View>
     </View>
   );
 }
@@ -874,31 +1123,176 @@ function BabySnapshotCard({
   onEdit: () => void;
 }) {
   const t = useT();
+  const displayName = name ?? t('home.babyFallbackName');
+
+  // Compact bullet-dot meta — age · feeding (week is already in the intro
+  // sentence). Keeps the editorial DNA without growing the card height.
+  const metaTokens: string[] = [age];
+  if (feedingMethod) metaTokens.push(feedingMethod);
+
+  // First initial of the baby's name — used as a placeholder portrait
+  // until a real photo asset exists for upload. Reads as a monogram
+  // sticker, same editorial register as the rest of the card.
+  const initial = (displayName ?? '').trim().charAt(0).toUpperCase() || '·';
+
   return (
     <View style={styles.snapshotCard}>
-      <View style={styles.snapshotHeader}>
-        <Text style={styles.snapshotTitle}>{name ?? t('home.babyFallbackName')}</Text>
-        <TouchableOpacity onPress={onEdit} accessibilityLabel={t('home.snapshotEdit')}>
+      {/* Warm rose-gold band — rich blush gradient, light enough to sit
+          comfortably at the top of the screen, dimensional enough to feel
+          premium. Dark bark text over the warm tone. */}
+      <View style={styles.snapshotBand}>
+        {/* Rose-gold gradient — top-left lighter, bottom-right richer */}
+        <LinearGradient
+          colors={['#E8C4B6', '#EADBA8', '#F2E9C4']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={StyleSheet.absoluteFill}
+          pointerEvents="none"
+        />
+        {/* Villie bee — brand mark accent in the right corner of the band */}
+        <Image source={VILLIE_BEE} resizeMode="contain"
+          accessible={false} style={styles.snapshotBandPlant} />
+        {/* Edit — small, top-right corner */}
+        <TouchableOpacity
+          style={styles.snapshotBandEditWrap}
+          onPress={onEdit}
+          accessibilityRole="button"
+          accessibilityLabel={t('home.snapshotEdit')}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        >
           <Text style={styles.snapshotEdit}>{t('home.snapshotEdit')}</Text>
         </TouchableOpacity>
+        {/* Name — editorial statement, left column, vertically centered */}
+        <View style={styles.snapshotBandContent} pointerEvents="none">
+          <Text style={styles.snapshotBandEyebrow}>{t('home.snapshotEyebrow')}</Text>
+          <Text style={styles.snapshotName} numberOfLines={1}>{displayName}</Text>
+        </View>
       </View>
-      <View style={styles.snapshotRow}>
-        <SnapshotStat label={t('home.snapshotAge')} value={age} />
-        <SnapshotStat label={t('home.snapshotWeek')} value={String(weekNumber)} />
-        <SnapshotStat label={t('home.snapshotFeeding')} value={feedingMethod ?? '—'} />
+
+      {/* Stat row — Week · Age · Feeding */}
+      <View style={styles.snapshotStatRow}>
+        <View style={styles.snapshotStatCell}>
+          <Text style={styles.snapshotStatValue}>{weekNumber}</Text>
+          <Text style={styles.snapshotStatLabel}>{t('home.snapshotWeek')}</Text>
+        </View>
+        <View style={[styles.snapshotStatCell, styles.snapshotStatCellBorder]}>
+          <Text style={styles.snapshotStatValue} numberOfLines={1} adjustsFontSizeToFit>{age}</Text>
+          <Text style={styles.snapshotStatLabel}>{t('home.snapshotAge')}</Text>
+        </View>
+        {feedingMethod ? (
+          <View style={[styles.snapshotStatCell, styles.snapshotStatCellBorder]}>
+            <Text style={styles.snapshotStatValue} numberOfLines={1} adjustsFontSizeToFit>{feedingMethod}</Text>
+            <Text style={styles.snapshotStatLabel}>{t('home.snapshotFeeding')}</Text>
+          </View>
+        ) : null}
       </View>
     </View>
   );
 }
 
-function SnapshotStat({ label, value }: { label: string; value: string }) {
+// Stacked capsules — abstract growth visualization, Concept C from the
+// Village App Figma design exploration. Capsules stack upward from the
+// bottom of the card's blush band, each representing ~8 weeks. The
+// bottom capsule is always rust (the "foundation" layer); each new
+// layer shifts through the brand palette and rotates slightly in
+// alternating directions — a noshi / paper-fold aesthetic that is
+// editorial and fashion-adjacent without any plant metaphor.
+//
+// Caps rendered 0–7 (max at W52+). Each layer:
+//   - Width  decreases 3px per layer (44 → 23)
+//   - Height constant 10px, borderRadius 5
+//   - Rotation alternates: [-6, +4, -9, +7, -5, +8, -4]°
+//   - Color cycles through brand palette from rust → blush
+//   - Opacity fades slightly toward the top
+function BabyGrowthPlant({ weekNumber, containerStyle }: { weekNumber: number; containerStyle?: any }) {
+  const w = Math.max(0, weekNumber);
+  const capsuleCount = Math.min(7, w > 0 ? Math.ceil(w / 8) : 0);
+
+  // Brand-palette cycle — bottom (index 0) is always the boldest rust.
+  // Each subsequent layer steps warmer/softer through the palette.
+  const CAP_COLORS = [
+    COLORS.coco,
+    COLORS.cocoSoft,
+    COLORS.coco,
+    COLORS.sandSoft,
+    COLORS.sage,
+    COLORS.pink,
+    COLORS.sandSoft,
+  ];
+  const CAP_OPACITIES = [0.95, 0.88, 0.82, 0.76, 0.70, 0.62, 0.55];
+  // Alternating tilts — irregular so it reads as hand-placed, not mechanical.
+  const CAP_ROTATIONS = [-6, 4, -9, 7, -5, 8, -4];
+
+  const CAP_H = 10;
+  const CAP_W_BASE = 44; // widest at the bottom
+  const CAP_W_STEP = 3;  // narrows 3px per layer
+  const STACK_GAP = 13;  // vertical center-to-center spacing
+  const BASE_Y = 80;     // y-center of the bottom capsule in the 96px container
+  const CX = 48;         // horizontal center of the 96×96 container
+
   return (
-    <View style={styles.snapshotStat}>
-      <Text style={styles.snapshotStatValue} numberOfLines={1}>{value}</Text>
-      <Text style={styles.snapshotStatLabel}>{label}</Text>
+    <View pointerEvents="none" style={[plantStyles.wrap, containerStyle]}>
+      {/* Capsules — rendered bottom-to-top so each higher layer sits visually
+          on top of (overlaps) the one below it, like stacked sheets. */}
+      {Array.from({ length: capsuleCount }).map((_, i) => {
+        const capW = CAP_W_BASE - i * CAP_W_STEP;
+        const cy = BASE_Y - i * STACK_GAP;
+        return (
+          <View
+            key={i}
+            style={{
+              position: 'absolute',
+              left: CX - capW / 2,
+              top: cy - CAP_H / 2,
+              width: capW,
+              height: CAP_H,
+              borderRadius: CAP_H / 2,
+              backgroundColor: CAP_COLORS[i],
+              opacity: CAP_OPACITIES[i],
+              transform: [{ rotate: `${CAP_ROTATIONS[i]}deg` }],
+            }}
+          />
+        );
+      })}
+      {/* Ghost outline stack — 7 quiet cream-border capsules show the
+          full potential even when few weeks have passed. Gives the
+          composition structure and communicates "growth to come." */}
+      {capsuleCount < 7 && Array.from({ length: 7 - capsuleCount }).map((_, i) => {
+        const layerIdx = capsuleCount + i;
+        const capW = CAP_W_BASE - layerIdx * CAP_W_STEP;
+        const cy = BASE_Y - layerIdx * STACK_GAP;
+        return (
+          <View
+            key={`ghost-${layerIdx}`}
+            style={{
+              position: 'absolute',
+              left: CX - capW / 2,
+              top: cy - CAP_H / 2,
+              width: capW,
+              height: CAP_H,
+              borderRadius: CAP_H / 2,
+              borderWidth: 1,
+              borderColor: COLORS.sandSoft,
+              backgroundColor: 'transparent',
+              opacity: 0.30,
+              transform: [{ rotate: `${CAP_ROTATIONS[layerIdx]}deg` }],
+            }}
+          />
+        );
+      })}
     </View>
   );
 }
+
+const plantStyles = StyleSheet.create({
+  wrap: {
+    position: 'absolute',
+    right: 8,
+    bottom: 0,
+    width: 96,
+    height: 96,
+  },
+});
 
 function QuietHoursPill() {
   const t = useT();
@@ -935,90 +1329,150 @@ function formatHeaderDate(): string {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.cream },
-  content: { paddingHorizontal: 20, paddingTop: 64, paddingBottom: 140 },
+  // Brand Kit v5 cream #F5EFE6 — slightly warmer than the prior ceramic so
+  // the page reads as warm paper rather than yellow-tinted off-white.
+  pageRoot: { flex: 1, backgroundColor: '#FFFFFF' },
+  // ScrollView itself is transparent so WarmGlowBackdrop shows through.
+  container: { flex: 1, backgroundColor: 'transparent' },
+  content: { paddingHorizontal: 20, paddingTop: 24, paddingBottom: 140 },
   loadingWrap: { alignItems: 'center', paddingVertical: 40 },
+
+  // Header banner image — full-bleed positioning. Single <Image> with
+  // resizeMode:'stretch' bilinear-scales a 4×512 PNG to fill the band, so
+  // the gradient renders pixel-smooth with no slice seams.
+  headerBannerImage: {
+    position: 'absolute',
+    left: -20, right: -20, top: -64,
+    height: 540,
+    width: undefined, // let left/right anchor it; absolute Images need width or stretch
+  },
 
   // Top app-bar — small wordmark with red dot + bell. Editorial header per
   // moodboard v3 (Diner/Yolk/Blush/Lime/Ceramic palette). Quiet so the
   // greeting block carries the page.
-  appBar: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    marginBottom: 22,
-  },
+  // Top app-bar — small wordmark with red dot + bell. Editorial header per
+  // moodboard v3 (Diner/Yolk/Blush/Lime/Ceramic palette). Quiet so the
+  // greeting block carries the page.
   wordmarkImg: {
-    // Wordmark PNG is 303×63 transparent (≈4.81 ratio after bg-strip).
-    // Constrain by height; resizeMode="contain" keeps the heart accent intact.
-    width: 144, height: 44,
-  },
-  bellWrap: {
-    width: 40, height: 40, borderRadius: 14,
-    backgroundColor: COLORS.paper,
-    borderWidth: 1, borderColor: COLORS.ceramicDeep,
-    alignItems: 'center', justifyContent: 'center',
-  },
-  bellIcon: { fontSize: 18 },
-  bellDot: {
-    position: 'absolute', top: 6, right: 6, width: 8, height: 8, borderRadius: 4,
-    backgroundColor: COLORS.diner, borderWidth: 1.5, borderColor: COLORS.paper,
+    // villie logotype — 1182×827 (1.43:1). Rendered smaller than the old
+    // stacked mark; marginLeft trims the transparent left canvas padding.
+    width: 140, height: 98,
+    marginLeft: -10,
+    alignSelf: 'flex-start',
+    marginBottom: -16,
+    backgroundColor: 'transparent',
   },
 
-  greetingBlock: { marginBottom: 14, paddingHorizontal: 12 },
+  greetingBlock: {
+    marginBottom: 20,
+    paddingHorizontal: 12,
+    paddingTop: 4,
+    position: 'relative', // anchors the DotCluster + YolkCircle decoration
+  },
+  // Brand dot-cluster image (1028×704 ≈ 1.46:1) — editorial accent in
+  // the upper-right of the greeting block. Bumped from 72×50 → 110×75
+  // so the cluster reads as a legitimate brand mark in the masthead
+  // rather than a decoration afterthought; aspect ratio preserved.
+  greetingDotCluster: {
+    position: 'absolute',
+    top: -20, right: 4,
+    width: 52, height: 47,
+    opacity: 0.90,
+  },
+  greetingBeeSmall1: {
+    position: 'absolute',
+    top: -38, right: 50,
+    width: 20, height: 18,
+    opacity: 0.55,
+  },
+  greetingBeeSmall2: {
+    position: 'absolute',
+    top: -10, right: 52,
+    width: 15, height: 13,
+    opacity: 0.40,
+  },
+  greetingDateRow: {
+    flexDirection: 'row', alignItems: 'center', marginBottom: 10,
+  },
+  // Brand Kit v5 — coco bar (warm caramel #AD795B) anchoring the date
+  // eyebrow. Reads as a deliberate editorial mark, not a generic accent.
+  greetingDateBar: {
+    width: 22, height: 2, backgroundColor: COLORS.coco, marginRight: 10,
+  },
   greetingDate: {
-    fontSize: 11, color: COLORS.textLight, fontFamily: FONTS.bodySemiBold,
-    letterSpacing: 1.6, marginBottom: 10,
+    fontSize: 10, color: COLORS.cocoDeep, fontFamily: FONTS.bodySemiBold,
+    letterSpacing: 1.8, textTransform: 'uppercase',
   },
   greetingName: {
-    fontSize: 36, color: COLORS.brownDeep, marginTop: 0,
-    fontFamily: FONTS.headerBold, lineHeight: 42,
+    fontSize: 32, color: COLORS.bark, marginTop: 0,
+    fontFamily: FONTS.headerBold, lineHeight: 38, letterSpacing: -0.5,
   },
+  // Italic accent on the first name — coco caramel against bark deep
+  // brown gives the masthead a single warm pivot point per Brand Kit.
   greetingNameAccent: {
     fontFamily: FONTS.headerItalic, fontStyle: 'italic',
+    color: COLORS.coco,
+  },
+  // Editorial rule — slightly wider and a touch warmer than pure black
+  // (uses bark @ 18%) so it ties the masthead block together as one
+  // composition before the rest of the page begins.
+  greetingRule: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: 'rgba(61,31,13,0.18)',
+    marginTop: 12, marginBottom: 2,
+    width: 48,
   },
   greetingBabyLine: {
-    fontSize: 14, color: COLORS.textMid, fontFamily: FONTS.body,
-    fontStyle: 'italic', marginTop: 14,
+    fontSize: 14, color: COLORS.barkSoft, fontFamily: FONTS.body,
+    fontStyle: 'italic', marginTop: 12,
+  },
+  greetingVillageBeat: {
+    fontSize: 13, color: COLORS.barkSoft, fontFamily: FONTS.body,
+    marginTop: 6, lineHeight: 19,
   },
   quietPill: {
     alignSelf: 'flex-start', marginTop: 8, paddingHorizontal: 10, paddingVertical: 4,
-    borderRadius: 999, backgroundColor: 'rgba(92,107,58,0.12)',
-    borderWidth: 1, borderColor: 'rgba(92,107,58,0.30)',
+    borderRadius: 999, backgroundColor: 'rgba(139,154,107,0.12)',
+    borderWidth: 1, borderColor: 'rgba(139,154,107,0.30)',
   },
-  quietPillText: { fontSize: 12, color: COLORS.olive, fontFamily: FONTS.bodySemiBold },
+  quietPillText: { fontSize: 12, color: COLORS.sage, fontFamily: FONTS.bodySemiBold },
 
   checkinCard: {
-    backgroundColor: '#FFF', borderRadius: 14, padding: 16, marginBottom: 10,
-    borderWidth: 1, borderColor: 'rgba(92,107,58,0.25)',
+    backgroundColor: COLORS.paper, borderRadius: 10, padding: 16, marginBottom: 10,
+    borderWidth: 1, borderColor: 'rgba(139,154,107,0.25)',
+    shadowColor: '#3D1F0D', shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.04, shadowRadius: 10, elevation: 1,
   },
-  checkinCardCrisis: { borderColor: COLORS.rust, backgroundColor: '#FFF5F0' },
+  checkinCardCrisis: { borderColor: COLORS.coco, backgroundColor: '#F8E8E8' },
 
-  // Early-postpartum crisis card. Olive accent (calm, "always here") rather
-  // than rust — this card is preventive, not reactive. A non-crisis user
-  // shouldn't read it as a warning when they open Home.
+  // Early-postpartum crisis card. Sage accent on a soft pink-warmed
+  // surface (Brand Kit v5) — this card is preventive, not reactive, so
+  // a non-crisis user shouldn't read it as a warning when they open Home.
+  // The pink-warmed bg signals "tender / mom-and-baby" instead of "danger".
   ppCrisisCard: {
-    backgroundColor: '#F4F1E4',
+    backgroundColor: '#FAE9E3',
     borderRadius: 14,
     padding: 16,
     marginBottom: 10,
     borderWidth: 1,
-    borderColor: 'rgba(92,107,58,0.30)',
+    borderColor: 'rgba(139,154,107,0.30)',
   },
   ppCrisisEyebrow: {
     fontSize: 10,
     fontFamily: FONTS.bodySemiBold,
     letterSpacing: 1.5,
-    color: COLORS.olive,
+    color: COLORS.sage,
     textTransform: 'uppercase',
   },
   ppCrisisTitle: {
     fontSize: 16,
     fontFamily: FONTS.bodySemiBold,
-    color: COLORS.brownDeep,
+    color: COLORS.bark,
     marginTop: 4,
   },
   ppCrisisBody: {
     fontSize: 13,
-    color: COLORS.textMid,
+    color: COLORS.barkSoft,
     marginTop: 4,
     lineHeight: 18,
     fontFamily: FONTS.body,
@@ -1026,89 +1480,115 @@ const styles = StyleSheet.create({
   ppCrisisCta: {
     fontSize: 13,
     fontFamily: FONTS.bodySemiBold,
-    color: COLORS.rustDark,
+    color: COLORS.cocoDeep,
     marginTop: 10,
   },
 
-  // Discharge welcome — soft cream-on-cream card. Sits above CheckinBanner on
-  // first launch for early-postpartum users. Visually quiet (no rust hero) so
-  // the page still leads with milestone content; the dismiss × is a small
-  // tap target top-right and the "Got it" CTA is a discreet pill at the
-  // bottom — both write the same key, so dismiss-on-X feels native.
+  // Discharge welcome — soft pink-warmed paper card on the new Brand Kit.
+  // Sits above CheckinBanner on first launch for early-postpartum users.
+  // Hairline coco border + 14r corners match the editorial card system.
+  // Compact welcome card (v9 mockup-aligned, ~70px tall instead of ~120px).
+  // 3-row layout: eyebrow + ×, title + Got it pill, body. Same content,
+  // half the vertical weight — better for the daily-mom-glance pattern.
   welcomeCard: {
-    backgroundColor: '#FDFAF5',
-    borderRadius: 14,
-    padding: 18,
-    paddingTop: 16,
-    marginBottom: 10,
-    borderWidth: 1,
-    borderColor: 'rgba(184,92,56,0.20)',
+    backgroundColor: '#FCE9E4',
+    borderRadius: 12,
+    paddingTop: 5,
+    paddingBottom: 9,
+    paddingLeft: 14,
+    paddingRight: 10,
+    marginBottom: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(184,92,56,0.22)',
+    position: 'relative',
+    shadowColor: COLORS.coco,
+    shadowOpacity: 0.10,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 10,
+    elevation: 2,
   },
-  welcomeDismiss: {
+  welcomeTopBar: {
     position: 'absolute',
-    top: 6,
-    right: 8,
-    width: 32,
-    height: 32,
+    top: 0,
+    left: 14,
+    width: 20,
+    height: 2,
+    backgroundColor: '#B07355', // muted clay action color
+  },
+  welcomeRowTop: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
+    marginBottom: -1,
   },
   welcomeDismissIcon: {
-    fontSize: 22,
-    lineHeight: 22,
+    fontSize: 13,
+    lineHeight: 13,
     color: COLORS.textLight,
+    opacity: 0.55,
+    paddingHorizontal: 2,
     fontFamily: FONTS.body,
   },
   welcomeEyebrow: {
-    fontSize: 10,
+    fontSize: 8.5,
     fontFamily: FONTS.bodySemiBold,
-    letterSpacing: 1.5,
-    color: COLORS.rustDark,
+    letterSpacing: 1.9,
+    color: '#945A41',
     textTransform: 'uppercase',
-    paddingRight: 28, // leave space for the × tap target
+    paddingTop: 0,
+  },
+  welcomeRowMid: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 10,
+    marginBottom: 2,
   },
   welcomeTitle: {
-    fontSize: 17,
-    fontFamily: FONTS.bodySemiBold,
-    color: COLORS.brownDeep,
-    marginTop: 6,
-    paddingRight: 28,
+    flex: 1,
+    fontSize: 15,
+    lineHeight: 17,
+    fontFamily: FONTS.headerBold,
+    color: COLORS.bark,
+    letterSpacing: -0.3,
   },
   welcomeBody: {
-    fontSize: 13,
-    color: COLORS.textMid,
-    marginTop: 6,
-    lineHeight: 19,
+    fontSize: 10.5,
+    color: COLORS.barkSoft,
+    lineHeight: 14,
     fontFamily: FONTS.body,
+    maxWidth: '96%',
   },
-  // Yolk-pill primary CTA (Phase 0 editorial pass) — warm yolkLight pill
-  // w/ brownDeep text, matching MilkConnectHomeScreen.primaryBtn so all
-  // primary CTAs across the app share one rhythm. Discharge welcome is a
-  // smaller pill (12pt label, 8pad) than the standard primary; sizing
-  // distinct so it doesn't compete with the hero card or check-in CTA.
+  // Muted clay pill (less saturated than rust). Subtle top specular added
+  // inline via gradient is omitted — RN backgroundColor + a strong shadow
+  // already reads as a glossy pill at this size.
   welcomeCta: {
-    alignSelf: 'flex-start',
-    marginTop: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingHorizontal: 11,
+    paddingVertical: 4,
     borderRadius: 999,
-    backgroundColor: COLORS.yolkLight,
+    backgroundColor: '#B07355',
+    shadowColor: '#945A41',
+    shadowOpacity: 0.40,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 6,
+    elevation: 2,
   },
   welcomeCtaText: {
-    fontSize: 12,
-    fontFamily: FONTS.bodySemiBold,
-    color: COLORS.brownDeep,
-    letterSpacing: 0.3,
+    fontSize: 9.5,
+    fontFamily: FONTS.bodyBold,
+    color: COLORS.paper,
+    letterSpacing: 0.4,
+    fontWeight: '700',
   },
 
   checkinEyebrow: {
-    fontSize: 10, fontFamily: FONTS.bodySemiBold, letterSpacing: 1.5, color: COLORS.olive,
+    fontSize: 10, fontFamily: FONTS.bodySemiBold, letterSpacing: 1.5, color: COLORS.sage,
     textTransform: 'uppercase',
   },
-  checkinEyebrowCrisis: { color: COLORS.rustDark },
-  checkinTitle: { fontSize: 16, fontFamily: FONTS.bodySemiBold, color: COLORS.brownDeep, marginTop: 4 },
-  checkinBody: { fontSize: 13, color: COLORS.textMid, marginTop: 4, lineHeight: 18, fontFamily: FONTS.body },
-  checkinCta: { fontSize: 13, fontFamily: FONTS.bodySemiBold, color: COLORS.rustDark, marginTop: 10 },
+  checkinEyebrowCrisis: { color: COLORS.cocoDeep },
+  checkinTitle: { fontSize: 16, fontFamily: FONTS.bodySemiBold, color: COLORS.bark, marginTop: 4 },
+  checkinBody: { fontSize: 13, color: COLORS.barkSoft, marginTop: 4, lineHeight: 18, fontFamily: FONTS.body },
+  checkinCta: { fontSize: 13, fontFamily: FONTS.bodySemiBold, color: COLORS.cocoDeep, marginTop: 10 },
 
   // Compact pill variant of CheckinBanner — used for pending/answered states so
   // the daily check-in reads as a calm prompt rather than a hero block. Crisis
@@ -1118,12 +1598,12 @@ const styles = StyleSheet.create({
   // pill CTA. Crisis state still uses the full `checkinCard` block.
   checkinCompact: {
     flexDirection: 'row', alignItems: 'center',
-    backgroundColor: COLORS.paper, borderRadius: 16,
+    backgroundColor: COLORS.paper, borderRadius: 10,
     paddingHorizontal: 14, paddingVertical: 14,
     marginBottom: 12,
-    borderWidth: 1, borderColor: COLORS.ceramicDeep,
+    borderWidth: 1, borderColor: COLORS.sandSoft,
     overflow: 'hidden', position: 'relative',
-    shadowColor: '#2C1A0E',
+    shadowColor: '#3D1F0D',
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.05,
     shadowRadius: 10,
@@ -1131,7 +1611,7 @@ const styles = StyleSheet.create({
   },
   checkinCompactDot: {
     width: 40, height: 40, borderRadius: 20,
-    backgroundColor: 'rgba(222,171,68,0.22)',
+    backgroundColor: 'rgba(212,184,150,0.22)',
     alignItems: 'center', justifyContent: 'center',
     marginRight: 12,
   },
@@ -1139,7 +1619,7 @@ const styles = StyleSheet.create({
   checkinCompactTextCol: { flex: 1 },
   checkinCompactEyebrow: {
     fontSize: 10, fontFamily: FONTS.bodySemiBold, letterSpacing: 1.4,
-    color: COLORS.olive, textTransform: 'uppercase',
+    color: COLORS.sage, textTransform: 'uppercase',
     marginBottom: 3,
   },
   checkinCompactTitle: {
@@ -1147,30 +1627,33 @@ const styles = StyleSheet.create({
     // labels (Specialists / Milk / Gear / Events) so the daily check-in
     // title reads as part of the same family.
     fontSize: 14, fontFamily: FONTS.headerBold,
-    color: COLORS.brownDeep, lineHeight: 19,
+    color: COLORS.bark, lineHeight: 19,
   },
   checkinCompactCtaPill: {
-    backgroundColor: 'rgba(222,171,68,0.18)', borderRadius: 999,
+    backgroundColor: 'rgba(212,184,150,0.18)', borderRadius: 999,
     paddingHorizontal: 10, paddingVertical: 5,
     marginLeft: 10,
   },
   checkinCompactCtaPillText: {
     fontSize: 11, fontFamily: FONTS.bodySemiBold,
-    color: COLORS.brownDeep, letterSpacing: 0.2, opacity: 0.85,
+    color: COLORS.bark, letterSpacing: 0.2, opacity: 0.85,
   },
 
   emptyCard: {
-    backgroundColor: '#FFF', borderRadius: 14, padding: 20, alignItems: 'center',
+    backgroundColor: COLORS.paper, borderRadius: 14, padding: 20, alignItems: 'center',
     marginBottom: 12,
+    borderWidth: 1, borderColor: COLORS.sandSoft,
+    shadowColor: '#3D1F0D', shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.04, shadowRadius: 10, elevation: 1,
   },
   emptyEmoji: { fontSize: 44, marginBottom: 8 },
-  emptyTitle: { fontSize: 18, fontFamily: FONTS.bodySemiBold, color: COLORS.brownDeep, marginBottom: 6 },
-  emptyBody: { fontSize: 14, color: COLORS.textMid, textAlign: 'center', lineHeight: 20, marginBottom: 14, fontFamily: FONTS.body },
+  emptyTitle: { fontSize: 18, fontFamily: FONTS.bodySemiBold, color: COLORS.bark, marginBottom: 6 },
+  emptyBody: { fontSize: 14, color: COLORS.barkSoft, textAlign: 'center', lineHeight: 20, marginBottom: 14, fontFamily: FONTS.body },
   emptyCta: {
-    backgroundColor: COLORS.yolkLight, borderRadius: 999,
+    backgroundColor: COLORS.coco, borderRadius: 999,
     paddingHorizontal: 24, paddingVertical: 12,
   },
-  emptyCtaText: { color: COLORS.brownDeep, fontSize: 14, fontFamily: FONTS.bodySemiBold, letterSpacing: 0.3 },
+  emptyCtaText: { color: COLORS.cream, fontSize: 14, fontFamily: FONTS.bodySemiBold, letterSpacing: 0.3 },
 
   // TODAY · WEEK twin card — single paper card hosting both the daily
   // check-in and the weekly journey side-by-side. Shared eyebrow at top,
@@ -1178,12 +1661,12 @@ const styles = StyleSheet.create({
   // editorial spread (not two banners). Each half is its own touch target.
   twinCard: {
     backgroundColor: COLORS.paper,
-    borderRadius: 18,
+    borderRadius: 10,
     paddingTop: 14, paddingBottom: 14,
     marginBottom: 12,
-    borderWidth: 1, borderColor: COLORS.ceramicDeep,
+    borderWidth: 1, borderColor: COLORS.sandSoft,
     overflow: 'hidden',
-    shadowColor: '#2C1A0E',
+    shadowColor: '#3D1F0D',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.06,
     shadowRadius: 14,
@@ -1194,12 +1677,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16, marginBottom: 10,
   },
   twinAccentBar: {
-    width: 12, height: 2, backgroundColor: COLORS.rust,
+    width: 12, height: 2, backgroundColor: COLORS.coco,
     marginRight: 8, borderRadius: 1,
   },
   twinEyebrow: {
     fontSize: 11, fontFamily: FONTS.bodySemiBold, letterSpacing: 1.8,
-    color: COLORS.textMid, textTransform: 'uppercase',
+    color: COLORS.barkSoft, textTransform: 'uppercase',
   },
   twinRow: {
     flexDirection: 'row', alignItems: 'stretch',
@@ -1218,20 +1701,20 @@ const styles = StyleSheet.create({
   },
   twinDivider: {
     width: 1,
-    backgroundColor: COLORS.ceramicDeep,
+    backgroundColor: COLORS.sandSoft,
     opacity: 0.6,
     marginVertical: 4,
   },
   twinMoodDot: {
     width: 36, height: 36, borderRadius: 18,
-    backgroundColor: 'rgba(92,107,58,0.12)',
+    backgroundColor: 'rgba(139,154,107,0.12)',
     alignItems: 'center', justifyContent: 'center',
     marginBottom: 8,
   },
   twinMoodGlyph: { fontSize: 18 },
   twinHalfEyebrow: {
     fontSize: 10, fontFamily: FONTS.bodySemiBold, letterSpacing: 1.4,
-    color: COLORS.olive, textTransform: 'uppercase',
+    color: COLORS.sage, textTransform: 'uppercase',
     marginBottom: 4,
   },
   // Left-half title — regular weight (was italic Playfair). Italic is
@@ -1239,20 +1722,20 @@ const styles = StyleSheet.create({
   // bold/regular/italic balance instead of two italic statements.
   twinHalfTitle: {
     fontSize: 15, fontFamily: FONTS.bodyMedium,
-    color: COLORS.brownDeep, lineHeight: 20, marginBottom: 8,
+    color: COLORS.bark, lineHeight: 20, marginBottom: 8,
   },
   twinWeekText: {
     fontFamily: FONTS.headerItalic, fontStyle: 'italic',
-    fontSize: 22, color: COLORS.brownDeep,
+    fontSize: 22, color: COLORS.bark,
     lineHeight: 26, marginBottom: 4, letterSpacing: 0.2,
   },
   twinHalfBody: {
-    fontSize: 12, color: COLORS.textMid, lineHeight: 17,
+    fontSize: 12, color: COLORS.barkSoft, lineHeight: 17,
     fontFamily: FONTS.body, marginBottom: 8,
   },
   twinHalfCta: {
     fontSize: 12, fontFamily: FONTS.bodySemiBold,
-    color: COLORS.diner, letterSpacing: 0.3,
+    color: COLORS.coco, letterSpacing: 0.3,
     marginTop: 'auto',
   },
 
@@ -1261,70 +1744,91 @@ const styles = StyleSheet.create({
   // right. Drops the prior rust block + photo lane.
   heroCard: {
     backgroundColor: COLORS.paper,
-    borderRadius: 18,
-    paddingVertical: 16, paddingHorizontal: 20, paddingRight: 76,
+    borderRadius: 10,
+    paddingVertical: 16, paddingHorizontal: 20,
     marginBottom: 8,
     minHeight: 138,
-    borderWidth: 1, borderColor: COLORS.ceramicDeep,
+    borderWidth: 1, borderColor: COLORS.sandSoft,
     overflow: 'hidden',
-    shadowColor: '#2C1A0E',
+    shadowColor: '#3D1F0D',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.05,
     shadowRadius: 12,
     elevation: 2,
   },
+  // Warm tint behind hero card — same gradient asset as the page banner,
+  // 50% opacity so the rust tone reads but doesn't fight the text.
+  heroCardGradient: {
+    ...StyleSheet.absoluteFillObject,
+    opacity: 0.5,
+  },
   heroTextCol: { flex: 1 },
   heroEyebrow: {
     fontSize: 11, fontFamily: FONTS.bodySemiBold, letterSpacing: 2,
-    color: COLORS.diner, textTransform: 'uppercase',
+    color: COLORS.coco, textTransform: 'uppercase',
   },
   heroWeekText: {
     fontFamily: FONTS.headerItalic, fontStyle: 'italic',
-    fontSize: 28, color: COLORS.brownDeep,
-    marginTop: 6, marginBottom: 6, letterSpacing: 0.2,
+    fontSize: 28, color: COLORS.bark,
+    letterSpacing: 0.2,
     lineHeight: 32,
+    marginTop: 6, marginBottom: 6,
   },
   heroTagline: {
-    fontSize: 14, color: COLORS.textMid, lineHeight: 20,
+    fontSize: 14, color: COLORS.barkSoft, lineHeight: 20,
     fontFamily: FONTS.body,
   },
-  heroCta: {
-    fontSize: 13, fontFamily: FONTS.bodySemiBold, color: COLORS.diner,
-    marginTop: 10, letterSpacing: 0.3,
+  // Coco-pill CTA — "See your weekly guide →". Right-aligned at the bottom
+  // of the card so the italic "Week N" headline gets a clean line of its
+  // own without a heavy button competing next to it. Cream label on coco
+  // is the canonical Brand Kit v5 primary-CTA combination.
+  heroCtaPill: {
+    alignSelf: 'flex-end',
+    marginTop: 12,
+    backgroundColor: COLORS.coco,
+    borderRadius: 999,
+    paddingHorizontal: 14,
+    paddingVertical: 9,
   },
-  heroArrowPill: {
-    position: 'absolute', right: 18, bottom: 18,
-    width: 44, height: 44, borderRadius: 22,
-    backgroundColor: COLORS.diner,
-    alignItems: 'center', justifyContent: 'center',
+  heroCtaPillText: {
+    fontSize: 12,
+    fontFamily: FONTS.bodySemiBold,
+    color: COLORS.cream,
+    letterSpacing: 0.3,
   },
-  heroArrowPillText: { fontSize: 20, color: COLORS.paper, marginTop: -2 },
 
   // Section eyebrows that label rows in the new layout.
   sectionEyebrow: {
     fontSize: 11, fontFamily: FONTS.bodySemiBold, letterSpacing: 2,
-    color: COLORS.textMid, textTransform: 'uppercase', marginTop: 8, marginBottom: 8,
+    color: COLORS.barkSoft, textTransform: 'uppercase', marginTop: 8, marginBottom: 8,
   },
   sectionEyebrowSmall: {
     fontSize: 10, fontFamily: FONTS.bodySemiBold, letterSpacing: 1.6,
-    color: COLORS.rustDark, textTransform: 'uppercase', marginBottom: 6,
+    color: COLORS.cocoDeep, textTransform: 'uppercase', marginBottom: 6,
   },
 
-  // Baby-this-week strip card.
+  // Baby-this-week strip card. Brand Kit v5 — hairline coco border for
+  // the warm-paper edge and a 14r corner to match the snapshot card.
   babyCard: {
-    backgroundColor: '#FFF', borderRadius: 14, padding: 16, marginBottom: 10,
+    backgroundColor: COLORS.paper, borderRadius: 14, padding: 16, marginBottom: 10,
     flexDirection: 'row', alignItems: 'center', gap: 12,
+    borderWidth: 1, borderColor: 'rgba(173,121,91,0.14)',
+    shadowColor: '#3D1F0D', shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.04, shadowRadius: 10, elevation: 1,
   },
-  babyCardBody: { fontSize: 13, color: COLORS.textMid, lineHeight: 19, fontFamily: FONTS.body },
+  babyCardBody: { fontSize: 13, color: COLORS.barkSoft, lineHeight: 19, fontFamily: FONTS.body },
   babyEmojiBubble: {
-    width: 60, height: 60, borderRadius: 30, backgroundColor: '#FCE9DD',
+    // Soft mauve-tinted bubble — sits inside Brand Kit pinks instead of
+    // the prior peach (#FCE9DD), so the bubble reads as part of the new
+    // palette family.
+    width: 60, height: 60, borderRadius: 30, backgroundColor: '#F4DDDF',
     alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
   },
 
   // Two-up "you / village" cards.
   twoUpRow: { flexDirection: 'row', gap: 12, marginBottom: 10 },
   imageCard: {
-    flex: 1, backgroundColor: '#FFF', borderRadius: 14, padding: 12,
+    flex: 1, backgroundColor: '#FFF', borderRadius: 10, padding: 12,
   },
   imageCardPhoto: {
     height: 84, borderRadius: 12, alignItems: 'center', justifyContent: 'center',
@@ -1333,24 +1837,28 @@ const styles = StyleSheet.create({
   imageCardImage: { width: '100%', height: '100%' },
   imageCardLabel: {
     fontSize: 10, fontFamily: FONTS.bodySemiBold, letterSpacing: 1.4,
-    color: COLORS.brownDeep, textTransform: 'uppercase',
+    color: COLORS.bark, textTransform: 'uppercase',
   },
-  imageCardSub: { fontSize: 12, color: COLORS.textMid, marginTop: 4, lineHeight: 16, fontFamily: FONTS.body },
+  imageCardSub: { fontSize: 12, color: COLORS.barkSoft, marginTop: 4, lineHeight: 16, fontFamily: FONTS.body },
 
   // Editorial statement card — moodboard's "It takes a village. We built the
   // app." hook. Cream paper background, serif italic accent, Diner pill CTA,
   // subtle ✦ mark in the bottom-right corner. Routes to Manual tab.
   statementCard: {
-    backgroundColor: COLORS.paper,
-    borderRadius: 18,
+    // Lighter ivory than the surrounding paper — the field guide should feel
+    // like a fresh page lifted out of the cream feed, not blend into it.
+    backgroundColor: '#FFFDF7',
+    borderRadius: 10,
     padding: 18,
+    paddingLeft: 22, // clears the book-spine binding + page hairlines on the left
+    paddingRight: 26, // breathing room so body text doesn't crowd the right-side page-edge stack
     paddingBottom: 16,
     marginTop: 4,
     marginBottom: 10,
     borderWidth: 1,
-    borderColor: COLORS.ceramicDeep,
+    borderColor: COLORS.cream, // softer than ceramicDeep for the lighter tone
     overflow: 'hidden',
-    shadowColor: '#2C1A0E',
+    shadowColor: '#3D1F0D',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.05,
     shadowRadius: 14,
@@ -1358,60 +1866,278 @@ const styles = StyleSheet.create({
   },
   statementEyebrow: {
     fontSize: 10, fontFamily: FONTS.bodySemiBold, letterSpacing: 1.8,
-    color: COLORS.diner, textTransform: 'uppercase', marginBottom: 12,
+    color: COLORS.coco, textTransform: 'uppercase', marginBottom: 12,
   },
   statementTitle: {
-    fontSize: 32, fontFamily: FONTS.headerBold, color: COLORS.brownDeep,
+    fontSize: 32, fontFamily: FONTS.headerBold, color: COLORS.bark,
     lineHeight: 38, marginBottom: 10,
   },
   statementTitleItalic: {
     fontFamily: FONTS.headerItalic, fontStyle: 'italic',
-    color: COLORS.diner,
+    color: COLORS.coco,
   },
   statementBody: {
-    fontSize: 14, fontFamily: FONTS.body, color: COLORS.textMid,
+    fontSize: 14, fontFamily: FONTS.body, color: COLORS.barkSoft,
     lineHeight: 20, marginBottom: 16,
   },
   statementCta: {
     alignSelf: 'flex-start',
-    backgroundColor: COLORS.yolkLight,
+    backgroundColor: COLORS.sandSoft,
     paddingHorizontal: 18, paddingVertical: 10, borderRadius: 999,
   },
   statementCtaText: {
-    fontSize: 13, fontFamily: FONTS.bodySemiBold, color: COLORS.brownDeep,
+    fontSize: 13, fontFamily: FONTS.bodySemiBold, color: COLORS.bark,
     letterSpacing: 0.3,
   },
   statementMark: {
     position: 'absolute', right: 18, bottom: 18,
     width: 36, height: 36, borderRadius: 18,
-    backgroundColor: COLORS.blush,
+    backgroundColor: COLORS.pink,
     alignItems: 'center', justifyContent: 'center',
   },
   statementMarkText: {
-    fontSize: 16, color: COLORS.dinerDark,
+    fontSize: 16, color: COLORS.cocoDeep,
+  },
+
+  // Combined Weekly + Manual card — editorial redesign (Brand Kit v5).
+  // Outer shell: rounded-20 card with 3D stacked shadow depth.
+  combinedCard: {
+    borderRadius: 20,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(212,184,150,0.45)',
+    overflow: 'hidden',
+    shadowColor: COLORS.coco,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.18,
+    shadowRadius: 24,
+    elevation: 6,
+  },
+  // Solid top band — single warm sand color carrying the card identity.
+  combinedCardTop: {
+    flexDirection: 'row',
+    backgroundColor: COLORS.sandSoft,
+    paddingTop: 10,
+    paddingBottom: 8,
+    paddingHorizontal: 16,
+  },
+  // Left panel: takes remaining space after the fixed-width right panel.
+  combinedCardLeft: {
+    flex: 1,
+  },
+  combinedEyebrow: {
+    fontSize: 9, fontFamily: FONTS.bodySemiBold, letterSpacing: 1.8,
+    color: COLORS.cocoDeep, textTransform: 'uppercase', marginBottom: 2,
+  },
+  // Number row: big italic Playfair numeral + small WK label, pulled tight to eyebrow.
+  combinedNumRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    gap: 5,
+    marginTop: 0,
+  },
+  // Big numeral — DM Sans bold (was Playfair italic). Swap requested
+  // so the number reads precise/clinical and the unit label carries the
+  // editorial italic instead.
+  combinedWeekNum: {
+    fontFamily: FONTS.bodyBold,
+    fontSize: 68,
+    lineHeight: 68,
+    color: COLORS.bark,
+    letterSpacing: -2.5,
+    marginTop: 2,
+  },
+  // Unit label — Playfair italic accent on the soft word.
+  combinedWkLabel: {
+    fontFamily: FONTS.headerItalic,
+    fontStyle: 'italic',
+    fontSize: 16,
+    color: COLORS.coco,
+    letterSpacing: 0.2,
+    marginBottom: 6,
+  },
+  // Milestone tagline below the number — Playfair italic, space above for separation.
+  combinedTagline: {
+    fontFamily: FONTS.headerItalic,
+    fontStyle: 'italic',
+    fontSize: 12,
+    lineHeight: 17,
+    color: COLORS.bark,
+    marginTop: 6,
+  },
+  combinedTaglineMore: {
+    fontFamily: FONTS.bodySemiBold,
+    fontSize: 9,
+    letterSpacing: 0.4,
+    color: COLORS.coco,
+    marginTop: 4,
+  },
+  // Faint decorative bee — positioned absolutely within the top band.
+  bee: {
+    position: 'absolute',
+  },
+  // Vertical hairline divider between left and right panels.
+  combinedDivider: {
+    width: 1,
+    backgroundColor: 'rgba(173,121,91,0.18)',
+    marginHorizontal: 12,
+    marginVertical: 2,
+    alignSelf: 'stretch',
+  },
+  // Right panel: fixed width, space-between stacks tiles above the "Open →" CTA.
+  combinedCardRight: {
+    width: 108,
+    flexShrink: 0,
+    flexDirection: 'column',
+    justifyContent: 'center',
+    paddingVertical: 6,
+  },
+  combinedManualEyebrow: {
+    fontFamily: FONTS.bodySemiBold,
+    fontSize: 8,
+    letterSpacing: 1.6,
+    textTransform: 'uppercase',
+    color: COLORS.cocoDeep,
+    marginBottom: 4,
+  },
+  combinedTiles: {
+    gap: 3,
+  },
+  // Mini-tile: mirrors the Manual tab tile structure (paper bg + coco border + art strip + Playfair label).
+  combinedTile: {
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: COLORS.bark,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.20,
+    shadowRadius: 5,
+    elevation: 4,
+  },
+  combinedTileLabel: {
+    fontFamily: FONTS.bodySemiBold,
+    fontSize: 11,
+    color: COLORS.bark,
+    paddingHorizontal: 7,
+    paddingVertical: 4,
+    textShadowColor: 'rgba(0,0,0,0.28)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
+  },
+  combinedManualCta: {
+    fontFamily: FONTS.bodySemiBold,
+    fontSize: 10,
+    letterSpacing: 0.2,
+    color: COLORS.coco,
+  },
+  // Body section: ivory-warm background below the gradient band.
+  combinedCardBody: {
+    backgroundColor: '#FBF6F0',
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 14,
+  },
+  // Inline preview to-do list — 3 rows max, circular checkboxes.
+  combinedTodoList: {
+    gap: 7,
+    marginBottom: 11,
+  },
+  combinedTodoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 9,
+  },
+  combinedCheckbox: {
+    width: 18, height: 18, borderRadius: 999,
+    borderWidth: 1.5, borderColor: 'rgba(173,121,91,0.40)',
+    alignItems: 'center', justifyContent: 'center',
+    flexShrink: 0,
+  },
+  combinedCheckboxOn: {
+    backgroundColor: COLORS.coco,
+    borderColor: COLORS.coco,
+  },
+  combinedCheckmark: {
+    color: COLORS.cream,
+    fontSize: 9,
+    fontFamily: FONTS.bodySemiBold,
+  },
+  combinedTodoText: {
+    flex: 1,
+    fontSize: 12, color: COLORS.barkSoft, lineHeight: 16,
+    fontFamily: FONTS.body,
+  },
+  combinedTodoTextDone: {
+    color: COLORS.textLight,
+    textDecorationLine: 'line-through',
+  },
+  // Footer: weekly guide left, full manual right, separated by full-width flex.
+  combinedFooterRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(212,184,150,0.30)',
+  },
+  combinedFooterLinkText: {
+    fontSize: 11,
+    fontFamily: FONTS.bodySemiBold,
+    color: COLORS.coco,
+    flexShrink: 0,
   },
 
   // Section heading row — small Diner accent bar + eyebrow.
   sectionHeadingRow: {
     flexDirection: 'row', alignItems: 'center', gap: 8,
-    marginTop: 14, marginBottom: 12, paddingHorizontal: 12,
+    marginTop: 2, marginBottom: 12, paddingHorizontal: 12,
   },
   sectionAccentBar: {
-    width: 12, height: 2, backgroundColor: COLORS.diner, borderRadius: 1,
+    width: 12, height: 2, backgroundColor: COLORS.coco, borderRadius: 1,
   },
 
   // EXPLORE grid — 2x2 photo cards mirroring the moodboard's Home "Explore"
   // section. Each tile has a tinted photo band + label + subtitle, jumps to the
   // matching vertical (Specialists / Milk / Gear / Events).
+  exploreHeading: {
+    paddingHorizontal: 12, marginTop: 8, marginBottom: 12,
+    position: 'relative', overflow: 'visible',
+  },
+  exploreHeadingBee: {
+    position: 'absolute',
+    top: -6, right: 8,
+    width: 30, height: 27,
+    opacity: 0.55,
+  },
+  exploreEyebrowBee: {
+    width: 46, height: 42,
+    opacity: 0.88,
+    marginLeft: -6,
+    transform: [{ rotate: '-14deg' }],
+  },
+  exploreHeadingLead: {
+    fontSize: 17, fontFamily: FONTS.headerItalic, fontStyle: 'italic',
+    color: COLORS.bark, marginTop: 2, lineHeight: 22,
+  },
+  exploreHeadingRule: {
+    height: 1, backgroundColor: 'rgba(107,62,42,0.25)',
+    marginTop: 2, alignSelf: 'stretch',
+  },
   exploreGrid: {
-    flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 10,
+    flexDirection: 'row', flexWrap: 'wrap', gap: 10,
+    marginTop: 12, paddingHorizontal: 12, paddingBottom: 12,
   },
   exploreTile: {
     width: '48.5%',
     backgroundColor: COLORS.paper,
-    borderRadius: 14,
-    padding: 10,
-    borderWidth: 1, borderColor: COLORS.ceramicDeep,
+    borderRadius: 12,
+    padding: 8,
+    borderWidth: 1, borderColor: COLORS.sandSoft,
+    shadowColor: '#3D1F0D',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 2,
   },
   exploreTilePhoto: {
     width: '100%', height: 78, borderRadius: 10,
@@ -1422,82 +2148,325 @@ const styles = StyleSheet.create({
     width: '100%', height: '100%',
   },
   exploreTileLabel: {
-    fontSize: 15, fontFamily: FONTS.headerBold, color: COLORS.brownDeep,
+    fontSize: 15, fontFamily: FONTS.headerBold, color: COLORS.bark,
     marginBottom: 3,
   },
   exploreTileSub: {
-    fontSize: 12, fontFamily: FONTS.body, color: COLORS.textMid,
+    fontSize: 12, fontFamily: FONTS.body, color: COLORS.barkSoft,
     lineHeight: 16,
   },
 
-  // Help grid — 4 accent-tinted editorial tiles in a row (Blush/Yolk/Lime/Ceramic).
-  // Each tile carries a small numbered eyebrow ("01..04") + emoji + label, so the
-  // grid reads like a magazine "what to do next" sidebar rather than a launcher.
+  // Help section — section header is editorial: eyebrow + Playfair italic
+  // "what do you need right now?" + thin hairline rule. Tiles are warm
+  // first-person beats with a label + italic sub so the row reads like a
+  // friend asking, not a launcher.
+  helpCard: {
+    backgroundColor: 'rgba(253,250,245,0.92)',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(150,80,50,0.10)',
+    paddingHorizontal: 14,
+    paddingVertical: 16,
+    marginBottom: 14,
+    overflow: 'hidden',
+    shadowColor: '#2C1A0E',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+    elevation: 2,
+  },
+  exploreCard: {
+    backgroundColor: 'rgba(253,250,245,0.92)',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(150,80,50,0.10)',
+    marginBottom: 14,
+    overflow: 'hidden',
+    position: 'relative',
+    shadowColor: '#2C1A0E',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+    elevation: 2,
+  },
+  helpCardBee: {
+    position: 'absolute',
+    bottom: 10, right: 12,
+    width: 28, height: 25,
+    opacity: 0.30,
+    transform: [{ rotate: '10deg' }],
+  },
+  helpHeading: {
+    paddingHorizontal: 0, marginTop: 0, marginBottom: 12,
+  },
+  helpHeadingLead: {
+    fontSize: 22, fontFamily: FONTS.headerItalic, fontStyle: 'italic',
+    color: COLORS.bark, marginTop: 4, lineHeight: 28,
+  },
+  helpHeadingRule: {
+    height: 1, backgroundColor: 'rgba(107,62,42,0.25)',
+    marginTop: 10, alignSelf: 'stretch',
+  },
   helpGrid: {
-    flexDirection: 'row', justifyContent: 'space-between', gap: 8, marginBottom: 14,
+    flexDirection: 'row', justifyContent: 'space-between', gap: 8, marginBottom: 0,
   },
   helpTile: {
-    flex: 1, borderRadius: 14, paddingVertical: 14, paddingHorizontal: 10,
-    alignItems: 'flex-start', justifyContent: 'space-between',
-    minHeight: 116, overflow: 'hidden',
+    flex: 1, borderRadius: 10, paddingVertical: 14, paddingHorizontal: 10,
+    alignItems: 'flex-start', justifyContent: 'flex-start',
+    minHeight: 124, overflow: 'hidden',
   },
-  helpTileNumber: {
-    fontSize: 10, fontFamily: FONTS.bodySemiBold, letterSpacing: 1.4,
-    color: COLORS.brownDeep, opacity: 0.55,
-  },
-  helpTileMarkWrap: { width: 50, height: 50, marginTop: 4 },
+  helpTileMarkWrap: { width: 36, height: 36, marginBottom: 8 },
+  helpTileTextWrap: { flex: 1, justifyContent: 'flex-end', alignSelf: 'stretch' },
   helpTileLabel: {
-    fontSize: 11, color: COLORS.brownDeep, lineHeight: 14, marginTop: 8,
+    fontSize: 13, color: COLORS.bark, lineHeight: 16,
     fontFamily: FONTS.bodySemiBold,
   },
-
-  snapshotCard: {
-    backgroundColor: '#FFF', borderRadius: 14, padding: 16, marginBottom: 10,
+  helpTileSub: {
+    fontSize: 11, color: COLORS.barkSoft, lineHeight: 14, marginTop: 4,
+    fontFamily: FONTS.body, fontStyle: 'italic',
   },
-  snapshotHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
-  snapshotTitle: { fontSize: 15, fontFamily: FONTS.bodySemiBold, color: COLORS.brownDeep },
-  snapshotEdit: { fontSize: 13, color: COLORS.rust, fontFamily: FONTS.bodySemiBold },
-  snapshotRow: { flexDirection: 'row', gap: 12 },
-  snapshotStat: { flex: 1, backgroundColor: COLORS.cream, borderRadius: 12, padding: 12 },
-  snapshotStatValue: { fontSize: 15, fontFamily: FONTS.bodySemiBold, color: COLORS.brownDeep },
-  snapshotStatLabel: { fontSize: 11, color: COLORS.textLight, marginTop: 3, letterSpacing: 0.5, textTransform: 'uppercase', fontFamily: FONTS.body },
 
+  // Editorial baby card — two-column: garden frame + monogram avatar on
+  // the LEFT, text block on the RIGHT. Card is borderless; the column
+  // split itself separates editorial text from the garden frame.
+  // Brand Kit v5: hairline coco border @ 12% so the white card doesn't
+  // Luxury editorial card — dark walnut band over cream body.
+  // Thin warm-copper hairline + deep shadow give it material weight.
+  snapshotCard: {
+    backgroundColor: '#FEFCFA',
+    borderRadius: 16,
+    marginBottom: 10,
+    flexDirection: 'column',
+    overflow: 'hidden',
+    borderWidth: 0.75,
+    borderColor: 'rgba(150, 85, 50, 0.22)',
+    shadowColor: '#6B2E0E',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.20,
+    shadowRadius: 24,
+    elevation: 5,
+  },
+  // Warm rose-gold band — light, rich, premium without being heavy.
+  snapshotBand: {
+    height: 82,
+    backgroundColor: '#F0C8BE',
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  // Large monogram — barely-there watermark, like luxury letterhead.
+  snapshotMonogram: {
+    position: 'absolute',
+    right: 12,
+    bottom: -20,
+    fontSize: 130,
+    fontFamily: FONTS.headerItalic,
+    fontStyle: 'italic',
+    color: '#5C2A1A',
+    opacity: 0.07,
+    lineHeight: 130,
+  },
+  // Villie bee brand mark — bottom-right of the gradient band.
+  snapshotBandPlant: {
+    position: 'absolute',
+    right: 10, bottom: 4,
+    width: 66, height: 60,
+    opacity: 0.60,
+    transform: [{ rotate: '12deg' }],
+  },
+  // Left content block — vertically centered, clears the capsule column.
+  snapshotBandContent: {
+    position: 'absolute',
+    top: 0, bottom: 0, left: 14,
+    right: 120,
+    justifyContent: 'center',
+    gap: 3,
+  },
+  // Eyebrow — deep bark, spaced, whisper-quiet above the name.
+  snapshotBandEyebrow: {
+    fontSize: 9,
+    fontFamily: FONTS.bodySemiBold,
+    letterSpacing: 2.5,
+    textTransform: 'uppercase',
+    color: 'rgba(60, 25, 10, 0.55)',
+  },
+  // Edit — dark bark, unobtrusive in the warm band.
+  snapshotBandEditWrap: {
+    position: 'absolute',
+    top: 12,
+    right: 16,
+  },
+  snapshotHeaderRow: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+  },
+  snapshotEdit: { fontSize: 12, color: 'rgba(60, 25, 10, 0.55)', fontFamily: FONTS.bodySemiBold },
+  // Name — deep brownDeep Playfair italic on the warm blush band.
+  snapshotName: {
+    fontSize: 22, fontFamily: FONTS.headerItalic, fontStyle: 'italic',
+    color: COLORS.bark, lineHeight: 26,
+    flexShrink: 1,
+  },
+  snapshotIntroLine: {
+    fontSize: 14, fontFamily: FONTS.body, color: COLORS.barkSoft,
+    lineHeight: 20, marginTop: 4,
+  },
+  snapshotMetaLine: {
+    fontSize: 12, color: COLORS.textLight, fontFamily: FONTS.body,
+    marginTop: 6, letterSpacing: 0.3,
+  },
+  // Terra-italic accent on the week count. Mirrors the design artifact's
+  // `<em>` accent pattern (rust Playfair italic on the key word).
+  snapshotAgeAccent: {
+    color: COLORS.coco,
+    fontFamily: FONTS.headerItalic,
+    fontStyle: 'italic',
+  },
+  snapshotMetaText: {
+    fontSize: 12,
+    fontFamily: FONTS.body,
+    color: COLORS.barkSoft,
+  },
+  // Stat row — cream body, warmer separators to echo the dark band above.
+  snapshotStatRow: {
+    flexDirection: 'row',
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(100, 50, 20, 0.12)',
+    backgroundColor: '#FEFCFA',
+  },
+  snapshotStatCell: {
+    flex: 1,
+    paddingVertical: 7,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 2,
+  },
+  snapshotStatCellBorder: {
+    borderLeftWidth: 1,
+    borderLeftColor: 'rgba(100, 50, 20, 0.12)',
+  },
+  // Stat value — DM Sans bold (was Playfair italic). Number reads
+  // direct/clinical; the uppercase label below carries the soft accent.
+  snapshotStatValue: {
+    fontFamily: FONTS.bodyBold,
+    fontSize: 12,
+    color: COLORS.bark,
+    lineHeight: 15,
+  },
+  snapshotStatLabel: {
+    fontSize: 8,
+    fontFamily: FONTS.bodySemiBold,
+    letterSpacing: 1.2,
+    textTransform: 'uppercase',
+    color: COLORS.barkSoft,
+    opacity: 0.85,
+  },
   timelineRow: { alignSelf: 'center', paddingVertical: 10 },
-  timelineText: { fontSize: 14, fontFamily: FONTS.bodySemiBold, color: COLORS.rustDark },
+  timelineText: { fontSize: 14, fontFamily: FONTS.bodySemiBold, color: COLORS.cocoDeep },
 
   feedBlock: {
-    backgroundColor: '#FFF', borderRadius: 14, padding: 16, marginBottom: 10,
+    // Brand Kit v5 — paper surface so editorial section cards feel like
+    // one lifted layer above the cream page.
+    backgroundColor: COLORS.paper,
+    borderRadius: 14,
+    padding: 16,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(173,121,91,0.12)',
+    shadowColor: '#3D1F0D',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.04,
+    shadowRadius: 10,
+    elevation: 1,
   },
-  feedHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },
-  feedHeader: { fontSize: 14, fontFamily: FONTS.bodySemiBold, color: COLORS.brownDeep },
-  feedHeaderLink: { fontSize: 12, color: COLORS.rust, fontFamily: FONTS.bodySemiBold },
-  eventRow: { paddingVertical: 10, borderTopWidth: 1, borderTopColor: 'rgba(0,0,0,0.05)' },
-  eventRowTitle: { fontSize: 14, color: COLORS.brownDeep, fontFamily: FONTS.bodySemiBold },
-  eventRowReason: { fontSize: 12, color: COLORS.textMid, marginTop: 2, lineHeight: 16, fontFamily: FONTS.body },
+  feedHeaderRow: {
+    flexDirection: 'row', justifyContent: 'space-between',
+    alignItems: 'center', marginBottom: 6,
+  },
+  feedHeader: {
+    fontSize: 14, fontFamily: FONTS.bodySemiBold, color: COLORS.bark,
+  },
+  feedHeaderLink: {
+    fontSize: 12, color: COLORS.coco, fontFamily: FONTS.bodySemiBold,
+  },
+  eventRow: {
+    paddingVertical: 10, borderTopWidth: 1,
+    borderTopColor: 'rgba(61,31,13,0.06)',
+  },
+  eventRowTitle: {
+    fontSize: 14, color: COLORS.bark, fontFamily: FONTS.bodySemiBold,
+  },
+  eventRowReason: {
+    fontSize: 12, color: COLORS.barkSoft, marginTop: 2, lineHeight: 17,
+    fontFamily: FONTS.body,
+  },
 
   tipCard: {
-    backgroundColor: '#F4F1E4', borderRadius: 14, padding: 16, marginBottom: 10,
-    borderWidth: 1, borderColor: 'rgba(92,107,58,0.2)',
+    // Brand Kit v5 — sand surface (warm neutral support colour) with a
+    // sage accent border so the tip reads as a calm informational beat,
+    // not a CTA card. Shadow depth matches the rest of the page's card stack.
+    backgroundColor: COLORS.sandSoft,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(139,154,107,0.25)',
+    shadowColor: '#3D1F0D',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 2,
   },
-  tipEyebrow: { fontSize: 10, fontFamily: FONTS.bodySemiBold, letterSpacing: 1.5, color: COLORS.olive },
-  tipBody: { fontSize: 14, color: COLORS.brownDeep, lineHeight: 20, marginTop: 6, fontFamily: FONTS.body },
-  tipLink: { fontSize: 12, color: COLORS.rustDark, fontFamily: FONTS.bodySemiBold, marginTop: 8 },
+  tipEyebrow: {
+    fontSize: 10, fontFamily: FONTS.bodySemiBold, letterSpacing: 1.5,
+    color: COLORS.sage, textTransform: 'uppercase',
+  },
+  tipBody: {
+    fontSize: 14, color: COLORS.bark, lineHeight: 20, marginTop: 6,
+    fontFamily: FONTS.body,
+  },
+  tipLink: {
+    fontSize: 12, color: COLORS.cocoDeep, fontFamily: FONTS.bodySemiBold,
+    marginTop: 8,
+  },
 
   discoverCard: {
     flexDirection: 'row', alignItems: 'center', gap: 12,
-    backgroundColor: '#FFF', borderRadius: 14, padding: 16, marginBottom: 10,
+    backgroundColor: COLORS.paper, borderRadius: 14, padding: 16, marginBottom: 10,
+    borderWidth: 1, borderColor: 'rgba(173,121,91,0.14)',
+    shadowColor: '#3D1F0D', shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.04, shadowRadius: 10, elevation: 1,
   },
   discoverEmoji: { fontSize: 28 },
-  discoverTitle: { fontSize: 14, fontFamily: FONTS.bodySemiBold, color: COLORS.brownDeep },
-  discoverDesc: { fontSize: 12, color: COLORS.textMid, marginTop: 2, fontFamily: FONTS.body },
+  discoverTitle: { fontSize: 14, fontFamily: FONTS.bodySemiBold, color: COLORS.bark },
+  discoverDesc: { fontSize: 12, color: COLORS.barkSoft, marginTop: 2, fontFamily: FONTS.body },
 
   eventsCard: {
-    backgroundColor: '#FFF', borderRadius: 14, padding: 16, marginTop: 4, marginBottom: 10,
+    // Brand Kit v5 — lifted paper surface with a hairline coco border,
+    // matching the editorial card system. Shadow depth matches snapshot card.
+    backgroundColor: COLORS.paper,
+    borderRadius: 14,
+    padding: 16,
+    marginTop: 4,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(173,121,91,0.16)',
+    shadowColor: '#3D1F0D',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 2,
   },
   eventsRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   eventsEmoji: { fontSize: 28 },
   eventsTextWrap: { flex: 1 },
-  eventsLabel: { fontSize: 14, fontFamily: FONTS.bodySemiBold, color: COLORS.brownDeep },
-  eventsPreview: { fontSize: 12, color: COLORS.textMid, marginTop: 2, fontFamily: FONTS.body },
-  eventsArrow: { fontSize: 24, color: COLORS.textLight, fontFamily: FONTS.bodySemiBold },
+  eventsLabel: {
+    fontSize: 14, fontFamily: FONTS.bodySemiBold, color: COLORS.bark,
+  },
+  eventsPreview: {
+    fontSize: 12, color: COLORS.barkSoft, marginTop: 2, lineHeight: 17,
+    fontFamily: FONTS.body,
+  },
+  eventsArrow: {
+    fontSize: 20, color: COLORS.coco, fontFamily: FONTS.bodySemiBold,
+    opacity: 0.7,
+  },
 });
