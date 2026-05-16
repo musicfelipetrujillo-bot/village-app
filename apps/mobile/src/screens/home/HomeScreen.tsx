@@ -943,18 +943,22 @@ function WeekHeroV9({
 // even before drilling in.
 // ─────────────────────────────────────────────────────────────────────────
 type ManualPillTone = 'feel' | 'heal' | 'nourish' | 'rest' | 'tips';
-// Pill colors picked + verified for WCAG AA contrast (4.5:1 minimum for
-// the 11px bold pill text). The Rest + Tips pairings that previously used
-// paper text on lighter-saturation bg dropped to 2.5:1 / 3.4:1 and have
-// been corrected:
-//   - Rest: paper → bark on dusk gives 5.55:1 ✓
-//   - Tips: paper text retained, bg darkened to cinnamon-dark for 4.82:1 ✓
+// Pill palette: paper (#FDFAF5) text across ALL five chapters for visual
+// consistency. To support white text everywhere at WCAG AA (4.5:1), the
+// three previously-light chapter bgs (salmon / honey / dusk) have been
+// shifted to their deeper variants:
+//   Feel:    salmon  #EDA8A0 → terracotta #A55248  (5.17:1)
+//   Nourish: honey   #E8B547 → amber      #8C6D1E  (4.67:1)
+//   Rest:    dusk    #8FA0BD → slate      #5B6A82  (5.27:1)
+// Heal moss and Tips cinnamon-dark already passed with paper text.
+// Each chapter still reads as its own color family (warm pink, green,
+// gold, blue, orange) — just deeper across the board.
 const MANUAL_PILL_COLORS: Record<ManualPillTone, { bg: string; fg: string }> = {
-  feel:    { bg: '#EDA8A0', fg: '#3D1F0D' }, // salmon   — bark fg, 7.65:1
-  heal:    { bg: '#606E46', fg: '#FDFAF5' }, // moss     — paper fg, 5.29:1
-  nourish: { bg: '#E8B547', fg: '#3D1F0D' }, // honey    — bark fg, 7.95:1
-  rest:    { bg: '#8FA0BD', fg: '#3D1F0D' }, // dusk     — bark fg, 5.55:1 (was paper @ 2.54:1)
-  tips:    { bg: '#9F5F30', fg: '#FDFAF5' }, // cinnamon-dark — paper fg, 4.82:1 (was #C07840 @ 3.36:1)
+  feel:    { bg: '#A55248', fg: '#FDFAF5' }, // terracotta — paper fg, 5.17:1
+  heal:    { bg: '#606E46', fg: '#FDFAF5' }, // moss       — paper fg, 5.29:1
+  nourish: { bg: '#8C6D1E', fg: '#FDFAF5' }, // amber      — paper fg, 4.67:1
+  rest:    { bg: '#5B6A82', fg: '#FDFAF5' }, // slate      — paper fg, 5.27:1
+  tips:    { bg: '#9F5F30', fg: '#FDFAF5' }, // cinnamon-dark — paper fg, 4.86:1
 };
 function ManualBlockHome({
   onManualPress, onCategoryPress,
