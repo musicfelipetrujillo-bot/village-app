@@ -51,8 +51,12 @@ const SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY') ?? '';
 const RECIPIENT_LIST = (Deno.env.get('GEAR_MODERATOR_DIGEST_EMAILS') ?? '')
   .split(',').map((s) => s.trim()).filter(Boolean);
+// Default uses the send.villieapp.com subdomain because that's what Resend's
+// DNS verification covers (cleaner than verifying the bare domain — no
+// collisions with whatever else might be on villieapp.com itself). Override
+// via env var if you switch to a different verified sender domain.
 const FROM_ADDRESS = Deno.env.get('GEAR_MODERATOR_DIGEST_FROM')
-  ?? 'Villie Moderation <noreply@villieapp.com>';
+  ?? 'Villie Moderation <noreply@send.villieapp.com>';
 
 interface ReportRow {
   id: string;
