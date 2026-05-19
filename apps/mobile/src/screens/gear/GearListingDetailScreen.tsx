@@ -300,6 +300,30 @@ export default function GearListingDetailScreen() {
             <Text style={styles.description}>{listing.description}</Text>
           </View>
 
+          {/* Product reference image card. Renders only when the seller's
+              UPC scan during listing creation returned a stock catalog
+              image (migration 064). Labeled clearly as a *reference* so
+              buyers don't confuse it with the seller's actual photos —
+              truth-in-listing comes from the carousel above, this is just
+              the polished product-catalog identity. */}
+          {listing.reference_image_url ? (
+            <View style={styles.referenceBlock}>
+              <Image
+                source={{ uri: listing.reference_image_url }}
+                style={styles.referenceImage}
+                resizeMode="contain"
+              />
+              <View style={styles.referenceCopy}>
+                <Text style={styles.referenceLabel}>
+                  {t('gearDetail.referenceLabel')}
+                </Text>
+                <Text style={styles.referenceCaption}>
+                  {t('gearDetail.referenceCaption')}
+                </Text>
+              </View>
+            </View>
+          ) : null}
+
           <View style={styles.sellerBlock}>
             {listing.seller_avatar_url ? (
               <Image source={{ uri: listing.seller_avatar_url }} style={styles.sellerAvatar} />
@@ -458,6 +482,24 @@ const styles = StyleSheet.create({
     color: COLORS.textLight, textTransform: 'uppercase', marginBottom: 8,
   },
   description: { fontSize: 14, color: COLORS.barkSoft, lineHeight: 21, fontFamily: FONTS.body },
+
+  // Reference-image card. Compact, paper-on-paper, labeled hairline so it
+  // reads as supporting context rather than competing with the carousel.
+  referenceBlock: {
+    flexDirection: 'row', alignItems: 'center', gap: 14,
+    backgroundColor: COLORS.paper, borderRadius: 14, padding: 14, marginTop: 18,
+    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(150, 80, 50, 0.18)',
+  },
+  referenceImage: {
+    width: 72, height: 72, borderRadius: 10,
+    backgroundColor: COLORS.cream,
+  },
+  referenceCopy: { flex: 1 },
+  referenceLabel: {
+    fontSize: 10, fontFamily: FONTS.bodySemiBold, letterSpacing: 1.4,
+    color: '#9F5F30', textTransform: 'uppercase', marginBottom: 4,
+  },
+  referenceCaption: { fontSize: 12, color: COLORS.barkSoft, lineHeight: 17, fontFamily: FONTS.body },
 
   sellerBlock: {
     flexDirection: 'row', alignItems: 'center', gap: 12,

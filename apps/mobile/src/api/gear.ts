@@ -99,6 +99,10 @@ export interface GearListingDetail {
   cpsc_recall_url: string | null;
   cpsc_checked_at: string | null;
   upc: string | null;
+  // Optional product-catalog image surfaced when the seller scanned a UPC
+  // during listing creation. Shown in the detail view as a labeled "Product
+  // reference" card alongside the seller's own photos. Migration 064.
+  reference_image_url: string | null;
   view_count: number;
   save_count: number;
   created_at: string;
@@ -162,6 +166,12 @@ export interface CreateListingInput {
   lat: number;
   lng: number;
   image_urls: string[];  // upload to Supabase Storage first, pass resulting URLs
+  // Optional. Stock/catalog image URL from the UPC lookup (Go-UPC or
+  // UPCitemdb returns this in the `image_url` field). Surfaced in the
+  // detail view as a "Product reference" card alongside the seller's
+  // photos so the user gets a polished product hero while their own
+  // photos remain the actual condition signal. Migration 064.
+  reference_image_url?: string | null;
 }
 
 export const gearApi = {
@@ -217,6 +227,7 @@ export const gearApi = {
       p_pickup_zip: input.pickup_zip ?? null,
       p_lat: input.lat,
       p_lng: input.lng,
+      p_reference_image_url: input.reference_image_url ?? null,
     });
     if (error) throw new Error(error.message);
     const newId = Array.isArray(data) ? data[0]?.id : data?.id ?? data;

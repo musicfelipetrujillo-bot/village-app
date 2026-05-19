@@ -1576,6 +1576,8 @@
     "metaType": "Tipo",
     "metaPickup": "Entrega",
     "sectionDescription": "Descripción",
+    "referenceLabel": "Referencia del producto",
+    "referenceCaption": "Foto de catálogo de este producto, obtenida del escaneo de código de barras del vendedor. El carrusel de arriba muestra el artículo real que se vende.",
     "sellerLabel": "Vendedora/or",
     "sellerFallback": "Miembro de villie",
     "openInMaps": "📍 Abrir zona de entrega en Maps",

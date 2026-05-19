@@ -1576,6 +1576,8 @@
     "metaType": "Type",
     "metaPickup": "Pickup",
     "sectionDescription": "Description",
+    "referenceLabel": "Product reference",
+    "referenceCaption": "Catalog photo of this product, surfaced from the seller's barcode scan. The carousel above shows the actual item being sold.",
     "sellerLabel": "Seller",
     "sellerFallback": "villie member",
     "openInMaps": "\ud83d\udccd Open pickup area in Maps",

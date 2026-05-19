@@ -84,6 +84,13 @@ export default function CreateListingScreen() {
   const [visionBusy, setVisionBusy] = useState(false);
   const [autofillNote, setAutofillNote] = useState<string | null>(null);
   const [recall, setRecall] = useState<{ productName: string; recall: CpscRecallSummary | null } | null>(null);
+  // Optional product-catalog image returned by Go-UPC / UPCitemdb when the
+  // seller scans a UPC. Persisted on the listing row (migration 064) so it
+  // can be surfaced in the detail view as a "Product reference" card next
+  // to the seller's actual photos. NULL when no UPC was scanned or the
+  // lookup didn't return an image. Truth-in-listing posture: the user's
+  // own photos remain primary; this is a labeled secondary reference.
+  const [referenceImageUrl, setReferenceImageUrl] = useState<string | null>(null);
   // Per-photo vision results, keyed by local URI. Populated automatically
   // when a photo is added (background) and read by the submit-time gate.
   // Also used by `identifyFromPhoto` to avoid re-running a check on the
@@ -214,6 +221,12 @@ export default function CreateListingScreen() {
       } else {
         if (r.name && !title) setTitle(r.name.slice(0, 80));
         if (r.brand && !brand) setBrand(r.brand);
+        // Capture the catalog image URL so it persists onto the new listing
+        // as a "Product reference" card in the detail view (migration 064).
+        // Only set if we don't already have one — barcode scans on a fresh
+        // listing should populate it, but if the seller re-scans we don't
+        // want to flip the stored reference around mid-edit.
+        if (r.image_url && !referenceImageUrl) setReferenceImageUrl(r.image_url);
         setAutofillNote(t('gearCreate.noteFilledFrom', {
           label: r.source === 'go-upc' ? 'Go-UPC' : 'UPCitemdb',
           source: r.source ?? '',
@@ -448,6 +461,7 @@ export default function CreateListingScreen() {
         lat: coords!.lat,
         lng: coords!.lng,
         image_urls: uploaded,
+        reference_image_url: referenceImageUrl,
       });
 
       // Persist the verdict onto the new listing row (owner-scoped RPC).
