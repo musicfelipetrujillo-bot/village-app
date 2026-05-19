@@ -52,44 +52,58 @@ Reporting clocks start at `gear_listing_reports.created_at`.
 
 ## 3 · Roles
 
-**Current state (transitional, pre-ops-hire)** — both moderator slots
-sit with the founder + co-founder. Per the recommendation in the
-attorney handoff doc, personal contact details are kept out of this
-file; they live in the private contacts vault (1Password / Notion).
+**Current state (solo coverage, pre-ops-hire)** — the founder is the
+sole named moderator. The co-founder slot was originally planned and
+SOP-documented as a backup but is currently unfilled (co-founder does
+not yet have a Villie account / paging channel set up). Personal
+contact details are kept out of this file; they live in the private
+contacts vault.
 
 | Role | Owner | Responsibility |
 |---|---|---|
-| **Primary moderator** | Founder (Felipe) — alias `moderator@villieapp.com` (route to founder inbox + push) | Reviews the queue twice daily, owns P0 paging. |
-| **Backup moderator** | Co-founder (founder's partner) — alias `moderator-backup@villieapp.com` (route to partner inbox + push) | Covers PTO, weekends, and overflow. |
-| **Escalation contact** | Counsel (TBD — engagement pending per attorney handoff doc) + founder | Receives anything that triggers legal exposure or threatens to. Until counsel is engaged, the founder owns escalation by default. |
+| **Primary moderator** | Founder (Felipe) — alias `moderator@villieapp.com` (forwards to founder inbox + push to founder's device) | Reviews the queue, owns P0 paging, owns digest triage. |
+| **Backup moderator** | ⚠️ **Currently unfilled.** SOP-documented as co-founder. Add `moderator-backup@villieapp.com` + the co-founder's Supabase user UUID to `GEAR_MODERATOR_EXTERNAL_IDS` when the co-founder is onboarded. | (planned) Covers PTO, weekends, P0 if primary is unreachable. |
+| **Escalation contact** | Counsel (TBD — engagement pending per attorney handoff doc) + founder | Receives anything that triggers legal exposure. Until counsel is engaged, the founder owns escalation by default. |
 
-**Transitional constraints worth naming explicitly:**
+**Solo-coverage constraints worth naming explicitly:**
 
-- **Single-household coverage**: primary + backup share a residence and
-  often a schedule. For P0 at 03:00 ET this is fine (one phone wakes
-  both). For a 2-week joint PTO, coverage breaks. Either don't take
-  joint PTO during the launch window, or hand-off the on-call to a
-  third human (counsel, advisor, contractor) for the gap.
-- **Bus factor of one effective person**: if both founders are
-  unreachable, the SLA fails. This is acceptable risk pre-launch but
-  is **not** acceptable at meaningful user volume. Trigger to revisit:
-  >100 active gear listings OR first paying hospital partner.
+- **Bus factor of one.** If the founder is unreachable (phone off,
+  asleep, traveling without signal), the P0 SLA fails. This is the
+  highest-risk posture we can ship; defensible only because:
+  (a) the pre-launch user base is effectively zero, so the probability
+  of a P0 report landing during a coverage gap is vanishingly small;
+  (b) the auto-withdraw cron at the 4hr mark is the safety net that
+  fires whether a human acknowledges or not — so for the highest-stakes
+  reason codes (`recalled_item`, `harassment_or_abuse`), the listing
+  comes down regardless of whether the founder is reachable. The
+  defensible posture under CPSIA §19 holds.
+- **Hard trigger to add a second moderator.** Once any one of the
+  following lands, do **not** continue with solo coverage:
+  1. Hospital-partner pilot goes live (real users with a clinician
+     attached).
+  2. Active gear listings exceed 25.
+  3. First report submitted by a real user (not test traffic).
+  4. Any planned founder absence exceeding 12 hours.
 - **No legal counsel in escalation chain yet**: until counsel is
   engaged (open item in `V4_GEAR_ATTORNEY_HANDOFF.md`), genuine legal
   exposure events have nowhere to escalate to. P0 events with legal
   surface area (e.g., a credible CSAM report, a threat-of-violence
   message) should be reported directly to law enforcement via 911 /
-  the local non-emergency line, with the founder documenting
-  the timeline in `admin_audit_log` for the eventual counsel review.
+  the local non-emergency line, with the founder documenting the
+  timeline in `admin_audit_log` for the eventual counsel review.
 
-**Hard rule**: the role pair `primary + backup` must cover **24/7**
-for P0 severities. P1 + P2 can be business-hours queue work.
+**Hard rule under solo coverage**: the founder must keep the OneSignal
+push channel enabled on a personal device that wakes at 03:00. The
+auto-withdraw cron handles the P0 worst case if push is missed, but
+the human acknowledgement is still the operational expectation. P1 +
+P2 are business-hours queue work driven by the daily digest email.
 
 **Pre-launch deliverables before this section is enforceable:**
 
-- [ ] `moderator@villieapp.com` and `moderator-backup@villieapp.com` email aliases configured (forwarding to founder + partner respectively).
-- [ ] OneSignal push channel verified on both founders' personal devices.
-- [ ] 1Password / Notion entry created with phone numbers + real email behind the aliases (label: "Villie · Moderator on-call").
+- [ ] `moderator@villieapp.com` email alias configured (forwarding to founder's personal inbox).
+- [ ] OneSignal push channel verified on the founder's personal device.
+- [ ] Founder's personal email + phone recorded in the private contacts vault (label: "Villie · Moderator on-call").
+- [ ] **(when co-founder is added)** repeat the three items above for `moderator-backup@villieapp.com` + co-founder.
 
 ---
 
