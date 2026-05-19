@@ -34,6 +34,7 @@ on:
     - cron: '45 9 * * *'     # events-geocode-sweep     (05:45 ET) — geocode any text-only LOCATION rows
     - cron: '*/5 * * * *'    # gear-moderation-pager    — every 5 min; pushes P0 reports past 4hr SLA to founders (migration 063, SOP §10 item 1)
     - cron: '*/15 * * * *'   # gear-moderation-auto-withdraw — every 15 min; auto-withdraws listings tied to P0 reports past 4hr SLA via SQL RPC (migration 063, SOP §10 item 2). Body field tells the edge fn to invoke the RPC.
+    - cron: '0 13 * * *'     # gear-moderation-daily-digest — 13:00 UTC (09:00 ET) — emails the moderator inbox a daily roll-up of open + auto-actioned reports via Resend (SOP §10 item 3)
   workflow_dispatch:
     inputs:
       function:
@@ -52,6 +53,7 @@ on:
           - events-geocode
           - gear-moderation-pager
           - gear-moderation-auto-withdraw
+          - gear-moderation-daily-digest
       body:
         description: 'JSON body to send (defaults to {} or per-function default)'
         required: false
@@ -90,6 +92,7 @@ jobs:
               '45 9 * * *')    FN='events-geocode';           BODY='{"mode":"all","limit":50}' ;;
               '*/5 * * * *')   FN='gear-moderation-pager';    BODY='{}' ;;
               '*/15 * * * *')  FN='gear-moderation-auto-withdraw'; BODY='{}' ;;
+              '0 13 * * *')    FN='gear-moderation-daily-digest';  BODY='{}' ;;
               *)
                 echo "::error::Unknown schedule: ${SCHEDULE}"
                 exit 1

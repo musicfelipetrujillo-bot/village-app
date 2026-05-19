@@ -294,16 +294,21 @@ device. Phone-off-for-the-night is fine for P1+; P0 will wake them.
 
 Code that needs to land before this SOP is enforceable:
 
-- [ ] **P0 real-time pager** — Postgres trigger on `gear_listing_reports` INSERT, fires edge fn that posts to OneSignal / PagerDuty for `reason_code IN ('recalled_item', 'harassment_or_abuse')`.
-- [ ] **SLA-miss auto-withdraw for P0** — pg_cron every 15 min: any `recalled_item` or `harassment_or_abuse` report still `open` past 4 hours → auto-withdraw the listing + Template A/B.
-- [ ] **Daily digest email** — pg_cron 09:00 ET → email via Resend (or SES) to primary + backup with every report open in the last 24h + every report past its SLA.
-- [ ] **`auto_escalated` + `auto_acknowledged_at` columns** on `gear_listing_reports`.
-- [ ] **`admin_audit_log` schema confirmation** — verify `action_taken` and `dismissal_reason` fields exist and are surfaced by `admin-compliance-events` edge fn.
-- [ ] **System-message dispatch helper** — small edge fn that writes a `system`-type message into `gear_messages` for a given thread (used by Templates A / B / C). Reuses existing message infra.
-- [ ] **Optional**: `gear_seller_cooldowns` table for the 7-day reposting ban after a `prohibited_category` strike.
+- [x] **P0 real-time pager** — Shipped 2026-05-19 (commit `92f564c`). `gear-moderation-pager` edge fn pulls overdue P0 reports via the `sweep_p0_overdue_reports()` RPC and fans out OneSignal push to `GEAR_MODERATOR_EXTERNAL_IDS`. GH Action cron fires every 5 minutes.
+- [x] **SLA-miss auto-withdraw for P0** — Shipped 2026-05-19 (commit `92f564c`). `auto_withdraw_p0_overdue_listings()` RPC + `gear-moderation-auto-withdraw` edge wrapper. GH Action cron fires every 15 minutes. Withdraws the listing, writes `admin_audit_log`, posts system message to the seller's existing thread.
+- [x] **Daily digest email** — Shipped 2026-05-19. `gear-moderation-daily-digest` edge fn fires daily at 13:00 UTC (09:00 ET). Sends an HTML email via Resend to `GEAR_MODERATOR_DIGEST_EMAILS` recipients with P0-overdue, open queue, and auto-actioned-in-last-24h sections. Quiet days send a zero-state email by default so missing emails are a real signal (cron broke, not "nothing happened"); pass `send_when_empty:false` if you'd rather have silence.
+- [x] **`auto_escalated` + `auto_acknowledged_at` columns** on `gear_listing_reports` — Migration 063.
+- [x] **`admin_audit_log` schema confirmation** — Verified 2026-05-19. The existing `metadata` JSONB column accommodates `action_taken` and `dismissal_reason` fields without schema changes; we just write them into metadata on each row.
+- [x] **System-message dispatch helper** — Shipped 2026-05-19. `gear-takedown-template-dispatch` edge fn writes `message_type='system'` rows into `gear_messages` for a given listing's thread. Supports Templates A (CPSC recall), B (generic withdrawal, 5 reason_short values), C (account suspension). EN + ES copy. Service-role-gated; the moderator's `actor_user_id` is recorded in `admin_audit_log`.
+- [ ] **Optional**: `gear_seller_cooldowns` table for the 7-day reposting ban after a `prohibited_category` strike. Not blocking launch.
 
-Until those are built, the SOP runs manually: the primary moderator
-checks Studio twice daily and dispatches templates by hand.
+**Pre-launch env / secrets to set in Supabase Edge Function secrets:**
+- `GEAR_MODERATOR_EXTERNAL_IDS` — comma-separated Supabase user IDs (founder + co-founder per §3)
+- `RESEND_API_KEY` — Resend API key from https://resend.com
+- `GEAR_MODERATOR_DIGEST_EMAILS` — comma-separated recipient addresses (`moderator@villieapp.com`, `moderator-backup@villieapp.com`)
+- `GEAR_MODERATOR_DIGEST_FROM` (optional) — defaults to `Villie Moderation <noreply@villieapp.com>`; must be on a verified Resend domain
+
+Once those secrets are set, the SOP is fully automated end-to-end.
 
 ---
 
