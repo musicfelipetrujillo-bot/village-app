@@ -184,8 +184,7 @@ V1 fully live → V2 → V3 → V4+Home. Never start next vertical until current
   - `spatial_ref_sys` `rls_disabled_in_public` — PostGIS-owned reference table; we don't own the DDL and enabling RLS on an extension table breaks every PostGIS query. Accept (rolls up under `extension_in_public:postgis`).
   - `st_estimatedextent` × 6 (3 anon × 3 authenticated overloads) `*_security_definer_function_executable` — PostGIS extension-owned C functions. Cannot ALTER extension functions. Accept (documented in migration 052 header).
   - `authenticated_security_definer_function_executable` × ~27 app RPCs (`approve_*`, `claim_perk`, `get_my_*`, `join_room`, `list_my_*`, `mark_*_read`, `resolve_crisis_flag`, etc.) — these are the legitimate mobile-callable RPCs we kept on `authenticated` in migration 054 by design. Each has an internal `auth.uid()` / `is_moderator_anywhere()` / `is_clinical_reviewer()` guard. The lint is informational — it just flags any SECURITY DEFINER reachable by signed-in users, regardless of internal checks. Accept.
-- Auth → leaked password protection toggle remains the one outstanding dashboard click (not code-fixable).
-- **One-click dashboard items** (not code): enable `Auth → Settings → Leaked password protection` (advisor `auth_leaked_password_protection`).
+  - `auth_leaked_password_protection` — HaveIBeenPwned-backed leaked-password screening is a **Supabase Pro-tier feature**. We are on Free; the toggle is not available in the dashboard, so this is not an action item, it is a plan constraint. Accept until plan upgrade. If/when we move to Pro: Auth → Providers → Email → Password security → "Prevent use of leaked passwords".
 
 ## Me / Account — Build Progress
 | Phase | Status | Notes |
