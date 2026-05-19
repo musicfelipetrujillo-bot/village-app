@@ -63,6 +63,29 @@ function reasonLabel(code: string): string {
   }
 }
 
+// JWT decode + role check. Combined with verify_jwt: true at the gateway,
+// this ensures: (a) the JWT is validly signed by this Supabase project
+// (gateway-enforced), and (b) the JWT carries role=service_role (this
+// function). We don't re-verify the signature here — the gateway already
+// did that. We just decode the payload.
+function isServiceRoleRequest(req: Request): boolean {
+  const auth = req.headers.get('authorization') ?? '';
+  const match = auth.match(/^Bearer\s+(.+)$/i);
+  if (!match) return false;
+  const token = match[1].trim();
+  try {
+    const payloadB64 = token.split('.')[1];
+    if (!payloadB64) return false;
+    // base64url → base64 + padding
+    const normalized = payloadB64.replace(/-/g, '+').replace(/_/g, '/');
+    const padded = normalized + '='.repeat((4 - normalized.length % 4) % 4);
+    const payload = JSON.parse(atob(padded));
+    return payload?.role === 'service_role';
+  } catch {
+    return false;
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: CORS });
   if (req.method !== 'POST') {
@@ -71,11 +94,14 @@ Deno.serve(async (req) => {
     });
   }
 
-  // Auth: require service-role bearer. The cron call from GH Action carries
-  // SUPABASE_SERVICE_ROLE_KEY in the Authorization header; manual test calls
-  // can use the same.
-  const auth = req.headers.get('authorization') ?? '';
-  if (auth !== `Bearer ${SERVICE_ROLE_KEY}`) {
+  // Auth: require service-role bearer. We decode the JWT and check the role
+  // claim rather than doing strict equality against SERVICE_ROLE_KEY — the
+  // strict-equality variant broke whenever the GH Action's repo secret was
+  // even slightly different from the auto-injected env var (key rotation,
+  // trailing whitespace, etc.). verify_jwt: true at the gateway already
+  // checks signature validity for this project, so all we need to verify
+  // here is the role claim.
+  if (!isServiceRoleRequest(req)) {
     return new Response(JSON.stringify({ error: 'unauthorized' }), {
       status: 401, headers: { ...CORS, 'Content-Type': 'application/json' },
     });
