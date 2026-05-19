@@ -367,6 +367,29 @@ Deno.serve(async (req) => {
   if (!resendRes.ok) {
     const errText = await resendRes.text();
     console.error('[gear-moderation-daily-digest] resend failed', resendRes.status, errText);
+    // Persist the failure into admin_audit_log so we can diagnose Resend
+    // rejections without needing to read the function's HTTP response body
+    // (the GH Action workflow captures it but the cron output is harder to
+    // tail than a Postgres SELECT). Read-only Supabase MCP sessions can
+    // still query admin_audit_log, so this turns "what did Resend say?"
+    // from a screenshot hunt into a SQL query.
+    try {
+      await supabase.from('admin_audit_log').insert({
+        action: 'gear_moderation_digest_resend_failed',
+        target_table: 'gear_listing_reports',
+        target_id: '00000000-0000-0000-0000-000000000000',
+        performed_by: 'system',
+        metadata: {
+          resend_status: resendRes.status,
+          resend_error: errText.slice(0, 2000),
+          from_address: FROM_ADDRESS,
+          recipients: RECIPIENT_LIST,
+          generated_at: generatedAt,
+        },
+      });
+    } catch (e) {
+      console.error('[gear-moderation-daily-digest] audit log insert also failed', e);
+    }
     return new Response(JSON.stringify({ error: 'resend_failed', status: resendRes.status, detail: errText.slice(0, 500) }), {
       status: 502, headers: { ...CORS, 'Content-Type': 'application/json' },
     });
