@@ -80,6 +80,7 @@ export default function GearMessageDetailScreen({ navigation, route }: Props) {
     const optimistic: GearMessageRow = {
       id: tempId, thread_id: threadId, sender_id: user.id,
       body, is_read: false, sent_at: new Date().toISOString(),
+      message_type: 'user',
     };
     setMessages((prev) => [...prev, optimistic]);
     setDraft('');
@@ -148,6 +149,20 @@ export default function GearMessageDetailScreen({ navigation, route }: Props) {
           keyExtractor={(m) => m.id}
           contentContainerStyle={styles.listContent}
           renderItem={({ item }) => {
+            // System messages (auto-withdraw notices, moderator takedown
+            // templates per migration 063) render as a centered cream card
+            // with a rust eyebrow — distinct from user bubbles so the seller
+            // can't confuse them with messages from the buyer.
+            if (item.message_type === 'system') {
+              return (
+                <View style={styles.systemRow}>
+                  <View style={styles.systemCard}>
+                    <Text style={styles.systemEyebrow}>{t('gearChat.systemEyebrow')}</Text>
+                    <Text style={styles.systemBody}>{item.body}</Text>
+                  </View>
+                </View>
+              );
+            }
             const mine = item.sender_id === user?.id;
             return (
               <View style={[styles.bubbleRow, mine ? styles.bubbleRowMine : styles.bubbleRowTheirs]}>
@@ -223,6 +238,28 @@ const styles = StyleSheet.create({
   bubbleRowMine: { justifyContent: 'flex-end' },
   bubbleRowTheirs: { justifyContent: 'flex-start' },
   bubble: { maxWidth: '78%', paddingHorizontal: 14, paddingVertical: 10, borderRadius: 18 },
+  // System messages — center-aligned, cream card with rust eyebrow. Distinct
+  // enough from user bubbles that the seller never mistakes a takedown
+  // notice for a message from the buyer.
+  systemRow: { alignItems: 'center', marginVertical: 4 },
+  systemCard: {
+    maxWidth: '92%',
+    backgroundColor: '#FBF6E8',
+    borderRadius: 14,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(192,120,64,0.25)',
+  },
+  systemEyebrow: {
+    fontSize: 10,
+    fontFamily: FONTS.bodySemiBold,
+    letterSpacing: 1.4,
+    textTransform: 'uppercase',
+    color: '#9F5F30',
+    marginBottom: 4,
+  },
+  systemBody: { fontSize: 14, color: '#3D1F0E', lineHeight: 20, fontFamily: FONTS.body },
   // v9 walnut bubble (kit canon, WCAG 7.4:1 with paper text).
   bubbleMine: { backgroundColor: '#7A4A28', borderBottomRightRadius: 4 },
   bubbleTheirs: { backgroundColor: COLORS.paper, borderBottomLeftRadius: 4 },

@@ -1610,7 +1610,8 @@
     "emptyHint": "Keep messages on villie until you arrange pickup. If someone tries to move you off-platform, tap \u201cReport listing.\u201d",
     "inputPlaceholder": "Type a message\u2026",
     "errSendTitle": "Send failed",
-    "errSendBody": "Could not send message."
+    "errSendBody": "Could not send message.",
+    "systemEyebrow": "Villie \u00b7 Moderator"
   },
   "gearInbox": {
     "back": "\u2190 Back",

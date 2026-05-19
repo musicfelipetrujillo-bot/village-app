@@ -448,10 +448,17 @@ export interface GearThreadRow {
 export interface GearMessageRow {
   id: string;
   thread_id: string;
-  sender_id: string;
+  // Nullable when message_type='system' (auto-withdraw or moderator-issued
+  // takedown templates per migration 063 + V4_GEAR_TAKEDOWN_SOP §7).
+  sender_id: string | null;
   body: string;
   is_read: boolean;
   sent_at: string;
+  // 'user' for buyer/seller messages, 'system' for Villie-issued notices
+  // (auto-withdraw confirmation, moderator takedown templates A/B/C).
+  // Defaults to 'user' via DB default for backward compat with rows
+  // inserted before migration 063 landed.
+  message_type: 'user' | 'system';
 }
 
 export type GearReportReason =

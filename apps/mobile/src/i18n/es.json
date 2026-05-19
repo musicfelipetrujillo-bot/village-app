@@ -1610,7 +1610,8 @@
     "emptyHint": "Mantén los mensajes dentro de villie hasta acordar la entrega. Si alguien intenta llevarte fuera de la plataforma, toca “Reportar publicación.”",
     "inputPlaceholder": "Escribe un mensaje…",
     "errSendTitle": "No se pudo enviar",
-    "errSendBody": "No se pudo enviar el mensaje."
+    "errSendBody": "No se pudo enviar el mensaje.",
+    "systemEyebrow": "Villie · Moderador"
   },
   "gearInbox": {
     "back": "← Atrás",

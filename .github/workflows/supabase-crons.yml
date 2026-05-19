@@ -1,9 +1,10 @@
 name: Supabase scheduled crons
 
 # Replaces the pg_cron HTTP-callout schedules from migrations 014/023/025/039
-# (left in place as no-ops on hosted Free Tier — they fail silently because
+# (and now 063 for V4 Gear moderation SLA — see SOP §10) — left in place as
+# no-ops on hosted Free Tier — they fail silently because
 # `app.supabase_url` and `app.service_role_key` GUCs require superuser-only
-# `ALTER DATABASE` which Supabase Free Tier locks). This workflow is the
+# `ALTER DATABASE` which Supabase Free Tier locks. This workflow is the
 # operational executor of those schedules until we either upgrade to Pro+
 # (where Supabase support unlocks the GUCs) or refactor to Supabase Vault.
 #
@@ -31,6 +32,8 @@ on:
     - cron: '0 9 * * *'      # events-ingest-ics-daily  (05:00 ET) — pull partner ICS feeds
     - cron: '30 9 * * *'     # ai-event-screen-sweep    (05:30 ET) — Haiku-screen newly-ingested events
     - cron: '45 9 * * *'     # events-geocode-sweep     (05:45 ET) — geocode any text-only LOCATION rows
+    - cron: '*/5 * * * *'    # gear-moderation-pager    — every 5 min; pushes P0 reports past 4hr SLA to founders (migration 063, SOP §10 item 1)
+    - cron: '*/15 * * * *'   # gear-moderation-auto-withdraw — every 15 min; auto-withdraws listings tied to P0 reports past 4hr SLA via SQL RPC (migration 063, SOP §10 item 2). Body field tells the edge fn to invoke the RPC.
   workflow_dispatch:
     inputs:
       function:
@@ -47,6 +50,8 @@ on:
           - events-ingest-ics
           - ai-event-screen
           - events-geocode
+          - gear-moderation-pager
+          - gear-moderation-auto-withdraw
       body:
         description: 'JSON body to send (defaults to {} or per-function default)'
         required: false
@@ -83,6 +88,8 @@ jobs:
               '0 9 * * *')     FN='events-ingest-ics';        BODY='{"mode":"all"}' ;;
               '30 9 * * *')    FN='ai-event-screen';          BODY='{"mode":"all","limit":50}' ;;
               '45 9 * * *')    FN='events-geocode';           BODY='{"mode":"all","limit":50}' ;;
+              '*/5 * * * *')   FN='gear-moderation-pager';    BODY='{}' ;;
+              '*/15 * * * *')  FN='gear-moderation-auto-withdraw'; BODY='{}' ;;
               *)
                 echo "::error::Unknown schedule: ${SCHEDULE}"
                 exit 1
