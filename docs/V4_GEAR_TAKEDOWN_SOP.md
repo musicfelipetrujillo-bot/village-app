@@ -52,14 +52,44 @@ Reporting clocks start at `gear_listing_reports.created_at`.
 
 ## 3 · Roles
 
-| Role | Responsibility |
-|---|---|
-| **Primary moderator** | _TBD — name + email + phone_. Reviews the queue twice daily, owns P0 paging. |
-| **Backup moderator** | _TBD — name + email + phone_. Covers PTO, weekends, and overflow. Single backup is mandatory; do not launch with one human only. |
-| **Escalation contact** | _TBD — counsel + Felipe_. Receives anything that triggers legal exposure or threatens to. |
+**Current state (transitional, pre-ops-hire)** — both moderator slots
+sit with the founder + co-founder. Per the recommendation in the
+attorney handoff doc, personal contact details are kept out of this
+file; they live in the private contacts vault (1Password / Notion).
 
-**Hard rule**: the role pairs `primary + backup` must cover **24/7** for P0
-severities. P1 + P2 can be business-hours queue work.
+| Role | Owner | Responsibility |
+|---|---|---|
+| **Primary moderator** | Founder (Felipe) — alias `moderator@villieapp.com` (route to founder inbox + push) | Reviews the queue twice daily, owns P0 paging. |
+| **Backup moderator** | Co-founder (founder's partner) — alias `moderator-backup@villieapp.com` (route to partner inbox + push) | Covers PTO, weekends, and overflow. |
+| **Escalation contact** | Counsel (TBD — engagement pending per attorney handoff doc) + founder | Receives anything that triggers legal exposure or threatens to. Until counsel is engaged, the founder owns escalation by default. |
+
+**Transitional constraints worth naming explicitly:**
+
+- **Single-household coverage**: primary + backup share a residence and
+  often a schedule. For P0 at 03:00 ET this is fine (one phone wakes
+  both). For a 2-week joint PTO, coverage breaks. Either don't take
+  joint PTO during the launch window, or hand-off the on-call to a
+  third human (counsel, advisor, contractor) for the gap.
+- **Bus factor of one effective person**: if both founders are
+  unreachable, the SLA fails. This is acceptable risk pre-launch but
+  is **not** acceptable at meaningful user volume. Trigger to revisit:
+  >100 active gear listings OR first paying hospital partner.
+- **No legal counsel in escalation chain yet**: until counsel is
+  engaged (open item in `V4_GEAR_ATTORNEY_HANDOFF.md`), genuine legal
+  exposure events have nowhere to escalate to. P0 events with legal
+  surface area (e.g., a credible CSAM report, a threat-of-violence
+  message) should be reported directly to law enforcement via 911 /
+  the local non-emergency line, with the founder documenting
+  the timeline in `admin_audit_log` for the eventual counsel review.
+
+**Hard rule**: the role pair `primary + backup` must cover **24/7**
+for P0 severities. P1 + P2 can be business-hours queue work.
+
+**Pre-launch deliverables before this section is enforceable:**
+
+- [ ] `moderator@villieapp.com` and `moderator-backup@villieapp.com` email aliases configured (forwarding to founder + partner respectively).
+- [ ] OneSignal push channel verified on both founders' personal devices.
+- [ ] 1Password / Notion entry created with phone numbers + real email behind the aliases (label: "Villie · Moderator on-call").
 
 ---
 
