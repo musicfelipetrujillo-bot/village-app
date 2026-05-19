@@ -1,55 +1,192 @@
-// Design tokens — matches village-moodboard v3 (Diner/Yolk/Blush/Lime/Ceramic).
-// Legacy keys (rust/cream/gold/olive) are aliased to the new palette so the
-// 100+ existing screens render with the new tokens automatically; new screens
-// should reach for the editorial keys (diner/yolk/blush/lime/ceramic) directly.
+// Design tokens.
+//
+// ─── Brand Kit v2 · villie · May 2026 (CANONICAL going forward) ────────────
+// Source: `/Users/gp/Downloads/the-village-ig/project/The Village - Brand Kit.html`
+// Memory: `memory/project_brand_kit_v2.md`
+//
+// v2 keys are added to COLORS / FONTS below alongside the existing v1
+// tokens. New screens should use the v2 names (cinnamon, cocoa, caramel,
+// butter, marigold, plus_jakarta_*, caprasimo_*, mono_*).
+//
+// v1 tokens (Brand Kit v5 — Pink / Coco / Cream) remain in place for the
+// 60+ existing screens to keep compiling during the per-screen sweep.
+// They will be removed once every screen has migrated to v2 naming.
+//
+// ─── Brand Kit v5 (v1) · legacy, still in use ──────────────────────────────
+// Primary (legacy canonical):
+//   pink   #F4CBC2 — soft warm blush. Hero washes, accent surfaces, pill
+//                     bgs, decorative dot, "i" accent on wordmark.
+//   coco   #AD795B — warm caramel brown. Primary CTA, eyebrow accents,
+//                     mid-priority text, hairline rules, sienna replacement.
+//   cream  #F5EFE6 — page background. Slightly warmer than the prior
+//                     ceramic; reads as off-white paper, not yellow.
+//
+// Secondary support:
+//   bark   #3D1F0D — primary text (deep warm brown, not black)
+//   sage   #8B9A6B — calm/success accent (sits opposite the pinks)
+//   mauve  #B8909A — soft mid-tone for tags + secondary labels
+//   sand   #D4B896 — warm neutral for inner card surfaces + dividers
+//   paper  #FDFAF5 — lifted surface tone for cards
 export const COLORS = {
-  // Editorial palette (canonical)
-  // Tan-burnt terracotta (was #E68420 dusty terracotta) — small shift
-  // 2026-04-29: hue rotated ~5° toward brown + saturation dropped ~5%
-  // so the orange reads as earthier / less neon. Still warm enough to
-  // function as the primary CTA accent without competing with
-  // photography-led editorial surfaces.
-  diner:        '#D87530',  // primary CTA, active tab, hero cards
-  dinerDark:    '#A85E1B',
-  dinerLight:   '#E1A05B',
-  yolk:         '#DEAB44',  // secondary accent, completion checks
-  yolkDark:     '#B5862C',
-  yolkLight:    '#EDC579',
-  blush:        '#F4C5CC',  // tertiary, soft tile bgs
-  blushDeep:    '#E89AA5',
-  lime:         '#B8C25C',  // tertiary, calm states
-  limeDeep:     '#8E9842',
-  ceramic:      '#F4ECDF',  // background
-  ceramicDeep:  '#E8DCC8',  // card border, subtle shadow base
-  brownDeep:    '#2C1A0E',
-  brownMid:     '#4A2E1A',
-  textDark:     '#1C1008',
-  textMid:      '#5A3E28',
-  textLight:    '#9A8070',
-  white:        '#FFFFFF',
-  paper:        '#FDFAF5',  // raised surfaces
+  // ═══════════════════════════════════════════════════════════════════════
+  // Brand Kit v2 · villie (May 2026) — CANONICAL going forward.
+  // Use these names in new code. v1 keys below kept until per-screen sweep.
+  // ═══════════════════════════════════════════════════════════════════════
 
-  // Legacy aliases (kept until every screen migrates)
-  cream:        '#F4ECDF',  // was #F5F0E8 — now ceramic
-  rust:         '#D87530',  // was #E68420 dusty terracotta → tan-burnt (2026-04-29)
-  rustDark:     '#A85E1B',
-  rustLight:    '#E1A05B',
-  olive:        '#8E9842',  // was #5C6B3A — now limeDeep
-  oliveLight:   '#B8C25C',
-  gold:         '#DEAB44',  // was #C4A35A — now yolk (tan-shift 2026-04-29)
-  cardBg:       '#FFFFFF',
+  // ─── Surfaces ───
+  v2_cream:       '#F4ECD8',  // page — almost every layout sits on this
+  v2_paper:       '#FDFBF6',  // alt page surface
+  v2_parchment:   '#EAE0C8',  // card bg, "Week 30" surfaces
+  v2_card:        '#FEFAF6',  // pure-white substitute — use instead of #FFFFFF
+  v2_butter:      '#FAD080',  // sunshine honey — card gradients, hero halos
+  v2_marigold:    '#F2C130',  // IG hero pop ("honey" energy)
+
+  // ─── Action (one cinnamon per screen) ───
+  v2_cinnamon:    '#C07840',  // wordmark, CTA, link, active tab — the one spark
+  v2_cinnamon_dk: '#9F5F30',  // pressed CTA
+
+  // ─── Support row ───
+  v2_caramel:     '#D4A880',  // italic-name accent, neutral chips, "second spark" fallback
+  v2_blush:       '#F5BEB6',  // empathy moments, "we hear you" cards
+  v2_salmon:      '#EDA8A0',  // Feel chapter pill, soft action chips
+
+  // ─── Inks (warm-walnut family) ───
+  v2_cocoa:       '#3D1F0E',  // UI headlines, "Good morning" — use instead of #000000
+  v2_walnut:      '#7A4A28',  // IG body, body-text on cream
+  v2_amber:       '#A77349',  // eyebrows, captions, secondary copy
+
+  // ─── Reserve (use sparingly) ───
+  v2_sage:        '#D8CEB0',  // cool exhale, "Find moms"
+  v2_moss:        '#606E46',  // Heal chapter pill ONLY
+  v2_persimmon:   '#E0543B',  // IG ONLY — NEVER in app (use cinnamon for app actions)
+
+  // ─── Manual chapter pills · "fresh" preset (in-app default) ───
+  v2_pill_feel:   '#EDA8A0',  // salmon
+  v2_pill_heal:   '#606E46',  // moss
+  v2_pill_feed:   '#FAD080',  // butter
+  v2_pill_sleep:  '#D4A880',  // caramel
+  v2_pill_tips:   '#C07840',  // cinnamon
+
+  // ─── Manual chapter sub-palette · "original" preset (alternate, not default) ───
+  v2_feel_orig:   '#D09789',
+  v2_heal_orig:   '#6E7E51',
+  v2_feed_orig:   '#C7B39B',
+  v2_sleep_orig:  '#A1775F',
+  v2_tips_orig:   '#986A50',
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // Brand Kit v5 (v1) — legacy, still consumed by every screen.
+  // ═══════════════════════════════════════════════════════════════════════
+
+  // Brand Kit v5 — Primary triad (canonical).
+  // *** 2026-05-15 Phase 3 leverage move: 4 high-traffic v1 tokens routed
+  // to v2 brand kit hexes so the entire app's pages/CTAs/headlines pick up
+  // the v2 palette without touching component code. Detailed map:
+  //   cream  #F5EFE6 → #F4ECD8  (v2 page surface, slightly warmer/yellower)
+  //   coco   #AD795B → #C07840  (v2 cinnamon — every primary CTA reads v2)
+  //   rust   #AD795B → #C07840  (alias of coco, same swap)
+  //   bark   #3D1F0D → #3D1F0E  (v2 cocoa, essentially identical)
+  // Untouched: sage, mauve, sand, pink, paper — v1 hex stays because v2
+  // counterparts serve different roles (sage v2 is much lighter; pink v2 is
+  // a different blush; no v2 mauve/sand equivalent).
+  pink:         '#F4CBC2',  // hero accent, decorative wash, pill bg (v1)
+  pinkDeep:     '#E5A698',  // pressed/active pink (e.g. selected pill)
+  pinkSoft:     '#FAE2DB',  // softer wash for surface tints
+  coco:         '#C07840',  // ▲ ROUTED → v2 cinnamon (was #AD795B)
+  cocoDeep:     '#9F5F30',  // ▲ ROUTED → v2 cinnamon dark (was #8B5E40)
+  cocoSoft:     '#D4A880',  // ▲ ROUTED → v2 caramel (was #C99B7C)
+  cream:        '#F4ECD8',  // ▲ ROUTED → v2 cream (was #F5EFE6)
+
+  // Secondary support
+  bark:         '#3D1F0E',  // ▲ ROUTED → v2 cocoa (was #3D1F0D, ~identical)
+  barkSoft:     '#7A4A28',  // ▲ ROUTED → v2 walnut (was #5A3520)
+  sienna:       '#C07840',  // ▲ ROUTED → v2 cinnamon (alias of coco)
+  siennaDeep:   '#9F5F30',  // ▲ ROUTED → v2 cinnamon dark
+  sage:         '#8B9A6B',  // calm / success / nature (v1 — v2 sage is a different role)
+  sageDeep:     '#6B7A4B',
+  sageSoft:     '#EEF2E6',  // light sage wash — specialty tiles, success tints
+  mauve:        '#B8909A',  // tags, secondary labels — @deprecated use textLight
+  mauveDeep:    '#9A707A',  // @deprecated use textLight
+  sand:         '#D4B896',  // warm neutral surface
+  sandSoft:     '#EAE0C8',  // ▲ ROUTED → v2 parchment (was #E5D2B8)
+  paper:        '#FEFAF6',  // ▲ ROUTED → v2 card (was #FDFAF5, essentially same)
+  // Functional status signals (not brand — used only for status badges)
+  statusAlert:   '#D87530', // orange — active/expiring/time-sensitive states
+  statusSuccess: '#2E7D32', // green  — verified/fulfilled/complete states
+  blush:        '#F4CBC2',  // = pink (legacy callers)
+  blushDeep:    '#E5A698',  // = pinkDeep
+  ceramic:      '#F4ECD8',  // ▲ ROUTED → v2 cream (was #F5EFE6)
+
+  // ─── Legacy aliases — @deprecated ───────────────────────────────────────
+  // These resolve to canonical Brand Kit v5 tokens. New code should use
+  // the canonical name directly. Aliases will be removed in a future sweep.
+  rust:         '#C07840',  // ▲ ROUTED → v2 cinnamon (was #AD795B)
+  rustDark:     '#9F5F30',  // ▲ ROUTED → v2 cinnamon dark
+  rustLight:    '#D4A880',  // ▲ ROUTED → v2 caramel
+  diner:        '#C07840',  // ▲ ROUTED → v2 cinnamon
+  dinerDark:    '#9F5F30',  // ▲ ROUTED → v2 cinnamon dark
+  dinerLight:   '#D4A880',  // ▲ ROUTED → v2 caramel
+  brownDeep:    '#3D1F0E',  // ▲ ROUTED → v2 cocoa
+  brownMid:     '#7A4A28',  // ▲ ROUTED → v2 walnut
+  textDark:     '#3D1F0E',  // ▲ ROUTED → v2 cocoa
+  textMid:      '#7A4A28',  // ▲ ROUTED → v2 walnut
+  textLight:    '#A77349',  // ▲ ROUTED → v2 amber (was #9A8070)
+  white:        '#FEFAF6',  // ▲ ROUTED → v2 card (no pure white per brand)
+  cardBg:       '#FEFAF6',  // ▲ ROUTED → v2 card
+  ceramicDeep:  '#EAE0C8',  // ▲ ROUTED → v2 parchment
+  creamDeep:    '#EAE0C8',  // ▲ ROUTED → v2 parchment
+  // ceramic: defined earlier in this block as legacy alias of cream — removed
+  // duplicate here (TS1117 fix). The earlier declaration is the canonical one.
+  olive:        '#8B9A6B',  // @deprecated → sage (v1 sage stays, v2 sage is different role)
+  oliveLight:   '#A8B58A',  // @deprecated → no equivalent; use sage
+  lime:         '#A8B58A',  // @deprecated → no equivalent; use sage
+  limeDeep:     '#6B7A4B',  // @deprecated → sageDeep
+  yolk:         '#D4B896',  // @deprecated → sand
+  yolkDark:     '#B59B7A',  // @deprecated → no equivalent; use sand
+  yolkLight:    '#E5D2B8',  // @deprecated → sandSoft
+  gold:         '#D4B896',  // @deprecated → sand
 } as const;
 
 export const FONTS = {
-  // Playfair Display — editorial serif (headlines, hero, italic accents)
+  // ═══════════════════════════════════════════════════════════════════════
+  // v1 — legacy font names. *** 2026-05-15 Phase 3 leverage move:
+  // body/bodyMedium/bodySemiBold/bodyBold rerouted from Inter to Plus
+  // Jakarta Sans (the v2 body family) so every screen using these names
+  // auto-switches to v2 typography. Inter is no longer loaded in App.tsx.
+  // headerItalic rerouted from Playfair 400 italic to Playfair 600 italic
+  // (the v2 "flourish" weight). header (Playfair 400 roman) stays — it's
+  // rarely used; new code should reach for v2_display (Playfair 700) instead.
+  // ═══════════════════════════════════════════════════════════════════════
   header:       'PlayfairDisplay_400Regular',
   headerBold:   'PlayfairDisplay_700Bold',
-  headerItalic: 'PlayfairDisplay_400Regular_Italic',
-  // Inter — sans body (labels, nav, body, metadata, buttons)
-  body:         'Inter_400Regular',
-  bodyMedium:   'Inter_500Medium',
-  bodySemiBold: 'Inter_600SemiBold',
-  bodyBold:     'Inter_700Bold',
+  headerItalic: 'PlayfairDisplay_600SemiBold_Italic',  // ▲ ROUTED → v2 flourish weight
+  // ▼ Body family rerouted to Plus Jakarta Sans (v2 canonical body)
+  body:         'PlusJakartaSans_400Regular',   // ▲ was Inter_400Regular
+  bodyMedium:   'PlusJakartaSans_500Medium',    // ▲ was Inter_500Medium
+  bodySemiBold: 'PlusJakartaSans_600SemiBold',  // ▲ was Inter_600SemiBold
+  bodyBold:     'PlusJakartaSans_700Bold',      // ▲ was Inter_700Bold
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // v2 brand kit (villie · May 2026) — CANONICAL going forward.
+  // Mapping cheat sheet from project_brand_kit_v2.md:
+  //   v2_display          → greetings, headlines, card titles (default Playfair)
+  //   v2_display_italic   → the per-screen italic flourish
+  //   v2_display_big      → big numbers (week count, stats)
+  //   v2_wordmark         → Caprasimo, used inline for "villie" in body copy ONLY
+  //   v2_body / _label /  → Plus Jakarta Sans, replaces Inter for v2 surfaces
+  //   _link / _bold
+  //   v2_mono             → JetBrains Mono — eyebrows, dates, metadata, tracking 0.26em
+  // ═══════════════════════════════════════════════════════════════════════
+  v2_display:        'PlayfairDisplay_700Bold',           // roman 700 default
+  v2_display_italic: 'PlayfairDisplay_600SemiBold_Italic',// italic 600 flourish
+  v2_display_big:    'PlayfairDisplay_800ExtraBold',      // big numbers
+  v2_wordmark:       'Caprasimo_400Regular',              // inline wordmark fallback only
+  v2_body:           'PlusJakartaSans_400Regular',        // body text
+  v2_label:          'PlusJakartaSans_500Medium',         // form labels
+  v2_link:           'PlusJakartaSans_600SemiBold',       // buttons + links
+  v2_bold:           'PlusJakartaSans_700Bold',           // emphasis
+  v2_mono:           'JetBrainsMono_500Medium',           // eyebrows + metadata
+  v2_mono_light:     'JetBrainsMono_400Regular',          // long mono blocks (rare)
 } as const;
 
 export const NAV_HEIGHT = 72;

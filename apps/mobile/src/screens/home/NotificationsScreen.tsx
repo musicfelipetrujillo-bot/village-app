@@ -15,16 +15,17 @@ import { COLORS, FONTS } from '@utils/constants';
 import { useT } from '@/i18n';
 import { homeApi, type NotificationFeedItem } from '@api/home';
 import { YolkCircle, LeafSprig } from '@components/shared/DecorativeMarks';
+import { V9PageBackdrop } from '@components/shared/V9PageBackdrop';
 
 // Per-type emoji + color tint — keeps the inbox legible at a glance and
 // matches the editorial palette used elsewhere on Home.
 const TYPE_VISUAL: Record<NotificationFeedItem['type'], { emoji: string; tint: string }> = {
-  milestone_alert: { emoji: '🌱', tint: COLORS.lime },
-  event_reminder:  { emoji: '📅', tint: COLORS.dinerLight },
-  deal_expiry:     { emoji: '🎁', tint: COLORS.yolkLight },
-  gear_message:    { emoji: '📦', tint: COLORS.blush },
-  daily_checkin:   { emoji: '💬', tint: COLORS.ceramicDeep },
-  new_match:       { emoji: '✨', tint: COLORS.yolkLight },
+  milestone_alert: { emoji: '🌱', tint: COLORS.sage },
+  event_reminder:  { emoji: '📅', tint: COLORS.cocoSoft },
+  deal_expiry:     { emoji: '🎁', tint: COLORS.sandSoft },
+  gear_message:    { emoji: '📦', tint: COLORS.pink },
+  daily_checkin:   { emoji: '💬', tint: COLORS.sandSoft },
+  new_match:       { emoji: '✨', tint: COLORS.sandSoft },
 };
 
 function formatRelative(iso: string): string {
@@ -93,12 +94,13 @@ export default function NotificationsScreen() {
 
   return (
     <View style={styles.container}>
+      <V9PageBackdrop />
       <View style={styles.header}>
         {/* Editorial corner accents — yolk wash behind the back chevron + a
             leaf sprig top-right. Two marks only so the title block reads
             cleanly. Matches the corner-accent pattern on Home / Manual. */}
-        <YolkCircle size={52} top={50} left={-12} tint={COLORS.yolkLight} opacity={0.45} />
-        <LeafSprig size={44} top={56} right={8} tint={COLORS.olive} />
+        <YolkCircle size={52} top={50} left={-12} tint={COLORS.sandSoft} opacity={0.45} />
+        <LeafSprig size={44} top={56} right={8} tint={COLORS.sage} />
         <TouchableOpacity
           style={styles.backBtn}
           onPress={() => navigation.goBack()}
@@ -121,7 +123,7 @@ export default function NotificationsScreen() {
 
       {loading ? (
         <View style={styles.loadingWrap}>
-          <ActivityIndicator color={COLORS.diner} />
+          <ActivityIndicator color="#C07840" />
         </View>
       ) : error ? (
         <View style={styles.emptyWrap}>
@@ -144,10 +146,10 @@ export default function NotificationsScreen() {
           keyExtractor={(n) => n.id}
           contentContainerStyle={styles.listContent}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.diner} />
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.coco} />
           }
           renderItem={({ item }) => {
-            const visual = TYPE_VISUAL[item.type] ?? { emoji: '•', tint: COLORS.ceramicDeep };
+            const visual = TYPE_VISUAL[item.type] ?? { emoji: '•', tint: COLORS.sandSoft };
             return (
               <TouchableOpacity
                 style={[styles.row, !item.is_read && styles.rowUnread]}
@@ -178,30 +180,30 @@ export default function NotificationsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.ceramic },
+  container: { flex: 1, backgroundColor: 'transparent' },
 
   header: {
     paddingTop: 64, paddingBottom: 18, paddingHorizontal: 16,
     flexDirection: 'row', alignItems: 'flex-start',
-    backgroundColor: COLORS.ceramic,
-    borderBottomWidth: 1, borderBottomColor: COLORS.ceramicDeep,
+    backgroundColor: COLORS.cream,
+    borderBottomWidth: 1, borderBottomColor: COLORS.sandSoft,
     overflow: 'hidden',
   },
   backBtn: {
     width: 40, height: 40, borderRadius: 20,
     alignItems: 'center', justifyContent: 'center',
   },
-  backText: { fontSize: 28, color: COLORS.brownDeep, marginTop: -4 },
+  backText: { fontSize: 28, color: COLORS.bark, marginTop: -4 },
   headerCenter: { flex: 1, alignItems: 'center' },
   eyebrow: {
     fontSize: 10, fontFamily: FONTS.bodySemiBold, letterSpacing: 1.6,
-    color: COLORS.diner, textTransform: 'uppercase', marginBottom: 4,
+    color: '#A77349', textTransform: 'uppercase', marginBottom: 4,
   },
   title: {
-    fontSize: 24, fontFamily: FONTS.headerBold, color: COLORS.brownDeep,
+    fontSize: 24, fontFamily: FONTS.headerBold, color: COLORS.bark,
   },
   unreadHint: {
-    marginTop: 4, fontSize: 11, fontFamily: FONTS.body, color: COLORS.textMid,
+    marginTop: 4, fontSize: 11, fontFamily: FONTS.body, color: COLORS.barkSoft,
     fontStyle: 'italic',
   },
 
@@ -213,27 +215,30 @@ const styles = StyleSheet.create({
   },
   emptyEmoji: { fontSize: 48, marginBottom: 12 },
   emptyTitle: {
-    fontSize: 20, fontFamily: FONTS.headerBold, color: COLORS.brownDeep,
+    fontSize: 20, fontFamily: FONTS.headerBold, color: COLORS.bark,
     marginBottom: 8, textAlign: 'center',
   },
   emptyBody: {
-    fontSize: 14, fontFamily: FONTS.body, color: COLORS.textMid,
+    fontSize: 14, fontFamily: FONTS.body, color: COLORS.barkSoft,
     lineHeight: 21, textAlign: 'center',
   },
+  // v9 canonical CTA — cinnamon + action-deep shadow.
   retryPill: {
-    marginTop: 18, backgroundColor: COLORS.diner,
+    marginTop: 18, backgroundColor: '#C07840',
     paddingHorizontal: 24, paddingVertical: 12, borderRadius: 999,
+    shadowColor: '#945A41', shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.24, shadowRadius: 10, elevation: 3,
   },
   retryPillText: {
-    color: COLORS.paper, fontFamily: FONTS.bodySemiBold, fontSize: 14,
+    color: '#FDFBF6', fontFamily: FONTS.bodySemiBold, fontSize: 14, letterSpacing: 0.3,
   },
 
   listContent: { paddingVertical: 8, paddingBottom: 60 },
   row: {
     flexDirection: 'row', alignItems: 'flex-start',
     paddingHorizontal: 18, paddingVertical: 14,
-    borderBottomWidth: 1, borderBottomColor: COLORS.ceramicDeep,
-    backgroundColor: COLORS.ceramic,
+    borderBottomWidth: 1, borderBottomColor: COLORS.sandSoft,
+    backgroundColor: COLORS.cream,
   },
   // Subtle paper background for unread rows so they stand out without
   // shouting — the unreadDot is the primary affordance.
@@ -251,19 +256,19 @@ const styles = StyleSheet.create({
   },
   rowTitle: {
     flex: 1, fontSize: 14, fontFamily: FONTS.bodySemiBold,
-    color: COLORS.brownDeep,
+    color: COLORS.bark,
   },
   rowAge: {
     fontSize: 11, fontFamily: FONTS.body, color: COLORS.textLight,
     marginLeft: 8,
   },
   rowText: {
-    fontSize: 13, fontFamily: FONTS.body, color: COLORS.textMid,
+    fontSize: 13, fontFamily: FONTS.body, color: COLORS.barkSoft,
     lineHeight: 18,
   },
   unreadDot: {
     width: 8, height: 8, borderRadius: 4,
-    backgroundColor: COLORS.diner,
+    backgroundColor: '#C07840',                                        // v9 unread = cinnamon (action affordance)
     marginLeft: 10, marginTop: 16,
   },
 });

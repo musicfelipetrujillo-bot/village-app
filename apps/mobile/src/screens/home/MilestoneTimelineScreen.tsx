@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import { COLORS, FONTS } from '@utils/constants';
+import { V9PageBackdrop } from '@components/shared/V9PageBackdrop';
 import { homeApi, type Milestone } from '@api/home';
 import { useT } from '@/i18n';
 
@@ -68,6 +69,7 @@ export default function MilestoneTimelineScreen() {
 
   return (
     <View style={styles.container}>
+      <V9PageBackdrop />
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} accessibilityRole="button" accessibilityLabel={t('milestone.back')}>
           <Text style={styles.back}>{t('milestone.backLabel')}</Text>
@@ -91,7 +93,7 @@ export default function MilestoneTimelineScreen() {
 
       <ScrollView contentContainerStyle={styles.content}>
         {loading ? (
-          <ActivityIndicator color={COLORS.rust} style={{ marginTop: 40 }} />
+          <ActivityIndicator color="#C07840" style={{ marginTop: 40 }} />
         ) : hero ? (
           <>
             <View style={styles.hero}>
@@ -121,18 +123,18 @@ export default function MilestoneTimelineScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.cream },
+  container: { flex: 1, backgroundColor: 'transparent' },
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingTop: 56, paddingBottom: 12, paddingHorizontal: 16,
-    backgroundColor: '#FFF',
+    backgroundColor: COLORS.paper,
     borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.06)',
   },
-  back: { fontSize: 15, color: COLORS.rust, fontFamily: FONTS.bodySemiBold },
-  headerTitle: { fontSize: 16, fontFamily: FONTS.bodySemiBold, color: COLORS.brownDeep },
+  back: { fontSize: 15, color: '#C07840', fontFamily: FONTS.bodySemiBold },
+  headerTitle: { fontSize: 16, fontFamily: FONTS.bodySemiBold, color: COLORS.bark },
 
   weekRail: {
-    backgroundColor: '#FFF',
+    backgroundColor: COLORS.paper,
     borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.06)',
     paddingVertical: 10,
   },
@@ -143,19 +145,20 @@ const styles = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
     borderWidth: 2, borderColor: 'transparent',
   },
-  weekBtnActive: { backgroundColor: COLORS.rust, borderColor: COLORS.rust },
-  weekBtnText: { fontSize: 13, fontFamily: FONTS.bodySemiBold, color: COLORS.textMid },
-  weekBtnTextActive: { color: '#FFF' },
+  // v9 active state — action-deep
+  weekBtnActive: { backgroundColor: '#C07840', borderColor: '#945A41' },
+  weekBtnText: { fontSize: 13, fontFamily: FONTS.bodySemiBold, color: COLORS.barkSoft },
+  weekBtnTextActive: { color: '#FDFBF6' },
 
   content: { paddingHorizontal: 20, paddingTop: 16, paddingBottom: 40 },
 
   // Mockup-aligned rust hero with two-column text + photo lane.
   hero: {
-    backgroundColor: COLORS.rust,
+    backgroundColor: COLORS.coco,
     borderRadius: 24, padding: 22,
     flexDirection: 'row',
     minHeight: 160,
-    shadowColor: '#D87530',
+    shadowColor: COLORS.coco,
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.18, shadowRadius: 12, elevation: 4,
   },
@@ -177,7 +180,7 @@ const styles = StyleSheet.create({
   heroBody: { fontSize: 14, color: '#F8E8DD', lineHeight: 20, fontFamily: FONTS.body },
 
   detailBtn: { alignSelf: 'center', marginTop: 16, paddingVertical: 10 },
-  detailBtnText: { fontSize: 14, fontFamily: FONTS.bodySemiBold, color: COLORS.rust },
+  detailBtnText: { fontSize: 14, fontFamily: FONTS.bodySemiBold, color: COLORS.coco },
 
   emptyText: { textAlign: 'center', color: COLORS.textLight, marginTop: 40, fontFamily: FONTS.body },
 });

@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { COLORS, FONTS } from '@utils/constants';
+import { V9PageBackdrop } from '@components/shared/V9PageBackdrop';
 import { homeApi, type DailyCheckin } from '@api/home';
 import { useT } from '@/i18n';
 import type { HomeStackParamList } from '@/navigation/HomeNavigator';
@@ -69,6 +70,7 @@ export default function CheckinResponseScreen({ navigation }: Props) {
 
   return (
     <View style={styles.container}>
+      <V9PageBackdrop />
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => navigation.popToTop()}
@@ -82,7 +84,7 @@ export default function CheckinResponseScreen({ navigation }: Props) {
       </View>
 
       {loading ? (
-        <View style={styles.center}><ActivityIndicator color={COLORS.rust} /></View>
+        <View style={styles.center}><ActivityIndicator color="#C07840" /></View>
       ) : !row ? (
         <View style={styles.center}>
           <Text style={styles.errorText}>{t('checkin.responseErrorLoad')}</Text>
@@ -160,52 +162,60 @@ export default function CheckinResponseScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.cream },
+  container: { flex: 1, backgroundColor: 'transparent' },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 20 },
-  errorText: { fontSize: 14, color: COLORS.textMid },
+  errorText: { fontSize: 14, color: COLORS.barkSoft },
 
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingTop: 56, paddingBottom: 12, paddingHorizontal: 16,
-    backgroundColor: '#FFF',
+    backgroundColor: COLORS.paper,
     borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.06)',
   },
-  back: { fontSize: 15, color: COLORS.rust, fontFamily: FONTS.bodySemiBold },
-  title: { fontSize: 17, fontFamily: FONTS.bodySemiBold, color: COLORS.brownDeep },
+  back: { fontSize: 15, color: '#C07840', fontFamily: FONTS.bodySemiBold },
+  title: { fontSize: 17, fontFamily: FONTS.bodySemiBold, color: COLORS.bark },
 
   content: { padding: 20, paddingBottom: 60 },
 
+  // Crisis card — v9 paper lift with rust-deep hairline border (not a 2px
+  // colored stroke, which reads as a generic alert). Pink-soft bg still
+  // signals empathy. Shadow is the same cocoa drop the rest of the app uses.
   crisisCard: {
-    backgroundColor: '#FFF5F0', borderRadius: 18, padding: 18, marginBottom: 18,
-    borderWidth: 2, borderColor: COLORS.rust,
+    backgroundColor: COLORS.pinkSoft, borderRadius: 18, padding: 18, marginBottom: 18,
+    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(154, 74, 43, 0.35)',
+    shadowColor: '#6B2E0E', shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.18, shadowRadius: 18, elevation: 5,
   },
   crisisEyebrow: {
     fontSize: 11, fontFamily: FONTS.bodySemiBold, letterSpacing: 1.5,
-    color: COLORS.rustDark, marginBottom: 6,
+    color: '#A77349', marginBottom: 6,
   },
-  crisisBody: { fontSize: 14, color: COLORS.brownDeep, lineHeight: 20, marginBottom: 14 },
+  crisisBody: { fontSize: 14, color: COLORS.bark, lineHeight: 20, marginBottom: 14 },
   resourceRow: {
     flexDirection: 'row', alignItems: 'center', gap: 8,
     paddingVertical: 10, borderTopWidth: 1, borderTopColor: 'rgba(184,92,56,0.2)',
   },
   resourceText: { flex: 1 },
-  resourceName: { fontSize: 14, fontFamily: FONTS.bodySemiBold, color: COLORS.brownDeep },
-  resourceDesc: { fontSize: 12, color: COLORS.textMid, marginTop: 2 },
+  resourceName: { fontSize: 14, fontFamily: FONTS.bodySemiBold, color: COLORS.bark },
+  resourceDesc: { fontSize: 12, color: COLORS.barkSoft, marginTop: 2 },
   resourceBtn: {
-    backgroundColor: COLORS.rust, borderRadius: 10,
+    backgroundColor: '#C07840', borderRadius: 10,
     paddingHorizontal: 14, paddingVertical: 8,
   },
-  resourceBtnAlt: { backgroundColor: COLORS.olive },
-  resourceBtnText: { color: '#FFF', fontSize: 13, fontFamily: FONTS.bodySemiBold },
+  resourceBtnAlt: { backgroundColor: COLORS.sage },
+  resourceBtnText: { color: '#FDFBF6', fontSize: 13, fontFamily: FONTS.bodySemiBold },
 
   replyCard: {
-    backgroundColor: '#FFF', borderRadius: 18, padding: 18, marginBottom: 14,
+    backgroundColor: COLORS.paper, borderRadius: 18, padding: 18, marginBottom: 14,
+    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(150, 80, 50, 0.18)',
+    shadowColor: '#6B2E0E', shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.18, shadowRadius: 18, elevation: 5,
   },
   replyEyebrow: {
     fontSize: 11, fontFamily: FONTS.bodySemiBold, letterSpacing: 1.5,
-    color: COLORS.olive, marginBottom: 6, textTransform: 'uppercase',
+    color: COLORS.sage, marginBottom: 6, textTransform: 'uppercase',
   },
-  replyBody: { fontSize: 15, color: COLORS.brownDeep, lineHeight: 22 },
+  replyBody: { fontSize: 15, color: COLORS.bark, lineHeight: 22 },
 
   disclaimer: {
     fontSize: 11, color: COLORS.textLight, lineHeight: 16,
@@ -214,8 +224,8 @@ const styles = StyleSheet.create({
   },
 
   doneBtn: {
-    marginTop: 8, backgroundColor: COLORS.brownDeep, borderRadius: 14,
+    marginTop: 8, backgroundColor: COLORS.bark, borderRadius: 14,
     paddingVertical: 14, alignItems: 'center',
   },
-  doneBtnText: { color: '#FFF', fontSize: 14, fontFamily: FONTS.bodySemiBold },
+  doneBtnText: { color: '#FDFBF6', fontSize: 14, fontFamily: FONTS.bodySemiBold },
 });

@@ -6,6 +6,7 @@
 // thread detail screens.
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { useHomeStore } from '@store/home';
 import { Feather } from '@expo/vector-icons';
 import { COLORS, FONTS } from '@utils/constants';
 import { ExpertsNavigator } from './ExpertsNavigator';
@@ -37,16 +38,22 @@ const TAB_NAMES = [...VISIBLE_TABS.map((t) => t.name), ...HIDDEN_TABS] as const;
 const hiddenButton = () => null;
 
 export function AppNavigator() {
+  const unreadNotifCount = useHomeStore((s) => s.unreadNotifCount);
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => {
         const isHidden = (HIDDEN_TABS as readonly string[]).includes(route.name);
         return {
           headerShown: false,
-          tabBarActiveTintColor: COLORS.diner,
-          tabBarInactiveTintColor: COLORS.textLight,
+          // 150ms opacity crossfade on tab switch — softer than the default
+          // instant cut; keeps the warm palette feel between surfaces.
+          animation: 'fade' as const,
+          // v2 brand kit: tab-label · Plus Jakarta 500 · cinnamon active / amber idle
+          tabBarActiveTintColor: COLORS.v2_cinnamon,
+          tabBarInactiveTintColor: COLORS.v2_amber,
           tabBarStyle: {
-            backgroundColor: COLORS.paper,
+            backgroundColor: COLORS.v2_card,
             borderTopWidth: 0,
             elevation: 0,
             shadowOpacity: 0,
@@ -62,8 +69,8 @@ export function AppNavigator() {
             : { paddingHorizontal: 0 },
           tabBarLabelStyle: {
             fontSize: 10,
-            fontFamily: FONTS.bodySemiBold,
-            letterSpacing: 0,
+            fontFamily: FONTS.v2_label,
+            letterSpacing: 0.1,
             textTransform: 'none',
             marginTop: 4,
           },
@@ -86,7 +93,15 @@ export function AppNavigator() {
       <Tab.Screen name="Manual"  component={ManualNavigator}  options={{ title: 'Manual' }} />
       <Tab.Screen name="Village" component={VillageNavigator} options={{ title: 'Village' }} />
       <Tab.Screen name="Inbox"   component={InboxNavigator}   options={{ title: 'Inbox' }} />
-      <Tab.Screen name="Profile" component={MeNavigator}      options={{ title: 'Profile' }} />
+      <Tab.Screen
+        name="Profile"
+        component={MeNavigator}
+        options={{
+          title: 'Profile',
+          tabBarBadge: unreadNotifCount > 0 ? unreadNotifCount : undefined,
+          tabBarBadgeStyle: { backgroundColor: COLORS.v2_cinnamon, color: COLORS.v2_card, fontSize: 10, minWidth: 16, height: 16, lineHeight: 16 },
+        }}
+      />
       {/* Hidden — preserves existing deeplinks. */}
       <Tab.Screen name="Milk"    component={MilkNavigator} />
       <Tab.Screen name="Experts" component={ExpertsNavigator} />

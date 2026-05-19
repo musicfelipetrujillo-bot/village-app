@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { COLORS, FONTS } from '@utils/constants';
+import { V9PageBackdrop } from '@components/shared/V9PageBackdrop';
 import {
   buyShippoLabel, getShippingLabel, getMyDonorProfile,
   type MilkShippingLabel, type ShippoAddress, type ShippoParcel,
@@ -155,7 +156,7 @@ export default function MilkShippingLabelScreen({ navigation, route }: Props) {
   if (loading) {
     return (
       <View style={[styles.container, styles.center]}>
-        <ActivityIndicator color={COLORS.rust} />
+        <ActivityIndicator color="#C07840" />
       </View>
     );
   }
@@ -207,6 +208,7 @@ export default function MilkShippingLabelScreen({ navigation, route }: Props) {
 
   return (
     <View style={styles.container}>
+      <V9PageBackdrop />
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.back} accessibilityRole="button" accessibilityLabel={t('milkShippingLabel.back')}>
           <Text style={styles.backLabel}>{t('milkShippingLabel.backLabel')}</Text>
@@ -249,7 +251,7 @@ export default function MilkShippingLabelScreen({ navigation, route }: Props) {
           accessibilityState={{ disabled: purchasing || missingFields(), busy: purchasing }}
         >
           {purchasing
-            ? <ActivityIndicator color={COLORS.white} />
+            ? <ActivityIndicator color={COLORS.paper} />
             : <Text style={styles.ctaLabel}>{t('milkShippingLabel.buyCta')}</Text>}
         </TouchableOpacity>
       </View>
@@ -299,41 +301,46 @@ function AddressInput({
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.cream },
+  container: { flex: 1, backgroundColor: 'transparent' },
   center: { alignItems: 'center', justifyContent: 'center' },
   scroll: { padding: 20, paddingBottom: 40 },
   back: { paddingVertical: 8, marginBottom: 8 },
-  backLabel: { color: COLORS.rust, fontSize: 15, fontFamily: FONTS.bodyMedium },
-  title: { fontSize: 28, fontFamily: FONTS.bodySemiBold, color: COLORS.brownDeep, marginBottom: 8 },
-  sub: { fontSize: 14, color: COLORS.textMid, lineHeight: 21, marginBottom: 20 },
-  section: { fontSize: 15, fontFamily: FONTS.bodySemiBold, color: COLORS.brownDeep, marginTop: 14, marginBottom: 8 },
+  backLabel: { color: '#C07840', fontSize: 15, fontFamily: FONTS.bodyMedium },
+  title: { fontSize: 28, fontFamily: FONTS.headerBold, color: COLORS.bark, marginBottom: 8, letterSpacing: -0.4, lineHeight: 34 },
+  sub: { fontSize: 14, color: COLORS.barkSoft, lineHeight: 21, marginBottom: 20 },
+  section: { fontSize: 15, fontFamily: FONTS.bodySemiBold, color: COLORS.bark, marginTop: 14, marginBottom: 8 },
   addressGroup: { gap: 8 },
   row: { flexDirection: 'row' },
   input: {
-    backgroundColor: COLORS.cardBg, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 12,
-    fontSize: 15, color: COLORS.textDark, borderWidth: 1, borderColor: 'rgba(0,0,0,0.08)',
+    backgroundColor: COLORS.paper, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 12,
+    fontSize: 15, color: COLORS.bark, borderWidth: 1, borderColor: 'rgba(150,80,50,0.18)',
   },
+  // v9 card lift recipe — rust hairline + cocoa drop
   card: {
-    backgroundColor: COLORS.cardBg, borderRadius: 12, padding: 16, marginTop: 16, marginBottom: 16,
-    borderWidth: 1, borderColor: 'rgba(0,0,0,0.06)',
+    backgroundColor: COLORS.paper, borderRadius: 12, padding: 16, marginTop: 16, marginBottom: 16,
+    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(150,80,50,0.18)',
+    shadowColor: '#6B2E0E', shadowOpacity: 0.18, shadowOffset: { width: 0, height: 8 }, shadowRadius: 18, elevation: 3,
   },
-  cardRow: { fontSize: 14, color: COLORS.textDark, marginBottom: 6 },
-  cardKey: { color: COLORS.textMid, fontFamily: FONTS.bodyMedium },
+  cardRow: { fontSize: 14, color: COLORS.bark, marginBottom: 6 },
+  cardKey: { color: COLORS.barkSoft, fontFamily: FONTS.bodyMedium },
   noteBox: {
-    marginTop: 20, padding: 14, borderRadius: 10,
+    marginTop: 20, padding: 16, borderRadius: 10,
     backgroundColor: 'rgba(196,163,90,0.12)', borderWidth: 1, borderColor: 'rgba(196,163,90,0.4)',
   },
-  noteBody: { fontSize: 12, color: COLORS.textMid, lineHeight: 18 },
+  noteBody: { fontSize: 12, color: COLORS.barkSoft, lineHeight: 18 },
   footer: {
     padding: 16, paddingBottom: 28,
     borderTopWidth: 1, borderTopColor: 'rgba(0,0,0,0.06)', backgroundColor: COLORS.cream,
   },
+  // v9 canonical CTA — rect variant
   cta: {
-    backgroundColor: COLORS.rust, paddingVertical: 16, borderRadius: 12,
+    backgroundColor: '#C07840', paddingVertical: 16, borderRadius: 14,
     alignItems: 'center', justifyContent: 'center', marginTop: 8,
+    shadowColor: '#945A41', shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.24, shadowRadius: 10, elevation: 3,
   },
-  ctaSecondary: { backgroundColor: 'transparent', borderWidth: 1, borderColor: COLORS.rust },
-  ctaDisabled: { backgroundColor: COLORS.textLight, opacity: 0.7 },
-  ctaLabel: { color: COLORS.white, fontSize: 16, fontFamily: FONTS.bodySemiBold },
-  ctaLabelSecondary: { color: COLORS.rust },
+  ctaSecondary: { backgroundColor: 'transparent', borderWidth: 1, borderColor: '#945A41', shadowOpacity: 0, elevation: 0 },
+  ctaDisabled: { backgroundColor: COLORS.textLight, opacity: 0.45 },
+  ctaLabel: { color: '#FDFBF6', fontSize: 16, fontFamily: FONTS.bodySemiBold },
+  ctaLabelSecondary: { color: '#945A41' },
 });

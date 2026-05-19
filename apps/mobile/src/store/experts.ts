@@ -58,7 +58,8 @@ export const useExpertsStore = create<ExpertsState>((set, get) => ({
     const isFavorited = favorites.has(specialistId);
     // Optimistic update
     const next = new Set(favorites);
-    isFavorited ? next.delete(specialistId) : next.add(specialistId);
+    if (isFavorited) next.delete(specialistId);
+    else next.add(specialistId);
     set({ favorites: next });
     try {
       await specialistsApi.toggleFavorite(userId, specialistId, isFavorited);

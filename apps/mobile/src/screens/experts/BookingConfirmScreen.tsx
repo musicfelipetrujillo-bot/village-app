@@ -5,6 +5,8 @@ import {
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { COLORS, FONTS } from '@utils/constants';
+import { V9PageBackdrop } from '@components/shared/V9PageBackdrop';
+import { success } from '@utils/haptics';
 import { useT } from '@/i18n';
 import type { ExpertsStackParamList } from '@/navigation/ExpertsNavigator';
 
@@ -20,6 +22,7 @@ export default function BookingConfirmScreen({ navigation, route }: Props) {
   const appointmentDate = new Date(appointmentAt);
 
   useEffect(() => {
+    success();
     // Entrance animation: pop in the check mark, then fade in the details
     Animated.sequence([
       Animated.spring(scaleAnim, {
@@ -46,6 +49,7 @@ export default function BookingConfirmScreen({ navigation, route }: Props) {
 
   return (
     <View style={styles.container}>
+      <V9PageBackdrop />
       <View style={styles.content}>
         {/* Animated check */}
         <Animated.View style={[styles.checkCircle, { transform: [{ scale: scaleAnim }] }]}>
@@ -100,7 +104,7 @@ export default function BookingConfirmScreen({ navigation, route }: Props) {
           {amountCents > 0 && (
             <View style={styles.detailRow}>
               <Text style={styles.detailLabel}>{t('bookingConfirm.rowPaid')}</Text>
-              <Text style={[styles.detailVal, { color: COLORS.olive }]}>
+              <Text style={[styles.detailVal, { color: COLORS.sage }]}>
                 ${Math.round(amountCents / 100)}.00
               </Text>
             </View>
@@ -133,7 +137,7 @@ export default function BookingConfirmScreen({ navigation, route }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.cream },
+  container: { flex: 1, backgroundColor: 'transparent' },
 
   content: {
     flex: 1,
@@ -147,32 +151,40 @@ const styles = StyleSheet.create({
     width: 88,
     height: 88,
     borderRadius: 44,
-    backgroundColor: COLORS.olive,
+    backgroundColor: COLORS.sage,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 4,
   },
-  checkEmoji: { color: 'white', fontSize: 42, fontFamily: FONTS.bodySemiBold, lineHeight: 50 },
+  checkEmoji: { color: '#FDFBF6', fontSize: 42, fontFamily: FONTS.bodySemiBold, lineHeight: 50 },
 
   textBlock: { alignItems: 'center', gap: 6 },
   headline: {
     fontFamily: FONTS.headerItalic,
     fontSize: 28,
-    color: COLORS.textDark,
+    color: COLORS.bark,
     textAlign: 'center',
   },
   sub: { fontSize: 15, color: COLORS.textLight, textAlign: 'center', fontFamily: FONTS.body },
 
   card: {
-    backgroundColor: 'white',
+    backgroundColor: COLORS.paper,
     borderRadius: 18,
     padding: 18,
     width: '100%',
     gap: 0,
+    // v9 paper lift
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(150, 80, 50, 0.18)',
+    shadowColor: '#6B2E0E',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.18,
+    shadowRadius: 18,
+    elevation: 5,
   },
   cardRow: { flexDirection: 'row', gap: 12, alignItems: 'center', marginBottom: 14 },
   cardIcon: { fontSize: 32 },
-  cardProvider: { fontSize: 16, fontFamily: FONTS.bodySemiBold, color: COLORS.textDark },
+  cardProvider: { fontSize: 16, fontFamily: FONTS.bodySemiBold, color: COLORS.bark },
   cardService: { fontSize: 13, color: COLORS.textLight, marginTop: 2, fontFamily: FONTS.body },
   divider: { height: 1, backgroundColor: 'rgba(0,0,0,0.07)', marginBottom: 12 },
 
@@ -182,17 +194,17 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   detailLabel: { fontSize: 14, color: COLORS.textLight, fontFamily: FONTS.body },
-  detailVal: { fontSize: 14, fontFamily: FONTS.bodyMedium, color: COLORS.textDark, maxWidth: '55%', textAlign: 'right' },
+  detailVal: { fontSize: 14, fontFamily: FONTS.bodyMedium, color: COLORS.bark, maxWidth: '55%', textAlign: 'right' },
 
   telehealthBtn: {
     borderWidth: 1.5,
-    borderColor: COLORS.rust,
+    borderColor: COLORS.coco,
     borderRadius: 12,
     paddingVertical: 13,
     alignItems: 'center',
     width: '100%',
   },
-  telehealthBtnText: { color: COLORS.rust, fontSize: 15, fontFamily: FONTS.bodySemiBold },
+  telehealthBtnText: { color: '#C07840', fontSize: 15, fontFamily: FONTS.bodySemiBold },
 
   note: {
     fontSize: 12,
@@ -207,15 +219,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 12,
     paddingBottom: 40,
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.paper,
     borderTopWidth: 1,
     borderTopColor: 'rgba(0,0,0,0.07)',
   },
   doneBtn: {
-    backgroundColor: COLORS.rust,
+    backgroundColor: '#C07840',
     borderRadius: 14,
     paddingVertical: 16,
     alignItems: 'center',
   },
-  doneBtnText: { color: 'white', fontSize: 16, fontFamily: FONTS.bodySemiBold },
+  doneBtnText: { color: '#FDFBF6', fontSize: 16, fontFamily: FONTS.bodySemiBold },
 });

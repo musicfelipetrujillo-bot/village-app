@@ -6,7 +6,7 @@
 // user move the FAB to any of the 4 screen corners. The chosen corner is
 // persisted to AsyncStorage so the FAB stays where the user left it across
 // launches. Tap (no drag) opens the chat as before.
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   TouchableOpacity, Text, StyleSheet, View, Platform,
   Animated, PanResponder, Dimensions,
@@ -59,6 +59,51 @@ export default function FloatingHelpButton() {
   // Track whether the most recent gesture moved enough to count as a drag —
   // used to suppress the onPress that fires after a release.
   const wasDragging = useRef(false);
+
+  // Idle pulse ring — expands + fades out after 4 s of inactivity, then loops.
+  const pulseScale = useRef(new Animated.Value(1)).current;
+  const pulseOpacity = useRef(new Animated.Value(0)).current;
+  const pulseAnim = useRef<Animated.CompositeAnimation | null>(null);
+  const idleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const stopPulse = useCallback(() => {
+    pulseAnim.current?.stop();
+    pulseScale.setValue(1);
+    pulseOpacity.setValue(0);
+  }, [pulseScale, pulseOpacity]);
+
+  const startPulse = useCallback(() => {
+    stopPulse();
+    const loop = Animated.loop(
+      Animated.parallel([
+        Animated.sequence([
+          Animated.timing(pulseScale, { toValue: 1.7, duration: 900, useNativeDriver: true }),
+          Animated.timing(pulseScale, { toValue: 1, duration: 0, useNativeDriver: true }),
+        ]),
+        Animated.sequence([
+          Animated.timing(pulseOpacity, { toValue: 0.45, duration: 0, useNativeDriver: true }),
+          Animated.timing(pulseOpacity, { toValue: 0, duration: 900, useNativeDriver: true }),
+        ]),
+      ]),
+      { iterations: -1 },
+    );
+    pulseAnim.current = loop;
+    loop.start();
+  }, [pulseScale, pulseOpacity, stopPulse]);
+
+  const resetIdleTimer = useCallback(() => {
+    stopPulse();
+    if (idleTimer.current) clearTimeout(idleTimer.current);
+    idleTimer.current = setTimeout(startPulse, 4000);
+  }, [startPulse, stopPulse]);
+
+  useEffect(() => {
+    resetIdleTimer();
+    return () => {
+      if (idleTimer.current) clearTimeout(idleTimer.current);
+      pulseAnim.current?.stop();
+    };
+  }, []);
 
   // Restore saved corner on mount. Fail-safe: if read errors or returns
   // garbage, fall back to default corner.
@@ -127,6 +172,17 @@ export default function FloatingHelpButton() {
         ]}
         {...panResponder.panHandlers}
       >
+        {/* Pulse ring — behind the button, expands + fades on idle. */}
+        <Animated.View
+          pointerEvents="none"
+          style={[
+            styles.pulseRing,
+            {
+              opacity: pulseOpacity,
+              transform: [{ scale: pulseScale }],
+            },
+          ]}
+        />
         <TouchableOpacity
           style={styles.fabInner}
           onPress={() => {
@@ -136,6 +192,7 @@ export default function FloatingHelpButton() {
               wasDragging.current = false;
               return;
             }
+            resetIdleTimer();
             navigation.navigate('AIHelpChat');
           }}
           accessibilityRole="button"
@@ -154,11 +211,11 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 0, left: 0,
     width: FAB_SIZE, height: FAB_SIZE, borderRadius: FAB_SIZE / 2,
-    backgroundColor: COLORS.rust,
+    backgroundColor: '#C07840',
     alignItems: 'center', justifyContent: 'center',
     ...Platform.select({
       ios: {
-        shadowColor: '#000',
+        shadowColor: '#6B2E0E',
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.25,
         shadowRadius: 8,
@@ -169,6 +226,12 @@ const styles = StyleSheet.create({
   fabInner: {
     width: '100%', height: '100%', borderRadius: FAB_SIZE / 2,
     alignItems: 'center', justifyContent: 'center',
+  },
+  pulseRing: {
+    position: 'absolute',
+    width: FAB_SIZE, height: FAB_SIZE, borderRadius: FAB_SIZE / 2,
+    backgroundColor: '#C07840',
+    // Ring appears behind fab button content via z-index ordering (first child = lowest).
   },
   icon: { fontSize: 26 },
 });

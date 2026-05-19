@@ -12,6 +12,7 @@ import { useAuthStore } from '@store/auth';
 import { useUserStore } from '@store/user';
 import { listMyOrders, listReviewableOrders, type MyOrderRow } from '@api/milk';
 import { COLORS, FONTS } from '@utils/constants';
+import { V9PageBackdrop } from '@components/shared/V9PageBackdrop';
 import { useT } from '@/i18n';
 import type { MilkStackParamList } from '@/navigation/MilkNavigator';
 
@@ -20,8 +21,8 @@ type Props = NativeStackScreenProps<MilkStackParamList, 'MilkOrders'>;
 const STATUS_COLOR: Record<string, string> = {
   pending:    '#9A8070',
   paid:       '#6B7C3F',
-  fulfilled:  '#2E7D32',
-  disputed:   '#D87530',
+  fulfilled:  COLORS.statusSuccess,
+  disputed:   COLORS.statusAlert,
   refunded:   '#9A8070',
   cancelled:  '#9A8070',
 };
@@ -68,6 +69,7 @@ export default function MilkOrdersScreen({ navigation }: Props) {
 
   return (
     <View style={styles.container}>
+      <V9PageBackdrop />
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
@@ -81,12 +83,12 @@ export default function MilkOrdersScreen({ navigation }: Props) {
       </View>
 
       {loading ? (
-        <View style={styles.center}><ActivityIndicator color={COLORS.rust} /></View>
+        <View style={styles.center}><ActivityIndicator color="#C07840" /></View>
       ) : (
         <FlashList
           data={orders}
           keyExtractor={(o) => o.id}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.rust} />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.coco} />}
           contentContainerStyle={{ padding: 12 }}
           renderItem={({ item }) => {
             const canReview = reviewableIds.has(item.id);
@@ -183,41 +185,44 @@ export default function MilkOrdersScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F5F0E8' },
+  container: { flex: 1, backgroundColor: 'transparent' },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingTop: 56, paddingBottom: 12, paddingHorizontal: 16,
-    backgroundColor: '#FFF',
+    backgroundColor: COLORS.paper,
     borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.06)',
   },
-  back: { fontSize: 15, color: '#D87530', fontFamily: FONTS.bodyMedium },
+  back: { fontSize: 15, color: '#C07840', fontFamily: FONTS.bodyMedium },
   title: { fontSize: 17, fontFamily: FONTS.bodySemiBold, color: '#2C1810' },
 
   card: {
-    backgroundColor: '#FFF', borderRadius: 14, padding: 14, marginBottom: 10,
+    backgroundColor: COLORS.paper, borderRadius: 14, padding: 16, marginBottom: 10,
+    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(150, 80, 50, 0.18)',
+    shadowColor: '#6B2E0E', shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.18, shadowRadius: 18, elevation: 5,
   },
   cardTop: { flexDirection: 'row', gap: 12, alignItems: 'center' },
   avatar: { width: 52, height: 52, borderRadius: 26 },
-  avatarFallback: { backgroundColor: '#D87530', alignItems: 'center', justifyContent: 'center' },
-  avatarInitial: { color: '#FFF', fontSize: 20, fontFamily: FONTS.bodySemiBold },
+  avatarFallback: { backgroundColor: COLORS.coco, alignItems: 'center', justifyContent: 'center' },
+  avatarInitial: { color: '#FDFBF6', fontSize: 20, fontFamily: FONTS.bodySemiBold },
   donorName: { fontSize: 15, fontFamily: FONTS.bodySemiBold, color: '#2C1810' },
   meta: { fontSize: 12, color: '#6B5C52', marginTop: 2 },
   date: { fontSize: 11, color: '#9A8070', marginTop: 2 },
   right: { alignItems: 'flex-end', gap: 6 },
   statusPill: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 10 },
-  statusText: { color: '#FFF', fontSize: 10, fontFamily: FONTS.bodySemiBold, textTransform: 'uppercase' },
-  amount: { fontSize: 15, fontFamily: FONTS.bodySemiBold, color: '#D87530' },
+  statusText: { color: '#FDFBF6', fontSize: 10, fontFamily: FONTS.bodySemiBold, textTransform: 'uppercase' },
+  amount: { fontSize: 15, fontFamily: FONTS.bodySemiBold, color: COLORS.coco },
 
   reviewBtn: {
     marginTop: 12, paddingVertical: 10, borderRadius: 10,
-    backgroundColor: '#FFF5F0', borderWidth: 1.5, borderColor: '#D87530',
+    backgroundColor: COLORS.pinkSoft, borderWidth: 1.5, borderColor: COLORS.coco,
     alignItems: 'center',
   },
-  reviewBtnText: { fontSize: 13, fontFamily: FONTS.bodySemiBold, color: '#D87530' },
+  reviewBtnText: { fontSize: 13, fontFamily: FONTS.bodySemiBold, color: COLORS.coco },
   disputeBtn: {
     marginTop: 8, paddingVertical: 9, borderRadius: 10,
-    borderWidth: 1, borderColor: 'rgba(0,0,0,0.12)', alignItems: 'center',
+    borderWidth: 1, borderColor: 'rgba(150,80,50,0.18)', alignItems: 'center',
   },
   disputeBtnText: { fontSize: 12, fontFamily: FONTS.bodySemiBold, color: '#6B5C52' },
 
@@ -228,8 +233,8 @@ const styles = StyleSheet.create({
     fontSize: 14, color: '#5A3E28', textAlign: 'center', lineHeight: 21, marginBottom: 8,
   },
   emptyBtn: {
-    marginTop: 8, backgroundColor: '#D87530', borderRadius: 14,
+    marginTop: 8, backgroundColor: '#C07840', borderRadius: 14,
     paddingHorizontal: 24, paddingVertical: 14,
   },
-  emptyBtnText: { color: '#FFF', fontSize: 15, fontFamily: FONTS.bodySemiBold },
+  emptyBtnText: { color: '#FDFBF6', fontSize: 15, fontFamily: FONTS.bodySemiBold },
 });

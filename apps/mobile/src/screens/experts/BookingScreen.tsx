@@ -7,6 +7,7 @@ import {
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useFocusEffect } from '@react-navigation/native';
 import { COLORS, FONTS } from '@utils/constants';
+import { V9PageBackdrop } from '@components/shared/V9PageBackdrop';
 import { useT } from '@/i18n';
 import { useExpertsStore } from '@store/experts';
 import type { ExpertsStackParamList } from '@/navigation/ExpertsNavigator';
@@ -136,7 +137,7 @@ export default function BookingScreen({ navigation, route }: Props) {
   if (loading || !spec) {
     return (
       <View style={styles.loading}>
-        <ActivityIndicator size="large" color={COLORS.rust} />
+        <ActivityIndicator color="#C07840" />
       </View>
     );
   }
@@ -156,13 +157,21 @@ export default function BookingScreen({ navigation, route }: Props) {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
+      <V9PageBackdrop />
+      {/* v9 editorial header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
           <Text style={styles.backText}>{t('bookingScreen.back')}</Text>
         </TouchableOpacity>
-        <Text style={styles.title}>{t('bookingScreen.title')}</Text>
+        <View style={styles.eyebrowRow}>
+          <View style={styles.eyebrowBar} />
+          <Text style={styles.eyebrow}>{t('bookingScreen.eyebrow')}</Text>
+        </View>
+        <Text style={styles.title}>
+          {t('bookingScreen.titleLead')} <Text style={styles.titleEm}>{t('bookingScreen.titleEm')}</Text>
+        </Text>
         <Text style={styles.providerName}>{spec.full_name}</Text>
+        <View style={styles.headerRule} />
       </View>
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -319,30 +328,40 @@ export default function BookingScreen({ navigation, route }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.cream },
+  container: { flex: 1, backgroundColor: 'transparent' },
   loading: { flex: 1, alignItems: 'center', justifyContent: 'center' },
 
   header: {
     paddingHorizontal: 20,
     paddingTop: 56,
-    paddingBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0,0,0,0.07)',
-    backgroundColor: COLORS.white,
+    paddingBottom: 6,
+    backgroundColor: 'transparent',
   },
-  backBtn: { marginBottom: 10 },
-  backText: { fontSize: 15, color: COLORS.rust, fontFamily: FONTS.bodyMedium },
+  backBtn: { marginBottom: 12 },
+  backText: { fontSize: 15, color: '#C07840', fontFamily: FONTS.bodyMedium },
+  // v9 editorial masthead
+  eyebrowRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
+  eyebrowBar: { width: 22, height: 2, backgroundColor: '#A77349', marginRight: 10, borderRadius: 1 },
+  eyebrow: { fontSize: 10, fontFamily: FONTS.bodySemiBold, color: '#A77349', letterSpacing: 1.8, textTransform: 'uppercase' },
   title: {
-    fontFamily: FONTS.headerItalic,
-    fontSize: 22,
-    color: COLORS.textDark,
+    fontFamily: FONTS.headerBold,
+    fontSize: 32,
+    color: COLORS.bark,
+    lineHeight: 38,
+    letterSpacing: -0.5,
+    marginBottom: 6,
   },
-  providerName: { fontSize: 14, color: COLORS.textLight, marginTop: 2, fontFamily: FONTS.body },
+  titleEm: { fontFamily: FONTS.headerItalic, fontStyle: 'italic', color: '#C07840' },
+  providerName: { fontSize: 14, color: COLORS.barkSoft, marginTop: 2, fontFamily: FONTS.body },
+  headerRule: {
+    height: StyleSheet.hairlineWidth, backgroundColor: 'rgba(61,31,13,0.18)',
+    marginTop: 10, width: 48,
+  },
 
   content: { paddingHorizontal: 16, paddingTop: 20, gap: 20 },
 
   section: {
-    backgroundColor: 'white',
+    backgroundColor: COLORS.paper,
     borderRadius: 16,
     padding: 16,
     gap: 12,
@@ -360,20 +379,27 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    borderWidth: 1.5,
-    borderColor: 'rgba(0,0,0,0.1)',
-    borderRadius: 12,
+    backgroundColor: COLORS.paper,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(150, 80, 50, 0.18)',
+    borderRadius: 14,
     paddingVertical: 12,
     paddingHorizontal: 14,
+    // v9 paper lift — cocoa drop matching every other v9 surface
+    shadowColor: '#6B2E0E',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.14,
+    shadowRadius: 14,
+    elevation: 3,
   },
-  serviceCardActive: { borderColor: COLORS.rust, backgroundColor: '#FEF5F1' },
-  serviceName: { fontSize: 14, fontFamily: FONTS.bodyMedium, color: COLORS.textDark, flex: 1 },
-  serviceNameActive: { color: COLORS.rust },
+  serviceCardActive: { borderColor: COLORS.coco, backgroundColor: '#FEF5F1' },
+  serviceName: { fontSize: 14, fontFamily: FONTS.bodyMedium, color: COLORS.bark, flex: 1 },
+  serviceNameActive: { color: COLORS.coco },
   servicePrice: { fontSize: 13, color: COLORS.textLight, fontFamily: FONTS.bodyMedium },
-  servicePriceActive: { color: COLORS.rust },
+  servicePriceActive: { color: COLORS.coco },
 
   toggleRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  toggleLabel: { fontSize: 14, color: COLORS.textDark, fontFamily: FONTS.bodyMedium },
+  toggleLabel: { fontSize: 14, color: COLORS.bark, fontFamily: FONTS.bodyMedium },
   toggle: {
     width: 44,
     height: 26,
@@ -382,20 +408,20 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 3,
   },
-  toggleOn: { backgroundColor: COLORS.rust },
+  toggleOn: { backgroundColor: COLORS.coco },
   toggleThumb: {
     width: 20,
     height: 20,
     borderRadius: 10,
-    backgroundColor: 'white',
+    backgroundColor: COLORS.paper,
     alignSelf: 'flex-start',
   },
   toggleThumbOn: { alignSelf: 'flex-end' },
 
   calHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   calNavBtn: { padding: 8 },
-  calNavText: { fontSize: 22, color: COLORS.textDark, fontFamily: FONTS.body },
-  calTitle: { fontSize: 16, fontFamily: FONTS.bodySemiBold, color: COLORS.textDark },
+  calNavText: { fontSize: 22, color: COLORS.bark, fontFamily: FONTS.body },
+  calTitle: { fontSize: 16, fontFamily: FONTS.bodySemiBold, color: COLORS.bark },
 
   dayLabels: { flexDirection: 'row' },
   dayLabel: {
@@ -415,33 +441,33 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   calCellSelected: {
-    backgroundColor: COLORS.rust,
+    backgroundColor: '#C07840',
     borderRadius: 999,
   },
   calCellDisabled: {},
-  calCellText: { fontSize: 13, fontFamily: FONTS.bodyMedium, color: COLORS.textDark },
-  calCellTextSelected: { color: 'white', fontFamily: FONTS.bodySemiBold },
+  calCellText: { fontSize: 13, fontFamily: FONTS.bodyMedium, color: COLORS.bark },
+  calCellTextSelected: { color: '#FDFBF6', fontFamily: FONTS.bodySemiBold },
   calCellTextDisabled: { color: 'rgba(0,0,0,0.2)' },
 
   noSlots: { fontSize: 13, color: COLORS.textLight, textAlign: 'center', paddingVertical: 8, fontFamily: FONTS.body },
   slotsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   slotBtn: {
     borderWidth: 1.5,
-    borderColor: 'rgba(0,0,0,0.12)',
+    borderColor: 'rgba(150,80,50,0.18)',
     borderRadius: 10,
     paddingVertical: 10,
     paddingHorizontal: 14,
   },
-  slotBtnActive: { borderColor: COLORS.rust, backgroundColor: '#FEF5F1' },
-  slotText: { fontSize: 13, fontFamily: FONTS.bodyMedium, color: COLORS.textDark },
-  slotTextActive: { color: COLORS.rust },
+  slotBtnActive: { borderColor: COLORS.coco, backgroundColor: '#FEF5F1' },
+  slotText: { fontSize: 13, fontFamily: FONTS.bodyMedium, color: COLORS.bark },
+  slotTextActive: { color: COLORS.coco },
 
   ctaBar: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.paper,
     paddingHorizontal: 16,
     paddingTop: 12,
     paddingBottom: 32,
@@ -451,11 +477,11 @@ const styles = StyleSheet.create({
   },
   ctaSummary: { fontSize: 12, color: COLORS.textLight, fontFamily: FONTS.bodyMedium, textAlign: 'center' },
   ctaBtn: {
-    backgroundColor: COLORS.rust,
+    backgroundColor: '#C07840',
     borderRadius: 14,
     paddingVertical: 16,
     alignItems: 'center',
   },
   ctaBtnDisabled: { opacity: 0.35 },
-  ctaBtnText: { color: 'white', fontSize: 16, fontFamily: FONTS.bodySemiBold },
+  ctaBtnText: { color: '#FDFBF6', fontSize: 16, fontFamily: FONTS.bodySemiBold },
 });

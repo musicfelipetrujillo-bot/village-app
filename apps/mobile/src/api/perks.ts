@@ -166,9 +166,9 @@ export function categoryLabel(c: DealCategory): string {
 export function disclosureTextFor(network: AffiliateNetwork, isPartner: boolean): string | null {
   if (network === 'none' && !isPartner) return null;
   if (network === 'none' && isPartner) {
-    return 'Partner offer. Brand terms apply — The Village does not operate this promotion.';
+    return 'Partner offer. Brand terms apply — Villie does not operate this promotion.';
   }
-  return 'Affiliate offer. The Village may earn a commission on qualifying purchases at no extra cost to you.';
+  return 'Affiliate offer. Villie may earn a commission on qualifying purchases at no extra cost to you.';
 }
 
 export function claimStatusLabel(s: ClaimStatus): string {

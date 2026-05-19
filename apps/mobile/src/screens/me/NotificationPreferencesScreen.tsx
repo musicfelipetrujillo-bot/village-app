@@ -22,6 +22,7 @@ import {
 } from '@store/user';
 import { supabase } from '@/lib/supabase';
 import { COLORS, FONTS } from '@utils/constants';
+import { V9PageBackdrop } from '@components/shared/V9PageBackdrop';
 import { useAnalytics } from '@hooks/useAnalytics';
 import { useT } from '@/i18n';
 import type { MeStackParamList } from '@/navigation/MeNavigator';
@@ -140,6 +141,7 @@ export default function NotificationPreferencesScreen({ navigation }: Props) {
 
   return (
     <SafeAreaView style={s.safe}>
+      <V9PageBackdrop />
       <View style={s.topBar}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
@@ -150,11 +152,21 @@ export default function NotificationPreferencesScreen({ navigation }: Props) {
         </TouchableOpacity>
         <Text style={s.topTitle}>{t('notifPrefs.topTitle')}</Text>
         <View style={s.topSpacer}>
-          {saving ? <ActivityIndicator color={COLORS.rust} /> : null}
+          {saving ? <ActivityIndicator color="#C07840" /> : null}
         </View>
       </View>
 
       <ScrollView contentContainerStyle={s.content}>
+        {/* v9 editorial masthead — replaces the bald `topTitle` as the
+            screen's first beat. topBar still carries Back + saving spinner. */}
+        <View style={s.eyebrowRow}>
+          <View style={s.eyebrowBar} />
+          <Text style={s.eyebrow}>{t('notifPrefs.headerEyebrow')}</Text>
+        </View>
+        <Text style={s.headerTitle}>
+          {t('notifPrefs.headerTitleLead')} <Text style={s.headerTitleEm}>{t('notifPrefs.headerTitleEm')}</Text>
+        </Text>
+        <View style={s.headerRule} />
         <Text style={s.lead}>{t('notifPrefs.lead')}</Text>
 
         <View style={s.list}>
@@ -173,8 +185,8 @@ export default function NotificationPreferencesScreen({ navigation }: Props) {
                   value={value}
                   onValueChange={(v) => toggle(row.key, v)}
                   disabled={isSavingRow}
-                  trackColor={{ false: 'rgba(0,0,0,0.12)', true: COLORS.rust }}
-                  thumbColor={COLORS.white}
+                  trackColor={{ false: 'rgba(0,0,0,0.12)', true: COLORS.coco }}
+                  thumbColor={COLORS.paper}
                   accessibilityLabel={t('notifPrefs.rowA11y', { title })}
                 />
               </View>
@@ -193,8 +205,8 @@ export default function NotificationPreferencesScreen({ navigation }: Props) {
               value={qh.enabled}
               onValueChange={toggleQuietHours}
               disabled={saving === 'quiet_hours'}
-              trackColor={{ false: 'rgba(0,0,0,0.12)', true: COLORS.rust }}
-              thumbColor={COLORS.white}
+              trackColor={{ false: 'rgba(0,0,0,0.12)', true: COLORS.coco }}
+              thumbColor={COLORS.paper}
               accessibilityLabel={t('notifPrefs.quietEnableA11y')}
             />
           </View>
@@ -262,7 +274,7 @@ export default function NotificationPreferencesScreen({ navigation }: Props) {
 }
 
 const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: COLORS.cream },
+  safe: { flex: 1, backgroundColor: 'transparent' },
   topBar: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -276,28 +288,51 @@ const s = StyleSheet.create({
   topTitle: {
     fontFamily: FONTS.headerBold,
     fontSize: 16,
-    color: COLORS.textDark,
+    color: COLORS.bark,
   },
   topLink: {
     fontFamily: FONTS.bodySemiBold,
     fontSize: 14,
-    color: COLORS.rust,
+    color: '#C07840',
   },
   topSpacer: { width: 52, alignItems: 'flex-end' },
 
   content: { padding: 20, paddingBottom: 48, gap: 16 },
 
+  // v9 editorial masthead
+  eyebrowRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
+  eyebrowBar: { width: 22, height: 2, backgroundColor: '#A77349', marginRight: 10, borderRadius: 1 },
+  eyebrow: { fontSize: 10, fontFamily: FONTS.bodySemiBold, color: '#A77349', letterSpacing: 1.8, textTransform: 'uppercase' },
+  headerTitle: {
+    fontFamily: FONTS.headerBold, fontSize: 32, color: COLORS.bark,
+    lineHeight: 38, letterSpacing: -0.5, marginBottom: 4,
+  },
+  headerTitleEm: { fontFamily: FONTS.headerItalic, fontStyle: 'italic', color: '#C07840' },
+  headerRule: {
+    height: StyleSheet.hairlineWidth, backgroundColor: 'rgba(61,31,13,0.18)',
+    marginTop: 6, marginBottom: 4, width: 48,
+  },
+
   lead: {
     fontFamily: FONTS.body,
     fontSize: 14,
-    color: COLORS.textMid,
+    color: COLORS.barkSoft,
     lineHeight: 20,
   },
 
   list: {
-    backgroundColor: COLORS.cardBg,
+    backgroundColor: COLORS.paper,
     borderRadius: 16,
     overflow: 'hidden',
+    // v9 paper lift — wraps all the Switch rows so the prefs panel
+    // reads as a single floating card like MeScreen sections.
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(150, 80, 50, 0.18)',
+    shadowColor: '#6B2E0E',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.18,
+    shadowRadius: 18,
+    elevation: 5,
   },
   row: {
     flexDirection: 'row',
@@ -312,13 +347,13 @@ const s = StyleSheet.create({
   rowTitle: {
     fontFamily: FONTS.bodySemiBold,
     fontSize: 15,
-    color: COLORS.textDark,
+    color: COLORS.bark,
     marginBottom: 2,
   },
   rowDesc: {
     fontFamily: FONTS.body,
     fontSize: 13,
-    color: COLORS.textMid,
+    color: COLORS.barkSoft,
     lineHeight: 18,
   },
   rowNote: {
@@ -341,7 +376,7 @@ const s = StyleSheet.create({
   sectionLabel: {
     fontFamily: FONTS.bodySemiBold,
     fontSize: 12,
-    color: COLORS.textMid,
+    color: COLORS.barkSoft,
     letterSpacing: 0.4,
     textTransform: 'uppercase',
     marginTop: 8,
@@ -360,7 +395,7 @@ const s = StyleSheet.create({
   stepperLabel: {
     fontFamily: FONTS.bodySemiBold,
     fontSize: 14,
-    color: COLORS.textDark,
+    color: COLORS.bark,
   },
   stepperControls: {
     flexDirection: 'row',
@@ -372,20 +407,20 @@ const s = StyleSheet.create({
     height: 32,
     borderRadius: 16,
     borderWidth: 1.5,
-    borderColor: COLORS.rust,
+    borderColor: COLORS.coco,
     alignItems: 'center',
     justifyContent: 'center',
   },
   stepBtnText: {
     fontFamily: FONTS.bodySemiBold,
     fontSize: 18,
-    color: COLORS.rust,
+    color: '#C07840',
     lineHeight: 20,
   },
   stepperValue: {
     fontFamily: FONTS.bodySemiBold,
     fontSize: 15,
-    color: COLORS.textDark,
+    color: COLORS.bark,
     minWidth: 80,
     textAlign: 'center',
   },
@@ -399,11 +434,11 @@ const s = StyleSheet.create({
   tzLabel: {
     fontFamily: FONTS.body,
     fontSize: 13,
-    color: COLORS.textMid,
+    color: COLORS.barkSoft,
   },
   tzValue: {
     fontFamily: FONTS.bodySemiBold,
     fontSize: 13,
-    color: COLORS.textDark,
+    color: COLORS.bark,
   },
 });

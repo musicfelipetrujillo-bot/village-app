@@ -12,6 +12,7 @@ import { COLORS, FONTS, PREGNANCY_STAGES } from '@utils/constants';
 import {
   YolkCircle, LeafSprig, SparkleMark,
 } from '@components/shared/DecorativeMarks';
+import { V9PageBackdrop } from '@components/shared/V9PageBackdrop';
 import { authService } from '@/lib/auth';
 import { useAuthStore } from '@store/auth';
 import { useUserStore } from '@store/user';
@@ -117,6 +118,7 @@ export default function OnboardingProfileScreen({ navigation, route }: Props) {
 
   return (
     <View style={styles.container}>
+      <V9PageBackdrop />
       {/* Progress */}
       <View
         style={styles.progressRow}
@@ -134,7 +136,7 @@ export default function OnboardingProfileScreen({ navigation, route }: Props) {
         {step === 0 && (
           <>
             <View style={styles.heroMark}>
-              <LeafSprig size={64} top={4} left={4} tint={COLORS.olive} />
+              <LeafSprig size={64} top={4} left={4} tint={COLORS.sage} />
             </View>
             <Text style={styles.title}>
               {t('onboarding.stageTitleLine1')}{'\n'}
@@ -168,7 +170,7 @@ export default function OnboardingProfileScreen({ navigation, route }: Props) {
         {step === 1 && (
           <>
             <View style={styles.heroMark}>
-              <YolkCircle size={64} top={4} left={4} tint={COLORS.rust} opacity={0.85} />
+              <YolkCircle size={64} top={4} left={4} tint={COLORS.coco} opacity={0.85} />
             </View>
             <Text style={styles.title}>
               {t('onboarding.locationTitleLine1')} <Text style={styles.titleAccent}>{t('onboarding.locationTitleLine2')}</Text>
@@ -196,7 +198,7 @@ export default function OnboardingProfileScreen({ navigation, route }: Props) {
         {step === 2 && (
           <>
             <View style={styles.heroMark}>
-              <SparkleMark size={56} top={8} left={8} tint={COLORS.brownDeep} />
+              <SparkleMark size={56} top={8} left={8} tint={COLORS.bark} />
             </View>
             <Text style={styles.title}>
               {t('onboarding.insuranceTitleLine1')} <Text style={styles.titleAccent}>{t('onboarding.insuranceTitleLine2')}</Text>
@@ -235,7 +237,7 @@ export default function OnboardingProfileScreen({ navigation, route }: Props) {
           accessibilityState={{ disabled: !canProceed || loading, busy: loading }}
         >
           {loading ? (
-            <ActivityIndicator color="white" />
+            <ActivityIndicator color="#FDFBF6" />
           ) : (
             <Text style={styles.btnText}>
               {step < TOTAL_STEPS - 1 ? t('common.continue') : t('onboarding.enterVillage')}
@@ -257,8 +259,12 @@ export default function OnboardingProfileScreen({ navigation, route }: Props) {
   );
 }
 
+// ─── v2 brand (villie · May 2026) ──────────────────────────────────────
+// Stage card "active" uses cinnamon border + parchment fill (warm "you're
+// here" tone, matching Onboarding's language picker). Bottom-bar CTA is
+// the one cinnamon spark.
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.cream },
+  container: { flex: 1, backgroundColor: 'transparent' },
   progressRow: {
     flexDirection: 'row',
     gap: 6,
@@ -269,55 +275,71 @@ const styles = StyleSheet.create({
   dot: {
     height: 4,
     borderRadius: 2,
-    backgroundColor: 'rgba(0,0,0,0.12)',
+    backgroundColor: 'rgba(61,31,14,0.14)',
     flex: 1,
     maxWidth: 60,
   },
-  dotActive: { backgroundColor: COLORS.rust },
+  dotActive: { backgroundColor: COLORS.v2_cinnamon },
 
   content: { padding: 28, paddingTop: 24, paddingBottom: 120 },
   heroMark: { width: 72, height: 72, marginBottom: 16, overflow: 'hidden' },
   title: {
-    fontFamily: FONTS.header,
+    fontFamily: FONTS.v2_display,
     fontSize: 30,
-    color: COLORS.textDark,
-    lineHeight: 38,
+    color: COLORS.v2_cocoa,
+    letterSpacing: -0.6,
+    lineHeight: 36,
     marginBottom: 8,
   },
-  titleAccent: { fontFamily: FONTS.headerItalic, color: COLORS.rust },
-  sub: { fontSize: 14, color: COLORS.textLight, lineHeight: 22, marginBottom: 28, fontFamily: FONTS.body },
+  // v9 italic flourish — rust-deep matches every other v9 surface
+  // (caramel v2_caramel #D4A880 is the brand-kit token but HomeScreen
+  // and chapter screens use rust-deep #9A4A2B as the actual canonical).
+  titleAccent: { fontFamily: FONTS.v2_display_italic, color: '#C07840' },
+  sub: { fontSize: 14, color: COLORS.v2_walnut, lineHeight: 22, marginBottom: 28, fontFamily: FONTS.v2_body },
 
-  stageGrid: { gap: 10 },
+  stageGrid: { gap: 12 },
+  // v9 card lift recipe — rust hairline + cocoa drop. Same as DonorCard,
+  // GearCard, ForgotPassword success state.
   stageCard: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 14,
-    backgroundColor: 'white',
+    backgroundColor: COLORS.paper,
     borderRadius: 14,
     padding: 16,
-    borderWidth: 2,
-    borderColor: 'transparent',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(150,80,50,0.18)',
+    shadowColor: '#6B2E0E',
+    shadowOpacity: 0.14,            // gentler than card-grid (0.18) — chips, not heroes
+    shadowOffset: { width: 0, height: 6 },
+    shadowRadius: 14,
+    elevation: 2,
   },
-  stageCardActive: { borderColor: COLORS.rust, backgroundColor: '#FFF5F2' },
+  // Active state — cinnamon hairline (not 2px), warm parchment fill.
+  stageCardActive: {
+    borderColor: COLORS.v2_cinnamon,
+    backgroundColor: COLORS.v2_parchment,
+    shadowOpacity: 0.22,
+  },
   stageEmoji: { fontSize: 24 },
-  stageLabel: { fontSize: 14, fontFamily: FONTS.bodyMedium, color: COLORS.textDark },
-  stageLabelActive: { fontFamily: FONTS.bodySemiBold, color: COLORS.rust },
+  stageLabel: { fontSize: 14, fontFamily: FONTS.v2_body, color: COLORS.v2_cocoa },
+  stageLabelActive: { fontFamily: FONTS.v2_link, color: COLORS.v2_cocoa },
 
   inputGroup: { gap: 6 },
-  label: { fontSize: 13, fontFamily: FONTS.bodyMedium, color: COLORS.textMid },
+  label: { fontSize: 12, fontFamily: FONTS.v2_label, color: COLORS.v2_amber, letterSpacing: 0.8, textTransform: 'uppercase' },
   input: {
-    backgroundColor: 'white',
+    backgroundColor: COLORS.v2_card,
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 14,
     fontSize: 15,
-    color: COLORS.textDark,
-    borderWidth: 1.5,
-    borderColor: 'rgba(0,0,0,0.08)',
-    fontFamily: FONTS.body,
+    color: COLORS.v2_cocoa,
+    borderWidth: 1,
+    borderColor: 'rgba(61,31,14,0.12)',
+    fontFamily: FONTS.v2_body,
   },
-  inputError: { borderColor: COLORS.rust },
-  errText: { fontSize: 12, color: COLORS.rust, marginTop: 6, fontFamily: FONTS.body },
+  inputError: { borderColor: '#B22A2A', borderWidth: 1.5 },
+  errText: { fontSize: 12, color: '#8B2A2A', marginTop: 6, fontFamily: FONTS.v2_body },
 
   bottomBar: {
     position: 'absolute',
@@ -326,19 +348,26 @@ const styles = StyleSheet.create({
     right: 0,
     padding: 20,
     paddingBottom: 40,
-    backgroundColor: COLORS.cream,
+    backgroundColor: COLORS.v2_cream,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(0,0,0,0.06)',
+    borderTopColor: 'rgba(61,31,14,0.08)',
     gap: 10,
   },
+  // Primary CTA — cinnamon (the one spark)
+  // v9 canonical CTA — action-deep
   btn: {
-    backgroundColor: COLORS.yolkLight,
+    backgroundColor: '#C07840',
     borderRadius: 999,
-    paddingVertical: 16,
+    paddingVertical: 15,
     alignItems: 'center',
+    shadowColor: '#945A41',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.24,
+    shadowRadius: 10,
+    elevation: 3,
   },
   btnDisabled: { opacity: 0.4 },
-  btnText: { color: COLORS.brownDeep, fontSize: 16, fontFamily: FONTS.bodySemiBold, letterSpacing: 0.3 },
+  btnText: { color: COLORS.v2_card, fontSize: 15, fontFamily: FONTS.v2_link, letterSpacing: 0.3 },
   skipBtn: { alignItems: 'center', paddingVertical: 4 },
-  skipText: { fontSize: 14, color: COLORS.textLight, fontFamily: FONTS.body },
+  skipText: { fontSize: 13, color: COLORS.v2_walnut, fontFamily: FONTS.v2_body },
 });

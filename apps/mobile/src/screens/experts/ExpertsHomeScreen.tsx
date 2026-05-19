@@ -14,6 +14,7 @@ import { useUserStore, getPreferredRadiusMiles } from '@store/user';
 import { SpecialistCard } from '@components/experts/SpecialistCard';
 import { ExpertsListSkeleton } from '@components/shared/SkeletonLoader';
 import { KenBurnsImage } from '@components/shared/KenBurnsImage';
+import { WarmGlowBackdrop } from '@components/shared/WarmGlowBackdrop';
 import type { ExpertsStackParamList } from '@/navigation/ExpertsNavigator';
 import type { SpecialtyType } from 'shared/src/types/v1';
 
@@ -126,12 +127,13 @@ export default function ExpertsHomeScreen({ navigation, route }: Props) {
     <>
       <View style={styles.heroHeader} accessibilityElementsHidden importantForAccessibility="no">
         <KenBurnsImage
-          source={{ uri: 'https://images.unsplash.com/photo-1551601651-2a8555f1a136?w=1200&h=1400&fit=crop&crop=center&q=85' }}
+          source={require('../../../assets/photos/specialist.jpg')}
           style={styles.heroHeaderImage}
         />
         <View style={styles.heroHeaderScrimTop} />
         <View style={styles.heroHeaderScrimMid} />
         <View style={styles.heroHeaderScrimBottom} />
+        <View style={styles.heroHeaderHaze} />
 
         <View style={styles.heroActionBar}>
           <TouchableOpacity
@@ -193,6 +195,7 @@ export default function ExpertsHomeScreen({ navigation, route }: Props) {
 
   return (
     <View style={styles.container}>
+      <WarmGlowBackdrop hideClusters />
       <FlashList
         data={loading ? [] : results}
         keyExtractor={(item) => item.id}
@@ -239,19 +242,19 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   backToVillage: { paddingVertical: 4, paddingRight: 8 },
-  backToVillageText: { fontSize: 14, color: COLORS.rust, fontFamily: FONTS.bodySemiBold },
+  backToVillageText: { fontSize: 14, color: '#C07840', fontFamily: FONTS.bodySemiBold },
   headerActions: { flexDirection: 'row', gap: 8 },
   savedBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'white',
+    backgroundColor: '#FDFBF6',
     borderRadius: 50,
     paddingVertical: 6,
     paddingHorizontal: 14,
     borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.08)',
+    borderColor: 'rgba(150,80,50,0.18)',
   },
-  savedBtnText: { fontSize: 12, fontFamily: FONTS.bodySemiBold, color: COLORS.textDark },
+  savedBtnText: { fontSize: 12, fontFamily: FONTS.bodySemiBold, color: COLORS.bark },
 
   // Title block — relative so the YolkCircle / LeafSprig can absolute-position
   // around the eyebrow + title without escaping the header column.
@@ -262,15 +265,16 @@ const styles = StyleSheet.create({
   },
   eyebrowRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 6 },
   eyebrowBar: {
-    width: 22, height: 2, backgroundColor: COLORS.rust,
+    width: 22, height: 2, backgroundColor: '#A77349',  // v9 rust-deep
     marginRight: 10, borderRadius: 1,
   },
-  // Canonical eyebrow values (editorial-system.md §1): 11pt, 1.6 letter-spacing,
-  // bodySemiBold, rust, uppercase, lineHeight matches the eyebrow row siblings.
+  // Canonical v9 eyebrow: 11pt, 1.6 letter-spacing, bodySemiBold,
+  // rust-deep `#9A4A2B`, uppercase. Unified across every hub + deep
+  // screen so the page-to-page rhythm reads as one voice.
   eyebrow: {
     fontSize: 11, lineHeight: 22, letterSpacing: 1.6,
     fontFamily: FONTS.bodySemiBold,
-    color: COLORS.rust,
+    color: '#A77349',
     textTransform: 'uppercase',
     includeFontPadding: false,
     textAlignVertical: 'center',
@@ -281,12 +285,12 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 32, lineHeight: 38,
     fontFamily: FONTS.headerItalic, fontStyle: 'italic',
-    color: COLORS.brownDeep,
+    color: COLORS.bark,
     marginBottom: 4,
   },
   headerSub: {
     fontSize: 14, lineHeight: 20,
-    color: COLORS.textMid, fontFamily: FONTS.body,
+    color: COLORS.barkSoft, fontFamily: FONTS.body,
     maxWidth: 320,
   },
   headerHairline: {
@@ -300,30 +304,32 @@ const styles = StyleSheet.create({
   // screen. Mirrors Milk Hub heroHeader pattern. Square edges (no border
   // radius) so the photo runs corner-to-corner like a print magazine cover.
   heroHeader: {
-    height: 420,
+    height: 340,
     position: 'relative',
-    backgroundColor: COLORS.brownDeep,
+    backgroundColor: COLORS.bark,
     overflow: 'hidden',
     // Negate FlashList contentContainerStyle's paddingHorizontal:16 so
     // the hero photo bleeds edge-to-edge.
     marginHorizontal: -16,
   },
   heroHeaderImage: { width: '100%', height: '100%' },
-  // Immersive scrim — three stacked layers form a faux vertical gradient
-  // (transparent at top, deep brown at bottom) so the typography sits in
-  // a darkened lower-third while the upper photo stays clean. Adds depth
-  // without requiring an extra native dep.
+  // Single light scrim — minimal darkening so action-bar text stays legible
+  // against any photo. Cream haze removed so the photo color reads true.
   heroHeaderScrimTop: {
     position: 'absolute', left: 0, right: 0, top: 0, height: '40%',
-    backgroundColor: 'rgba(44,26,14,0.10)',
+    backgroundColor: 'transparent',
   },
   heroHeaderScrimMid: {
-    position: 'absolute', left: 0, right: 0, top: '40%', height: '30%',
-    backgroundColor: 'rgba(44,26,14,0.28)',
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(44,26,14,0.20)',
   },
   heroHeaderScrimBottom: {
     position: 'absolute', left: 0, right: 0, bottom: 0, height: '40%',
-    backgroundColor: 'rgba(44,26,14,0.55)',
+    backgroundColor: 'transparent',
+  },
+  heroHeaderHaze: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'transparent',
   },
   heroActionBar: {
     position: 'absolute',
@@ -335,7 +341,7 @@ const styles = StyleSheet.create({
   },
   heroBackText: {
     fontSize: 14,
-    color: COLORS.cream,
+    color: '#FDFBF6',
     fontFamily: FONTS.bodySemiBold,
   },
   heroSavedBtn: {
@@ -346,7 +352,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(253,250,245,0.35)',
   },
   heroSavedBtnText: {
-    fontSize: 12, color: COLORS.cream, fontFamily: FONTS.bodySemiBold,
+    fontSize: 12, color: '#FDFBF6', fontFamily: FONTS.bodySemiBold,
   },
   heroCopy: {
     position: 'absolute',
@@ -362,20 +368,20 @@ const styles = StyleSheet.create({
   heroEyebrowText: {
     fontSize: 11, lineHeight: 16, letterSpacing: 1.6,
     fontFamily: FONTS.bodySemiBold,
-    color: COLORS.cream,
+    color: '#FDFBF6',
     textTransform: 'uppercase',
     opacity: 0.92,
   },
   heroTitle: {
     fontSize: 36, lineHeight: 42,
     fontFamily: FONTS.headerItalic, fontStyle: 'italic',
-    color: '#FFF',
+    color: '#FDFBF6',
     marginBottom: 8,
   },
   heroSub: {
     fontSize: 14, lineHeight: 20,
     fontFamily: FONTS.body,
-    color: COLORS.cream,
+    color: '#FDFBF6',
     opacity: 0.9,
     maxWidth: 340,
   },
@@ -383,21 +389,21 @@ const styles = StyleSheet.create({
   chipScroll: { flexGrow: 0 },
   chipContent: { paddingHorizontal: 16, paddingTop: 12, paddingBottom: 12, gap: 8, flexDirection: 'row' },
   chip: {
-    backgroundColor: 'white',
+    backgroundColor: '#FDFBF6',
     borderWidth: 1.5,
-    borderColor: 'rgba(0,0,0,0.1)',
+    borderColor: 'rgba(150,80,50,0.18)',
     borderRadius: 50,
     paddingVertical: 7,
     paddingHorizontal: 14,
   },
-  chipActive: { backgroundColor: COLORS.rust, borderColor: COLORS.rust },
-  chipText: { fontSize: 12, fontFamily: FONTS.bodyMedium, color: COLORS.textMid },
-  chipTextActive: { color: 'white' },
+  chipActive: { backgroundColor: COLORS.coco, borderColor: COLORS.coco },
+  chipText: { fontSize: 12, fontFamily: FONTS.bodyMedium, color: COLORS.barkSoft },
+  chipTextActive: { color: '#FDFBF6' },
 
-  list: { paddingHorizontal: 16, paddingTop: 0, paddingBottom: 100, gap: 14 },
+  list: { paddingHorizontal: 16, paddingTop: 0, paddingBottom: 100, gap: 20 },
 
   empty: { alignItems: 'center', paddingTop: 60 },
   emptyEmoji: { fontSize: 48, marginBottom: 12 },
-  emptyText: { fontSize: 16, fontFamily: FONTS.bodyMedium, color: COLORS.textDark, marginBottom: 4 },
+  emptyText: { fontSize: 16, fontFamily: FONTS.bodyMedium, color: COLORS.bark, marginBottom: 4 },
   emptySubText: { fontSize: 13, color: COLORS.textLight, fontFamily: FONTS.body },
 });

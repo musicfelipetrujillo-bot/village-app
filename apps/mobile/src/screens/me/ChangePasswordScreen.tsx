@@ -21,6 +21,7 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { COLORS, FONTS } from '@utils/constants';
+import { V9PageBackdrop } from '@components/shared/V9PageBackdrop';
 import { supabase } from '@/lib/supabase';
 import { useT } from '@/i18n';
 import type { MeStackParamList } from '@/navigation/MeNavigator';
@@ -60,9 +61,10 @@ export default function ChangePasswordScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: COLORS.cream }}
+      style={{ flex: 1, backgroundColor: 'transparent' }}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
+      <V9PageBackdrop />
       <ScrollView contentContainerStyle={s.container} keyboardShouldPersistTaps="handled">
         <TouchableOpacity
           style={s.back}
@@ -73,7 +75,16 @@ export default function ChangePasswordScreen() {
           <Text style={s.backText}>← {t('account.back')}</Text>
         </TouchableOpacity>
 
-        <Text style={s.title}>{t('account.pwTitle')}</Text>
+        {/* v9 editorial masthead — eyebrow + Playfair roman lead + italic
+            accent + hairline rule. Replaces the all-italic 32pt header. */}
+        <View style={s.eyebrowRow}>
+          <View style={s.eyebrowBar} />
+          <Text style={s.eyebrow}>{t('account.pwEyebrow')}</Text>
+        </View>
+        <Text style={s.title}>
+          {t('account.pwTitleLead')} <Text style={s.titleItalic}>{t('account.pwTitleEm')}</Text>
+        </Text>
+        <View style={s.titleRule} />
         <Text style={s.sub}>{t('account.pwSub')}</Text>
 
         <View style={s.form}>
@@ -124,7 +135,7 @@ export default function ChangePasswordScreen() {
             accessibilityState={{ disabled: !canSubmit, busy: loading }}
           >
             {loading ? (
-              <ActivityIndicator color={COLORS.white} />
+              <ActivityIndicator color={COLORS.paper} />
             ) : (
               <Text style={s.btnText}>{t('account.pwSubmit')}</Text>
             )}
@@ -137,45 +148,58 @@ export default function ChangePasswordScreen() {
 
 const s = StyleSheet.create({
   container: { padding: 28, paddingTop: 60, paddingBottom: 48 },
-  back: { marginBottom: 24 },
-  backText: { fontSize: 15, color: COLORS.rust, fontFamily: FONTS.bodySemiBold },
+  back: { marginBottom: 18 },
+  backText: { fontSize: 15, color: '#C07840', fontFamily: FONTS.bodySemiBold },
+  // v9 editorial masthead
+  eyebrowRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
+  eyebrowBar: { width: 22, height: 2, backgroundColor: '#A77349', marginRight: 10, borderRadius: 1 },
+  eyebrow: { fontSize: 10, fontFamily: FONTS.bodySemiBold, color: '#A77349', letterSpacing: 1.8, textTransform: 'uppercase' },
   title: {
     fontFamily: FONTS.headerBold,
     fontSize: 32,
-    color: COLORS.textDark,
-    fontStyle: 'italic',
-    marginBottom: 12,
-    lineHeight: 40,
+    color: COLORS.bark,
+    lineHeight: 38,
+    letterSpacing: -0.5,
+    marginBottom: 8,
+  },
+  titleItalic: { fontFamily: FONTS.headerItalic, fontStyle: 'italic', color: '#C07840' },
+  titleRule: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: 'rgba(61,31,13,0.18)',
+    marginTop: 6, marginBottom: 14, width: 48,
   },
   sub: {
     fontFamily: FONTS.body,
     fontSize: 14,
-    color: COLORS.textMid,
+    color: COLORS.barkSoft,
     marginBottom: 24,
     lineHeight: 22,
   },
   form: { gap: 16 },
   inputGroup: { gap: 6 },
-  label: { fontSize: 13, fontFamily: FONTS.bodySemiBold, color: COLORS.textMid },
+  label: { fontSize: 13, fontFamily: FONTS.bodySemiBold, color: COLORS.barkSoft },
   input: {
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.paper,
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 14,
     fontSize: 15,
-    color: COLORS.textDark,
+    color: COLORS.bark,
     borderWidth: 1.5,
-    borderColor: 'rgba(0,0,0,0.08)',
+    borderColor: 'rgba(150,80,50,0.18)',
   },
-  inputError: { borderColor: COLORS.rust },
-  hint: { fontSize: 12, color: COLORS.rustDark, marginTop: 2 },
+  inputError: { borderColor: COLORS.coco },
+  hint: { fontSize: 12, color: '#A77349', marginTop: 2 },
+  // v9 canonical CTA — rect variant
   btn: {
-    backgroundColor: COLORS.rust,
+    backgroundColor: '#C07840',
     borderRadius: 14,
     paddingVertical: 16,
     alignItems: 'center',
     marginTop: 8,
+    shadowColor: '#945A41', shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.24, shadowRadius: 10, elevation: 3,
   },
-  btnDisabled: { opacity: 0.6 },
-  btnText: { color: COLORS.white, fontSize: 16, fontFamily: FONTS.bodySemiBold },
+  btnDisabled: { opacity: 0.45 },
+  btnText: { color: '#FDFBF6', fontSize: 16, fontFamily: FONTS.bodySemiBold },
 });

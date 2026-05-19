@@ -216,8 +216,8 @@ export default function InternalAgentsScreen() {
           <Switch
             value={approvedForPlanning}
             onValueChange={setApprovedForPlanning}
-            trackColor={{ false: '#D9CDBC', true: COLORS.rustLight }}
-            thumbColor={approvedForPlanning ? COLORS.rust : '#F0E4D3'}
+            trackColor={{ false: '#D9CDBC', true: COLORS.cocoSoft }}
+            thumbColor={approvedForPlanning ? COLORS.coco : '#F0E4D3'}
           />
         </View>
 
@@ -230,7 +230,7 @@ export default function InternalAgentsScreen() {
             accessibilityLabel="Send triage request"
           >
             {loading && mode === 'triage'
-              ? <ActivityIndicator color={COLORS.white} />
+              ? <ActivityIndicator color={COLORS.paper} />
               : <Text style={s.primaryBtnTxt}>Triage</Text>}
           </TouchableOpacity>
           <TouchableOpacity
@@ -241,7 +241,7 @@ export default function InternalAgentsScreen() {
             accessibilityLabel="Send run request"
           >
             {loading && mode === 'run'
-              ? <ActivityIndicator color={COLORS.white} />
+              ? <ActivityIndicator color={COLORS.paper} />
               : <Text style={s.primaryBtnTxt}>Run</Text>}
           </TouchableOpacity>
         </View>
@@ -325,35 +325,35 @@ const s = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(0,0,0,0.06)',
   },
-  close: { fontSize: 22, color: COLORS.textDark, width: 24 },
+  close: { fontSize: 22, color: COLORS.bark, width: 24 },
   title: {
     fontFamily: FONTS.headerBold,
     fontSize: 18,
-    color: COLORS.textDark,
+    color: COLORS.bark,
   },
   helpTxt: {
     fontFamily: FONTS.body,
     fontSize: 13,
-    color: COLORS.textMid,
+    color: COLORS.barkSoft,
     marginBottom: 12,
   },
   label: {
     fontFamily: FONTS.bodySemiBold,
     fontSize: 12,
-    color: COLORS.textMid,
+    color: COLORS.barkSoft,
     marginTop: 12,
     marginBottom: 6,
     textTransform: 'uppercase',
     letterSpacing: 0.6,
   },
   input: {
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.paper,
     borderRadius: 10,
     paddingHorizontal: 12,
     paddingVertical: 10,
     fontFamily: FONTS.body,
     fontSize: 14,
-    color: COLORS.textDark,
+    color: COLORS.bark,
     borderWidth: 1,
     borderColor: 'rgba(0,0,0,0.08)',
   },
@@ -370,33 +370,33 @@ const s = StyleSheet.create({
     marginRight: 12,
     fontFamily: FONTS.body,
     fontSize: 13,
-    color: COLORS.textMid,
+    color: COLORS.barkSoft,
   },
   actionRow: { flexDirection: 'row', gap: 10, marginTop: 20 },
   primaryBtn: {
     flex: 1,
-    backgroundColor: COLORS.rust,
+    backgroundColor: COLORS.coco,
     borderRadius: 10,
     paddingVertical: 14,
     alignItems: 'center',
   },
   primaryBtnAlt: {
     flex: 1,
-    backgroundColor: COLORS.olive,
+    backgroundColor: COLORS.sage,
     borderRadius: 10,
     paddingVertical: 14,
     alignItems: 'center',
   },
   primaryBtnTxt: {
     fontFamily: FONTS.bodySemiBold,
-    color: COLORS.white,
+    color: COLORS.paper,
     fontSize: 14,
     letterSpacing: 0.5,
   },
   btnDisabled: { opacity: 0.6 },
   secondaryBtn: {
     alignSelf: 'flex-start',
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.paper,
     borderWidth: 1,
     borderColor: 'rgba(0,0,0,0.12)',
     paddingHorizontal: 14,
@@ -405,14 +405,14 @@ const s = StyleSheet.create({
   },
   secondaryBtnTxt: {
     fontFamily: FONTS.bodySemiBold,
-    color: COLORS.textDark,
+    color: COLORS.bark,
     fontSize: 12,
   },
   healthRow: { marginBottom: 12 },
   cardBlock: {
     marginTop: 24,
-    padding: 14,
-    backgroundColor: COLORS.white,
+    padding: 16,
+    backgroundColor: COLORS.paper,
     borderRadius: 12,
     borderWidth: 1,
     borderColor: 'rgba(0,0,0,0.08)',
@@ -420,46 +420,46 @@ const s = StyleSheet.create({
   cardTitle: {
     fontFamily: FONTS.headerBold,
     fontSize: 16,
-    color: COLORS.textDark,
+    color: COLORS.bark,
     marginBottom: 10,
   },
   reviewBanner: {
     backgroundColor: '#FBE7E1',
-    borderColor: COLORS.rustDark,
+    borderColor: COLORS.cocoDeep,
     borderWidth: 1,
-    padding: 10,
+    padding: 8,
     borderRadius: 8,
     marginBottom: 10,
   },
   reviewTxt: {
     fontFamily: FONTS.bodySemiBold,
-    color: COLORS.rustDark,
+    color: COLORS.cocoDeep,
     fontSize: 13,
   },
   driftBanner: {
     backgroundColor: '#FFF5DB',
-    borderColor: COLORS.gold,
+    borderColor: COLORS.sand,
     borderWidth: 1,
-    padding: 10,
+    padding: 8,
     borderRadius: 8,
     marginBottom: 10,
   },
   driftTxt: {
     fontFamily: FONTS.body,
-    color: COLORS.brownMid,
+    color: COLORS.barkSoft,
     fontSize: 12,
   },
   errorBanner: {
     backgroundColor: '#F7E0DC',
-    borderColor: COLORS.rustDark,
+    borderColor: COLORS.cocoDeep,
     borderWidth: 1,
-    padding: 10,
+    padding: 8,
     borderRadius: 8,
     marginTop: 10,
   },
   errorTxt: {
     fontFamily: FONTS.body,
-    color: COLORS.rustDark,
+    color: COLORS.cocoDeep,
     fontSize: 12,
   },
   row: {
@@ -472,7 +472,7 @@ const s = StyleSheet.create({
     width: 110,
     fontFamily: FONTS.bodySemiBold,
     fontSize: 12,
-    color: COLORS.textMid,
+    color: COLORS.barkSoft,
     textTransform: 'uppercase',
     letterSpacing: 0.4,
   },
@@ -480,7 +480,7 @@ const s = StyleSheet.create({
     flex: 1,
     fontFamily: FONTS.body,
     fontSize: 13,
-    color: COLORS.textDark,
+    color: COLORS.bark,
   },
   rowVWrap: { marginTop: 2 },
   pre: {

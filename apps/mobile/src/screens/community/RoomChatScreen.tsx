@@ -331,7 +331,7 @@ export default function RoomChatScreen({ navigation, route }: Props) {
         keyboardVerticalOffset={Platform.OS === 'ios' ? 88 : 0}
       >
         {loading ? (
-          <ActivityIndicator style={{ marginTop: 32 }} color={COLORS.rust} />
+          <ActivityIndicator color="#C07840" />
         ) : (
           <FlatList
             ref={listRef}
@@ -397,7 +397,7 @@ export default function RoomChatScreen({ navigation, route }: Props) {
             accessibilityRole="button"
             accessibilityLabel="Send message"
           >
-            {sending ? <ActivityIndicator color="#FFF" /> : <Text style={styles.sendBtnText}>Send</Text>}
+            {sending ? <ActivityIndicator color="#FDFBF6" /> : <Text style={styles.sendBtnText}>Send</Text>}
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
@@ -537,11 +537,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center',
     paddingHorizontal: 16, paddingVertical: 12,
     borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.06)',
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.paper,
   },
-  back:               { fontSize: 15, color: COLORS.rust, fontFamily: FONTS.bodyMedium, paddingRight: 14 },
+  back:               { fontSize: 15, color: '#C07840', fontFamily: FONTS.bodyMedium, paddingRight: 14 },
   headerTitleWrap:    { flex: 1 },
-  headerTitle:        { fontSize: 16, fontFamily: FONTS.bodySemiBold, color: COLORS.brownDeep },
+  headerTitle:        { fontSize: 16, fontFamily: FONTS.bodySemiBold, color: COLORS.bark },
   headerMeta:         { fontSize: 12, color: COLORS.textLight, marginTop: 2 },
 
   pinnedBar: {
@@ -551,7 +551,7 @@ const styles = StyleSheet.create({
   },
   pinnedTitle: {
     fontSize: 11, fontFamily: FONTS.bodySemiBold,
-    color: COLORS.textMid, textTransform: 'uppercase', letterSpacing: 0.7,
+    color: COLORS.barkSoft, textTransform: 'uppercase', letterSpacing: 0.7,
     marginBottom: 6,
   },
   pinnedRow:          {
@@ -559,8 +559,8 @@ const styles = StyleSheet.create({
     paddingVertical: 7,
   },
   pinnedEmoji:        { fontSize: 16, marginRight: 8 },
-  pinnedRowText:      { flex: 1, fontSize: 13, fontFamily: FONTS.bodyMedium, color: COLORS.brownDeep },
-  pinnedRowArrow:     { color: COLORS.rust, fontSize: 16 },
+  pinnedRowText:      { flex: 1, fontSize: 13, fontFamily: FONTS.bodyMedium, color: COLORS.bark },
+  pinnedRowArrow:     { color: '#A77349', fontSize: 16 },
 
   chatArea:           { flex: 1 },
   feed:               { padding: 12, flexGrow: 1, justifyContent: 'flex-end' },
@@ -574,18 +574,18 @@ const styles = StyleSheet.create({
   bubble:             {
     borderRadius: 16, paddingHorizontal: 14, paddingVertical: 10,
   },
-  bubbleTheirs:       { backgroundColor: COLORS.white, borderBottomLeftRadius: 4 },
-  bubbleMine:         { backgroundColor: COLORS.rust, borderBottomRightRadius: 4 },
+  bubbleTheirs:       { backgroundColor: COLORS.paper, borderBottomLeftRadius: 4 },
+  bubbleMine:         { backgroundColor: COLORS.coco, borderBottomRightRadius: 4 },
   bubbleCompanion:    {
     backgroundColor: '#F5E9D8',
     borderLeftWidth: 3,
-    borderLeftColor: COLORS.gold,
+    borderLeftColor: COLORS.sand,
     borderBottomLeftRadius: 4,
   },
-  bubbleTextCompanion:{ color: COLORS.brownDeep },
+  bubbleTextCompanion:{ color: COLORS.bark },
   bubblePending:      { opacity: 0.75 },
   companionName:      {
-    fontSize: 11, fontFamily: FONTS.bodySemiBold, color: COLORS.gold,
+    fontSize: 11, fontFamily: FONTS.bodySemiBold, color: COLORS.sand,
     marginBottom: 3, marginLeft: 10, textTransform: 'uppercase', letterSpacing: 0.4,
   },
 
@@ -596,7 +596,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14, paddingVertical: 10,
     maxWidth: '90%',
   },
-  systemText:         { fontSize: 13, color: COLORS.brownDeep, lineHeight: 19 },
+  systemText:         { fontSize: 13, color: COLORS.bark, lineHeight: 19 },
   systemMeta:         { fontSize: 10, color: COLORS.textLight, marginTop: 6, alignSelf: 'flex-end' },
 
   icebreakerWrap: {
@@ -604,22 +604,22 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF5E6',
     borderRadius: 14,
     paddingHorizontal: 14, paddingVertical: 10,
-    borderLeftWidth: 3, borderLeftColor: COLORS.gold,
+    borderLeftWidth: 3, borderLeftColor: COLORS.sand,
   },
   icebreakerHeader: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     marginBottom: 4,
   },
   icebreakerLabel: {
-    fontSize: 11, fontFamily: FONTS.bodySemiBold, color: COLORS.gold,
+    fontSize: 11, fontFamily: FONTS.bodySemiBold, color: COLORS.sand,
     textTransform: 'uppercase', letterSpacing: 0.5,
   },
   icebreakerDismiss: {
     fontSize: 12, fontFamily: FONTS.bodyMedium, color: COLORS.textLight,
   },
-  icebreakerText: { fontSize: 14, color: COLORS.brownDeep, lineHeight: 20 },
+  icebreakerText: { fontSize: 14, color: COLORS.bark, lineHeight: 20 },
   icebreakerHint: { fontSize: 11, color: COLORS.textLight, marginTop: 4 },
-  bubbleText:         { fontSize: 15, color: COLORS.brownDeep, lineHeight: 21 },
+  bubbleText:         { fontSize: 15, color: COLORS.bark, lineHeight: 21 },
   bubbleTextMine:     { color: '#FFF' },
   bubbleFooter:       {
     flexDirection: 'row', alignItems: 'center',
@@ -644,35 +644,35 @@ const styles = StyleSheet.create({
     marginRight: 4, marginTop: 2,
     borderWidth: 1, borderColor: 'transparent',
   },
-  reactionChipActive: { borderColor: COLORS.rust, backgroundColor: 'rgba(184,92,56,0.12)' },
+  reactionChipActive: { borderColor: COLORS.coco, backgroundColor: 'rgba(184,92,56,0.12)' },
   reactionChipEmoji:  { fontSize: 13, marginRight: 4 },
-  reactionChipCount:  { fontSize: 11, fontFamily: FONTS.bodySemiBold, color: COLORS.textMid },
-  reactionChipCountActive: { color: COLORS.rust },
+  reactionChipCount:  { fontSize: 11, fontFamily: FONTS.bodySemiBold, color: COLORS.barkSoft },
+  reactionChipCountActive: { color: COLORS.coco },
 
   composer: {
     flexDirection: 'row', alignItems: 'flex-end',
-    padding: 10, gap: 8,
-    backgroundColor: COLORS.white,
+    padding: 8, gap: 8,
+    backgroundColor: COLORS.paper,
     borderTopWidth: 1, borderTopColor: 'rgba(0,0,0,0.06)',
   },
   input: {
     flex: 1, minHeight: 40, maxHeight: 120,
     backgroundColor: COLORS.cream,
     borderRadius: 18, paddingHorizontal: 14, paddingVertical: 10,
-    fontSize: 15, color: COLORS.brownDeep,
+    fontSize: 15, color: COLORS.bark,
   },
   sendBtn: {
-    backgroundColor: COLORS.rust,
+    backgroundColor: COLORS.coco,
     borderRadius: 18, paddingHorizontal: 16, paddingVertical: 10,
     alignItems: 'center', justifyContent: 'center',
     minWidth: 64,
   },
-  sendBtnText: { color: '#FFF', fontSize: 14, fontFamily: FONTS.bodySemiBold },
+  sendBtnText: { color: '#FDFBF6', fontSize: 14, fontFamily: FONTS.bodySemiBold },
 
   emptyWrap:          { alignItems: 'center', paddingVertical: 40, paddingHorizontal: 24 },
   emptyEmoji:         { fontSize: 44, marginBottom: 12 },
-  emptyTitle:         { fontSize: 16, fontFamily: FONTS.bodySemiBold, color: COLORS.brownDeep, marginBottom: 6 },
-  emptyBody:          { fontSize: 13, color: COLORS.textMid, textAlign: 'center', lineHeight: 19 },
+  emptyTitle:         { fontSize: 16, fontFamily: FONTS.bodySemiBold, color: COLORS.bark, marginBottom: 6 },
+  emptyBody:          { fontSize: 13, color: COLORS.barkSoft, textAlign: 'center', lineHeight: 19 },
 
   reactionBackdrop: {
     flex: 1, backgroundColor: 'rgba(0,0,0,0.4)',
@@ -680,7 +680,7 @@ const styles = StyleSheet.create({
   },
   reactionSheet: {
     flexDirection: 'row',
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.paper,
     paddingHorizontal: 8, paddingVertical: 10,
     borderRadius: 24,
   },

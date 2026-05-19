@@ -17,6 +17,7 @@ import {
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useUserStore } from '@store/user';
+import { V9PageBackdrop } from '@components/shared/V9PageBackdrop';
 import { supabase } from '@/lib/supabase';
 import {
   COLORS, FONTS,
@@ -57,6 +58,7 @@ export default function RadiusPreferenceScreen({ navigation }: Props) {
 
   return (
     <SafeAreaView style={s.safe}>
+      <V9PageBackdrop />
       <View style={s.topBar}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
@@ -67,11 +69,20 @@ export default function RadiusPreferenceScreen({ navigation }: Props) {
         </TouchableOpacity>
         <Text style={s.topTitle}>{t('radius.topTitle')}</Text>
         <View style={s.topSpacer}>
-          {saving ? <ActivityIndicator color={COLORS.rust} /> : null}
+          {saving ? <ActivityIndicator color="#C07840" /> : null}
         </View>
       </View>
 
       <ScrollView contentContainerStyle={s.content}>
+        {/* v9 editorial masthead */}
+        <View style={s.eyebrowRow}>
+          <View style={s.eyebrowBar} />
+          <Text style={s.eyebrow}>{t('radius.headerEyebrow')}</Text>
+        </View>
+        <Text style={s.headerTitle}>
+          {t('radius.headerTitleLead')} <Text style={s.headerTitleEm}>{t('radius.headerTitleEm')}</Text>
+        </Text>
+        <View style={s.headerRule} />
         <View style={s.currentCard}>
           <Text style={s.currentLabel}>{t('radius.currentLabel')}</Text>
           <Text style={s.currentValue}>{t('radius.currentValue', { miles: current })}</Text>
@@ -104,7 +115,7 @@ export default function RadiusPreferenceScreen({ navigation }: Props) {
 }
 
 const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: COLORS.cream },
+  safe: { flex: 1, backgroundColor: 'transparent' },
   topBar: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -118,19 +129,33 @@ const s = StyleSheet.create({
   topTitle: {
     fontFamily: FONTS.headerBold,
     fontSize: 16,
-    color: COLORS.textDark,
+    color: COLORS.bark,
   },
   topLink: {
     fontFamily: FONTS.bodySemiBold,
     fontSize: 14,
-    color: COLORS.rust,
+    color: '#C07840',
   },
   topSpacer: { width: 52, alignItems: 'flex-end' },
 
   content: { padding: 20, paddingBottom: 48, gap: 20 },
 
+  // v9 editorial masthead
+  eyebrowRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
+  eyebrowBar: { width: 22, height: 2, backgroundColor: '#A77349', marginRight: 10, borderRadius: 1 },
+  eyebrow: { fontSize: 10, fontFamily: FONTS.bodySemiBold, color: '#A77349', letterSpacing: 1.8, textTransform: 'uppercase' },
+  headerTitle: {
+    fontFamily: FONTS.headerBold, fontSize: 32, color: COLORS.bark,
+    lineHeight: 38, letterSpacing: -0.5, marginBottom: 4,
+  },
+  headerTitleEm: { fontFamily: FONTS.headerItalic, fontStyle: 'italic', color: '#C07840' },
+  headerRule: {
+    height: StyleSheet.hairlineWidth, backgroundColor: 'rgba(61,31,13,0.18)',
+    marginTop: 6, marginBottom: 4, width: 48,
+  },
+
   currentCard: {
-    backgroundColor: COLORS.cardBg,
+    backgroundColor: COLORS.paper,
     borderRadius: 16,
     paddingVertical: 24,
     paddingHorizontal: 20,
@@ -139,19 +164,19 @@ const s = StyleSheet.create({
   currentLabel: {
     fontFamily: FONTS.body,
     fontSize: 13,
-    color: COLORS.textMid,
+    color: COLORS.barkSoft,
   },
   currentValue: {
     fontFamily: FONTS.headerBold,
     fontSize: 40,
-    color: COLORS.rust,
+    color: '#A77349',
     marginTop: 6,
   },
 
   sectionTitle: {
     fontFamily: FONTS.bodySemiBold,
     fontSize: 13,
-    color: COLORS.textMid,
+    color: COLORS.barkSoft,
     letterSpacing: 0.3,
     textTransform: 'uppercase',
     marginTop: 4,
@@ -166,19 +191,19 @@ const s = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 999,
     borderWidth: 1.5,
-    borderColor: 'rgba(0,0,0,0.08)',
-    backgroundColor: COLORS.cardBg,
+    borderColor: 'rgba(150,80,50,0.18)',
+    backgroundColor: COLORS.paper,
   },
   chipActive: {
-    borderColor: COLORS.rust,
-    backgroundColor: COLORS.rust,
+    borderColor: '#C07840',                                            // v9 active = cinnamon
+    backgroundColor: '#C07840',
   },
   chipText: {
     fontFamily: FONTS.bodySemiBold,
     fontSize: 14,
-    color: COLORS.textDark,
+    color: COLORS.bark,
   },
-  chipTextActive: { color: COLORS.white },
+  chipTextActive: { color: COLORS.paper },
 
   help: {
     fontFamily: FONTS.body,

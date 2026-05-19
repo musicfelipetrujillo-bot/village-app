@@ -6,6 +6,7 @@ import {
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { COLORS, FONTS } from '@utils/constants';
+import { V9PageBackdrop } from '@components/shared/V9PageBackdrop';
 import { useT } from '@/i18n';
 import { useExpertsStore } from '@store/experts';
 import { useAuthStore } from '@store/auth';
@@ -66,6 +67,7 @@ export default function ReviewSubmitScreen({ navigation, route }: Props) {
       style={{ flex: 1 }}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
+      <V9PageBackdrop />
       <View style={styles.container}>
         {/* Header */}
         <View style={styles.headerRow}>
@@ -146,7 +148,7 @@ export default function ReviewSubmitScreen({ navigation, route }: Props) {
             accessibilityState={{ disabled: submitting || rating === 0 }}
           >
             {submitting ? (
-              <ActivityIndicator color="white" />
+              <ActivityIndicator color="#FDFBF6" />
             ) : (
               <Text style={styles.submitText}>{t('reviewSubmit.submitCta')}</Text>
             )}
@@ -162,7 +164,7 @@ export default function ReviewSubmitScreen({ navigation, route }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.cream },
+  container: { flex: 1, backgroundColor: 'transparent' },
 
   headerRow: {
     flexDirection: 'row',
@@ -173,14 +175,14 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(0,0,0,0.07)',
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.paper,
   },
   cancelBtn: { width: 60 },
-  cancelText: { fontSize: 15, color: COLORS.rust, fontFamily: FONTS.bodyMedium },
+  cancelText: { fontSize: 15, color: '#A77349', fontFamily: FONTS.bodyMedium },
   headerTitle: {
     fontFamily: FONTS.headerItalic,
     fontSize: 17,
-    color: COLORS.textDark,
+    color: COLORS.bark,
   },
 
   content: { padding: 20, paddingBottom: 60, gap: 24 },
@@ -189,23 +191,23 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    backgroundColor: 'white',
+    backgroundColor: COLORS.paper,
     borderRadius: 14,
-    padding: 14,
+    padding: 16,
   },
   avatarSmall: {
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: COLORS.rustLight + '44',
+    backgroundColor: COLORS.cocoSoft + '44',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  providerName: { fontSize: 15, fontFamily: FONTS.bodySemiBold, color: COLORS.textDark },
+  providerName: { fontSize: 15, fontFamily: FONTS.bodySemiBold, color: COLORS.bark },
   providerSub: { fontSize: 12, color: COLORS.textLight, marginTop: 2, fontFamily: FONTS.body },
 
   starsSection: {
-    backgroundColor: 'white',
+    backgroundColor: COLORS.paper,
     borderRadius: 16,
     padding: 20,
     alignItems: 'center',
@@ -214,34 +216,37 @@ const styles = StyleSheet.create({
   starsLabel: { fontSize: 13, color: COLORS.textLight, fontFamily: FONTS.bodyMedium, textTransform: 'uppercase', letterSpacing: 0.8 },
   starsRow: { flexDirection: 'row', gap: 8 },
   star: { fontSize: 44, color: 'rgba(0,0,0,0.15)' },
-  starFilled: { color: COLORS.gold },
-  ratingLabel: { fontSize: 15, fontFamily: FONTS.bodySemiBold, color: COLORS.textDark, minHeight: 20 },
+  starFilled: { color: COLORS.sand },
+  ratingLabel: { fontSize: 15, fontFamily: FONTS.bodySemiBold, color: COLORS.bark, minHeight: 20 },
 
   inputSection: { gap: 8 },
-  inputLabel: { fontSize: 13, fontFamily: FONTS.bodyMedium, color: COLORS.textDark, letterSpacing: 0.3 },
+  inputLabel: { fontSize: 13, fontFamily: FONTS.bodyMedium, color: COLORS.bark, letterSpacing: 0.3 },
   optional: { color: COLORS.textLight, fontFamily: FONTS.body },
   textInput: {
-    backgroundColor: 'white',
+    backgroundColor: COLORS.paper,
     borderRadius: 14,
-    padding: 14,
+    padding: 16,
     fontSize: 14,
-    color: COLORS.textDark,
+    color: COLORS.bark,
     lineHeight: 22,
     minHeight: 140,
     borderWidth: 1.5,
-    borderColor: 'rgba(0,0,0,0.08)',
+    borderColor: 'rgba(150,80,50,0.18)',
     fontFamily: FONTS.body,
   },
   charCount: { fontSize: 11, color: COLORS.textLight, textAlign: 'right', fontFamily: FONTS.body },
 
+  // v9 canonical CTA — rect variant
   submitBtn: {
-    backgroundColor: COLORS.rust,
+    backgroundColor: '#C07840',
     borderRadius: 14,
     paddingVertical: 16,
     alignItems: 'center',
+    shadowColor: '#945A41', shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.24, shadowRadius: 10, elevation: 3,
   },
   submitBtnDisabled: { opacity: 0.45 },
-  submitText: { color: 'white', fontSize: 16, fontFamily: FONTS.bodySemiBold },
+  submitText: { color: '#FDFBF6', fontSize: 16, fontFamily: FONTS.bodySemiBold },
 
   disclaimer: {
     fontSize: 12,

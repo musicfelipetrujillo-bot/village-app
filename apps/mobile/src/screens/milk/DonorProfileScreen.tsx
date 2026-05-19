@@ -13,14 +13,16 @@ import {
 } from '@api/milk';
 import type { DonorPublicProfile, MilkReview, MilkListing, MilkTrustBadge , DietFlagKey } from '@api/milk';
 import { COLORS, FONTS } from '@utils/constants';
+import { V9PageBackdrop } from '@components/shared/V9PageBackdrop';
+import { GlassHighlight } from '@components/shared/GlassHighlight';
 import { useT } from '@/i18n';
+import type { MilkStackParamList } from '@/navigation/MilkNavigator';
 
 type T = ReturnType<typeof useT>;
-import type { MilkStackParamList } from '@/navigation/MilkNavigator';
 
 type Props = NativeStackScreenProps<MilkStackParamList, 'DonorProfile'>;
 
-const BADGE_COLOR = { none: '#9A8070', basic: '#D87530', verified: '#6B7C3F', verified_bloodwork: '#2E7D32' };
+const BADGE_COLOR = { none: COLORS.textLight, basic: COLORS.statusAlert, verified: COLORS.sageDeep, verified_bloodwork: COLORS.statusSuccess };
 const BADGE_LABEL_KEYS: Record<keyof typeof BADGE_COLOR, string> = {
   none: 'donorProfile.badgeNone',
   basic: 'donorProfile.badgeBasic',
@@ -108,7 +110,8 @@ export default function DonorProfileScreen({ route, navigation }: Props) {
     if (!user) return;
     setSaved((prev) => !prev);
     try {
-      saved ? await unsaveDonor(user.id, donorProfileId) : await saveDonor(user.id, donorProfileId);
+      if (saved) await unsaveDonor(user.id, donorProfileId);
+      else await saveDonor(user.id, donorProfileId);
     } catch {
       setSaved((prev) => !prev); // rollback
     }
@@ -139,7 +142,7 @@ export default function DonorProfileScreen({ route, navigation }: Props) {
         >
           <Text style={styles.backText}>← {t('donorProfile.back')}</Text>
         </TouchableOpacity>
-        <ActivityIndicator color={COLORS.rust} size="large" />
+        <ActivityIndicator color="#C07840" size="large" />
       </View>
     );
   }
@@ -160,6 +163,7 @@ export default function DonorProfileScreen({ route, navigation }: Props) {
 
   return (
     <View style={styles.container}>
+      <V9PageBackdrop />
       <Animated.ScrollView
         style={{ opacity: fadeAnim }}
         contentContainerStyle={styles.scrollContent}
@@ -206,11 +210,18 @@ export default function DonorProfileScreen({ route, navigation }: Props) {
               )}
             </View>
           </View>
+          {/* v9 editorial hairline rule */}
+          <View style={styles.heroRule} />
         </View>
 
         {/* ── AI Match Narrative ── */}
+        {/* v9 hero glass sheen — the AI narrative is the most premium "in
+            their voice" moment on the donor profile. Sheen gives it the
+            iOS-26 wet-glass top highlight so it reads as a curated, distinct
+            beat above the trust/diet/review cards below. */}
         {narrative && (
           <View style={styles.narrativeCard}>
+            <GlassHighlight radius={14} height={16} />
             <Text style={styles.narrativeLabel}>{t('donorProfile.narrativeLabel')}</Text>
             <Text style={styles.narrativeText}>{narrative}</Text>
           </View>
@@ -413,7 +424,7 @@ export default function DonorProfileScreen({ route, navigation }: Props) {
               textAlignVertical="top"
             />
 
-            {qaLoading && <ActivityIndicator color={COLORS.rust} style={{ marginVertical: 12 }} />}
+            {qaLoading && <ActivityIndicator color="#C07840" style={{ marginVertical: 12 }} />}
 
             {qaAnswer && (
               <View style={styles.qaAnswer}>
@@ -445,51 +456,61 @@ export default function DonorProfileScreen({ route, navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F5F0E8' },
+  container: { flex: 1, backgroundColor: 'transparent' },
   loadingContainer: { flex: 1, backgroundColor: '#F5F0E8', alignItems: 'center', justifyContent: 'center' },
   scrollContent: { paddingBottom: 160 },
 
   // Hero
-  hero: { backgroundColor: '#FFF', paddingBottom: 20 },
+  hero: { backgroundColor: COLORS.paper, paddingBottom: 20 },
   backBtn: { paddingTop: 56, paddingHorizontal: 16, paddingBottom: 12 },
   backBtnAbsolute: { position: 'absolute', top: 56, left: 16 },
-  backText: { fontSize: 15, color: '#9A8070', fontFamily: FONTS.bodyMedium },
+  backText: { fontSize: 15, color: '#C07840', fontFamily: FONTS.bodySemiBold },
   heroContent: { flexDirection: 'row', paddingHorizontal: 20, gap: 16, alignItems: 'flex-start' },
   avatar: { width: 76, height: 76, borderRadius: 38 },
   avatarPlaceholder: {
     width: 76, height: 76, borderRadius: 38,
     backgroundColor: '#F0D9C8', alignItems: 'center', justifyContent: 'center',
   },
-  avatarInitial: { fontSize: 30, fontFamily: FONTS.bodySemiBold, color: '#D87530' },
+  avatarInitial: { fontSize: 30, fontFamily: FONTS.bodySemiBold, color: COLORS.coco },
   heroInfo: { flex: 1, gap: 6 },
+  heroRule: {
+    height: StyleSheet.hairlineWidth, backgroundColor: 'rgba(61,31,13,0.18)',
+    marginTop: 18, marginLeft: 20, width: 48,
+  },
   heroNameRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   heroName: { fontSize: 22, fontFamily: FONTS.headerItalic, color: '#2C1810', flex: 1, marginRight: 8 },
   heart: { fontSize: 26, color: '#C5B8AE' },
-  heartSaved: { color: '#D87530' },
+  heartSaved: { color: COLORS.coco },
   heroLocation: { fontSize: 13, color: '#9A8070', fontFamily: FONTS.bodyMedium },
   badgePill: { alignSelf: 'flex-start', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20 },
-  badgePillText: { fontSize: 11, fontFamily: FONTS.bodySemiBold, color: '#FFF' },
+  badgePillText: { fontSize: 11, fontFamily: FONTS.bodySemiBold, color: '#FDFBF6' },
 
-  // AI Narrative
+  // AI Narrative — v9: side-stripe was a v9 absolute ban → full cinnamon hairline.
   narrativeCard: {
     margin: 16, backgroundColor: '#FFF9F0', borderRadius: 14, padding: 16,
-    borderLeftWidth: 3, borderLeftColor: '#D87530',
+    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(192,120,64,0.35)',
   },
-  narrativeLabel: { fontSize: 11, fontFamily: FONTS.bodySemiBold, color: '#D87530', marginBottom: 8, letterSpacing: 0.6 },
+  narrativeLabel: { fontSize: 11, fontFamily: FONTS.bodySemiBold, color: '#A77349', marginBottom: 8, letterSpacing: 0.6 },
   narrativeText: { fontSize: 14, color: '#2C1810', lineHeight: 22, fontFamily: FONTS.headerItalic },
 
-  // Cards
+  // Cards — v9 paper lift, cocoa drop matching the rest of the app.
   card: {
-    margin: 16, marginTop: 0, backgroundColor: '#FFF',
+    margin: 16, marginTop: 0, backgroundColor: COLORS.paper,
     borderRadius: 16, padding: 18,
-    shadowColor: '#000', shadowOpacity: 0.04, shadowRadius: 6, elevation: 2,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(150, 80, 50, 0.18)',
+    shadowColor: '#6B2E0E',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.18,
+    shadowRadius: 18,
+    elevation: 5,
   },
   cardTitle: { fontSize: 16, fontFamily: FONTS.bodySemiBold, color: '#2C1810', marginBottom: 14 },
 
   // Badge
-  badgeRow: { borderWidth: 1.5, borderRadius: 12, padding: 14, marginBottom: 14, gap: 12 },
+  badgeRow: { borderWidth: 1.5, borderRadius: 12, padding: 16, marginBottom: 14, gap: 12 },
   badgeLarge: { alignSelf: 'flex-start', paddingHorizontal: 14, paddingVertical: 6, borderRadius: 20, marginBottom: 8 },
-  badgeLargeText: { fontSize: 14, fontFamily: FONTS.bodySemiBold, color: '#FFF' },
+  badgeLargeText: { fontSize: 14, fontFamily: FONTS.bodySemiBold, color: '#FDFBF6' },
   safetyScore: { gap: 4 },
   safetyScoreLabel: { fontSize: 11, color: '#9A8070', fontFamily: FONTS.bodySemiBold, textTransform: 'uppercase', letterSpacing: 0.5 },
   safetyBar: { height: 6, backgroundColor: '#E0D5C5', borderRadius: 3, overflow: 'hidden' },
@@ -505,7 +526,7 @@ const styles = StyleSheet.create({
   // Pricing
   pricingGrid: { flexDirection: 'row', alignItems: 'center', marginBottom: 14 },
   pricingItem: { flex: 1, alignItems: 'center' },
-  pricingValue: { fontSize: 22, fontFamily: FONTS.bodySemiBold, color: '#D87530', marginBottom: 2 },
+  pricingValue: { fontSize: 22, fontFamily: FONTS.bodySemiBold, color: '#A77349', marginBottom: 2 },
   pricingLabel: { fontSize: 11, color: '#9A8070', fontFamily: FONTS.bodyMedium, textTransform: 'uppercase' },
   pricingDivider: { width: 1, height: 36, backgroundColor: '#E0D5C5' },
   fulfillmentRow: { flexDirection: 'row', gap: 8, marginBottom: 10 },
@@ -539,57 +560,58 @@ const styles = StyleSheet.create({
   reviewDate: { fontSize: 11, color: '#9A8070', fontFamily: FONTS.body },
 
   // Disclaimer
-  disclaimer: { marginHorizontal: 16, padding: 14, backgroundColor: '#FFF', borderRadius: 12 },
+  disclaimer: { marginHorizontal: 16, padding: 16, backgroundColor: COLORS.paper, borderRadius: 12 },
   disclaimerText: { fontSize: 12, color: '#9A8070', lineHeight: 18, textAlign: 'center', fontFamily: FONTS.body },
 
   // Error
   errorText: { fontSize: 16, color: '#9A8070', marginBottom: 16, fontFamily: FONTS.body },
-  backLink: { fontSize: 15, color: '#D87530', fontFamily: FONTS.bodySemiBold },
+  backLink: { fontSize: 15, color: '#C07840', fontFamily: FONTS.bodySemiBold },
 
   // Action bar
   actionBar: {
     position: 'absolute', bottom: 0, left: 0, right: 0,
     flexDirection: 'row', gap: 12,
     paddingHorizontal: 16, paddingBottom: 36, paddingTop: 14,
-    backgroundColor: '#FDFAF5', borderTopWidth: 1, borderTopColor: '#E8E0D5',
+    backgroundColor: '#FDFBF6', borderTopWidth: 1, borderTopColor: '#E8E0D5',
   },
   // Phase 2a editorial pass — yolk-pill primary + rust outline
   // secondary, mirroring the rest of the app. Pill radius (999) +
   // brownDeep text matches MilkConnect, Home, ExpertsProfile.
   messageBtn: {
-    flex: 1, borderWidth: 1.5, borderColor: COLORS.rust,
+    flex: 1, borderWidth: 1.5, borderColor: COLORS.coco,
     borderRadius: 999, paddingVertical: 14, alignItems: 'center',
   },
-  messageBtnText: { fontSize: 15, color: COLORS.rust, fontFamily: FONTS.bodySemiBold },
-  purchaseBtn: { flex: 2, backgroundColor: COLORS.yolkLight, borderRadius: 999, paddingVertical: 14, alignItems: 'center' },
-  purchaseBtnText: { fontSize: 15, color: COLORS.brownDeep, fontFamily: FONTS.bodySemiBold },
+  messageBtnText: { fontSize: 15, color: '#C07840', fontFamily: FONTS.bodySemiBold },
+  purchaseBtn: { flex: 2, backgroundColor: COLORS.sandSoft, borderRadius: 999, paddingVertical: 14, alignItems: 'center' },
+  purchaseBtnText: { fontSize: 15, color: COLORS.bark, fontFamily: FONTS.bodySemiBold },
 
   // AI Q&A FAB
   qaFab: {
     position: 'absolute', bottom: 110, right: 16,
     backgroundColor: '#2C1810', borderRadius: 24,
     paddingHorizontal: 16, paddingVertical: 10,
-    shadowColor: '#000', shadowOpacity: 0.25, shadowRadius: 8, elevation: 6,
+    shadowColor: '#6B2E0E', shadowOpacity: 0.25, shadowRadius: 8, elevation: 6,
   },
-  qaFabText: { fontSize: 13, color: '#FFF', fontFamily: FONTS.bodySemiBold },
+  qaFabText: { fontSize: 13, color: '#FDFBF6', fontFamily: FONTS.bodySemiBold },
 
   // Modal
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
   modalCard: {
-    backgroundColor: '#FFF', borderTopLeftRadius: 24, borderTopRightRadius: 24,
+    backgroundColor: COLORS.paper, borderTopLeftRadius: 24, borderTopRightRadius: 24,
     padding: 28, paddingBottom: 44,
   },
   modalTitle: { fontSize: 20, fontFamily: FONTS.bodySemiBold, color: '#2C1810', marginBottom: 4 },
   modalSub: { fontSize: 13, color: '#9A8070', marginBottom: 16, fontFamily: FONTS.body },
   qaInput: {
-    backgroundColor: '#F5F0E8', borderRadius: 12, padding: 14,
+    backgroundColor: '#F5F0E8', borderRadius: 12, padding: 16,
     fontSize: 14, color: '#2C1810', minHeight: 80, borderWidth: 1.5, borderColor: '#E0D5C5', fontFamily: FONTS.body,
   },
   qaAnswer: {
     marginTop: 14, backgroundColor: '#FFF9F0', borderRadius: 12,
-    padding: 14, borderLeftWidth: 3, borderLeftColor: '#D87530',
+    padding: 16,
+    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(192,120,64,0.35)',  // v9: ex side-stripe
   },
-  qaAnswerLabel: { fontSize: 11, fontFamily: FONTS.bodySemiBold, color: '#D87530', marginBottom: 6, letterSpacing: 0.6 },
+  qaAnswerLabel: { fontSize: 11, fontFamily: FONTS.bodySemiBold, color: '#A77349', marginBottom: 6, letterSpacing: 0.6 },
   qaAnswerText: { fontSize: 14, color: '#2C1810', lineHeight: 21, fontFamily: FONTS.body },
   modalBtns: { flexDirection: 'row', gap: 12, marginTop: 16 },
   modalClose: {
@@ -597,7 +619,7 @@ const styles = StyleSheet.create({
     borderRadius: 12, paddingVertical: 13, alignItems: 'center',
   },
   modalCloseText: { fontSize: 14, color: '#9A8070', fontFamily: FONTS.bodySemiBold },
-  modalAsk: { flex: 2, backgroundColor: '#D87530', borderRadius: 12, paddingVertical: 13, alignItems: 'center' },
-  modalAskText: { fontSize: 14, color: '#FFF', fontFamily: FONTS.bodySemiBold },
+  modalAsk: { flex: 2, backgroundColor: '#C07840', borderRadius: 12, paddingVertical: 13, alignItems: 'center' },
+  modalAskText: { fontSize: 14, color: '#FDFBF6', fontFamily: FONTS.bodySemiBold },
   disabled: { opacity: 0.4 },
 });

@@ -24,6 +24,8 @@ import {
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { StripeProvider, useStripe } from '@stripe/stripe-react-native';
 import { COLORS, FONTS } from '@utils/constants';
+import { V9PageBackdrop } from '@components/shared/V9PageBackdrop';
+import { PrimaryCTA } from '@components/shared/PrimaryCTA';
 import { useT } from '@/i18n';
 import { useAuthStore } from '@store/auth';
 import { supabase } from '@/lib/supabase';
@@ -172,7 +174,7 @@ function PaymentContent({ navigation, route }: Props) {
       if (!client_secret) throw new Error('Missing payment session from server');
 
       const { error: initError } = await initPaymentSheet({
-        merchantDisplayName: 'The Village',
+        merchantDisplayName: 'Villie',
         paymentIntentClientSecret: client_secret,
         defaultBillingDetails: { name: user?.email ?? '' },
       });
@@ -296,11 +298,20 @@ function PaymentContent({ navigation, route }: Props) {
 
   return (
     <View style={styles.container}>
+      <V9PageBackdrop />
+      {/* v9 editorial header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
           <Text style={styles.backText}>{t('payment.back')}</Text>
         </TouchableOpacity>
-        <Text style={styles.title}>{t('payment.title')}</Text>
+        <View style={styles.eyebrowRow}>
+          <View style={styles.eyebrowBar} />
+          <Text style={styles.eyebrow}>{t('payment.eyebrow')}</Text>
+        </View>
+        <Text style={styles.title}>
+          {t('payment.titleLead')} <Text style={styles.titleEm}>{t('payment.titleEm')}</Text>
+        </Text>
+        <View style={styles.headerRule} />
       </View>
 
       <View style={styles.content}>
@@ -349,23 +360,17 @@ function PaymentContent({ navigation, route }: Props) {
       <View style={styles.ctaBar}>
         {loading ? (
           <View style={styles.loadingRow}>
-            <ActivityIndicator color={COLORS.rust} />
+            <ActivityIndicator color="#C07840" />
             <Text style={styles.loadingText}>{t('payment.settingUp')}</Text>
           </View>
         ) : (
-          <TouchableOpacity
-            style={[styles.payBtn, (!ready || paying) && styles.payBtnDisabled]}
+          <PrimaryCTA
+            shape="rect"
+            label={t('payment.payCta', { amount: Math.round(amountCents / 100) })}
             onPress={handlePay}
-            disabled={!ready || paying}
-          >
-            {paying ? (
-              <ActivityIndicator color="white" />
-            ) : (
-              <Text style={styles.payBtnText}>
-                {t('payment.payCta', { amount: Math.round(amountCents / 100) })}
-              </Text>
-            )}
-          </TouchableOpacity>
+            loading={paying}
+            disabled={!ready}
+          />
         )}
       </View>
     </View>
@@ -382,31 +387,49 @@ export default function PaymentScreen(props: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.cream },
+  container: { flex: 1, backgroundColor: 'transparent' },
 
   header: {
     paddingHorizontal: 20,
     paddingTop: 56,
-    paddingBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0,0,0,0.07)',
-    backgroundColor: COLORS.white,
+    paddingBottom: 6,
+    backgroundColor: 'transparent',
   },
-  backBtn: { marginBottom: 10 },
-  backText: { fontSize: 15, color: COLORS.rust, fontFamily: FONTS.bodyMedium },
+  backBtn: { marginBottom: 12 },
+  backText: { fontSize: 15, color: '#C07840', fontFamily: FONTS.bodyMedium },
+  // v9 editorial masthead
+  eyebrowRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
+  eyebrowBar: { width: 22, height: 2, backgroundColor: '#A77349', marginRight: 10, borderRadius: 1 },
+  eyebrow: { fontSize: 10, fontFamily: FONTS.bodySemiBold, color: '#A77349', letterSpacing: 1.8, textTransform: 'uppercase' },
   title: {
-    fontFamily: FONTS.headerItalic,
-    fontSize: 22,
-    color: COLORS.textDark,
+    fontFamily: FONTS.headerBold,
+    fontSize: 32,
+    color: COLORS.bark,
+    lineHeight: 38,
+    letterSpacing: -0.5,
+    marginBottom: 6,
+  },
+  titleEm: { fontFamily: FONTS.headerItalic, fontStyle: 'italic', color: '#C07840' },
+  headerRule: {
+    height: StyleSheet.hairlineWidth, backgroundColor: 'rgba(61,31,13,0.18)',
+    marginTop: 10, width: 48,
   },
 
   content: { flex: 1, padding: 20, gap: 16 },
 
   summaryCard: {
-    backgroundColor: 'white',
+    backgroundColor: COLORS.paper,
     borderRadius: 16,
     padding: 16,
     gap: 0,
+    // v9 paper lift
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(150, 80, 50, 0.18)',
+    shadowColor: '#6B2E0E',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.18,
+    shadowRadius: 18,
+    elevation: 5,
   },
   summaryLabel: {
     fontSize: 11,
@@ -424,18 +447,18 @@ const styles = StyleSheet.create({
     borderBottomColor: 'rgba(0,0,0,0.05)',
   },
   summaryKey: { fontSize: 14, color: COLORS.textLight, fontFamily: FONTS.body },
-  summaryVal: { fontSize: 14, fontFamily: FONTS.bodyMedium, color: COLORS.textDark, maxWidth: '55%', textAlign: 'right' },
+  summaryVal: { fontSize: 14, fontFamily: FONTS.bodyMedium, color: COLORS.bark, maxWidth: '55%', textAlign: 'right' },
   summaryTotal: {
     borderBottomWidth: 0,
     marginTop: 4,
     borderTopWidth: 1,
     borderTopColor: 'rgba(0,0,0,0.08)',
   },
-  summaryTotalKey: { fontSize: 15, fontFamily: FONTS.bodySemiBold, color: COLORS.textDark },
-  summaryTotalVal: { fontSize: 18, fontFamily: FONTS.bodySemiBold, color: COLORS.rust },
+  summaryTotalKey: { fontSize: 15, fontFamily: FONTS.bodySemiBold, color: COLORS.bark },
+  summaryTotalVal: { fontSize: 18, fontFamily: FONTS.bodySemiBold, color: COLORS.coco },
 
   stripeBadge: {
-    backgroundColor: 'white',
+    backgroundColor: COLORS.paper,
     borderRadius: 10,
     paddingVertical: 10,
     paddingHorizontal: 14,
@@ -449,18 +472,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 12,
     paddingBottom: 32,
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.paper,
     borderTopWidth: 1,
     borderTopColor: 'rgba(0,0,0,0.07)',
   },
   loadingRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, height: 56 },
   loadingText: { fontSize: 14, color: COLORS.textLight, fontFamily: FONTS.body },
   payBtn: {
-    backgroundColor: COLORS.rust,
+    backgroundColor: '#C07840',
     borderRadius: 14,
     paddingVertical: 16,
     alignItems: 'center',
   },
   payBtnDisabled: { opacity: 0.45 },
-  payBtnText: { color: 'white', fontSize: 17, fontFamily: FONTS.bodySemiBold },
+  payBtnText: { color: '#FDFBF6', fontSize: 17, fontFamily: FONTS.bodySemiBold },
 });

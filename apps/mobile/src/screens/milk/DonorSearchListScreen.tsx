@@ -13,6 +13,7 @@ import { DonorCard } from '@components/milk/DonorCard';
 import { FilterDrawerModal } from '@components/milk/FilterDrawerModal';
 import type { MilkFilters } from '@components/milk/FilterDrawerModal';
 import { COLORS, FONTS } from '@utils/constants';
+import { V9PageBackdrop } from '@components/shared/V9PageBackdrop';
 import { getEffectiveCoords } from '@utils/devLocation';
 import { useT } from '@/i18n';
 import type { MilkStackParamList } from '@/navigation/MilkNavigator';
@@ -94,16 +95,19 @@ export default function DonorSearchListScreen({ navigation }: Props) {
     const currently = savedIds.has(donorId);
     setSavedIds((prev) => {
       const next = new Set(prev);
-      currently ? next.delete(donorId) : next.add(donorId);
+      if (currently) next.delete(donorId);
+      else next.add(donorId);
       return next;
     });
     try {
-      currently ? await unsaveDonor(user.id, donorId) : await saveDonor(user.id, donorId);
+      if (currently) await unsaveDonor(user.id, donorId);
+      else await saveDonor(user.id, donorId);
     } catch {
       // rollback
       setSavedIds((prev) => {
         const next = new Set(prev);
-        currently ? next.add(donorId) : next.delete(donorId);
+        if (currently) next.add(donorId);
+        else next.delete(donorId);
         return next;
       });
     }
@@ -146,6 +150,7 @@ export default function DonorSearchListScreen({ navigation }: Props) {
 
   return (
     <View style={styles.container}>
+      <V9PageBackdrop />
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity
@@ -200,7 +205,7 @@ export default function DonorSearchListScreen({ navigation }: Props) {
 
       {loading ? (
         <View style={styles.center}>
-          <ActivityIndicator color={COLORS.rust} size="large" />
+          <ActivityIndicator color="#C07840" size="large" />
           <Text style={styles.loadingText}>{t('donorSearch.loadingText')}</Text>
         </View>
       ) : (
@@ -216,7 +221,7 @@ export default function DonorSearchListScreen({ navigation }: Props) {
             />
           )}
           contentContainerStyle={styles.list}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.rust} />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.coco} />}
           ListEmptyComponent={
             <View style={styles.empty}>
               <Text style={styles.emptyEmoji}>🤱</Text>
@@ -241,7 +246,7 @@ export default function DonorSearchListScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F5F0E8' },
+  container: { flex: 1, backgroundColor: 'transparent' },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12, padding: 32 },
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
@@ -249,10 +254,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#F5F0E8',
   },
   backBtn: { padding: 4 },
-  backText: { fontSize: 15, color: '#9A8070', fontFamily: FONTS.bodyMedium },
+  backText: { fontSize: 15, color: '#C07840', fontFamily: FONTS.bodySemiBold },
   headerTitle: { fontSize: 17, fontFamily: FONTS.bodySemiBold, color: '#2C1810' },
   mapBtn: {
-    backgroundColor: '#FFF', borderRadius: 20, paddingHorizontal: 12, paddingVertical: 6,
+    backgroundColor: COLORS.paper, borderRadius: 20, paddingHorizontal: 12, paddingVertical: 6,
     borderWidth: 1.5, borderColor: '#E0D5C5',
   },
   mapBtnText: { fontSize: 13, fontFamily: FONTS.bodySemiBold, color: '#2C1810' },
@@ -260,18 +265,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row', gap: 10, paddingHorizontal: 16, paddingVertical: 10,
   },
   searchInput: {
-    flex: 1, backgroundColor: '#FFF', borderRadius: 12,
+    flex: 1, backgroundColor: COLORS.paper, borderRadius: 12,
     paddingHorizontal: 14, paddingVertical: 10,
     fontSize: 14, color: '#2C1810',
     borderWidth: 1.5, borderColor: '#E0D5C5', fontFamily: FONTS.body,
   },
   filterBtn: {
-    backgroundColor: '#FFF', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10,
+    backgroundColor: COLORS.paper, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10,
     borderWidth: 1.5, borderColor: '#E0D5C5', justifyContent: 'center',
   },
-  filterBtnActive: { borderColor: '#D87530', backgroundColor: '#FFF5F0' },
+  filterBtnActive: { borderColor: COLORS.coco, backgroundColor: COLORS.pinkSoft },
   filterBtnText: { fontSize: 13, fontFamily: FONTS.bodySemiBold, color: '#6B5C52' },
-  filterBtnTextActive: { color: '#D87530' },
+  filterBtnTextActive: { color: COLORS.coco },
   resultCount: { fontSize: 12, color: '#9A8070', paddingHorizontal: 16, marginBottom: 4, fontFamily: FONTS.bodyMedium },
   list: { paddingBottom: 40, paddingTop: 4 },
   loadingText: { fontSize: 14, color: '#9A8070', fontFamily: FONTS.bodyMedium },
@@ -282,5 +287,5 @@ const styles = StyleSheet.create({
   emptyEmoji: { fontSize: 48 },
   emptyTitle: { fontSize: 20, fontFamily: FONTS.bodySemiBold, color: '#2C1810' },
   emptyBody: { fontSize: 14, color: '#9A8070', textAlign: 'center', lineHeight: 21, fontFamily: FONTS.body },
-  emptyReset: { fontSize: 14, color: '#D87530', fontFamily: FONTS.bodySemiBold, marginTop: 8 },
+  emptyReset: { fontSize: 14, color: '#C07840', fontFamily: FONTS.bodySemiBold, marginTop: 8 },
 });

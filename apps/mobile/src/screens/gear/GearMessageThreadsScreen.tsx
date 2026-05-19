@@ -11,6 +11,7 @@ import { FlashList } from '@shopify/flash-list';
 import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { COLORS, FONTS } from '@utils/constants';
+import { V9PageBackdrop } from '@components/shared/V9PageBackdrop';
 import { useT } from '@/i18n';
 import { listMyGearThreads, type GearThreadRow } from '@api/gear';
 import type { GearStackParamList } from '@/navigation/GearNavigator';
@@ -57,6 +58,7 @@ export default function GearMessageThreadsScreen({ navigation }: Props) {
 
   return (
     <View style={styles.container}>
+      <V9PageBackdrop />
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} accessibilityRole="button">
           <Text style={styles.back}>{t('gearInbox.back')}</Text>
@@ -66,12 +68,12 @@ export default function GearMessageThreadsScreen({ navigation }: Props) {
       </View>
 
       {loading ? (
-        <View style={styles.center}><ActivityIndicator color={COLORS.rust} /></View>
+        <View style={styles.center}><ActivityIndicator color="#C07840" /></View>
       ) : (
         <FlashList
           data={threads}
           keyExtractor={(t) => t.thread_id}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.rust} />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.coco} />}
           ItemSeparatorComponent={() => <View style={styles.sep} />}
           renderItem={({ item }) => (
             <TouchableOpacity
@@ -139,21 +141,21 @@ export default function GearMessageThreadsScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.cream },
+  container: { flex: 1, backgroundColor: 'transparent' },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
 
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingTop: 56, paddingBottom: 12, paddingHorizontal: 16,
-    backgroundColor: '#FFF',
+    backgroundColor: COLORS.paper,
     borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.06)',
   },
-  back: { fontSize: 15, color: COLORS.rust, fontFamily: FONTS.bodySemiBold },
-  title: { fontSize: 17, fontFamily: FONTS.bodySemiBold, color: COLORS.brownDeep },
+  back: { fontSize: 15, color: '#C07840', fontFamily: FONTS.bodySemiBold },
+  title: { fontSize: 17, fontFamily: FONTS.bodySemiBold, color: COLORS.bark },
 
   row: {
     flexDirection: 'row', alignItems: 'center', gap: 12,
-    paddingHorizontal: 16, paddingVertical: 14, backgroundColor: '#FFF',
+    paddingHorizontal: 16, paddingVertical: 14, backgroundColor: COLORS.paper,
   },
   sep: { height: 1, backgroundColor: 'rgba(0,0,0,0.05)', marginLeft: 80 },
   cover: { width: 56, height: 56, borderRadius: 10, backgroundColor: COLORS.cream },
@@ -162,35 +164,35 @@ const styles = StyleSheet.create({
 
   middle: { flex: 1 },
   nameRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  name: { fontSize: 15, fontFamily: FONTS.bodySemiBold, color: COLORS.brownDeep, flexShrink: 1 },
+  name: { fontSize: 15, fontFamily: FONTS.bodySemiBold, color: COLORS.bark, flexShrink: 1 },
   sellerTag: {
-    fontSize: 10, fontFamily: FONTS.bodySemiBold, color: '#FFF',
-    backgroundColor: COLORS.olive,
+    fontSize: 10, fontFamily: FONTS.bodySemiBold, color: '#FDFBF6',
+    backgroundColor: COLORS.sage,
     paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6,
   },
   buyerTag: {
-    fontSize: 10, fontFamily: FONTS.bodySemiBold, color: '#FFF',
-    backgroundColor: COLORS.rust,
+    fontSize: 10, fontFamily: FONTS.bodySemiBold, color: '#FDFBF6',
+    backgroundColor: COLORS.coco,
     paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6,
   },
   listingTitle: { fontSize: 12, color: COLORS.textLight, marginTop: 2, fontFamily: FONTS.body },
-  preview: { fontSize: 13, color: COLORS.textMid, marginTop: 2, fontFamily: FONTS.body },
+  preview: { fontSize: 13, color: COLORS.barkSoft, marginTop: 2, fontFamily: FONTS.body },
 
   rightCol: { alignItems: 'flex-end', gap: 6 },
   time: { fontSize: 11, color: COLORS.textLight, fontFamily: FONTS.body },
   unreadDot: {
     minWidth: 20, height: 20, paddingHorizontal: 6, borderRadius: 10,
-    backgroundColor: COLORS.rust, alignItems: 'center', justifyContent: 'center',
+    backgroundColor: COLORS.coco, alignItems: 'center', justifyContent: 'center',
   },
-  unreadText: { color: '#FFF', fontSize: 11, fontFamily: FONTS.bodySemiBold },
+  unreadText: { color: '#FDFBF6', fontSize: 11, fontFamily: FONTS.bodySemiBold },
 
   empty: { alignItems: 'center', paddingTop: 80, paddingHorizontal: 32, gap: 10 },
   emptyEmoji: { fontSize: 52 },
-  emptyTitle: { fontSize: 20, fontFamily: FONTS.bodySemiBold, color: COLORS.brownDeep },
-  emptyBody: { fontSize: 14, color: COLORS.textMid, textAlign: 'center', lineHeight: 20, fontFamily: FONTS.body },
+  emptyTitle: { fontSize: 20, fontFamily: FONTS.bodySemiBold, color: COLORS.bark },
+  emptyBody: { fontSize: 14, color: COLORS.barkSoft, textAlign: 'center', lineHeight: 20, fontFamily: FONTS.body },
   browseBtn: {
-    marginTop: 8, backgroundColor: COLORS.rust, borderRadius: 14,
+    marginTop: 8, backgroundColor: '#C07840', borderRadius: 14,
     paddingVertical: 13, paddingHorizontal: 28,
   },
-  browseBtnText: { fontSize: 15, color: '#FFF', fontFamily: FONTS.bodySemiBold },
+  browseBtnText: { fontSize: 15, color: '#FDFBF6', fontFamily: FONTS.bodySemiBold },
 });

@@ -3,6 +3,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, RefreshControl, Image,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { FlashList } from '@shopify/flash-list';
 import { useNavigation } from '@react-navigation/native';
 import * as Location from 'expo-location';
@@ -19,6 +20,7 @@ import {
 } from '@api/gear';
 import { GearCardSkeleton } from '@components/shared/SkeletonLoader';
 import { KenBurnsImage } from '@components/shared/KenBurnsImage';
+import { WarmGlowBackdrop } from '@components/shared/WarmGlowBackdrop';
 
 type TFn = (key: string, params?: Record<string, string | number>) => string;
 
@@ -84,12 +86,13 @@ export default function GearBrowseScreen() {
   const Hero = (
     <View style={styles.heroHeader} accessibilityElementsHidden importantForAccessibility="no">
       <KenBurnsImage
-        source={{ uri: 'https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?w=1200&h=1400&fit=crop&crop=center&q=85' }}
+        source={require('../../../assets/photos/gear.jpg')}
         style={styles.heroHeaderImage}
       />
       <View style={styles.heroHeaderScrimTop} />
       <View style={styles.heroHeaderScrimMid} />
       <View style={styles.heroHeaderScrimBottom} />
+      <View style={styles.heroHeaderHaze} />
 
       <View style={styles.heroActionBar}>
         <TouchableOpacity
@@ -138,6 +141,7 @@ export default function GearBrowseScreen() {
 
   return (
     <View style={styles.container}>
+      <WarmGlowBackdrop hideClusters />
       <FlashList
         ListHeaderComponent={
           <>
@@ -183,7 +187,7 @@ export default function GearBrowseScreen() {
           )
         }
         contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 0, paddingBottom: 140 }}
-        refreshControl={<RefreshControl refreshing={loading} onRefresh={load} tintColor={COLORS.rust} />}
+        refreshControl={<RefreshControl refreshing={loading} onRefresh={load} tintColor={COLORS.coco} />}
       />
 
       <TouchableOpacity
@@ -200,6 +204,15 @@ export default function GearBrowseScreen() {
 }
 
 function ListingCardView({ listing, onPress, t }: { listing: GearCard; onPress: () => void; t: TFn }) {
+  // Concept B feed-row pattern — eyebrow + italic Playfair title + bullet-dot
+  // meta + footer chips. Product photo replaces the left-illustration column.
+  const meta: string[] = [conditionLabel(listing.condition)];
+  if (listing.brand) meta.push(listing.brand);
+  const locText = [
+    listing.pickup_city,
+    listing.distance_km != null ? `${listing.distance_km.toFixed(1)} km` : null,
+  ].filter(Boolean).join(' · ');
+
   return (
     <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.9} accessibilityRole="button">
       {listing.cover_image_url ? (
@@ -210,21 +223,38 @@ function ListingCardView({ listing, onPress, t }: { listing: GearCard; onPress: 
         </View>
       )}
       <View style={styles.cardBody}>
+        {/* v9 paper-leaning card wash — replaces the stale golden→blush. */}
+        <LinearGradient
+          colors={['#FCF6EF', '#F8EDE0', '#F2DDD0']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={StyleSheet.absoluteFill}
+          pointerEvents="none"
+        />
+        {/* Eyebrow row — category + CPSC chip on the right */}
         <View style={styles.cardHeaderRow}>
           <Text style={styles.cardCategory}>{categoryLabel(listing.category).toUpperCase()}</Text>
-          {listing.is_cpsc_checked && <Text style={styles.cpscBadge}>{t('gearBrowse.cpscBadge')}</Text>}
+          {listing.is_cpsc_checked && (
+            <View style={styles.cpscChip}>
+              <Text style={styles.cpscChipText}>{t('gearBrowse.cpscBadge').toUpperCase()}</Text>
+            </View>
+          )}
         </View>
+        {/* Italic Playfair title — the editorial hero. */}
         <Text style={styles.cardTitle} numberOfLines={2}>{listing.title}</Text>
-        <Text style={styles.cardMeta}>
-          {conditionLabel(listing.condition)}
-          {listing.brand ? t('gearBrowse.metaSeparator', { brand: listing.brand }) : ''}
-        </Text>
+        {/* Meta row — bullet-dot separated. */}
+        <View style={styles.metaRow}>
+          {meta.map((token, i) => (
+            <React.Fragment key={`${token}-${i}`}>
+              {i > 0 ? <Text style={styles.metaDot}>·</Text> : null}
+              <Text style={styles.metaText}>{token}</Text>
+            </React.Fragment>
+          ))}
+        </View>
+        {/* Footer row — price + city, hairline divider. */}
         <View style={styles.cardFooter}>
           <Text style={styles.cardPrice}>{formatPrice(listing.price_cents, listing.is_free, listing.currency)}</Text>
-          <Text style={styles.cardCity}>
-            {listing.pickup_city}
-            {listing.distance_km != null ? t('gearBrowse.distanceKm', { km: listing.distance_km.toFixed(1) }) : ''}
-          </Text>
+          {locText ? <Text style={styles.cardCity}>{locText}</Text> : null}
         </View>
       </View>
     </TouchableOpacity>
@@ -246,7 +276,7 @@ const styles = StyleSheet.create({
   backToVillage: { paddingVertical: 4, paddingRight: 8 },
   backToVillageText: { fontSize: 13, color: COLORS.textLight, fontFamily: FONTS.bodyMedium },
   headerActions: { flexDirection: 'row', gap: 16 },
-  headerLink: { fontSize: 13, color: COLORS.rust, fontFamily: FONTS.bodySemiBold },
+  headerLink: { fontSize: 13, color: '#C07840', fontFamily: FONTS.bodySemiBold },
 
   // Title block — relative so DecorativeMarks (absolutely positioned)
   // can tuck behind the eyebrow → italic title → sub stack without
@@ -255,12 +285,12 @@ const styles = StyleSheet.create({
   titleBlock: { position: 'relative', paddingTop: 4, paddingBottom: 14 },
   eyebrowRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 6 },
   eyebrowBar: {
-    width: 22, height: 2, backgroundColor: COLORS.rust,
+    width: 22, height: 2, backgroundColor: '#A77349',  // v9 rust-deep — unified across app
     marginRight: 10, borderRadius: 1,
   },
   eyebrow: {
     fontSize: 11, lineHeight: 22, letterSpacing: 1.6,
-    fontFamily: FONTS.bodySemiBold, color: COLORS.rust,
+    fontFamily: FONTS.bodySemiBold, color: '#A77349',
     textTransform: 'uppercase',
     includeFontPadding: false, textAlignVertical: 'center',
   },
@@ -270,12 +300,12 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 32, lineHeight: 38,
     fontFamily: FONTS.headerItalic, fontStyle: 'italic',
-    color: COLORS.brownDeep,
+    color: COLORS.bark,
     marginBottom: 4,
   },
   headerSub: {
     fontSize: 14, lineHeight: 20, fontFamily: FONTS.body,
-    color: COLORS.textMid, maxWidth: 320,
+    color: COLORS.barkSoft, maxWidth: 320,
   },
   headerHairline: {
     height: 1, backgroundColor: 'rgba(44,26,14,0.08)',
@@ -285,29 +315,32 @@ const styles = StyleSheet.create({
   // Magazine-cover hero — full-bleed photo dominates the top of the
   // screen. Mirrors Milk Hub heroHeader pattern.
   heroHeader: {
-    height: 420,
+    height: 340,
     position: 'relative',
-    backgroundColor: COLORS.brownDeep,
+    backgroundColor: COLORS.bark,
     overflow: 'hidden',
     // Negate FlashList contentContainerStyle's paddingHorizontal:16 so
     // the hero photo bleeds edge-to-edge.
     marginHorizontal: -16,
   },
   heroHeaderImage: { width: '100%', height: '100%' },
-  // Three-layer faux gradient scrim: light at top, mid behind action bar,
-  // deep at bottom for masthead text contrast. Substitutes for
-  // expo-linear-gradient (not installed). Cinematic depth without a dep.
+  // Single light scrim — minimal darkening so action-bar text stays legible
+  // against any photo. Cream haze removed so the photo color reads true.
   heroHeaderScrimTop: {
     position: 'absolute', left: 0, right: 0, top: 0, height: '40%',
-    backgroundColor: 'rgba(44,26,14,0.10)',
+    backgroundColor: 'transparent',
   },
   heroHeaderScrimMid: {
-    position: 'absolute', left: 0, right: 0, top: '40%', height: '30%',
-    backgroundColor: 'rgba(44,26,14,0.28)',
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(44,26,14,0.20)',
   },
   heroHeaderScrimBottom: {
     position: 'absolute', left: 0, right: 0, bottom: 0, height: '40%',
-    backgroundColor: 'rgba(44,26,14,0.55)',
+    backgroundColor: 'transparent',
+  },
+  heroHeaderHaze: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'transparent',
   },
   heroActionBar: {
     position: 'absolute',
@@ -319,12 +352,12 @@ const styles = StyleSheet.create({
   },
   heroBackText: {
     fontSize: 14,
-    color: COLORS.cream,
+    color: '#FDFBF6',
     fontFamily: FONTS.bodySemiBold,
   },
   heroActionsRight: { flexDirection: 'row', gap: 14 },
   heroLink: {
-    fontSize: 13, color: COLORS.cream,
+    fontSize: 13, color: '#FDFBF6',
     fontFamily: FONTS.bodySemiBold,
     opacity: 0.92,
   },
@@ -342,20 +375,20 @@ const styles = StyleSheet.create({
   heroEyebrowText: {
     fontSize: 11, lineHeight: 16, letterSpacing: 1.6,
     fontFamily: FONTS.bodySemiBold,
-    color: COLORS.cream,
+    color: '#FDFBF6',
     textTransform: 'uppercase',
     opacity: 0.92,
   },
   heroTitle: {
     fontSize: 36, lineHeight: 42,
     fontFamily: FONTS.headerItalic, fontStyle: 'italic',
-    color: '#FFF',
+    color: '#FDFBF6',
     marginBottom: 8,
   },
   heroSub: {
     fontSize: 14, lineHeight: 20,
     fontFamily: FONTS.body,
-    color: COLORS.cream,
+    color: '#FDFBF6',
     opacity: 0.9,
     maxWidth: 340,
   },
@@ -366,46 +399,73 @@ const styles = StyleSheet.create({
   },
   chip: {
     paddingHorizontal: 12, paddingVertical: 7, borderRadius: 14,
-    borderWidth: 1.5, borderColor: 'rgba(0,0,0,0.08)', backgroundColor: '#FFF',
+    borderWidth: 1.5, borderColor: 'rgba(150,80,50,0.18)', backgroundColor: COLORS.paper,
   },
-  chipActive: { backgroundColor: COLORS.rust, borderColor: COLORS.rust },
-  chipText: { fontSize: 12, fontFamily: FONTS.bodySemiBold, color: COLORS.textMid },
-  chipTextActive: { color: '#FFF' },
+  chipActive: { backgroundColor: COLORS.coco, borderColor: COLORS.coco },
+  chipText: { fontSize: 12, fontFamily: FONTS.bodySemiBold, color: COLORS.barkSoft },
+  chipTextActive: { color: '#FDFBF6' },
 
+  // v9 card lift recipe — paper bg + cocoa drop + rust hairline.
+  // (Moved off tan #F2E9C4 — too saturated, fought the page wash and the
+  //  chapter pill palette. Paper is the canonical card surface.)
   card: {
-    backgroundColor: '#FFF', borderRadius: 16, marginBottom: 14,
+    backgroundColor: COLORS.paper,
+    borderRadius: 12,
+    marginBottom: 14,
     overflow: 'hidden',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(150,80,50,0.18)',
+    shadowColor: '#6B2E0E',
+    shadowOpacity: 0.18,
+    shadowOffset: { width: 0, height: 8 },
+    shadowRadius: 18,
+    elevation: 3,
   },
   cardImage: { width: '100%', aspectRatio: 16 / 10, backgroundColor: COLORS.cream },
   cardImageFallback: { alignItems: 'center', justifyContent: 'center' },
   cardImageFallbackText: { color: COLORS.textLight, fontSize: 12, fontFamily: FONTS.bodySemiBold },
-  cardBody: { padding: 14 },
-  cardHeaderRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  cardCategory: { fontSize: 10, fontFamily: FONTS.bodySemiBold, letterSpacing: 1, color: COLORS.olive },
-  cpscBadge: {
-    fontSize: 10, fontFamily: FONTS.bodySemiBold, color: COLORS.olive,
-    backgroundColor: 'rgba(92,107,58,0.12)', borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2,
+  cardBody: { paddingVertical: 14, paddingHorizontal: 16, overflow: 'hidden' },
+  cardHeaderRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 },
+  cardCategory: { fontSize: 10, fontFamily: FONTS.bodySemiBold, letterSpacing: 1.6, color: '#A77349' },  // v9 eyebrow = amber
+  cpscChip: {
+    borderWidth: 1, borderColor: COLORS.sage, borderRadius: 999,
+    paddingHorizontal: 8, paddingVertical: 2,
   },
-  cardTitle: { fontSize: 16, fontFamily: FONTS.bodySemiBold, color: COLORS.brownDeep, marginTop: 6 },
-  cardMeta: { fontSize: 12, color: COLORS.textMid, marginTop: 3, fontFamily: FONTS.body },
+  cpscChipText: {
+    fontSize: 9, fontFamily: FONTS.bodySemiBold, color: COLORS.sage, letterSpacing: 0.6,
+  },
+  // Italic Playfair title — the editorial hero.
+  cardTitle: {
+    fontSize: 20, lineHeight: 26,
+    fontFamily: FONTS.headerItalic, fontStyle: 'italic',
+    color: COLORS.bark,
+    marginTop: 2,
+  },
+  metaRow: {
+    flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 6, marginTop: 6,
+  },
+  metaText: { fontSize: 12, color: COLORS.barkSoft, fontFamily: FONTS.body },
+  metaDot: { fontSize: 12, color: COLORS.textLight },
   cardFooter: {
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 10,
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+    marginTop: 12, paddingTop: 10,
+    borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: COLORS.sandSoft,
   },
-  cardPrice: { fontSize: 17, fontFamily: FONTS.bodySemiBold, color: COLORS.rustDark },
+  cardPrice: { fontSize: 17, fontFamily: FONTS.bodySemiBold, color: COLORS.bark },
   cardCity: { fontSize: 11, color: COLORS.textLight, fontFamily: FONTS.bodyMedium },
 
   empty: { alignItems: 'center', paddingVertical: 60 },
-  emptyTitle: { fontSize: 15, fontFamily: FONTS.bodySemiBold, color: COLORS.brownDeep, marginBottom: 4 },
+  emptyTitle: { fontSize: 15, fontFamily: FONTS.bodySemiBold, color: COLORS.bark, marginBottom: 4 },
   emptyBody: { fontSize: 13, color: COLORS.textLight, textAlign: 'center', fontFamily: FONTS.body },
 
   fab: {
     position: 'absolute', bottom: 90, right: 16,
     flexDirection: 'row', alignItems: 'center', gap: 8,
-    backgroundColor: COLORS.rust, borderRadius: 28,
+    backgroundColor: '#C07840', borderRadius: 28,             // v9 CTA = cinnamon
     paddingHorizontal: 18, paddingVertical: 13,
-    shadowColor: '#000', shadowOpacity: 0.15, shadowRadius: 10, shadowOffset: { width: 0, height: 3 },
+    shadowColor: '#945A41', shadowOpacity: 0.24, shadowRadius: 10, shadowOffset: { width: 0, height: 4 },
     elevation: 5,
   },
-  fabIcon: { color: '#FFF', fontSize: 20, fontFamily: FONTS.bodySemiBold },
-  fabText: { color: '#FFF', fontSize: 14, fontFamily: FONTS.bodySemiBold, letterSpacing: 0.3 },
+  fabIcon: { color: '#FDFBF6', fontSize: 20, fontFamily: FONTS.bodySemiBold },
+  fabText: { color: '#FDFBF6', fontSize: 14, fontFamily: FONTS.bodySemiBold, letterSpacing: 0.3 },
 });

@@ -8,6 +8,7 @@ import {
   type DailyCheckin,
   type HomeFeed,
 } from '@api/home';
+import { supabase } from '@/lib/supabase';
 
 interface HomeState {
   babyProfile: BabyProfile | null;
@@ -16,11 +17,13 @@ interface HomeState {
   feed: HomeFeed | null;
   loading: boolean;
   loadedAt: number | null;
+  unreadNotifCount: number;
 
   fetchAll: () => Promise<void>;
   setBabyProfile: (p: BabyProfile | null) => void;
   setTodayCheckin: (c: DailyCheckin | null) => void;
   refreshFeed: () => Promise<void>;
+  clearUnreadNotifs: () => void;
   reset: () => void;
 }
 
@@ -31,14 +34,24 @@ export const useHomeStore = create<HomeState>((set) => ({
   feed: null,
   loading: false,
   loadedAt: null,
+  unreadNotifCount: 0,
 
   fetchAll: async () => {
     set({ loading: true });
     try {
-      const [profile, feed, checkin] = await Promise.all([
+      const { data: { user } } = await supabase.auth.getUser();
+      const [profile, feed, checkin, notifResult] = await Promise.all([
         homeApi.getMyBabyProfile(),
         homeApi.getHomeFeed().catch(() => null),
         homeApi.getTodayCheckin().catch(() => null),
+        user
+          ? supabase
+              .from('user_notifications_feed')
+              .select('*', { count: 'exact', head: true })
+              .eq('user_id', user.id)
+              .eq('is_read', false)
+              .then((r) => r, () => ({ count: 0 }))
+          : Promise.resolve({ count: 0 }),
       ]);
       let milestone: CurrentMilestone | null = null;
       if (profile) {
@@ -50,6 +63,7 @@ export const useHomeStore = create<HomeState>((set) => ({
         feed,
         todayCheckin: checkin,
         loadedAt: Date.now(),
+        unreadNotifCount: (notifResult as any)?.count ?? 0,
       });
 
       // If cache is stale or missing, kick off a curator refresh in the background.
@@ -69,6 +83,7 @@ export const useHomeStore = create<HomeState>((set) => ({
 
   setBabyProfile: (p) => set({ babyProfile: p }),
   setTodayCheckin: (c) => set({ todayCheckin: c }),
+  clearUnreadNotifs: () => set({ unreadNotifCount: 0 }),
 
   refreshFeed: async () => {
     try {
@@ -86,5 +101,6 @@ export const useHomeStore = create<HomeState>((set) => ({
     todayCheckin: null,
     feed: null,
     loadedAt: null,
+    unreadNotifCount: 0,
   }),
 }));

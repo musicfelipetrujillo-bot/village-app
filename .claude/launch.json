@@ -2,10 +2,22 @@
   "version": "0.0.1",
   "configurations": [
     {
+      "name": "design-preview",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "7777", "--directory", "/tmp"],
+      "port": 7777
+    },
+    {
       "name": "Expo (mobile) — Metro bundler",
       "runtimeExecutable": "pnpm",
       "runtimeArgs": ["--filter", "mobile", "dev"],
       "port": 8081
+    },
+    {
+      "name": "Expo (mobile) — web",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--filter", "mobile", "start", "--web", "--port", "19006"],
+      "port": 19006
     },
     {
       "name": "Supabase local stack",

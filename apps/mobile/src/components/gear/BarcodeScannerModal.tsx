@@ -51,7 +51,7 @@ export default function BarcodeScannerModal({ visible, onScan, onClose }: Props)
     <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
       <View style={styles.root}>
         {!permission ? (
-          <View style={styles.center}><ActivityIndicator color="#FFF" /></View>
+          <View style={styles.center}><ActivityIndicator color="#FDFBF6" /></View>
         ) : !permission.granted ? (
           <View style={styles.center}>
             <Text style={styles.permTxt}>
@@ -108,7 +108,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.6)',
     paddingHorizontal: 14, paddingVertical: 9, borderRadius: 14,
   },
-  cancelTxt: { color: '#FFF', fontSize: 14, fontFamily: FONTS.bodySemiBold },
+  cancelTxt: { color: '#FDFBF6', fontSize: 14, fontFamily: FONTS.bodySemiBold },
 
   reticle: {
     position: 'absolute',
@@ -128,11 +128,11 @@ const styles = StyleSheet.create({
   },
   hint: {
     backgroundColor: 'rgba(0,0,0,0.55)',
-    color: '#FFF', fontSize: 13, fontFamily: FONTS.bodySemiBold,
+    color: '#FDFBF6', fontSize: 13, fontFamily: FONTS.bodySemiBold,
     paddingHorizontal: 14, paddingVertical: 8, borderRadius: 16,
   },
 
-  permTxt: { color: '#FFF', fontSize: 14, textAlign: 'center', marginBottom: 18, lineHeight: 20, fontFamily: FONTS.body },
-  permBtn: { backgroundColor: COLORS.rust, borderRadius: 12, paddingHorizontal: 20, paddingVertical: 12 },
-  permBtnTxt: { color: '#FFF', fontSize: 14, fontFamily: FONTS.bodySemiBold },
+  permTxt: { color: '#FDFBF6', fontSize: 14, textAlign: 'center', marginBottom: 18, lineHeight: 20, fontFamily: FONTS.body },
+  permBtn: { backgroundColor: '#C07840', borderRadius: 12, paddingHorizontal: 20, paddingVertical: 12 },
+  permBtnTxt: { color: '#FDFBF6', fontSize: 14, fontFamily: FONTS.bodySemiBold },
 });

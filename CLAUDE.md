@@ -56,25 +56,47 @@ Originals (PDF + raw TXT blobs) remain in `/Users/gp/Desktop/The Village/` as th
 - **Notifications**: OneSignal
 - **Booking**: Calendly (v1), Zocdoc (v2)
 
-## Design Tokens (from prototype.html)
-```
---cream:      #F5F0E8  (background)
---rust:       #B85C38  (primary CTA, active nav)
---rust-dark:  #9A4A2B
---rust-light: #D4744F
---brown-deep: #2C1A0E
---brown-mid:  #4A2E1A
---olive:      #5C6B3A
---olive-light: #7A8A50
---gold:       #C4A35A
---text-dark:  #1C1008
---text-mid:   #5A3E28
---text-light: #9A8070
---white:      #FDFAF5
+## Design Tokens — Brand Kit v2 (villie · May 2026)
+**CANONICAL**: see `memory/project_brand_kit_v2.md` for the complete kit (palette · typography · italic rule · mapping cheat sheet).
+**Source asset**: `/Users/gp/Downloads/the-village-ig/project/The Village - Brand Kit.html` + the canonical wordmark + V-mark PNGs at `assets/villie-wordmark-v2.png` / `villie-v-mark-v2.png`.
 
-Font headers: Playfair Display (serif, italic)
-Font body:    DM Sans
+The mobile app's `apps/mobile/src/utils/constants.ts` exposes both v1 legacy names (cream/coco/rust/bark) and v2 canonical names (v2_cream/v2_cinnamon/v2_cocoa/v2_caramel/etc.). As of 2026-05-15 the v1 aliases have been **rerouted to v2 hex values**, so every screen that uses legacy names auto-renders v2 colors. New code should use the v2 names directly.
+
+### Quick palette (v2)
 ```
+--cream:     #F4ECD8  page surface (the 60% in 60·30·10)
+--paper:     #FDFBF6  alt page
+--parchment: #EAE0C8  card bg
+--card:      #FEFAF6  pure-white substitute (no #FFFFFF in app)
+--butter:    #FAD080  honey halos, hero gradients
+--marigold:  #F2C130  IG hero pop (rare in app)
+--cinnamon:  #C07840  ACTION — every CTA, link, active tab. One spark/screen.
+--caramel:   #D4A880  italic-name accent, "second moment" fallback
+--blush:     #F5BEB6  empathy
+--salmon:    #EDA8A0  Feel chapter pill
+--cocoa:     #3D1F0E  UI ink (no #000)
+--walnut:    #7A4A28  body text on cream
+--amber:     #A77349  eyebrows, secondary copy
+--sage:      #D8CEB0  cool exhale (reserve)
+--moss:      #606E46  Heal chapter pill ONLY
+--persimmon: #E0543B  IG ONLY — NEVER in the app
+```
+
+### Type system (v2)
+- **Wordmark**: hand-drawn `villie-wordmark-v2.png`. Fallback typeset: Caprasimo 400, inline body wordmark mentions only.
+- **Display default**: Playfair Display **roman 700** (not italic — "less italic, more presence").
+- **Display flourish**: Playfair italic 600 — **one per screen**, on the user's name OR a key noun OR the wordmark dot.
+- **Big numbers**: Playfair 800.
+- **Body / UI**: Plus Jakarta Sans 400/500/600 (replaces DM Sans + Inter).
+- **Metadata / eyebrows**: JetBrains Mono 500, tracking 0.26em, uppercase, amber color.
+
+### Rules of thumb
+- **Italic per screen ≤ 1 phrase**. Never on body sentences, links, multi-line paragraphs.
+- **Cinnamon per screen = 1 spark**. CTA, italic word, OR a number. Reach twice → second is amber/caramel.
+- **60·30·10**: 60% cream/paper, 30% earth (caramel/butter/parchment/blush), 10% spark (cinnamon).
+- **Chapter colors stay in chapters** (Manual sub-palette).
+- **Black** → use cocoa. **Pure white** → use card. **Persimmon** → IG only.
+- **Wordmark always lowercase** — `villie`, never "Villie".
 
 ## Architecture Rules
 1. **Supabase direct** for all CRUD — never write Express routes for reads/writes
@@ -141,12 +163,29 @@ V1 fully live → V2 → V3 → V4+Home. Never start next vertical until current
 
 ### V4 Open gates (must resolve before the phase they block)
 - **G3 affiliate network activation** (post-MVP, before real conversion revenue): `brand_deals` carries an `affiliate_network` enum and `{subid}` URL-template plumbing. Per-network webhook verification is now **code-complete** in `perks-redemption-webhook` — `network` field in body routes to the matching verifier: `impact` (HMAC-SHA256 of raw body via `IMPACT_WEBHOOK_SECRET`, header `x-impact-signature`), `shareasale` (HMAC-SHA256 of `secret:timestamp:method:path` via `SHAREASALE_API_SECRET`, headers `x-shareasale-date` + `x-shareasale-authentication`, ±300s drift guard), `cj` (IP allowlist via `CJ_ALLOWED_IPS` against `x-forwarded-for` left-most), `direct` (legacy shared-token via `PERKS_WEBHOOK_SECRET`, header `x-village-webhook-token`). Raw body is read once via `req.text()` so Impact HMAC verifies exact bytes; JSON is parsed from the cached string. Timing-safe comparisons throughout; reject reasons are console-logged but never returned to the caller. To go live: (a) sign contracts with Impact / ShareASale / CJ per brand; (b) set the matching secret(s) in Supabase Secrets; (c) replace in-SQL deeplink resolution (`claim_perk`) with Edge-Function-based resolution (`perks-build-deeplink`) if/when network-specific SubID macros beyond `{subid}` are needed. No further code change needed until signed — attribution will simply stay at `status='clicked'`. FTC disclosure copy is already live on every claim.
-- **G2 event ingestion** (post-MVP, before user rollout): events in DB are currently 4 seeded placeholders. Need to decide how real events flow in. Options: (a) **manual curation via Supabase Studio** — fine for Miami-only 50/mo; (b) **partner feed from Baby Trails + similar** — weekly CSV/Sheet import; (c) **Eventbrite/Meetup API scrape** filtered by keyword+geo — more engineering, less curation control. Current posture (`is_partner` / `is_third_party` booleans on `events`) supports all three. No code change needed to unblock — just an operational decision on who populates the table.
+- **G2 event ingestion** (pipeline shipped, awaiting feeds): partner-feed pipeline now landed via migrations 045 (`events_partner_feeds` + ICS dedup constraint + pg_cron 09:00 UTC), 046 (review pipeline + `find_duplicate_event` RPC), 047 (`needs_geocode` flag), 048 (cross-feed dedup hash). Three deployed edge functions: `events-ingest-ics` (puller), `events-geocode` (Google Geocoding fallback), `ai-event-screen` (Sonnet review pass). `events_partner_feeds` is **service-role-only by design** (Supabase advisor flags as `rls_enabled_no_policy` — false positive; mobile has no business reading the registry). To go live: (a) ops adds rows to `events_partner_feeds` via Studio with the source ICS URL + `is_active=true` + region; (b) optional — set `app.supabase_url` + `app.service_role_key` Postgres GUCs so the pg_cron HTTP callout actually fires (or invoke the GH Action cron in `.github/workflows/supabase-crons.yml` per memory `project_hosted_deploy.md`); (c) confirm Google Geocoding API key in Supabase Secrets for `events-geocode`. Falls back cleanly to manual curation while feeds are off.
 - ~~Before **G4**: confirm final prohibited-items enum~~ ✅ Resolved in G4 via allowlist CHECK enum + `toy_year_safe` (≥1978 CPSIA) + `crib_year_safe` (≥2011 drop-side rule). Excluded: car_seat, breast_pump, sleep_positioner, inclined_sleeper, helmet.
-- **G4 Supabase Storage setup** (before first user listing): create public-read bucket `gear-listings` via Supabase dashboard. RLS policy: authenticated users can INSERT into `{user_id}/*` paths only. Without this, CreateListingScreen uploads will fail.
+- ~~**G4 Supabase Storage setup**~~ ✅ Resolved 2026-04-27 — `gear-listings` bucket exists on hosted (public read) with the documented owner-folder INSERT/UPDATE/DELETE RLS pattern (`auth.uid()::text = (storage.foldername(name))[1]`). `avatars` bucket created the same way for A2 avatar upload.
 - Before **G5** public rollout: attorney P1 review of Gear Marketplace Terms Addendum; P2 CPSC Prohibited Items Policy; FDUTPA review of all Gear in-app copy; insurance GL+E&O confirms marketplace coverage; 24hr takedown SLA assignee named.
 - Before **G8**: **FinCEN / Florida money-transmitter counsel review** — can The Village process P2P gear payments at MVP? Risk doc says NO; Master Plan assumes YES. Biggest V4 architectural fork.
 - Cross-cutting: eBay Marketplace Insights API application **should be submitted now** (4–6 wk approval blocks G5 smart pricing; depreciation-table fallback ships in interim).
+- **Migrations 051–054 — security advisor sweep** (applied to hosted on 2026-05-17):
+  - `051_security_function_search_path.sql` — pins `search_path = public, pg_catalog` on 42 app-owned public functions flagged by `function_search_path_mutable`. Behavior-preserving.
+  - `052_security_revoke_anon_rpc_execute.sql` — addresses `anon_security_definer_function_executable` × 33 app-owned + `authenticated_security_definer_function_executable` × 36 by revoking EXECUTE from PUBLIC and re-granting per-role: 28 mobile RPCs → authenticated + service_role; 3 cron/ops RPCs (`list_active_home_users`, `rls_auto_enable`, `verify_app_gucs`) → service_role only; 2 trigger-internal (`handle_new_auth_user`, `scan_room_message_async`) → no grant (triggers don't check EXECUTE). Skips PostGIS extension-owned `st_estimatedextent` overloads (cannot ALTER extension functions). Note: `function_body_check_rights` admin/moderator RPCs (`is_clinical_reviewer` etc.) keep their internal role guards — the migration only narrows network-level reachability.
+  - `053_security_storage_scope_select.sql` — drops the `*_public_read` SELECT policies on `avatars` + `gear-listings` and replaces with `authenticated`-scoped SELECT. Public-URL reads via `<Image>` are unaffected (bucket `public=true` bypasses RLS through the CDN endpoint); `.list()` / `.download()` from anon callers is now blocked. Verified no client code calls `.list()` on either bucket.
+  - `054_security_revoke_explicit_role_execute.sql` — **fixes the no-op in 052**. Discovered after deploy: Supabase issues *explicit* default grants to `anon`/`authenticated`/`service_role` on every function (verified via `pg_proc.proacl`), so `REVOKE FROM PUBLIC` in 052 had nothing to revoke and all 33 anon-RPC lints persisted. 054 explicitly `REVOKE FROM anon` for mobile-callable RPCs and `REVOKE FROM anon, authenticated` for service-role-only + trigger-internal functions. Apply alongside 051–053 for full effect.
+  - Migration 062 (2026-05-18) re-revoked anon on `get_weekly_journey` after audit showed 054 didn't stick for that function — cause unknown.
+- **Accepted advisor warnings (not fixable in code):**
+  - `public_bucket_allows_listing` × 2 — fires on `storage.buckets.public=true` itself, not on RLS. The only way to silence it is to make `avatars` + `gear-listings` private and switch every `getPublicUrl()` call to `createSignedUrl()` (large refactor with TTL management for cached image components). Public buckets are appropriate for these surfaces (avatars + gear photos already broadcast publicly via the app); accepting the warn is the right trade-off for now.
+  - `events_partner_feeds` `rls_enabled_no_policy` — documented false positive (service-role-only registry; see migration 045 header).
+  - `specialist_invites` `rls_enabled_no_policy` — same shape as `events_partner_feeds`. Service-role-only invite registry written by the Village team, read by anon via the `get_specialist_invite_by_token` SECURITY DEFINER RPC. RLS is enabled with no policy on purpose so direct PostgREST reads always fail (see migration 060 header).
+  - `get_specialist_invite_by_token` `anon_security_definer_function_executable` — **intentionally anon-callable**. The specialist-invite flow hands a token-URL to an unauthenticated email recipient; they must be able to look up their invite before signup. The RPC only returns rows when `used_at IS NULL AND revoked_at IS NULL AND expires_at > now()` and only on exact-token match — there is no enumeration vector. Accept.
+  - `extension_in_public` × 4 — `postgis`, `pg_net` etc. installed in `public` schema. Moving them is risky (breaks every PostGIS reference in app code) and Supabase tooling expects them there. Accept.
+  - `spatial_ref_sys` `rls_disabled_in_public` — PostGIS-owned reference table; we don't own the DDL and enabling RLS on an extension table breaks every PostGIS query. Accept (rolls up under `extension_in_public:postgis`).
+  - `st_estimatedextent` × 6 (3 anon × 3 authenticated overloads) `*_security_definer_function_executable` — PostGIS extension-owned C functions. Cannot ALTER extension functions. Accept (documented in migration 052 header).
+  - `authenticated_security_definer_function_executable` × ~27 app RPCs (`approve_*`, `claim_perk`, `get_my_*`, `join_room`, `list_my_*`, `mark_*_read`, `resolve_crisis_flag`, etc.) — these are the legitimate mobile-callable RPCs we kept on `authenticated` in migration 054 by design. Each has an internal `auth.uid()` / `is_moderator_anywhere()` / `is_clinical_reviewer()` guard. The lint is informational — it just flags any SECURITY DEFINER reachable by signed-in users, regardless of internal checks. Accept.
+- Auth → leaked password protection toggle remains the one outstanding dashboard click (not code-fixable).
+- **One-click dashboard items** (not code): enable `Auth → Settings → Leaked password protection` (advisor `auth_leaked_password_protection`).
 
 ## Me / Account — Build Progress
 | Phase | Status | Notes |

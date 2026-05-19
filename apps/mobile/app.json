@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "The Village",
+    "name": "villie",
     "slug": "the-village-app",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -10,7 +10,7 @@
     "splash": {
       "image": "./assets/icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#F5F0E8"
+      "backgroundColor": "#F4ECD8"
     },
     "ios": {
       "supportsTablet": false,
@@ -18,15 +18,15 @@
       "bundleIdentifier": "com.thevillage.app",
       "buildNumber": "1",
       "infoPlist": {
-        "NSLocationWhenInUseUsageDescription": "The Village uses your location to find nearby donors, specialists, and events.",
-        "NSLocationAlwaysUsageDescription": "The Village uses your location to find nearby donors, specialists, and events.",
+        "NSLocationWhenInUseUsageDescription": "villie uses your location to find nearby donors, specialists, and events.",
+        "NSLocationAlwaysUsageDescription": "villie uses your location to find nearby donors, specialists, and events.",
         "NSCameraUsageDescription": "Used to take profile photos, gear listing photos, and scan product barcodes.",
         "NSPhotoLibraryUsageDescription": "Used to upload profile photos and gear listing photos.",
-        "NSPhotoLibraryAddUsageDescription": "Save photos you take in The Village to your library.",
+        "NSPhotoLibraryAddUsageDescription": "Save photos you take in villie to your library.",
         "NSMicrophoneUsageDescription": "Only used if you record video when listing an item.",
         "NSCalendarsUsageDescription": "Add events you RSVP to your calendar.",
         "NSCalendarsFullAccessUsageDescription": "Add events you RSVP to your calendar.",
-        "NSContactsUsageDescription": "Share The Village with contacts you choose.",
+        "NSContactsUsageDescription": "Share villie with contacts you choose.",
         "NSUserNotificationsUsageDescription": "Notifications for appointments, new donors, and community messages.",
         "ITSAppUsesNonExemptEncryption": false
       }
@@ -36,7 +36,7 @@
       "versionCode": 1,
       "adaptiveIcon": {
         "foregroundImage": "./assets/icon.png",
-        "backgroundColor": "#F5F0E8"
+        "backgroundColor": "#F4ECD8"
       },
       "permissions": [
         "android.permission.ACCESS_FINE_LOCATION",
@@ -54,19 +54,19 @@
       [
         "expo-notifications",
         {
-          "color": "#B85C38"
+          "color": "#C07840"
         }
       ],
       [
         "expo-location",
         {
-          "locationAlwaysAndWhenInUsePermission": "The Village uses your location to find nearby donors, specialists, and events."
+          "locationAlwaysAndWhenInUsePermission": "villie uses your location to find nearby donors, specialists, and events."
         }
       ],
       [
         "expo-camera",
         {
-          "cameraPermission": "Allow The Village to access your camera to take listing photos and scan product barcodes.",
+          "cameraPermission": "Allow villie to access your camera to take listing photos and scan product barcodes.",
           "microphonePermission": "Only used if you record video when listing an item.",
           "recordAudioAndroid": false
         }
@@ -74,8 +74,8 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "Allow The Village to access your photos to upload profile and listing images.",
-          "cameraPermission": "Allow The Village to access your camera to take listing photos."
+          "photosPermission": "Allow villie to access your photos to upload profile and listing images.",
+          "cameraPermission": "Allow villie to access your camera to take listing photos."
         }
       ],
       [

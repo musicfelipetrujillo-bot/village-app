@@ -164,7 +164,7 @@ export default function ClinicalReviewScreen() {
       >
         {loading ? (
           <View style={s.loadingBlock}>
-            <ActivityIndicator color={COLORS.rust} />
+            <ActivityIndicator color={COLORS.coco} />
             <Text style={s.helpTxt}>Loading pending content…</Text>
           </View>
         ) : error ? (
@@ -252,7 +252,7 @@ export default function ClinicalReviewScreen() {
                 disabled={rejecting}
               >
                 {rejecting
-                  ? <ActivityIndicator color={COLORS.white} />
+                  ? <ActivityIndicator color={COLORS.paper} />
                   : <Text style={s.primaryBtnTxt}>Reject</Text>}
               </TouchableOpacity>
             </View>
@@ -357,7 +357,7 @@ function ReviewCard({
           accessibilityLabel={`Approve ${row.title}`}
         >
           {busy
-            ? <ActivityIndicator color={COLORS.white} />
+            ? <ActivityIndicator color={COLORS.paper} />
             : <Text style={s.approveBtnTxt}>✓ Approve</Text>}
         </TouchableOpacity>
       </View>
@@ -377,11 +377,11 @@ const s = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(0,0,0,0.06)',
   },
-  close: { fontSize: 22, color: COLORS.textDark, width: 24 },
+  close: { fontSize: 22, color: COLORS.bark, width: 24 },
   title: {
     fontFamily: FONTS.headerBold,
     fontSize: 18,
-    color: COLORS.textDark,
+    color: COLORS.bark,
   },
   scroll: { paddingHorizontal: 16, paddingBottom: 48 },
 
@@ -393,7 +393,7 @@ const s = StyleSheet.create({
   helpTxt: {
     fontFamily: FONTS.body,
     fontSize: 13,
-    color: COLORS.textMid,
+    color: COLORS.barkSoft,
   },
 
   emptyBlock: {
@@ -405,14 +405,14 @@ const s = StyleSheet.create({
   emptyTitle: {
     fontFamily: FONTS.headerBold,
     fontSize: 22,
-    color: COLORS.textDark,
+    color: COLORS.bark,
     marginBottom: 8,
   },
   emptyBody: {
     fontFamily: FONTS.body,
     fontSize: 14,
     lineHeight: 21,
-    color: COLORS.textMid,
+    color: COLORS.barkSoft,
     textAlign: 'center',
   },
 
@@ -424,14 +424,14 @@ const s = StyleSheet.create({
   statsTxt: {
     fontFamily: FONTS.bodySemiBold,
     fontSize: 14,
-    color: COLORS.textDark,
+    color: COLORS.bark,
   },
 
   weekBlock: { marginTop: 16 },
   weekHeading: {
     fontFamily: FONTS.headerBold,
     fontSize: 16,
-    color: COLORS.rustDark,
+    color: COLORS.cocoDeep,
     marginBottom: 8,
     textTransform: 'uppercase',
     letterSpacing: 0.6,
@@ -439,8 +439,8 @@ const s = StyleSheet.create({
 
   cardBlock: {
     marginBottom: 12,
-    padding: 14,
-    backgroundColor: COLORS.white,
+    padding: 16,
+    backgroundColor: COLORS.paper,
     borderRadius: 12,
     borderWidth: 1,
     borderColor: 'rgba(0,0,0,0.08)',
@@ -471,7 +471,7 @@ const s = StyleSheet.create({
     borderRadius: 999,
   },
   categoryBadgeTxt: {
-    color: COLORS.brownMid,
+    color: COLORS.barkSoft,
     fontFamily: FONTS.bodySemiBold,
     fontSize: 10,
     letterSpacing: 0.4,
@@ -479,52 +479,52 @@ const s = StyleSheet.create({
   },
   aiBadge: {
     backgroundColor: '#FFF5DB',
-    borderColor: COLORS.gold,
+    borderColor: COLORS.sand,
     borderWidth: 1,
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 999,
   },
   aiBadgeTxt: {
-    color: COLORS.brownMid,
+    color: COLORS.barkSoft,
     fontFamily: FONTS.bodySemiBold,
     fontSize: 10,
     letterSpacing: 0.4,
   },
   seedBadge: {
-    backgroundColor: COLORS.olive,
+    backgroundColor: COLORS.sage,
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 999,
   },
   seedBadgeTxt: {
-    color: COLORS.white,
+    color: COLORS.paper,
     fontFamily: FONTS.bodySemiBold,
     fontSize: 10,
     letterSpacing: 0.4,
   },
   crisisBadge: {
     backgroundColor: '#FBE7E1',
-    borderColor: COLORS.rustDark,
+    borderColor: COLORS.cocoDeep,
     borderWidth: 1,
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 999,
   },
   crisisBadgeTxt: {
-    color: COLORS.rustDark,
+    color: COLORS.cocoDeep,
     fontFamily: FONTS.bodySemiBold,
     fontSize: 10,
     letterSpacing: 0.4,
   },
   essentialBadge: {
-    backgroundColor: COLORS.rust,
+    backgroundColor: COLORS.coco,
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 999,
   },
   essentialBadgeTxt: {
-    color: COLORS.white,
+    color: COLORS.paper,
     fontFamily: FONTS.bodySemiBold,
     fontSize: 10,
     letterSpacing: 0.4,
@@ -541,14 +541,14 @@ const s = StyleSheet.create({
     flex: 1,
     fontFamily: FONTS.headerBold,
     fontSize: 16,
-    color: COLORS.textDark,
+    color: COLORS.bark,
     lineHeight: 22,
   },
 
   langLabel: {
     fontFamily: FONTS.bodySemiBold,
     fontSize: 11,
-    color: COLORS.textMid,
+    color: COLORS.barkSoft,
     marginTop: 8,
     marginBottom: 3,
     textTransform: 'uppercase',
@@ -557,7 +557,7 @@ const s = StyleSheet.create({
   bodyTxt: {
     fontFamily: FONTS.body,
     fontSize: 13,
-    color: COLORS.textDark,
+    color: COLORS.bark,
     lineHeight: 19,
   },
   bodyMissing: {
@@ -574,14 +574,14 @@ const s = StyleSheet.create({
   ctaLabel: {
     fontFamily: FONTS.bodySemiBold,
     fontSize: 10,
-    color: COLORS.textMid,
+    color: COLORS.barkSoft,
     textTransform: 'uppercase',
     letterSpacing: 0.6,
   },
   ctaTxt: {
     fontFamily: FONTS.body,
     fontSize: 12,
-    color: COLORS.textDark,
+    color: COLORS.bark,
     marginTop: 2,
   },
 
@@ -593,7 +593,7 @@ const s = StyleSheet.create({
   },
   statusVal: {
     fontFamily: FONTS.bodySemiBold,
-    color: COLORS.textMid,
+    color: COLORS.barkSoft,
   },
 
   actionRow: {
@@ -603,29 +603,29 @@ const s = StyleSheet.create({
   },
   rejectBtn: {
     flex: 1,
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.paper,
     borderWidth: 1,
-    borderColor: COLORS.rustDark,
+    borderColor: COLORS.cocoDeep,
     borderRadius: 10,
     paddingVertical: 11,
     alignItems: 'center',
   },
   rejectBtnTxt: {
     fontFamily: FONTS.bodySemiBold,
-    color: COLORS.rustDark,
+    color: COLORS.cocoDeep,
     fontSize: 13,
     letterSpacing: 0.4,
   },
   approveBtn: {
     flex: 1,
-    backgroundColor: COLORS.olive,
+    backgroundColor: COLORS.sage,
     borderRadius: 10,
     paddingVertical: 11,
     alignItems: 'center',
   },
   approveBtnTxt: {
     fontFamily: FONTS.bodySemiBold,
-    color: COLORS.white,
+    color: COLORS.paper,
     fontSize: 13,
     letterSpacing: 0.4,
   },
@@ -634,9 +634,9 @@ const s = StyleSheet.create({
   // Error states
   errorBanner: {
     marginTop: 24,
-    padding: 14,
+    padding: 16,
     backgroundColor: '#F7E0DC',
-    borderColor: COLORS.rustDark,
+    borderColor: COLORS.cocoDeep,
     borderWidth: 1,
     borderRadius: 10,
     gap: 10,
@@ -644,17 +644,17 @@ const s = StyleSheet.create({
   errorTxt: {
     fontFamily: FONTS.body,
     fontSize: 13,
-    color: COLORS.rustDark,
+    color: COLORS.cocoDeep,
   },
   retryBtn: {
     alignSelf: 'flex-start',
-    backgroundColor: COLORS.rust,
+    backgroundColor: COLORS.coco,
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 999,
   },
   retryBtnTxt: {
-    color: COLORS.white,
+    color: COLORS.paper,
     fontFamily: FONTS.bodySemiBold,
     fontSize: 12,
   },
@@ -669,7 +669,7 @@ const s = StyleSheet.create({
   },
   modalCard: {
     width: '100%',
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.paper,
     borderRadius: 14,
     padding: 18,
     gap: 4,
@@ -677,18 +677,18 @@ const s = StyleSheet.create({
   modalTitle: {
     fontFamily: FONTS.headerBold,
     fontSize: 18,
-    color: COLORS.textDark,
+    color: COLORS.bark,
   },
   modalSub: {
     fontFamily: FONTS.body,
     fontSize: 13,
-    color: COLORS.textMid,
+    color: COLORS.barkSoft,
     marginBottom: 6,
   },
   label: {
     fontFamily: FONTS.bodySemiBold,
     fontSize: 11,
-    color: COLORS.textMid,
+    color: COLORS.barkSoft,
     marginTop: 8,
     marginBottom: 4,
     textTransform: 'uppercase',
@@ -701,7 +701,7 @@ const s = StyleSheet.create({
     paddingVertical: 10,
     fontFamily: FONTS.body,
     fontSize: 14,
-    color: COLORS.textDark,
+    color: COLORS.bark,
     borderWidth: 1,
     borderColor: 'rgba(0,0,0,0.08)',
   },
@@ -714,7 +714,7 @@ const s = StyleSheet.create({
   },
   primaryBtn: {
     minWidth: 110,
-    backgroundColor: COLORS.rust,
+    backgroundColor: COLORS.coco,
     borderRadius: 10,
     paddingVertical: 12,
     paddingHorizontal: 16,
@@ -722,12 +722,12 @@ const s = StyleSheet.create({
   },
   primaryBtnTxt: {
     fontFamily: FONTS.bodySemiBold,
-    color: COLORS.white,
+    color: COLORS.paper,
     fontSize: 13,
     letterSpacing: 0.4,
   },
   secondaryBtn: {
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.paper,
     borderWidth: 1,
     borderColor: 'rgba(0,0,0,0.12)',
     paddingHorizontal: 16,
@@ -736,7 +736,7 @@ const s = StyleSheet.create({
   },
   secondaryBtnTxt: {
     fontFamily: FONTS.bodySemiBold,
-    color: COLORS.textDark,
+    color: COLORS.bark,
     fontSize: 13,
   },
 });

@@ -17,6 +17,8 @@ import {
 import { LegalDisclosureModal } from '@components/milk/LegalDisclosureModal';
 import { useAnalytics } from '@hooks/useAnalytics';
 import { COLORS, FONTS } from '@utils/constants';
+import { V9PageBackdrop } from '@components/shared/V9PageBackdrop';
+import { PrimaryCTA } from '@components/shared/PrimaryCTA';
 import { useT } from '@/i18n';
 import type { MilkStackParamList } from '@/navigation/MilkNavigator';
 
@@ -112,7 +114,7 @@ function PurchaseContent({ navigation, route }: Props) {
       // 2. Init PaymentSheet (Connect destination charge requires stripeAccountId in some flows;
       //    we use the platform account since transfer_data routes funds.)
       const { error: initError } = await initPaymentSheet({
-        merchantDisplayName: 'The Village — Milk Connect',
+        merchantDisplayName: 'Villie — Milk Connect',
         paymentIntentClientSecret: intent.client_secret,
         defaultBillingDetails: { name: user.email ?? '' },
       });
@@ -157,13 +159,14 @@ function PurchaseContent({ navigation, route }: Props) {
   if (loading || !donor || !listing) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator color={COLORS.rust} />
+        <ActivityIndicator color="#C07840" />
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
+      <V9PageBackdrop />
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
@@ -299,20 +302,13 @@ function PurchaseContent({ navigation, route }: Props) {
 
       {/* Sticky pay bar */}
       <View style={styles.payBar}>
-        <TouchableOpacity
-          style={[styles.payBtn, paying && styles.payBtnDisabled]}
+        <PrimaryCTA
+          shape="rect"
+          label={t('milkPurchase.payButton', { amount: pricing.total.toFixed(2) })}
           onPress={handlePayPressed}
-          disabled={paying}
+          loading={paying}
           accessibilityLabel={t('milkPurchase.payButtonA11y', { amount: pricing.total.toFixed(2) })}
-          accessibilityRole="button"
-          accessibilityState={{ disabled: paying }}
-        >
-          {paying ? (
-            <ActivityIndicator color="#FFF" />
-          ) : (
-            <Text style={styles.payBtnText}>{t('milkPurchase.payButton', { amount: pricing.total.toFixed(2) })}</Text>
-          )}
-        </TouchableOpacity>
+        />
       </View>
 
       <LegalDisclosureModal
@@ -345,30 +341,34 @@ export default function MilkPurchaseScreen(props: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F5F0E8' },
+  container: { flex: 1, backgroundColor: 'transparent' },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#F5F0E8' },
 
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingTop: 56, paddingBottom: 12, paddingHorizontal: 16,
-    backgroundColor: '#FFF',
+    backgroundColor: COLORS.paper,
     borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.06)',
   },
-  back: { fontSize: 15, color: '#D87530', fontFamily: FONTS.bodyMedium },
+  back: { fontSize: 15, color: '#C07840', fontFamily: FONTS.bodyMedium },
   title: { fontSize: 17, fontFamily: FONTS.bodySemiBold, color: '#2C1810' },
 
   scroll: { flex: 1 },
 
   donorStrip: {
-    margin: 16, padding: 14, borderRadius: 12,
-    backgroundColor: '#FFF5F0', borderWidth: 1, borderColor: '#F0D9C8',
+    margin: 16, padding: 16, borderRadius: 12,
+    backgroundColor: COLORS.pinkSoft, borderWidth: 1, borderColor: '#F0D9C8',
   },
   donorName: { fontSize: 17, fontFamily: FONTS.bodySemiBold, color: '#2C1810' },
   donorMeta: { fontSize: 13, color: '#6B5C52', marginTop: 4 },
 
   card: {
     marginHorizontal: 16, marginBottom: 12,
-    backgroundColor: '#FFF', borderRadius: 14, padding: 16,
+    backgroundColor: COLORS.paper, borderRadius: 14, padding: 16,
+    // v9 paper lift
+    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(150, 80, 50, 0.18)',
+    shadowColor: '#6B2E0E', shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.18, shadowRadius: 18, elevation: 5,
   },
   cardTitle: { fontSize: 15, fontFamily: FONTS.bodySemiBold, color: '#2C1810', marginBottom: 4 },
   cardHelp: { fontSize: 12, color: '#9A8070', marginBottom: 14 },
@@ -376,10 +376,10 @@ const styles = StyleSheet.create({
   qtyRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 4 },
   qtyBtn: {
     width: 56, height: 56, borderRadius: 28,
-    backgroundColor: '#FFF5F0', borderWidth: 1.5, borderColor: '#D87530',
+    backgroundColor: COLORS.pinkSoft, borderWidth: 1.5, borderColor: COLORS.coco,
     alignItems: 'center', justifyContent: 'center',
   },
-  qtyBtnText: { fontSize: 28, fontFamily: FONTS.bodySemiBold, color: '#D87530' },
+  qtyBtnText: { fontSize: 28, fontFamily: FONTS.bodySemiBold, color: COLORS.coco },
   qtyDisplay: { alignItems: 'center' },
   qtyValue: { fontSize: 36, fontFamily: FONTS.bodySemiBold, color: '#2C1810' },
   qtyUnit: { fontSize: 12, color: '#9A8070', fontFamily: FONTS.bodyMedium },
@@ -389,9 +389,9 @@ const styles = StyleSheet.create({
     flex: 1, paddingVertical: 14, borderRadius: 12, alignItems: 'center',
     backgroundColor: '#F5F0E8', borderWidth: 1.5, borderColor: 'transparent',
   },
-  fulfillBtnActive: { backgroundColor: '#FFF5F0', borderColor: '#D87530' },
+  fulfillBtnActive: { backgroundColor: COLORS.pinkSoft, borderColor: COLORS.coco },
   fulfillBtnText: { fontSize: 14, fontFamily: FONTS.bodySemiBold, color: '#6B5C52' },
-  fulfillBtnTextActive: { color: '#D87530' },
+  fulfillBtnTextActive: { color: COLORS.coco },
   fulfillSub: { fontSize: 11, color: '#9A8070', marginTop: 4 },
 
   notesInput: {
@@ -402,7 +402,7 @@ const styles = StyleSheet.create({
 
   priceCard: {
     marginHorizontal: 16, marginBottom: 12,
-    backgroundColor: '#FFF', borderRadius: 14, padding: 16, gap: 0,
+    backgroundColor: COLORS.paper, borderRadius: 14, padding: 16, gap: 0,
   },
   priceRow: {
     flexDirection: 'row', justifyContent: 'space-between',
@@ -414,22 +414,22 @@ const styles = StyleSheet.create({
     borderTopWidth: 1, borderTopColor: 'rgba(0,0,0,0.07)', marginTop: 6, paddingTop: 12,
   },
   priceTotalKey: { fontSize: 15, fontFamily: FONTS.bodySemiBold, color: '#2C1810' },
-  priceTotalVal: { fontSize: 22, fontFamily: FONTS.bodySemiBold, color: '#D87530' },
+  priceTotalVal: { fontSize: 22, fontFamily: FONTS.bodySemiBold, color: COLORS.coco },
   priceFooter: { fontSize: 11, color: '#9A8070', marginTop: 8, textAlign: 'center' },
 
-  safetyNote: { marginHorizontal: 16, marginBottom: 12, padding: 12, backgroundColor: '#FFF', borderRadius: 10 },
+  safetyNote: { marginHorizontal: 16, marginBottom: 12, padding: 12, backgroundColor: COLORS.paper, borderRadius: 10 },
   safetyText: { fontSize: 12, color: '#9A8070', textAlign: 'center', lineHeight: 18 },
 
   payBar: {
     position: 'absolute', bottom: 0, left: 0, right: 0,
     paddingHorizontal: 16, paddingTop: 12, paddingBottom: 32,
-    backgroundColor: '#FFF',
+    backgroundColor: COLORS.paper,
     borderTopWidth: 1, borderTopColor: 'rgba(0,0,0,0.07)',
   },
   payBtn: {
-    backgroundColor: '#D87530', borderRadius: 14,
+    backgroundColor: '#C07840', borderRadius: 14,
     paddingVertical: 16, alignItems: 'center',
   },
   payBtnDisabled: { opacity: 0.5 },
-  payBtnText: { color: '#FFF', fontSize: 17, fontFamily: FONTS.bodySemiBold },
+  payBtnText: { color: '#FDFBF6', fontSize: 17, fontFamily: FONTS.bodySemiBold },
 });

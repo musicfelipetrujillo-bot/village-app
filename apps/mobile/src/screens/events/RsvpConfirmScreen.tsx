@@ -6,6 +6,7 @@ import {
 import * as Calendar from 'expo-calendar';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import { COLORS, FONTS } from '@utils/constants';
+import { V9PageBackdrop } from '@components/shared/V9PageBackdrop';
 import { eventsApi, formatEventWhen, type EventCard } from '@api/events';
 import { useT } from '@/i18n';
 
@@ -63,11 +64,12 @@ export default function RsvpConfirmScreen() {
   };
 
   if (!event) {
-    return <View style={styles.container}><ActivityIndicator color={COLORS.rust} style={{ marginTop: 80 }} /></View>;
+    return <View style={styles.container}><ActivityIndicator color="#C07840" style={{ marginTop: 80 }} /></View>;
   }
 
   return (
     <View style={styles.container}>
+      <V9PageBackdrop />
       <View style={styles.content}>
         <Text style={styles.checkmark}>✓</Text>
         <Text style={styles.title}>{t('rsvpConfirm.title')}</Text>
@@ -105,37 +107,38 @@ export default function RsvpConfirmScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.cream, justifyContent: 'center' },
+  container: { flex: 1, backgroundColor: 'transparent', justifyContent: 'center' },
   content: { paddingHorizontal: 32, alignItems: 'center' },
   checkmark: {
-    fontSize: 54, color: COLORS.rust, fontFamily: FONTS.bodySemiBold,
+    fontSize: 54, color: '#A77349', fontFamily: FONTS.bodySemiBold,
     backgroundColor: '#FDEEE8', width: 96, height: 96, borderRadius: 48,
     textAlign: 'center', lineHeight: 96, marginBottom: 16,
   },
-  title: { fontSize: 28, fontFamily: FONTS.bodySemiBold, color: COLORS.brownDeep, marginBottom: 12 },
-  subtitle: { fontSize: 17, fontFamily: FONTS.bodySemiBold, color: COLORS.brownDeep, textAlign: 'center', marginBottom: 6 },
-  when: { fontSize: 14, color: COLORS.textMid, textAlign: 'center', marginBottom: 28 },
+  // v9 — Playfair Bold roman title
+  title: { fontSize: 30, fontFamily: FONTS.headerBold, color: COLORS.bark, marginBottom: 12, letterSpacing: -0.5, lineHeight: 36, textAlign: 'center' },
+  subtitle: { fontSize: 17, fontFamily: FONTS.bodySemiBold, color: COLORS.bark, textAlign: 'center', marginBottom: 6 },
+  when: { fontSize: 14, color: COLORS.barkSoft, textAlign: 'center', marginBottom: 28 },
 
   calBtn: {
-    backgroundColor: COLORS.rust, borderRadius: 14,
+    backgroundColor: '#C07840', borderRadius: 14,
     paddingHorizontal: 32, paddingVertical: 14,
     marginBottom: 10, width: '100%', alignItems: 'center',
   },
-  calBtnText: { color: '#FFF', fontSize: 15, fontFamily: FONTS.bodySemiBold },
+  calBtnText: { color: '#FDFBF6', fontSize: 15, fontFamily: FONTS.bodySemiBold },
 
   addedBanner: {
     backgroundColor: 'rgba(92,107,58,0.1)', borderRadius: 10,
     paddingHorizontal: 16, paddingVertical: 10, marginBottom: 10,
   },
-  addedText: { color: COLORS.olive, fontFamily: FONTS.bodySemiBold, fontSize: 13 },
+  addedText: { color: COLORS.sage, fontFamily: FONTS.bodySemiBold, fontSize: 13 },
 
   doneBtn: {
-    backgroundColor: '#FFF', borderRadius: 14,
+    backgroundColor: COLORS.paper, borderRadius: 14,
     paddingHorizontal: 32, paddingVertical: 14,
     width: '100%', alignItems: 'center',
-    borderWidth: 1.5, borderColor: COLORS.rust,
+    borderWidth: 1.5, borderColor: COLORS.coco,
   },
-  doneBtnText: { color: COLORS.rust, fontSize: 14, fontFamily: FONTS.bodySemiBold },
+  doneBtnText: { color: '#C07840', fontSize: 14, fontFamily: FONTS.bodySemiBold },
 
   closeBtn: { marginTop: 14, paddingVertical: 8 },
   closeBtnText: { color: COLORS.textLight, fontSize: 13, fontFamily: FONTS.bodySemiBold },

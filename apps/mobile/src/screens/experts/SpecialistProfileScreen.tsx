@@ -6,6 +6,8 @@ import {
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { COLORS, FONTS } from '@utils/constants';
+import { V9PageBackdrop } from '@components/shared/V9PageBackdrop';
+import { GlassHighlight } from '@components/shared/GlassHighlight';
 import { useT } from '@/i18n';
 import { useExpertsStore } from '@store/experts';
 import { useAuthStore } from '@store/auth';
@@ -73,6 +75,7 @@ export default function SpecialistProfileScreen({ navigation, route }: Props) {
 
   return (
     <View style={styles.container}>
+      <V9PageBackdrop />
       {/* Back button */}
       <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
         <Text style={styles.backText}>{`← ${t('specialistProfile.back')}`}</Text>
@@ -106,6 +109,9 @@ export default function SpecialistProfileScreen({ navigation, route }: Props) {
               </View>
             )}
           </View>
+          {/* v9 editorial hairline rule — closes the hero block like
+              HomeScreen's greetingRule does for the masthead. */}
+          <View style={styles.heroRule} />
         </View>
 
         {/* Action bar */}
@@ -184,8 +190,10 @@ export default function SpecialistProfileScreen({ navigation, route }: Props) {
           ))}
         </View>
 
-        {/* Tab content */}
+        {/* Tab content — v9 hero glass sheen on the lifted tab body so the
+            tab → content transition has the iOS-26 wet-glass top highlight. */}
         <View style={styles.tabContent}>
+          <GlassHighlight radius={14} height={16} />
           {activeTab === 'about' && (
             <Text style={styles.bio}>{spec.bio ?? t('specialistProfile.noBio')}</Text>
           )}
@@ -245,7 +253,7 @@ export default function SpecialistProfileScreen({ navigation, route }: Props) {
                 <View style={styles.infoRow}>
                   <Text style={styles.infoLabel}>{t('specialistProfile.rowPhone')}</Text>
                   <TouchableOpacity onPress={() => Linking.openURL(`tel:${spec.phone}`)}>
-                    <Text style={[styles.infoValue, { color: COLORS.rust }]}>{spec.phone}</Text>
+                    <Text style={[styles.infoValue, { color: COLORS.coco }]}>{spec.phone}</Text>
                   </TouchableOpacity>
                 </View>
               )}
@@ -291,11 +299,11 @@ export default function SpecialistProfileScreen({ navigation, route }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.cream },
+  container: { flex: 1, backgroundColor: 'transparent' },
   loading: { flex: 1, alignItems: 'center', justifyContent: 'center' },
 
   backBtn: { paddingHorizontal: 20, paddingTop: 56, paddingBottom: 8 },
-  backText: { fontSize: 15, color: COLORS.rust, fontFamily: FONTS.bodyMedium },
+  backText: { fontSize: 15, color: '#C07840', fontFamily: FONTS.bodyMedium },
 
   content: { paddingBottom: 100 },
 
@@ -304,7 +312,7 @@ const styles = StyleSheet.create({
     width: 88,
     height: 88,
     borderRadius: 44,
-    backgroundColor: COLORS.rustLight,
+    backgroundColor: COLORS.cocoSoft,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 12,
@@ -313,13 +321,17 @@ const styles = StyleSheet.create({
   heroName: {
     fontFamily: FONTS.headerItalic,
     fontSize: 24,
-    color: COLORS.textDark,
+    color: COLORS.bark,
     textAlign: 'center',
     marginBottom: 4,
   },
-  heroCredentials: { fontSize: 14, color: COLORS.textMid, marginBottom: 2, fontFamily: FONTS.body },
+  heroCredentials: { fontSize: 14, color: COLORS.barkSoft, marginBottom: 2, fontFamily: FONTS.body },
   heroPractice: { fontSize: 13, color: COLORS.textLight, marginBottom: 10, fontFamily: FONTS.body },
   heroBadges: { flexDirection: 'row', gap: 8, flexWrap: 'wrap', justifyContent: 'center' },
+  heroRule: {
+    height: StyleSheet.hairlineWidth, backgroundColor: 'rgba(61,31,13,0.18)',
+    marginTop: 16, width: 48, alignSelf: 'center',
+  },
   badge: {
     backgroundColor: 'rgba(0,0,0,0.06)',
     borderRadius: 50,
@@ -328,7 +340,7 @@ const styles = StyleSheet.create({
   },
   badgeGreen: { backgroundColor: '#EEF2E6' },
   badgeNPI: { backgroundColor: '#EEF2E6' },
-  badgeText: { fontSize: 11, fontFamily: FONTS.bodyMedium, color: COLORS.textMid },
+  badgeText: { fontSize: 11, fontFamily: FONTS.bodyMedium, color: COLORS.barkSoft },
 
   actionBar: {
     flexDirection: 'row',
@@ -345,12 +357,12 @@ const styles = StyleSheet.create({
   // reads warmer than the prior rust filled button.
   actionBtnPrimary: {
     flex: 1,
-    backgroundColor: COLORS.yolkLight,
+    backgroundColor: COLORS.sandSoft,
     borderRadius: 999,
     paddingVertical: 13,
     alignItems: 'center',
   },
-  actionBtnPrimaryText: { color: COLORS.brownDeep, fontSize: 15, fontFamily: FONTS.bodySemiBold },
+  actionBtnPrimaryText: { color: COLORS.bark, fontSize: 15, fontFamily: FONTS.bodySemiBold },
 
   ratingRow: {
     flexDirection: 'row',
@@ -359,43 +371,51 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     marginBottom: 10,
   },
-  stars: { fontSize: 16, color: COLORS.gold },
-  ratingNum: { fontSize: 15, fontFamily: FONTS.bodySemiBold, color: COLORS.textDark },
+  stars: { fontSize: 16, color: COLORS.sand },
+  ratingNum: { fontSize: 15, fontFamily: FONTS.bodySemiBold, color: COLORS.bark },
   ratingCount: { fontSize: 12, color: COLORS.textLight, fontFamily: FONTS.body },
-  aiSummaryBtn: { fontSize: 12, color: COLORS.rust, fontFamily: FONTS.bodyMedium },
+  aiSummaryBtn: { fontSize: 12, color: '#A77349', fontFamily: FONTS.bodyMedium },
 
   aiSummaryCard: {
     marginHorizontal: 16,
     marginBottom: 12,
     backgroundColor: '#FFF8E8',
     borderRadius: 12,
-    padding: 14,
+    padding: 16,
   },
-  aiSummaryTitle: { fontSize: 12, fontFamily: FONTS.bodySemiBold, color: COLORS.gold, marginBottom: 6 },
-  aiSummaryText: { fontSize: 13, color: COLORS.textDark, lineHeight: 20, fontFamily: FONTS.body },
+  aiSummaryTitle: { fontSize: 12, fontFamily: FONTS.bodySemiBold, color: COLORS.sand, marginBottom: 6 },
+  aiSummaryText: { fontSize: 13, color: COLORS.bark, lineHeight: 20, fontFamily: FONTS.body },
 
   tabs: {
     flexDirection: 'row',
     marginHorizontal: 16,
     marginBottom: 0,
-    backgroundColor: 'white',
+    backgroundColor: COLORS.paper,
     borderRadius: 10,
     padding: 3,
   },
   tab: { flex: 1, paddingVertical: 8, alignItems: 'center', borderRadius: 8 },
   tabActive: { backgroundColor: COLORS.cream },
   tabText: { fontSize: 12, color: COLORS.textLight, fontFamily: FONTS.bodyMedium },
-  tabTextActive: { color: COLORS.textDark },
+  tabTextActive: { color: COLORS.bark },
 
   tabContent: {
     marginHorizontal: 16,
     marginTop: 12,
     marginBottom: 20,
-    backgroundColor: 'white',
+    backgroundColor: COLORS.paper,
     borderRadius: 14,
     padding: 16,
+    // v9 paper lift — cocoa drop matching every other v9 surface
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(150, 80, 50, 0.18)',
+    shadowColor: '#6B2E0E',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.18,
+    shadowRadius: 18,
+    elevation: 5,
   },
-  bio: { fontSize: 14, color: COLORS.textDark, lineHeight: 22, fontFamily: FONTS.body },
+  bio: { fontSize: 14, color: COLORS.bark, lineHeight: 22, fontFamily: FONTS.body },
   infoList: { gap: 0 },
   infoRow: {
     flexDirection: 'row',
@@ -407,39 +427,39 @@ const styles = StyleSheet.create({
   },
   infoLabel: { fontSize: 14, color: COLORS.textLight, flex: 1, fontFamily: FONTS.body },
   infoSub: { fontSize: 12, color: COLORS.textLight, marginTop: 2, fontFamily: FONTS.body },
-  infoValue: { fontSize: 14, fontFamily: FONTS.bodyMedium, color: COLORS.textDark, maxWidth: '50%', textAlign: 'right' },
+  infoValue: { fontSize: 14, fontFamily: FONTS.bodyMedium, color: COLORS.bark, maxWidth: '50%', textAlign: 'right' },
   emptyTabText: { fontSize: 13, color: COLORS.textLight, textAlign: 'center', paddingVertical: 12, fontFamily: FONTS.body },
 
   reviewsSection: { marginHorizontal: 16, marginBottom: 20 },
   sectionTitle: {
     fontFamily: FONTS.headerItalic,
     fontSize: 20,
-    color: COLORS.textDark,
+    color: '#C07840',  // v9 rust-deep — unified italic accent
     marginBottom: 12,
   },
   writeReviewBtn: {
     borderWidth: 1.5,
-    borderColor: COLORS.rust,
+    borderColor: COLORS.coco,
     borderRadius: 12,
     paddingVertical: 12,
     alignItems: 'center',
     marginTop: 12,
   },
-  writeReviewText: { color: COLORS.rust, fontSize: 14, fontFamily: FONTS.bodyMedium },
+  writeReviewText: { color: '#A77349', fontSize: 14, fontFamily: FONTS.bodyMedium },
 
   aiRail: {
     marginHorizontal: 16,
-    backgroundColor: COLORS.brownMid,
+    backgroundColor: COLORS.barkSoft,
     borderRadius: 16,
     padding: 16,
     gap: 10,
   },
-  aiRailTitle: { color: 'white', fontSize: 14, fontFamily: FONTS.bodySemiBold },
+  aiRailTitle: { color: '#FDFBF6', fontSize: 14, fontFamily: FONTS.bodySemiBold },
   aiRailChip: {
     backgroundColor: 'rgba(255,255,255,0.12)',
     borderRadius: 50,
     paddingVertical: 8,
     paddingHorizontal: 14,
   },
-  aiRailChipText: { color: 'white', fontSize: 13, fontFamily: FONTS.bodyMedium },
+  aiRailChipText: { color: '#FDFBF6', fontSize: 13, fontFamily: FONTS.bodyMedium },
 });

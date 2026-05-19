@@ -49,7 +49,7 @@ import EditorialSectionHead from '@components/shared/EditorialSectionHead';
 const DISCHARGE_WELCOME_KEY = 'village.dischargeWelcomeDismissed.v1';
 
 // Brand wordmark — "villie" logotype with bee mark (1182×827, ≈1.43:1).
-const WORDMARK = require('../../../assets/brand/villie-wordmark-sm.png');
+const WORDMARK = require('../../../assets/brand/villie-wordmark-v2.png');
 // Villie bee — brand mark used as a decorative accent in the masthead.
 const VILLIE_BEE = require('../../../assets/brand/villie-bee.png');
 
@@ -203,9 +203,24 @@ export default function HomeScreen() {
   const tabParent = navigation.getParent?.();
   const rootNav = tabParent?.getParent?.();
 
-  const onHelpFeeding = () => tabParent?.navigate('Experts');
+  // Help-today destinations — tightened 2026-05-16. Previous wiring sent
+  // "Feeding help" to the full Experts directory and "Find moms" to the
+  // Milk hub (which is donor marketplace, not community). Both felt like
+  // dead-ends. New routing prioritizes "give me the answer right now":
+  //   Feeding help    → Manual · Baby · Feed   (latch, supply, bottles)
+  //   Body & recovery → Manual · Mom · Heal    (lochia, stitches, C-section)
+  // Daily check-in + Ask Villie unchanged.
+  const onHelpFeeding = () =>
+    tabParent?.navigate('Manual', {
+      screen: 'ManualCategory',
+      params: { audience: 'baby', category: 'feed', label: t('manual.babyFeed') },
+    });
   const onHelpEmotional = () => navigation.navigate('DailyCheckin');
-  const onHelpFindMoms = () => tabParent?.navigate('Milk');
+  const onHelpRecovery = () =>
+    tabParent?.navigate('Manual', {
+      screen: 'ManualCategory',
+      params: { audience: 'mom', category: 'heal', label: t('manual.momHeal') },
+    });
   const onHelpAskVillage = () => rootNav?.navigate('AIHelpChat');
 
   return (
@@ -273,7 +288,7 @@ export default function HomeScreen() {
 
       {loading && !babyProfile ? (
         <View style={styles.loadingWrap}>
-          <ActivityIndicator color={COLORS.coco} />
+          <ActivityIndicator color="#C07840" />
         </View>
       ) : !babyProfile ? (
         <EmptyBabyProfileCard onSetup={() => navigation.navigate('BabyProfileSetup')} />
@@ -297,6 +312,7 @@ export default function HomeScreen() {
             onPress={() =>
               navigation.navigate('WeeklyJourney', { week: babyProfile.current_week_number })
             }
+            onArrowPress={() => tabParent?.navigate('Manual')}
           />
 
           {/* v9 Daily check-in strip — inline daily ritual. Pending vs
@@ -353,6 +369,8 @@ export default function HomeScreen() {
           {/* HOW CAN WE HELP — 4 warm quick-launch tiles wrapped in a card
               surface so it lifts off the gradient background when scrolled. */}
           <View style={styles.helpCard}>
+            {/* iOS-26 wet-glass top sheen */}
+            <GlassHighlight radius={20} height={14} />
             {/* Tiny bee bottom-right — brand playfulness, pointerEvents none */}
             <Image
               source={VILLIE_BEE}
@@ -369,24 +387,26 @@ export default function HomeScreen() {
             <View style={styles.helpHeadingRule} />
           </View>
           <View style={styles.helpGrid}>
-            {/* Brand Kit v5 help-tile palette — each tile gets a distinct
-                primary-or-secondary tint so the row reads as 4 different
-                "moments". Marks pick the coco/bark/sage that contrasts
-                strongest with each tint:
-                  • Feeding   — pink (primary)        + coco mark
-                  • Emotional — sandSoft (warm calm)  + coco mark
-                  • Find moms — sage @ light (calm)   + sage mark
-                  • Ask Villie— pinkSoft (quiet)      + bark mark
+            {/* Help-tile palette — each tile maps to a chapter color
+                family so the section reads as a curated row of "doors"
+                into different parts of the app. Marks pick the
+                contrasting accent for each tint:
+                  • Feeding help    — Feed family (amber)     → Manual · Baby · Feed
+                  • Hard day?       — warm sand                → Daily check-in
+                  • Body & recovery — Heal family (moss)       → Manual · Mom · Heal
+                  • Ask villie      — pink-soft (calm AI)      → AI chat modal
             */}
             <HelpTile mark="yolkCircle" markTint={COLORS.coco}  label={t('home.helpFeeding')}    sub={t('home.helpFeedingSub')}    tint={COLORS.pink}     onPress={onHelpFeeding} />
             <HelpTile mark="yolkRing"   markTint={COLORS.coco}  label={t('home.helpEmotional')}  sub={t('home.helpEmotionalSub')}  tint={COLORS.sandSoft} onPress={onHelpEmotional} />
-            <HelpTile mark="leafSprig"  markTint={COLORS.sage}  label={t('home.helpFindMoms')}   sub={t('home.helpFindMomsSub')}   tint="#D8DFC4"          onPress={onHelpFindMoms} />
+            <HelpTile mark="leafSprig"  markTint={COLORS.sage}  label={t('home.helpRecovery')}   sub={t('home.helpRecoverySub')}   tint="#D8DFC4"          onPress={onHelpRecovery} />
             <HelpTile mark="sparkle"    markTint={COLORS.bark}  label={t('home.helpAskVillage')} sub={t('home.helpAskVillageSub')} tint={COLORS.pinkSoft} onPress={onHelpAskVillage} />
           </View>
           </View>
 
           {/* WANDER VILLIE — card wrapping heading + 2x2 grid, matching helpCard. */}
           <View style={styles.exploreCard}>
+            {/* iOS-26 wet-glass top sheen */}
+            <GlassHighlight radius={20} height={14} />
             <Animated.Image
               source={VILLIE_BEE}
               resizeMode="contain"
@@ -872,13 +892,66 @@ function WeeklyManualCombinedCard({
 }
 
 // ─────────────────────────────────────────────────────────────────────────
+// iOS 26 "Liquid Glass" specular highlight — a soft white sheen on the
+// upper edge of a card that catches the eye like wet glass. Used on the
+// v9 header cards (Week hero, Check-in strip, Manual block, Help, Explore)
+// to add life without competing with the editorial typography.
+//
+// Two layers:
+//   1) LinearGradient strip — rgba(255,255,255,0.55) → 0 over ~14px,
+//      giving the "fade-down reflection" depth.
+//   2) Hairline at top:0 — rgba(255,255,255,0.7), 1px ridge that gives
+//      the card a crisp top edge against the warm backdrop.
+//
+// Both layers pointerEvents='none' so they never intercept taps. zIndex
+// is held below cards' top dashes (zIndex 3) so the rust dash still sits
+// crisply over the glass.
+// ─────────────────────────────────────────────────────────────────────────
+function GlassHighlight({ radius, height = 14 }: { radius: number; height?: number }) {
+  // No zIndex on either layer — we rely on render order. GlassHighlight is
+  // always inserted as the FIRST child of a card (or right after deep-bg
+  // decoratives like yolks), so subsequent children paint over it. The
+  // Week hero card's content explicitly uses zIndex 2-3 to sit above the
+  // pink yolks (zIndex 0); since we render glass between them in DOM order,
+  // paint order is yolks → glass → top bar/content. Other cards (Manual,
+  // Help, Explore, Check-in) have no explicit zIndex on children, so plain
+  // DOM order keeps content above the glass.
+  return (
+    <>
+      <LinearGradient
+        pointerEvents="none"
+        colors={['rgba(255,255,255,0.55)', 'rgba(255,255,255,0)']}
+        style={{
+          position: 'absolute',
+          top: 0, left: 0, right: 0,
+          height,
+          borderTopLeftRadius: radius,
+          borderTopRightRadius: radius,
+        }}
+      />
+      <View
+        pointerEvents="none"
+        style={{
+          position: 'absolute',
+          top: 0, left: 0, right: 0,
+          height: StyleSheet.hairlineWidth,
+          backgroundColor: 'rgba(255,255,255,0.7)',
+          borderTopLeftRadius: radius,
+          borderTopRightRadius: radius,
+        }}
+      />
+    </>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────
 // v9 Week hero — compact, mockup-aligned. Baby identity folded into the
 // top row (avatar + name + age), then "THIS WEEK" eyebrow, big Playfair
 // italic week number, headline, body, and a glossy clay arrow CTA.
 // Replaces WeeklyManualCombinedCard for the daily Home view.
 // ─────────────────────────────────────────────────────────────────────────
 function WeekHeroV9({
-  babyName, babyAge, feedCard, weekNumber, fallbackDescription, onPress,
+  babyName, babyAge, feedCard, weekNumber, fallbackDescription, onPress, onArrowPress,
 }: {
   babyName: string;
   babyAge: string;
@@ -886,6 +959,9 @@ function WeekHeroV9({
   weekNumber: number;
   fallbackDescription: string;
   onPress: () => void;
+  /** Arrow circle has its own destination — the actual Manual (chapter
+   *  selector). The text/card area still goes to WeeklyJourney via onPress. */
+  onArrowPress: () => void;
 }) {
   const t = useT();
   const p = feedCard?.payload as unknown as MilestoneBlockPayload | undefined;
@@ -909,6 +985,8 @@ function WeekHeroV9({
       {/* Decorative yolks (top-right) */}
       <View style={styles.weekHeroYolk} pointerEvents="none" />
       <View style={styles.weekHeroYolkIn} pointerEvents="none" />
+      {/* Glass sheen removed 2026-05-16 — the white→transparent fade was
+          washing out the top of the peachy card. Solid card bg sits cleaner. */}
       {/* Top rust dash */}
       <View style={styles.weekHeroTopBar} />
 
@@ -928,9 +1006,19 @@ function WeekHeroV9({
 
       <View style={styles.weekHeroCtaRow}>
         <Text style={styles.weekHeroCtaText}>{t('home.heroCta')}</Text>
-        <View style={styles.weekHeroArrow}>
+        {/* Arrow has its own destination — the actual Manual (chapter list).
+            The text "See your weekly guide →" + the card body still go to
+            WeeklyJourney via the outer TouchableOpacity. */}
+        <TouchableOpacity
+          style={styles.weekHeroArrow}
+          onPress={onArrowPress}
+          activeOpacity={0.7}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          accessibilityRole="button"
+          accessibilityLabel={t('home.heroArrowA11y')}
+        >
           <Text style={styles.weekHeroArrowGlyph}>→</Text>
-        </View>
+        </TouchableOpacity>
       </View>
     </TouchableOpacity>
   );
@@ -953,12 +1041,23 @@ type ManualPillTone = 'feel' | 'heal' | 'nourish' | 'rest' | 'tips';
 // Heal moss and Tips cinnamon-dark already passed with paper text.
 // Each chapter still reads as its own color family (warm pink, green,
 // gold, blue, orange) — just deeper across the board.
+// v9 chapter pill palette — kit canon (brand kit phone mockup §06 UI).
+// Each pill uses a brand palette token; text color follows the kit's
+// canonical pairing (cocoa on light pills, paper on dark pills).
+//   Feel    → salmon   · cocoa text — empathy + warmth
+//   Heal    → moss     · paper text — body recovery, garden
+//   Nourish → butter   · cocoa text — fuel, halo energy
+//   Rest    → sage     · cocoa text — kit "cool exhale", quiet
+//   Tips    → marigold · cocoa text — kit "hero pop", small wins
+// (rest moved off caramel + tips moved off cinnamon 2026-05-16 — caramel
+//  read too close to butter/salmon in the warm row, and cinnamon needed to
+//  stay CTA-exclusive per the kit's "one spark per screen" rule.)
 const MANUAL_PILL_COLORS: Record<ManualPillTone, { bg: string; fg: string }> = {
-  feel:    { bg: '#A55248', fg: '#FDFAF5' }, // terracotta — paper fg, 5.17:1
-  heal:    { bg: '#606E46', fg: '#FDFAF5' }, // moss       — paper fg, 5.29:1
-  nourish: { bg: '#8C6D1E', fg: '#FDFAF5' }, // amber      — paper fg, 4.67:1
-  rest:    { bg: '#5B6A82', fg: '#FDFAF5' }, // slate      — paper fg, 5.27:1
-  tips:    { bg: '#9F5F30', fg: '#FDFAF5' }, // cinnamon-dark — paper fg, 4.86:1
+  feel:    { bg: '#EDA8A0', fg: '#3D1F0E' }, // salmon   — cocoa fg
+  heal:    { bg: '#606E46', fg: '#FEFAF6' }, // moss     — card fg
+  nourish: { bg: '#FAD080', fg: '#3D1F0E' }, // butter   — cocoa fg
+  rest:    { bg: '#D8CEB0', fg: '#3D1F0E' }, // sage     — cocoa fg
+  tips:    { bg: '#F2C130', fg: '#3D1F0E' }, // marigold — cocoa fg
 };
 function ManualBlockHome({
   onManualPress, onCategoryPress,
@@ -966,26 +1065,34 @@ function ManualBlockHome({
   onManualPress: () => void;
   onCategoryPress: (audience: 'mom' | 'baby', category: string, label: string) => void;
 }) {
+  const t = useT();
   return (
     <View style={styles.manualBlock}>
+      {/* iOS-26 wet-glass top sheen — under the coco dash */}
+      <GlassHighlight radius={14} height={12} />
       {/* Top coco dash */}
       <View style={styles.manualBlockTopBar} />
       <View style={styles.manualBlockHead}>
         <View style={styles.manualBlockEyebrowRow}>
           <View style={styles.manualBlockEyebrowBar} />
-          <Text style={styles.manualBlockEyebrow}>The manual</Text>
+          <Text style={styles.manualBlockEyebrow}>{t('home.manualBlockEyebrow')}</Text>
         </View>
         <TouchableOpacity
           onPress={onManualPress}
           accessibilityRole="link"
-          accessibilityLabel="All chapters"
+          accessibilityLabel={t('home.manualBlockAllChapters')}
           // Text-only link is ~14px tall — extend the touch region via hitSlop
           // to ~46×80 so it meets WCAG 2.5.5 without growing the visible text.
           hitSlop={{ top: 12, bottom: 12, left: 10, right: 10 }}
         >
-          <Text style={styles.manualBlockLink}>All chapters →</Text>
+          <Text style={styles.manualBlockLink}>{t('home.manualBlockAllChapters')}</Text>
         </TouchableOpacity>
       </View>
+      {/* Goal line — explains what the Manual is in one breath. Sits
+          between the eyebrow row and the pill row so the pills feel
+          like "doors into" something, not random buttons. Clinician-
+          handoff-grade copy for the postpartum-0–6wk window. */}
+      <Text style={styles.manualBlockLead}>{t('home.manualBlockLead')}</Text>
       <View style={styles.manualBlockPills}>
         {(['feel', 'heal', 'nourish', 'rest', 'tips'] as ManualPillTone[]).map((tone) => {
           const label = tone === 'feel' ? 'Feel' : tone === 'heal' ? 'Heal' : tone === 'nourish' ? 'Nourish' : tone === 'rest' ? 'Rest' : 'Tips';
@@ -1026,6 +1133,29 @@ function DailyCheckinStrip({
   const eyebrow = t('home.checkinPendingEyebrow');
   const prompt = isPending ? t('home.checkinPrompt') : t('home.checkinAnsweredTitle');
 
+  // Breathing bee — scales 1.0 → 1.08 → 1.0 over 2.6s. Only animates in
+  // the pending state so the bee reads as "waiting for you." Answered
+  // state stops the loop and shows the mood emoji instead.
+  const breathScale = useRef(new Animated.Value(1)).current;
+  useEffect(() => {
+    if (!isPending) {
+      breathScale.setValue(1);
+      return;
+    }
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(breathScale, {
+          toValue: 1.08, duration: 1300, useNativeDriver: true,
+        }),
+        Animated.timing(breathScale, {
+          toValue: 1.0, duration: 1300, useNativeDriver: true,
+        }),
+      ]),
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [isPending, breathScale]);
+
   return (
     <TouchableOpacity
       style={styles.checkinStrip}
@@ -1034,19 +1164,33 @@ function DailyCheckinStrip({
       accessibilityRole="button"
       accessibilityLabel={prompt}
     >
+      {/* iOS-26 wet-glass top sheen — soft sheen across the dashed strip */}
+      <GlassHighlight radius={12} height={10} />
       <View style={{ flex: 1, minWidth: 0 }}>
         <Text style={styles.checkinStripEyebrow}>{eyebrow}</Text>
         <Text style={styles.checkinStripPrompt} numberOfLines={1}>{prompt}</Text>
       </View>
-      <View style={styles.checkinStripArrow}>
-        <Text style={styles.checkinStripArrowGlyph}>
-          {isPending
-            ? '→'
-            : (typeof previewMood === 'number'
-                ? ['😞', '😕', '🙂', '😊', '🤩'][Math.max(0, Math.min(4, previewMood - 1))]
-                : '✓')}
-        </Text>
-      </View>
+      {isPending ? (
+        // v9 — villie bee IS the affordance. Breathing scale signals "she's
+        // here, waiting." No container, no border — character not button.
+        <View style={styles.checkinStripBeeSlot}>
+          <Animated.Image
+            source={VILLIE_BEE}
+            resizeMode="contain"
+            accessible={false}
+            style={[styles.checkinStripBee, { transform: [{ scale: breathScale }] }]}
+          />
+        </View>
+      ) : (
+        // Answered state — mood emoji in the same cinnamon badge slot.
+        <View style={styles.checkinStripArrow}>
+          <Text style={styles.checkinStripArrowGlyph}>
+            {typeof previewMood === 'number'
+              ? ['😞', '😕', '🙂', '😊', '🤩'][Math.max(0, Math.min(4, previewMood - 1))]
+              : '✓'}
+          </Text>
+        </View>
+      )}
     </TouchableOpacity>
   );
 }
@@ -1533,7 +1677,7 @@ function formatHeaderDate(): string {
 const styles = StyleSheet.create({
   // Brand Kit v5 cream #F5EFE6 — slightly warmer than the prior ceramic so
   // the page reads as warm paper rather than yellow-tinted off-white.
-  pageRoot: { flex: 1, backgroundColor: '#FFFFFF' },
+  pageRoot: { flex: 1, backgroundColor: '#FDFBF6' },
   // ScrollView itself is transparent so WarmGlowBackdrop shows through.
   container: { flex: 1, backgroundColor: 'transparent' },
   content: { paddingHorizontal: 20, paddingTop: 24, paddingBottom: 140 },
@@ -1602,7 +1746,7 @@ const styles = StyleSheet.create({
     width: 22, height: 2, backgroundColor: COLORS.coco, marginRight: 10,
   },
   greetingDate: {
-    fontSize: 10, color: COLORS.cocoDeep, fontFamily: FONTS.bodySemiBold,
+    fontSize: 10, color: '#A77349', fontFamily: FONTS.bodySemiBold,
     letterSpacing: 1.8, textTransform: 'uppercase',
   },
   greetingName: {
@@ -1613,7 +1757,7 @@ const styles = StyleSheet.create({
   // brown gives the masthead a single warm pivot point per Brand Kit.
   greetingNameAccent: {
     fontFamily: FONTS.headerItalic, fontStyle: 'italic',
-    color: COLORS.coco,
+    color: '#C07840',  // v9 italic flourish — cinnamon per brand kit
   },
   // Editorial rule — slightly wider and a touch warmer than pure black
   // (uses bark @ 18%) so it ties the masthead block together as one
@@ -1642,7 +1786,7 @@ const styles = StyleSheet.create({
   checkinCard: {
     backgroundColor: COLORS.paper, borderRadius: 10, padding: 16, marginBottom: 10,
     borderWidth: 1, borderColor: 'rgba(139,154,107,0.25)',
-    shadowColor: '#3D1F0D', shadowOffset: { width: 0, height: 3 },
+    shadowColor: '#6B2E0E', shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.04, shadowRadius: 10, elevation: 1,
   },
   checkinCardCrisis: { borderColor: COLORS.coco, backgroundColor: '#F8E8E8' },
@@ -1682,7 +1826,7 @@ const styles = StyleSheet.create({
   ppCrisisCta: {
     fontSize: 13,
     fontFamily: FONTS.bodySemiBold,
-    color: COLORS.cocoDeep,
+    color: '#C07840',
     marginTop: 10,
   },
 
@@ -1715,7 +1859,7 @@ const styles = StyleSheet.create({
     left: 14,                      // matches welcomeCard.paddingLeft
     width: 22,                     // compact-card dash width (22 / 24 / 32 scale)
     height: 2,
-    backgroundColor: '#945A41',    // action-deep
+    backgroundColor: '#C07840',    // action-deep
   },
   welcomeRowTop: {
     flexDirection: 'row',
@@ -1739,7 +1883,7 @@ const styles = StyleSheet.create({
     fontSize: 9,                   // unified v9 eyebrow scale (was 8.5)
     fontFamily: FONTS.bodySemiBold,
     letterSpacing: 2.2,            // unified tracking (was 1.9)
-    color: '#945A41',
+    color: '#A77349',              // kit canon: eyebrows = amber (not action-deep)
     textTransform: 'uppercase',
     paddingTop: 0,
   },
@@ -1773,8 +1917,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 11,
     paddingVertical: 4,
     borderRadius: 999,
-    backgroundColor: '#945A41',
-    shadowColor: '#7A4530',
+    backgroundColor: '#C07840',
+    shadowColor: '#945A41',
     shadowOpacity: 0.40,
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 6,
@@ -1795,7 +1939,7 @@ const styles = StyleSheet.create({
   checkinEyebrowCrisis: { color: COLORS.cocoDeep },
   checkinTitle: { fontSize: 16, fontFamily: FONTS.bodySemiBold, color: COLORS.bark, marginTop: 4 },
   checkinBody: { fontSize: 13, color: COLORS.barkSoft, marginTop: 4, lineHeight: 18, fontFamily: FONTS.body },
-  checkinCta: { fontSize: 13, fontFamily: FONTS.bodySemiBold, color: COLORS.cocoDeep, marginTop: 10 },
+  checkinCta: { fontSize: 13, fontFamily: FONTS.bodySemiBold, color: '#C07840', marginTop: 10 },
 
   // Compact pill variant of CheckinBanner — used for pending/answered states so
   // the daily check-in reads as a calm prompt rather than a hero block. Crisis
@@ -1810,10 +1954,10 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     borderWidth: 1, borderColor: COLORS.sandSoft,
     overflow: 'hidden', position: 'relative',
-    shadowColor: '#3D1F0D',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
+    shadowColor: '#6B2E0E',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.18,
+    shadowRadius: 18,
     elevation: 1,
   },
   checkinCompactDot: {
@@ -1850,17 +1994,21 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.paper, borderRadius: 14, padding: 20, alignItems: 'center',
     marginBottom: 12,
     borderWidth: 1, borderColor: COLORS.sandSoft,
-    shadowColor: '#3D1F0D', shadowOffset: { width: 0, height: 3 },
+    shadowColor: '#6B2E0E', shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.04, shadowRadius: 10, elevation: 1,
   },
   emptyEmoji: { fontSize: 44, marginBottom: 8 },
   emptyTitle: { fontSize: 18, fontFamily: FONTS.bodySemiBold, color: COLORS.bark, marginBottom: 6 },
   emptyBody: { fontSize: 14, color: COLORS.barkSoft, textAlign: 'center', lineHeight: 20, marginBottom: 14, fontFamily: FONTS.body },
+  // v9 canonical empty-state CTA pill — action-deep, matching the
+  // global CTA recipe used everywhere else in the app.
   emptyCta: {
-    backgroundColor: COLORS.coco, borderRadius: 999,
+    backgroundColor: '#C07840', borderRadius: 999,
     paddingHorizontal: 24, paddingVertical: 12,
+    shadowColor: '#945A41', shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.24, shadowRadius: 10, elevation: 3,
   },
-  emptyCtaText: { color: COLORS.cream, fontSize: 14, fontFamily: FONTS.bodySemiBold, letterSpacing: 0.3 },
+  emptyCtaText: { color: '#FDFBF6', fontSize: 14, fontFamily: FONTS.bodySemiBold, letterSpacing: 0.3 },
 
   // TODAY · WEEK twin card — single paper card hosting both the daily
   // check-in and the weekly journey side-by-side. Shared eyebrow at top,
@@ -1873,7 +2021,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     borderWidth: 1, borderColor: COLORS.sandSoft,
     overflow: 'hidden',
-    shadowColor: '#3D1F0D',
+    shadowColor: '#6B2E0E',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.06,
     shadowRadius: 14,
@@ -1942,7 +2090,7 @@ const styles = StyleSheet.create({
   },
   twinHalfCta: {
     fontSize: 12, fontFamily: FONTS.bodySemiBold,
-    color: COLORS.coco, letterSpacing: 0.3,
+    color: '#C07840', letterSpacing: 0.3,
     marginTop: 'auto',
   },
 
@@ -1957,7 +2105,7 @@ const styles = StyleSheet.create({
     minHeight: 138,
     borderWidth: 1, borderColor: COLORS.sandSoft,
     overflow: 'hidden',
-    shadowColor: '#3D1F0D',
+    shadowColor: '#6B2E0E',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.05,
     shadowRadius: 12,
@@ -1972,7 +2120,7 @@ const styles = StyleSheet.create({
   heroTextCol: { flex: 1 },
   heroEyebrow: {
     fontSize: 11, fontFamily: FONTS.bodySemiBold, letterSpacing: 2,
-    color: COLORS.coco, textTransform: 'uppercase',
+    color: '#A77349', textTransform: 'uppercase',
   },
   heroWeekText: {
     fontFamily: FONTS.headerItalic, fontStyle: 'italic',
@@ -1992,7 +2140,7 @@ const styles = StyleSheet.create({
   heroCtaPill: {
     alignSelf: 'flex-end',
     marginTop: 12,
-    backgroundColor: COLORS.coco,
+    backgroundColor: '#C07840',
     borderRadius: 999,
     paddingHorizontal: 14,
     paddingVertical: 9,
@@ -2000,7 +2148,7 @@ const styles = StyleSheet.create({
   heroCtaPillText: {
     fontSize: 12,
     fontFamily: FONTS.bodySemiBold,
-    color: COLORS.cream,
+    color: '#FDFBF6',
     letterSpacing: 0.3,
   },
 
@@ -2011,7 +2159,7 @@ const styles = StyleSheet.create({
   },
   sectionEyebrowSmall: {
     fontSize: 10, fontFamily: FONTS.bodySemiBold, letterSpacing: 1.6,
-    color: COLORS.cocoDeep, textTransform: 'uppercase', marginBottom: 6,
+    color: '#A77349', textTransform: 'uppercase', marginBottom: 6,
   },
 
   // Baby-this-week strip card. Brand Kit v5 — hairline coco border for
@@ -2019,8 +2167,8 @@ const styles = StyleSheet.create({
   babyCard: {
     backgroundColor: COLORS.paper, borderRadius: 14, padding: 16, marginBottom: 10,
     flexDirection: 'row', alignItems: 'center', gap: 12,
-    borderWidth: 1, borderColor: 'rgba(173,121,91,0.14)',
-    shadowColor: '#3D1F0D', shadowOffset: { width: 0, height: 3 },
+    borderWidth: 1, borderColor: 'rgba(150,80,50,0.18)',
+    shadowColor: '#6B2E0E', shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.04, shadowRadius: 10, elevation: 1,
   },
   babyCardBody: { fontSize: 13, color: COLORS.barkSoft, lineHeight: 19, fontFamily: FONTS.body },
@@ -2035,7 +2183,7 @@ const styles = StyleSheet.create({
   // Two-up "you / village" cards.
   twoUpRow: { flexDirection: 'row', gap: 12, marginBottom: 10 },
   imageCard: {
-    flex: 1, backgroundColor: '#FFF', borderRadius: 10, padding: 12,
+    flex: 1, backgroundColor: '#FDFBF6', borderRadius: 10, padding: 12,
   },
   imageCardPhoto: {
     height: 84, borderRadius: 12, alignItems: 'center', justifyContent: 'center',
@@ -2065,7 +2213,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS.cream, // softer than ceramicDeep for the lighter tone
     overflow: 'hidden',
-    shadowColor: '#3D1F0D',
+    shadowColor: '#6B2E0E',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.05,
     shadowRadius: 14,
@@ -2073,7 +2221,7 @@ const styles = StyleSheet.create({
   },
   statementEyebrow: {
     fontSize: 10, fontFamily: FONTS.bodySemiBold, letterSpacing: 1.8,
-    color: COLORS.coco, textTransform: 'uppercase', marginBottom: 12,
+    color: '#A77349', textTransform: 'uppercase', marginBottom: 12,
   },
   statementTitle: {
     fontSize: 32, fontFamily: FONTS.headerBold, color: COLORS.bark,
@@ -2081,7 +2229,7 @@ const styles = StyleSheet.create({
   },
   statementTitleItalic: {
     fontFamily: FONTS.headerItalic, fontStyle: 'italic',
-    color: COLORS.coco,
+    color: '#C07840',
   },
   statementBody: {
     fontSize: 14, fontFamily: FONTS.body, color: COLORS.barkSoft,
@@ -2103,7 +2251,7 @@ const styles = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
   },
   statementMarkText: {
-    fontSize: 16, color: COLORS.cocoDeep,
+    fontSize: 16, color: '#A77349',
   },
 
   // ─────────────────────────────────────────────────────────────────
@@ -2120,11 +2268,13 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     position: 'relative',
     overflow: 'hidden',
-    shadowColor: '#AD795B',
-    shadowOpacity: 0.30,
-    shadowOffset: { width: 0, height: 10 },
-    shadowRadius: 24,
-    elevation: 3,
+    // Deeper drop — was 0.30/10y/24r/elev3. Now reads as if the card is
+    // floating ~6mm above the page, catching the warm backdrop.
+    shadowColor: '#6B2E0E',          // deeper cocoa cast vs old #AD795B coco
+    shadowOpacity: 0.42,
+    shadowOffset: { width: 0, height: 14 },
+    shadowRadius: 30,
+    elevation: 8,
   },
   weekHeroTopBar: {
     position: 'absolute',
@@ -2132,7 +2282,7 @@ const styles = StyleSheet.create({
     left: 14,                      // aligned to weekHeroCard.paddingHorizontal:14
     width: 32,                     // hero-card dash width (largest in 22/24/32 scale)
     height: 2,
-    backgroundColor: '#9A4A2B',    // rust-deep — matches weekHeroEyebrow color (was #B85C38)
+    backgroundColor: '#A77349',    // rust-deep — matches weekHeroEyebrow color (was #B85C38)
     zIndex: 3,
   },
   weekHeroYolk: {
@@ -2192,7 +2342,7 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.bodySemiBold,
     fontSize: 9,                   // unified v9 eyebrow scale ✓
     letterSpacing: 2.2,            // unified tracking ✓
-    color: '#9A4A2B',              // rust-deep (now matches top-dash color)
+    color: '#A77349',              // rust-deep (now matches top-dash color)
     textTransform: 'uppercase',
     position: 'relative',
     zIndex: 2,
@@ -2205,11 +2355,11 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.headerItalic,
     fontStyle: 'italic',
     fontSize: 30,
-    lineHeight: 30,
+    lineHeight: 32,                // was 30 — small breathing room under the cap
     color: '#3D1F0D',
     letterSpacing: -1.1,
-    marginTop: 0,
-    marginBottom: 2,
+    marginTop: 5,                  // was 0 — gives "this week" eyebrow room to breathe
+    marginBottom: 3,               // was 2 — matches the new marginTop rhythm
     position: 'relative',
     zIndex: 2,
   },
@@ -2254,9 +2404,9 @@ const styles = StyleSheet.create({
     // paper) so the glyph reaches WCAG AA. Still noticeably less
     // saturated than full rust.
     width: 28, height: 28, borderRadius: 14,
-    backgroundColor: '#945A41',
+    backgroundColor: '#C07840',
     alignItems: 'center', justifyContent: 'center',
-    shadowColor: '#7A4530',
+    shadowColor: '#945A41',
     shadowOpacity: 0.42,
     shadowOffset: { width: 0, height: 3 },
     shadowRadius: 10,
@@ -2275,7 +2425,7 @@ const styles = StyleSheet.create({
   // daily prompt" without competing with the Week hero or Manual block.
   // ─────────────────────────────────────────────────────────────────
   checkinStrip: {
-    backgroundColor: 'rgba(254,252,248,0.85)',
+    backgroundColor: 'rgba(254,252,248,0.92)',  // was 0.85 — slightly more opaque so shadow reads
     borderRadius: 12,
     borderWidth: 1,
     borderColor: 'rgba(176,115,85,0.36)',
@@ -2289,16 +2439,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: 10,
-    shadowColor: '#AD795B',
-    shadowOpacity: 0.06,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 6,
+    // Lift-off shadow — was 0.06/2y/6r/elev unset. Strip now reads as a
+    // distinct floating ticket between Week hero and Manual block.
+    shadowColor: '#6B2E0E',
+    shadowOpacity: 0.18,
+    shadowOffset: { width: 0, height: 6 },
+    shadowRadius: 14,
+    elevation: 4,
   },
   checkinStripEyebrow: {
     fontFamily: FONTS.bodySemiBold,
     fontSize: 9,                   // unified v9 eyebrow scale (was 8.5)
     letterSpacing: 2.2,            // unified tracking (was 1.9)
-    color: '#945A41',
+    color: '#A77349',              // kit canon: eyebrows = amber (not action-deep)
     textTransform: 'uppercase',
     marginBottom: 2,
   },
@@ -2313,13 +2466,32 @@ const styles = StyleSheet.create({
     // Same WCAG fix as Week arrow — #945A41 action-deep gives 4.85:1
     // paper text contrast (was 3.77:1 with #B07355 muted clay).
     width: 24, height: 24, borderRadius: 12,
-    backgroundColor: '#945A41',
+    backgroundColor: '#C07840',
     alignItems: 'center', justifyContent: 'center',
-    shadowColor: '#7A4530',
+    shadowColor: '#945A41',
     shadowOpacity: 0.42,
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 8,
     elevation: 2,
+  },
+  // v9 — bee slot for the pending state. Larger than the answered-state
+  // mood emoji circle so the bee carries presence on her own (no halo,
+  // no border, no container). Centered breathing animation handles the
+  // "interactive" signal. Bumped 44 → 52 per user feedback 2026-05-16.
+  checkinStripBeeSlot: {
+    width: 56, height: 56,
+    alignItems: 'center', justifyContent: 'center',
+    marginRight: -10, marginVertical: -12,
+  },
+  checkinStripBee: {
+    width: 52, height: 52,
+    // Cocoa drop shadow so the bee lifts off the page and reads as a
+    // tappable toggle, not a decoration. iOS treats shadow on Image
+    // as the silhouette drop; Android elevation kicks in via parent.
+    shadowColor: '#6B2E0E',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.32,
+    shadowRadius: 10,
   },
   checkinStripArrowGlyph: {
     color: '#FEFCF8',
@@ -2344,11 +2516,13 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: 'rgba(173,121,91,0.20)',
-    shadowColor: '#AD795B',
-    shadowOpacity: 0.20,
-    shadowOffset: { width: 0, height: 6 },
-    shadowRadius: 14,
-    elevation: 2,
+    // Lift-off — was 0.20/6y/14r/elev2. Manual block is the main affordance
+    // so it earns the same drop as the Week hero.
+    shadowColor: '#6B2E0E',
+    shadowOpacity: 0.36,
+    shadowOffset: { width: 0, height: 12 },
+    shadowRadius: 26,
+    elevation: 7,
   },
   manualBlockTopBar: {
     position: 'absolute',
@@ -2384,7 +2558,19 @@ const styles = StyleSheet.create({
   manualBlockLink: {
     fontFamily: FONTS.bodySemiBold,
     fontSize: 11,
-    color: '#8E5E40',
+    color: '#C07840',  // v9 cinnamon — link per brand kit
+  },
+  // Goal line — one short sentence between eyebrow and pills, framing
+  // what the chapters are for. Body-sized, bark-soft, no italic; the
+  // editorial italic on this surface is reserved for the pill labels
+  // themselves (chapter names act as the flourish).
+  manualBlockLead: {
+    fontSize: 12,
+    lineHeight: 16,
+    color: '#5C3F26',           // bark-soft
+    fontFamily: FONTS.body,
+    marginTop: 0,
+    marginBottom: 10,
   },
   manualBlockPills: {
     flexDirection: 'row',
@@ -2400,7 +2586,7 @@ const styles = StyleSheet.create({
     paddingBottom: 13,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
+    shadowColor: '#6B2E0E',
     shadowOpacity: 0.20,
     shadowOffset: { width: 0, height: 4 },
     shadowRadius: 6,
@@ -2441,7 +2627,7 @@ const styles = StyleSheet.create({
   },
   combinedEyebrow: {
     fontSize: 9, fontFamily: FONTS.bodySemiBold, letterSpacing: 1.8,
-    color: COLORS.cocoDeep, textTransform: 'uppercase', marginBottom: 2,
+    color: '#A77349', textTransform: 'uppercase', marginBottom: 2,
   },
   // Number row: big italic Playfair numeral + small WK label, pulled tight to eyebrow.
   combinedNumRow: {
@@ -2466,7 +2652,7 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.headerItalic,
     fontStyle: 'italic',
     fontSize: 16,
-    color: COLORS.coco,
+    color: '#C07840',
     letterSpacing: 0.2,
     marginBottom: 6,
   },
@@ -2483,7 +2669,7 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.bodySemiBold,
     fontSize: 9,
     letterSpacing: 0.4,
-    color: COLORS.coco,
+    color: '#A77349',
     marginTop: 4,
   },
   // Faint decorative bee — positioned absolutely within the top band.
@@ -2511,7 +2697,7 @@ const styles = StyleSheet.create({
     fontSize: 8,
     letterSpacing: 1.6,
     textTransform: 'uppercase',
-    color: COLORS.cocoDeep,
+    color: '#A77349',
     marginBottom: 4,
   },
   combinedTiles: {
@@ -2542,7 +2728,7 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.bodySemiBold,
     fontSize: 10,
     letterSpacing: 0.2,
-    color: COLORS.coco,
+    color: '#C07840',
   },
   // Body section: ivory-warm background below the gradient band.
   combinedCardBody: {
@@ -2572,7 +2758,7 @@ const styles = StyleSheet.create({
     borderColor: COLORS.coco,
   },
   combinedCheckmark: {
-    color: COLORS.cream,
+    color: '#FDFBF6',
     fontSize: 9,
     fontFamily: FONTS.bodySemiBold,
   },
@@ -2597,7 +2783,7 @@ const styles = StyleSheet.create({
   combinedFooterLinkText: {
     fontSize: 11,
     fontFamily: FONTS.bodySemiBold,
-    color: COLORS.coco,
+    color: '#C07840',
     flexShrink: 0,
   },
 
@@ -2641,17 +2827,21 @@ const styles = StyleSheet.create({
     flexDirection: 'row', flexWrap: 'wrap', gap: 10,
     marginTop: 12, paddingHorizontal: 12, paddingBottom: 12,
   },
+  // v9 card lift — was using a cold cocoa shadow at 0.05 opacity (too weak
+  // to read) + generic sand border. Recipe upgraded to match the top-half
+  // floating cards: rust hairline + warm cocoa drop at 0.18 opacity.
   exploreTile: {
     width: '48.5%',
     backgroundColor: COLORS.paper,
     borderRadius: 12,
     padding: 8,
-    borderWidth: 1, borderColor: COLORS.sandSoft,
-    shadowColor: '#3D1F0D',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 2,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(150,80,50,0.18)',
+    shadowColor: '#6B2E0E',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.18,
+    shadowRadius: 18,
+    elevation: 3,
   },
   exploreTilePhoto: {
     width: '100%', height: 78, borderRadius: 10,
@@ -2683,11 +2873,13 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     marginBottom: 14,
     overflow: 'hidden',
-    shadowColor: '#2C1A0E',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.06,
-    shadowRadius: 12,
-    elevation: 2,
+    // Lift-off — was 0.06/3y/12r/elev2. Matches the v9 trio above so the
+    // whole page reads with one consistent depth.
+    shadowColor: '#6B2E0E',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.22,
+    shadowRadius: 22,
+    elevation: 6,
   },
   exploreCard: {
     backgroundColor: 'rgba(253,250,245,0.92)',
@@ -2697,11 +2889,12 @@ const styles = StyleSheet.create({
     marginBottom: 14,
     overflow: 'hidden',
     position: 'relative',
-    shadowColor: '#2C1A0E',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.06,
-    shadowRadius: 12,
-    elevation: 2,
+    // Lift-off — was 0.06/3y/12r/elev2. Same depth as helpCard.
+    shadowColor: '#6B2E0E',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.22,
+    shadowRadius: 22,
+    elevation: 6,
   },
   helpCardBee: {
     position: 'absolute',
@@ -2724,10 +2917,21 @@ const styles = StyleSheet.create({
   helpGrid: {
     flexDirection: 'row', justifyContent: 'space-between', gap: 8, marginBottom: 0,
   },
+  // v9 card lift — was flat against the page wash, made the bottom half of
+  // Home read 1D vs. the floating top half. Recipe: rust hairline + cocoa
+  // drop shadow. No glass sheen here (overuse cheapens it — keep sheen for
+  // primary CTAs only).
   helpTile: {
-    flex: 1, borderRadius: 10, paddingVertical: 14, paddingHorizontal: 10,
+    flex: 1, borderRadius: 12, paddingVertical: 14, paddingHorizontal: 10,
     alignItems: 'flex-start', justifyContent: 'flex-start',
     minHeight: 124, overflow: 'hidden',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(150,80,50,0.18)',
+    shadowColor: '#6B2E0E',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.20,
+    shadowRadius: 14,
+    elevation: 3,
   },
   helpTileMarkWrap: { width: 36, height: 36, marginBottom: 8 },
   helpTileTextWrap: { flex: 1, justifyContent: 'flex-end', alignSelf: 'stretch' },
@@ -2830,7 +3034,7 @@ const styles = StyleSheet.create({
   // Terra-italic accent on the week count. Mirrors the design artifact's
   // `<em>` accent pattern (rust Playfair italic on the key word).
   snapshotAgeAccent: {
-    color: COLORS.coco,
+    color: '#C07840',
     fontFamily: FONTS.headerItalic,
     fontStyle: 'italic',
   },
@@ -2884,11 +3088,11 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 10,
     borderWidth: 1,
-    borderColor: 'rgba(173,121,91,0.12)',
-    shadowColor: '#3D1F0D',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.04,
-    shadowRadius: 10,
+    borderColor: 'rgba(150,80,50,0.18)',
+    shadowColor: '#6B2E0E',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.18,
+    shadowRadius: 18,
     elevation: 1,
   },
   feedHeaderRow: {
@@ -2899,7 +3103,7 @@ const styles = StyleSheet.create({
     fontSize: 14, fontFamily: FONTS.bodySemiBold, color: COLORS.bark,
   },
   feedHeaderLink: {
-    fontSize: 12, color: COLORS.coco, fontFamily: FONTS.bodySemiBold,
+    fontSize: 12, color: '#C07840', fontFamily: FONTS.bodySemiBold,
   },
   eventRow: {
     paddingVertical: 10, borderTopWidth: 1,
@@ -2923,10 +3127,10 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     borderWidth: 1,
     borderColor: 'rgba(139,154,107,0.25)',
-    shadowColor: '#3D1F0D',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
+    shadowColor: '#6B2E0E',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.18,
+    shadowRadius: 18,
     elevation: 2,
   },
   tipEyebrow: {
@@ -2938,16 +3142,16 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.body,
   },
   tipLink: {
-    fontSize: 12, color: COLORS.cocoDeep, fontFamily: FONTS.bodySemiBold,
+    fontSize: 12, color: '#C07840', fontFamily: FONTS.bodySemiBold,
     marginTop: 8,
   },
 
   discoverCard: {
     flexDirection: 'row', alignItems: 'center', gap: 12,
     backgroundColor: COLORS.paper, borderRadius: 14, padding: 16, marginBottom: 10,
-    borderWidth: 1, borderColor: 'rgba(173,121,91,0.14)',
-    shadowColor: '#3D1F0D', shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.04, shadowRadius: 10, elevation: 1,
+    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(150,80,50,0.18)',
+    shadowColor: '#6B2E0E', shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.24, shadowRadius: 18, elevation: 3,
   },
   discoverEmoji: { fontSize: 28 },
   discoverTitle: { fontSize: 14, fontFamily: FONTS.bodySemiBold, color: COLORS.bark },
@@ -2962,11 +3166,11 @@ const styles = StyleSheet.create({
     marginTop: 4,
     marginBottom: 10,
     borderWidth: 1,
-    borderColor: 'rgba(173,121,91,0.16)',
-    shadowColor: '#3D1F0D',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
+    borderColor: 'rgba(150,80,50,0.18)',
+    shadowColor: '#6B2E0E',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.18,
+    shadowRadius: 18,
     elevation: 2,
   },
   eventsRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
@@ -2980,7 +3184,7 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.body,
   },
   eventsArrow: {
-    fontSize: 20, color: COLORS.coco, fontFamily: FONTS.bodySemiBold,
+    fontSize: 20, color: '#A77349', fontFamily: FONTS.bodySemiBold,
     opacity: 0.7,
   },
 });

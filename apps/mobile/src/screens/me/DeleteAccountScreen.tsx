@@ -29,6 +29,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { COLORS, FONTS } from '@utils/constants';
 import { useT } from '@/i18n';
+import { V9PageBackdrop } from '@components/shared/V9PageBackdrop';
 import { accountApi } from '@/api/account';
 import { useAuthStore } from '@store/auth';
 import { useAnalytics } from '@/hooks/useAnalytics';
@@ -94,9 +95,10 @@ export default function DeleteAccountScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: COLORS.cream }}
+      style={{ flex: 1, backgroundColor: 'transparent' }}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
+      <V9PageBackdrop />
       <ScrollView contentContainerStyle={s.container} keyboardShouldPersistTaps="handled">
         <TouchableOpacity
           style={s.back}
@@ -108,7 +110,15 @@ export default function DeleteAccountScreen() {
           <Text style={s.backText}>← {t('account.back')}</Text>
         </TouchableOpacity>
 
-        <Text style={s.title}>{t('account.delTitle')}</Text>
+        {/* v9 editorial masthead */}
+        <View style={s.eyebrowRow}>
+          <View style={s.eyebrowBar} />
+          <Text style={s.eyebrow}>{t('account.delEyebrow')}</Text>
+        </View>
+        <Text style={s.title}>
+          {t('account.delTitleLead')} <Text style={s.titleItalic}>{t('account.delTitleEm')}</Text>
+        </Text>
+        <View style={s.titleRule} />
         <Text style={s.sub}>{t('account.delSub')}</Text>
 
         {/* What happens block */}
@@ -153,7 +163,7 @@ export default function DeleteAccountScreen() {
           accessibilityState={{ disabled: !canSubmit, busy: submitting }}
         >
           {submitting ? (
-            <ActivityIndicator color={COLORS.white} />
+            <ActivityIndicator color={COLORS.paper} />
           ) : (
             <Text style={s.dangerBtnText}>{t('account.delSubmit')}</Text>
           )}
@@ -176,55 +186,77 @@ function Bullet({ text }: { text: string }) {
 
 const s = StyleSheet.create({
   container: { padding: 28, paddingTop: 60, paddingBottom: 48 },
-  back: { marginBottom: 24 },
-  backText: { fontSize: 15, color: COLORS.rust, fontFamily: FONTS.bodySemiBold },
+  back: { marginBottom: 18 },
+  backText: { fontSize: 15, color: '#C07840', fontFamily: FONTS.bodySemiBold },
+  // v9 editorial masthead
+  eyebrowRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
+  eyebrowBar: { width: 22, height: 2, backgroundColor: '#A77349', marginRight: 10, borderRadius: 1 },
+  eyebrow: { fontSize: 10, fontFamily: FONTS.bodySemiBold, color: '#A77349', letterSpacing: 1.8, textTransform: 'uppercase' },
   title: {
     fontFamily: FONTS.headerBold,
     fontSize: 32,
-    color: COLORS.textDark,
-    fontStyle: 'italic',
-    marginBottom: 12,
-    lineHeight: 40,
+    color: COLORS.bark,
+    lineHeight: 38,
+    letterSpacing: -0.5,
+    marginBottom: 8,
+  },
+  titleItalic: { fontFamily: FONTS.headerItalic, fontStyle: 'italic', color: '#C07840' },
+  titleRule: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: 'rgba(61,31,13,0.18)',
+    marginTop: 6, marginBottom: 14, width: 48,
   },
   sub: {
     fontFamily: FONTS.body,
     fontSize: 14,
-    color: COLORS.textMid,
+    color: COLORS.barkSoft,
     marginBottom: 24,
     lineHeight: 22,
   },
+  // Warning card — v9 lift recipe with a rust-deep hairline border to
+  // signal "destructive context" without resorting to the banned
+  // side-stripe pattern. Full border tinted with the chapter rust
+  // accent is the v9-correct way to convey caution at card level.
   card: {
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.paper,
     borderRadius: 14,
     padding: 18,
     marginBottom: 16,
-    borderLeftWidth: 4,
-    borderLeftColor: COLORS.rust,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(154, 74, 43, 0.30)',  // rust-deep at 30%
+    shadowColor: '#6B2E0E',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.18,
+    shadowRadius: 18,
+    elevation: 5,
   },
+  // v9: side-stripe was a v9 absolute ban — rewritten as a full sand-tinted
+  // hairline border. The gold-tinted background still signals "soft warning"
+  // (this is the "what we keep" data-retention card on the delete-account flow).
   cardMuted: {
-    backgroundColor: 'rgba(196,163,90,0.10)', // gold tint
+    backgroundColor: 'rgba(196,163,90,0.10)',
     borderRadius: 14,
     padding: 18,
     marginBottom: 24,
-    borderLeftWidth: 4,
-    borderLeftColor: COLORS.gold,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(196,163,90,0.45)',
   },
   cardTitle: {
     fontFamily: FONTS.bodySemiBold,
     fontSize: 14,
-    color: COLORS.textDark,
+    color: COLORS.bark,
     marginBottom: 10,
   },
   cardBody: {
     fontFamily: FONTS.body,
     fontSize: 13,
-    color: COLORS.textMid,
+    color: COLORS.barkSoft,
     lineHeight: 20,
   },
   bullet: { flexDirection: 'row', marginBottom: 6, alignItems: 'flex-start' },
   bulletDot: {
     fontSize: 13,
-    color: COLORS.rust,
+    color: '#A77349',
     marginRight: 8,
     marginTop: 1,
     fontFamily: FONTS.bodySemiBold,
@@ -233,32 +265,32 @@ const s = StyleSheet.create({
     flex: 1,
     fontFamily: FONTS.body,
     fontSize: 13,
-    color: COLORS.textDark,
+    color: COLORS.bark,
     lineHeight: 20,
   },
   inputGroup: { gap: 6, marginBottom: 16 },
-  label: { fontSize: 13, fontFamily: FONTS.bodySemiBold, color: COLORS.textMid },
+  label: { fontSize: 13, fontFamily: FONTS.bodySemiBold, color: COLORS.barkSoft },
   input: {
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.paper,
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 14,
     fontSize: 16,
-    color: COLORS.textDark,
+    color: COLORS.bark,
     borderWidth: 1.5,
-    borderColor: 'rgba(0,0,0,0.08)',
+    borderColor: 'rgba(150,80,50,0.18)',
     letterSpacing: 1,
   },
-  inputError: { borderColor: COLORS.rust },
+  inputError: { borderColor: COLORS.coco },
   dangerBtn: {
-    backgroundColor: COLORS.rust,
+    backgroundColor: COLORS.coco,
     borderRadius: 14,
     paddingVertical: 16,
     alignItems: 'center',
     marginTop: 4,
   },
   dangerBtnDisabled: { opacity: 0.4 },
-  dangerBtnText: { color: COLORS.white, fontSize: 16, fontFamily: FONTS.bodySemiBold },
+  dangerBtnText: { color: COLORS.paper, fontSize: 16, fontFamily: FONTS.bodySemiBold },
   disclaimer: {
     fontFamily: FONTS.body,
     fontSize: 12,

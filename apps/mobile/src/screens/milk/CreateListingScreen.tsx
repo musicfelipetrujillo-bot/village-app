@@ -7,6 +7,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useMilkStore } from '@store/milk';
 import { createListing, updateDonorProfile, getStripeConnectUrl } from '@api/milk';
 import { COLORS, FONTS } from '@utils/constants';
+import { V9PageBackdrop } from '@components/shared/V9PageBackdrop';
 import { useT } from '@/i18n';
 import type { MilkStackParamList } from '@/navigation/MilkNavigator';
 
@@ -81,6 +82,7 @@ export default function CreateListingScreen({ route, navigation }: Props) {
 
   return (
     <View style={styles.container}>
+      <V9PageBackdrop />
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <Text style={styles.title}>{t('createListing.title')}</Text>
         <Text style={styles.subtitle}>{t('createListing.subtitle')}</Text>
@@ -133,8 +135,8 @@ export default function CreateListingScreen({ route, navigation }: Props) {
           <Switch
             value={pickupAvailable}
             onValueChange={setPickupAvailable}
-            trackColor={{ false: '#E0D5C5', true: '#D87530' }}
-            thumbColor="#FFF"
+            trackColor={{ false: '#E0D5C5', true: COLORS.coco }}
+            thumbColor='#FDFBF6'
           />
         </View>
 
@@ -146,8 +148,8 @@ export default function CreateListingScreen({ route, navigation }: Props) {
           <Switch
             value={shippingAvailable}
             onValueChange={setShippingAvailable}
-            trackColor={{ false: '#E0D5C5', true: '#D87530' }}
-            thumbColor="#FFF"
+            trackColor={{ false: '#E0D5C5', true: COLORS.coco }}
+            thumbColor='#FDFBF6'
           />
         </View>
 
@@ -209,13 +211,13 @@ export default function CreateListingScreen({ route, navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F5F0E8' },
+  container: { flex: 1, backgroundColor: 'transparent' },
   content: { padding: 24, paddingTop: 56, paddingBottom: 140 },
-  title: { fontSize: 26, fontFamily: FONTS.bodySemiBold, color: '#2C1810', marginBottom: 8 },
+  title: { fontSize: 28, fontFamily: FONTS.headerBold, color: '#2C1810', marginBottom: 8, letterSpacing: -0.4, lineHeight: 34 },
   subtitle: { fontSize: 14, color: '#6B5C52', lineHeight: 21, marginBottom: 28, fontFamily: FONTS.body },
   label: { fontSize: 13, fontFamily: FONTS.bodySemiBold, color: '#6B5C52', marginBottom: 8, marginTop: 16, textTransform: 'uppercase', letterSpacing: 0.6 },
   input: {
-    backgroundColor: '#FFF', borderRadius: 12, paddingHorizontal: 16,
+    backgroundColor: COLORS.paper, borderRadius: 12, paddingHorizontal: 16,
     paddingVertical: 13, fontSize: 16, color: '#2C1810',
     borderWidth: 1.5, borderColor: '#E0D5C5', fontFamily: FONTS.body,
   },
@@ -225,16 +227,22 @@ const styles = StyleSheet.create({
   estimate: { fontSize: 13, color: '#9A8070', marginTop: 6, fontFamily: FONTS.body },
   estimateNum: { color: '#6B7C3F', fontFamily: FONTS.bodySemiBold },
   multiline: { height: 100, paddingTop: 12 },
+  // v9 card lift — soft drop so toggle rows read as discrete switches.
   toggleRow: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    backgroundColor: '#FFF', borderRadius: 12, padding: 16, marginTop: 12,
+    backgroundColor: COLORS.paper, borderRadius: 12, padding: 16, marginTop: 12,
+    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(150,80,50,0.18)',
+    shadowColor: '#6B2E0E', shadowOpacity: 0.12, shadowOffset: { width: 0, height: 4 }, shadowRadius: 12, elevation: 1,
   },
   toggleInfo: { flex: 1 },
   toggleLabel: { fontSize: 15, fontFamily: FONTS.bodySemiBold, color: '#2C1810' },
   toggleSub: { fontSize: 12, color: '#9A8070', marginTop: 2, fontFamily: FONTS.body },
+  // v9: side-stripe border was a v9 absolute ban — rewritten as full hairline
+  // border + warm cream fill so the fee note still reads as a callout box.
   feeNote: {
     marginTop: 24, backgroundColor: '#FFF9F0', borderRadius: 10,
-    padding: 14, borderLeftWidth: 3, borderLeftColor: '#D87530',
+    padding: 16,
+    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(192,120,64,0.30)',
   },
   feeNoteText: { fontSize: 13, color: '#6B5C52', lineHeight: 19, fontFamily: FONTS.body },
   nextStepCard: {
@@ -248,7 +256,12 @@ const styles = StyleSheet.create({
     padding: 20, paddingBottom: 36,
     backgroundColor: '#F5F0E8', borderTopWidth: 1, borderTopColor: '#E8E0D5',
   },
-  saveBtn: { backgroundColor: COLORS.yolkLight, borderRadius: 999, paddingVertical: 16, alignItems: 'center' },
-  saveBtnText: { fontSize: 16, fontFamily: FONTS.bodySemiBold, color: COLORS.brownDeep, letterSpacing: 0.3 },
+  // v9 canonical CTA
+  saveBtn: {
+    backgroundColor: '#C07840', borderRadius: 999, paddingVertical: 16, alignItems: 'center',
+    shadowColor: '#945A41', shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.24, shadowRadius: 10, elevation: 3,
+  },
+  saveBtnText: { fontSize: 16, fontFamily: FONTS.bodySemiBold, color: '#FDFBF6', letterSpacing: 0.3 },
   disabled: { opacity: 0.4 },
 });

@@ -22,7 +22,7 @@ type AbsPos = {
 // hand-drawn feel without an SVG.
 export function YolkCircle({
   size = 64,
-  tint = COLORS.yolkLight,
+  tint = COLORS.sandSoft,
   opacity = 0.85,
   ...pos
 }: AbsPos & { size?: number; tint?: string; opacity?: number }) {
@@ -46,7 +46,7 @@ export function YolkCircle({
 // the moodboard uses on the Village hero ("V" mark).
 export function YolkRing({
   size = 56,
-  tint = COLORS.yolkLight,
+  tint = COLORS.sandSoft,
   ...pos
 }: AbsPos & { size?: number; tint?: string }) {
   return (
@@ -84,7 +84,7 @@ export function YolkRing({
 // marker-stroke decoration on the moodboard's WEEK card and Manual.
 export function ScribbleMark({
   size = 32,
-  tint = COLORS.brownDeep,
+  tint = COLORS.bark,
   ...pos
 }: AbsPos & { size?: number; tint?: string }) {
   const bar = (rotate: string, top: number, left: number) => (
@@ -114,7 +114,7 @@ export function ScribbleMark({
 // Cluster of small blush dots — the "confetti dot" pattern on the moodboard.
 // Hand-positioned to feel scattered rather than perfectly gridded.
 export function DotCluster({
-  tint = COLORS.dinerDark,
+  tint = COLORS.cocoDeep,
   ...pos
 }: AbsPos & { tint?: string }) {
   const dot = (top: number, left: number, scale = 1) => (
@@ -146,7 +146,7 @@ export function DotCluster({
 // botanical illustration mark on the moodboard's Manual and Home statement.
 export function LeafSprig({
   size = 44,
-  tint = COLORS.olive,
+  tint = COLORS.sage,
   ...pos
 }: AbsPos & { size?: number; tint?: string }) {
   return (
@@ -200,7 +200,7 @@ export function LeafSprig({
 // rendered as bold serif text so it scales w/ size and inherits color.
 export function SparkleMark({
   size = 14,
-  tint = COLORS.dinerDark,
+  tint = COLORS.cocoDeep,
   ...pos
 }: AbsPos & { size?: number; tint?: string }) {
   return (

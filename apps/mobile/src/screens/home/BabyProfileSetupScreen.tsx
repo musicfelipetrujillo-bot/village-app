@@ -8,6 +8,8 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { COLORS, FONTS } from '@utils/constants';
+
+import { V9PageBackdrop } from '@components/shared/V9PageBackdrop';
 import { homeApi, type FeedingMethod, type Gender } from '@api/home';
 import { useHomeStore } from '@store/home';
 import { useT } from '@/i18n';
@@ -110,6 +112,7 @@ export default function BabyProfileSetupScreen() {
 
   return (
     <View style={styles.container}>
+      <V9PageBackdrop />
       <View style={styles.progressRow}>
         {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
           <View key={i} style={[styles.dot, i <= step && styles.dotActive]} />
@@ -254,7 +257,7 @@ export default function BabyProfileSetupScreen() {
           accessibilityRole="button"
         >
           {saving ? (
-            <ActivityIndicator color="#FFF" />
+            <ActivityIndicator color="#FDFBF6" />
           ) : (
             <Text style={styles.primaryBtnText}>
               {step === TOTAL_STEPS - 1 ? t('babyProfile.saveProfile') : t('common.continue')}
@@ -262,6 +265,7 @@ export default function BabyProfileSetupScreen() {
           )}
         </TouchableOpacity>
       </View>
+
     </View>
   );
 }
@@ -276,26 +280,27 @@ function Row({ label, value }: { label: string; value: string }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.cream },
+  container: { flex: 1, backgroundColor: 'transparent' },
 
   progressRow: {
     flexDirection: 'row', gap: 6,
     paddingHorizontal: 20, paddingTop: 56, paddingBottom: 12,
   },
   dot: { flex: 1, height: 4, borderRadius: 2, backgroundColor: 'rgba(0,0,0,0.08)' },
-  dotActive: { backgroundColor: COLORS.rust },
+  dotActive: { backgroundColor: COLORS.coco },
 
   content: { paddingHorizontal: 20, paddingBottom: 32 },
 
-  eyebrow: { fontSize: 11, fontFamily: FONTS.bodySemiBold, letterSpacing: 1, color: COLORS.textLight, textTransform: 'uppercase', marginBottom: 8 },
-  title: { fontSize: 24, fontFamily: FONTS.bodySemiBold, color: COLORS.brownDeep, marginBottom: 8 },
-  subtitle: { fontSize: 14, color: COLORS.textMid, marginBottom: 20, lineHeight: 20 },
+  // v9 — eyebrow rust-deep + Playfair Bold roman title
+  eyebrow: { fontSize: 11, fontFamily: FONTS.bodySemiBold, letterSpacing: 1.8, color: '#A77349', textTransform: 'uppercase', marginBottom: 8 },
+  title: { fontSize: 28, fontFamily: FONTS.headerBold, color: COLORS.bark, marginBottom: 8, lineHeight: 34, letterSpacing: -0.4 },
+  subtitle: { fontSize: 14, color: COLORS.barkSoft, marginBottom: 20, lineHeight: 20 },
 
-  label: { fontSize: 13, fontFamily: FONTS.bodySemiBold, color: COLORS.textMid, marginTop: 16, marginBottom: 6 },
+  label: { fontSize: 13, fontFamily: FONTS.bodySemiBold, color: COLORS.barkSoft, marginTop: 16, marginBottom: 6 },
   input: {
-    backgroundColor: '#FFF', borderRadius: 12,
-    paddingHorizontal: 14, paddingVertical: 12, fontSize: 15, color: COLORS.brownDeep,
-    borderWidth: 1, borderColor: 'rgba(0,0,0,0.06)',
+    backgroundColor: COLORS.paper, borderRadius: 12,
+    paddingHorizontal: 14, paddingVertical: 12, fontSize: 15, color: COLORS.bark,
+    borderWidth: 1, borderColor: 'rgba(150,80,50,0.18)',
   },
   helperText: { fontSize: 12, color: COLORS.textLight, marginTop: 6 },
   errorText: { fontSize: 12, color: '#C94F3C', marginTop: 6, fontFamily: FONTS.bodyMedium },
@@ -303,26 +308,31 @@ const styles = StyleSheet.create({
   checkboxRow: { flexDirection: 'row', alignItems: 'center', marginTop: 16 },
   checkbox: {
     width: 22, height: 22, borderRadius: 6,
-    borderWidth: 2, borderColor: COLORS.rust, marginRight: 10,
+    borderWidth: 2, borderColor: COLORS.coco, marginRight: 10,
     alignItems: 'center', justifyContent: 'center',
   },
-  checkboxOn: { backgroundColor: COLORS.rust },
-  checkboxTick: { color: '#FFF', fontSize: 14, fontFamily: FONTS.bodySemiBold },
-  checkboxLabel: { fontSize: 14, color: COLORS.brownDeep },
+  checkboxOn: { backgroundColor: COLORS.coco },
+  checkboxTick: { color: '#FDFBF6', fontSize: 14, fontFamily: FONTS.bodySemiBold },
+  checkboxLabel: { fontSize: 14, color: COLORS.bark },
 
   optionRow: {
     flexDirection: 'row', alignItems: 'center', gap: 12,
-    backgroundColor: '#FFF', borderRadius: 12, padding: 14, marginBottom: 10,
+    backgroundColor: COLORS.paper, borderRadius: 12, padding: 16, marginBottom: 10,
     borderWidth: 2, borderColor: 'transparent',
   },
-  optionRowActive: { borderColor: COLORS.rust, backgroundColor: '#FFF7F2' },
+  optionRowActive: { borderColor: COLORS.coco, backgroundColor: '#FFF7F2' },
   optionEmoji: { fontSize: 22 },
-  optionLabel: { fontSize: 15, fontFamily: FONTS.bodyMedium, color: COLORS.brownDeep },
+  optionLabel: { fontSize: 15, fontFamily: FONTS.bodyMedium, color: COLORS.bark },
 
-  reviewCard: { backgroundColor: '#FFF', borderRadius: 14, padding: 16, gap: 6 },
+  reviewCard: {
+    backgroundColor: COLORS.paper, borderRadius: 14, padding: 16, gap: 6,
+    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(150, 80, 50, 0.18)',
+    shadowColor: '#6B2E0E', shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.18, shadowRadius: 18, elevation: 5,
+  },
   reviewRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 6 },
   reviewLabel: { fontSize: 13, color: COLORS.textLight, fontFamily: FONTS.bodyMedium },
-  reviewValue: { fontSize: 14, color: COLORS.brownDeep, fontFamily: FONTS.bodyMedium },
+  reviewValue: { fontSize: 14, color: COLORS.bark, fontFamily: FONTS.bodyMedium },
 
   footer: {
     flexDirection: 'row', gap: 12,
@@ -330,12 +340,15 @@ const styles = StyleSheet.create({
     borderTopWidth: 1, borderTopColor: 'rgba(0,0,0,0.06)',
     backgroundColor: COLORS.cream,
   },
+  // v9 canonical CTA
   primaryBtn: {
-    flex: 1, backgroundColor: COLORS.yolkLight, borderRadius: 999,
+    flex: 1, backgroundColor: '#C07840', borderRadius: 999,
     paddingVertical: 15, alignItems: 'center', justifyContent: 'center',
+    shadowColor: '#945A41', shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.24, shadowRadius: 10, elevation: 3,
   },
-  primaryBtnDisabled: { opacity: 0.4 },
-  primaryBtnText: { color: COLORS.brownDeep, fontSize: 15, fontFamily: FONTS.bodySemiBold, letterSpacing: 0.3 },
+  primaryBtnDisabled: { opacity: 0.45 },
+  primaryBtnText: { color: '#FDFBF6', fontSize: 15, fontFamily: FONTS.bodySemiBold, letterSpacing: 0.3 },
   backBtn: { paddingHorizontal: 18, justifyContent: 'center' },
-  backBtnText: { color: COLORS.textMid, fontSize: 14, fontFamily: FONTS.bodySemiBold },
+  backBtnText: { color: COLORS.barkSoft, fontSize: 14, fontFamily: FONTS.bodySemiBold },
 });

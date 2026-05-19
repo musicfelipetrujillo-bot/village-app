@@ -39,7 +39,7 @@ type Step = 1 | 2 | 3;
 const ACKS: { id: string; text: string }[] = [
   {
     id: 'not_a_seller',
-    text: 'I understand The Village is a platform — not the seller. The Village does not inspect, test, store, ship, or guarantee any item listed.',
+    text: 'I understand Villie is a platform — not the seller. Villie does not inspect, test, store, ship, or guarantee any item listed.',
   },
   {
     id: 'no_recalls',
@@ -133,10 +133,10 @@ export default function GearLegalDisclosureModal({
                 the bottom to continue.
               </Text>
 
-              <Text style={styles.sectionTitle}>The Village is a platform, not a seller</Text>
+              <Text style={styles.sectionTitle}>Villie is a platform, not a seller</Text>
               <Text style={styles.para}>
-                The Village provides software that connects buyers and sellers of
-                secondhand baby gear. The Village is not the seller, does not take
+                Villie provides software that connects buyers and sellers of
+                secondhand baby gear. Villie is not the seller, does not take
                 possession of any item, does not inspect listings, and does not
                 test for safety, authenticity, age, or working condition.
                 Transactions are strictly between the buyer and the seller.
@@ -144,7 +144,7 @@ export default function GearLegalDisclosureModal({
 
               <Text style={styles.sectionTitle}>No warranties</Text>
               <Text style={styles.para}>
-                All items are listed &ldquo;as-is.&rdquo; The Village makes NO
+                All items are listed &ldquo;as-is.&rdquo; Villie makes NO
                 warranty, express or implied, including but not limited to
                 warranties of merchantability, fitness for a particular purpose,
                 safety, non-infringement, or accuracy of any listing information.
@@ -153,7 +153,7 @@ export default function GearLegalDisclosureModal({
               <Text style={styles.sectionTitle}>Seller representations</Text>
               <Text style={styles.para}>
                 Sellers are solely responsible for the accuracy of their listings,
-                the legality of the sale, and compliance with the Village
+                the legality of the sale, and compliance with the villie
                 Prohibited Items Policy. Sellers represent that they own the item,
                 that it is not under any CPSC recall, and that the item meets any
                 applicable federal safety standards (including CPSIA and the
@@ -162,7 +162,7 @@ export default function GearLegalDisclosureModal({
 
               <Text style={styles.sectionTitle}>Prohibited items</Text>
               <Text style={styles.para}>
-                The following categories may NOT be listed on The Village under any
+                The following categories may NOT be listed on Villie under any
                 condition: car seats, breast pumps, sleep positioners, inclined
                 sleepers, and bike/sport helmets. This policy is enforced at the
                 listing form and is non-negotiable for buyer safety.
@@ -170,7 +170,7 @@ export default function GearLegalDisclosureModal({
 
               <Text style={styles.sectionTitle}>No payment processing</Text>
               <Text style={styles.para}>
-                The Village does not process payments for gear transactions at this
+                Villie does not process payments for gear transactions at this
                 time. Buyers and sellers arrange cash or peer-to-peer payment
                 (Venmo, Zelle, Apple Cash) directly between themselves. The
                 Village is not responsible for any payment dispute, chargeback,
@@ -181,21 +181,21 @@ export default function GearLegalDisclosureModal({
               <Text style={styles.para}>
                 Meetings occur at the buyer and seller&apos;s own risk. You are
                 encouraged to meet in a public place, during daylight, and to
-                follow The Village&apos;s Safe Meeting Guide. The Village is not
+                follow Villie&apos;s Safe Meeting Guide. Villie is not
                 responsible for anything that occurs during or after the meeting.
               </Text>
 
               <Text style={styles.sectionTitle}>Reporting + takedown</Text>
               <Text style={styles.para}>
                 Tap &ldquo;Report this listing&rdquo; to flag any listing that
-                appears recalled, fake, unsafe, or fraudulent. The Village reviews
+                appears recalled, fake, unsafe, or fraudulent. Villie reviews
                 flagged listings within 24 hours and may remove listings, suspend
                 accounts, or cooperate with law enforcement at our sole discretion.
               </Text>
 
               <Text style={styles.sectionTitle}>Indemnification</Text>
               <Text style={styles.para}>
-                You agree to indemnify and hold The Village harmless from any
+                You agree to indemnify and hold Villie harmless from any
                 claim, demand, or damages arising from your use of the Gear
                 Marketplace, your interactions with other users, or your violation
                 of this Addendum.
@@ -268,7 +268,7 @@ export default function GearLegalDisclosureModal({
                 accessibilityState={{ disabled: !allAcks || submitting }}
               >
                 {submitting
-                  ? <ActivityIndicator color="#FFF" />
+                  ? <ActivityIndicator color="#FDFBF6" />
                   : <Text style={styles.ctaLabel}>Accept and continue</Text>}
               </TouchableOpacity>
             </View>
@@ -294,38 +294,38 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20, paddingTop: 56, paddingBottom: 16,
     borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.06)',
   },
-  stepLabel: { fontSize: 13, color: COLORS.textMid, fontFamily: FONTS.bodyMedium, letterSpacing: 0.5 },
-  close: { fontSize: 22, color: COLORS.textMid },
+  stepLabel: { fontSize: 13, color: COLORS.barkSoft, fontFamily: FONTS.bodyMedium, letterSpacing: 0.5 },
+  close: { fontSize: 22, color: COLORS.barkSoft },
 
   body: { flex: 1 },
   bodyContent: { padding: 20, paddingBottom: 40 },
 
-  headline: { fontSize: 24, fontFamily: FONTS.bodySemiBold, color: COLORS.brownDeep, marginBottom: 8 },
-  subhead: { fontSize: 14, color: COLORS.textMid, marginBottom: 24, lineHeight: 21, fontFamily: FONTS.body },
-  sectionTitle: { fontSize: 15, fontFamily: FONTS.bodySemiBold, color: COLORS.brownDeep, marginTop: 20, marginBottom: 6 },
-  para: { fontSize: 14, color: COLORS.textDark, lineHeight: 21, fontFamily: FONTS.body },
+  headline: { fontSize: 24, fontFamily: FONTS.bodySemiBold, color: COLORS.bark, marginBottom: 8 },
+  subhead: { fontSize: 14, color: COLORS.barkSoft, marginBottom: 24, lineHeight: 21, fontFamily: FONTS.body },
+  sectionTitle: { fontSize: 15, fontFamily: FONTS.bodySemiBold, color: COLORS.bark, marginTop: 20, marginBottom: 6 },
+  para: { fontSize: 14, color: COLORS.bark, lineHeight: 21, fontFamily: FONTS.body },
 
   scrollCueBox: {
-    marginTop: 32, padding: 14, borderRadius: 10,
+    marginTop: 32, padding: 16, borderRadius: 10,
     backgroundColor: 'rgba(184,92,56,0.08)',
     borderWidth: 1, borderColor: 'rgba(184,92,56,0.25)',
   },
-  scrollCue: { fontSize: 13, color: COLORS.rustDark, textAlign: 'center', fontFamily: FONTS.body },
+  scrollCue: { fontSize: 13, color: COLORS.cocoDeep, textAlign: 'center', fontFamily: FONTS.body },
 
   ackRow: {
     flexDirection: 'row', alignItems: 'flex-start',
     padding: 16, marginBottom: 12, borderRadius: 12,
-    borderWidth: 1.5, borderColor: 'rgba(0,0,0,0.1)',
-    backgroundColor: '#FFF',
+    borderWidth: 1.5, borderColor: 'rgba(150,80,50,0.18)',
+    backgroundColor: COLORS.paper,
   },
-  ackRowActive: { borderColor: COLORS.olive, backgroundColor: 'rgba(92,107,58,0.06)' },
+  ackRowActive: { borderColor: COLORS.sage, backgroundColor: 'rgba(92,107,58,0.06)' },
   checkbox: {
     width: 24, height: 24, borderRadius: 6, borderWidth: 2, borderColor: COLORS.textLight,
     marginRight: 12, alignItems: 'center', justifyContent: 'center',
   },
-  checkboxChecked: { backgroundColor: COLORS.olive, borderColor: COLORS.olive },
-  checkmark: { color: '#FFF', fontSize: 16, fontFamily: FONTS.bodySemiBold },
-  ackText: { flex: 1, fontSize: 14, color: COLORS.textDark, lineHeight: 21, fontFamily: FONTS.body },
+  checkboxChecked: { backgroundColor: COLORS.sage, borderColor: COLORS.sage },
+  checkmark: { color: '#FDFBF6', fontSize: 16, fontFamily: FONTS.bodySemiBold },
+  ackText: { flex: 1, fontSize: 14, color: COLORS.bark, lineHeight: 21, fontFamily: FONTS.body },
   error: { color: '#B3261E', fontSize: 13, marginTop: 8, fontFamily: FONTS.body },
 
   footer: {
@@ -340,26 +340,26 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.cream,
   },
   cta: {
-    backgroundColor: COLORS.yolkLight, paddingVertical: 15, borderRadius: 999,
+    backgroundColor: COLORS.sandSoft, paddingVertical: 15, borderRadius: 999,
     alignItems: 'center', justifyContent: 'center',
   },
   ctaFlex: { flex: 1 },
   ctaDisabled: { backgroundColor: COLORS.textLight, opacity: 0.6 },
-  ctaLabel: { color: COLORS.brownDeep, fontSize: 15, fontFamily: FONTS.bodySemiBold },
+  ctaLabel: { color: COLORS.bark, fontSize: 15, fontFamily: FONTS.bodySemiBold },
 
   back: {
     paddingVertical: 15, paddingHorizontal: 20, borderRadius: 14,
     borderWidth: 1, borderColor: COLORS.textLight,
     alignItems: 'center', justifyContent: 'center',
   },
-  backLabel: { color: COLORS.textMid, fontSize: 15, fontFamily: FONTS.bodySemiBold },
+  backLabel: { color: COLORS.barkSoft, fontSize: 15, fontFamily: FONTS.bodySemiBold },
 
   successWrap: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 40 },
   successIcon: {
-    fontSize: 52, color: '#FFF', backgroundColor: COLORS.olive,
+    fontSize: 52, color: '#FDFBF6', backgroundColor: COLORS.sage,
     width: 96, height: 96, borderRadius: 48, textAlign: 'center', lineHeight: 96,
     marginBottom: 20,
   },
-  successTitle: { fontSize: 22, fontFamily: FONTS.bodySemiBold, color: COLORS.brownDeep, marginBottom: 6 },
-  successBody: { fontSize: 14, color: COLORS.textMid, textAlign: 'center', fontFamily: FONTS.body },
+  successTitle: { fontSize: 22, fontFamily: FONTS.bodySemiBold, color: COLORS.bark, marginBottom: 6 },
+  successBody: { fontSize: 14, color: COLORS.barkSoft, textAlign: 'center', fontFamily: FONTS.body },
 });

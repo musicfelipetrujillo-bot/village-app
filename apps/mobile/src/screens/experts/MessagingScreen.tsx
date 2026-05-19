@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { COLORS, FONTS } from '@utils/constants';
+import { V9PageBackdrop } from '@components/shared/V9PageBackdrop';
 import { useT } from '@/i18n';
 import { useAuthStore } from '@store/auth';
 import { useExpertsStore } from '@store/experts';
@@ -155,6 +156,7 @@ export default function MessagingScreen({ navigation, route }: Props) {
       keyboardVerticalOffset={0}
     >
       <View style={styles.container}>
+        <V9PageBackdrop />
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
@@ -186,7 +188,7 @@ export default function MessagingScreen({ navigation, route }: Props) {
         {/* Message list */}
         {loading ? (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator color={COLORS.rust} />
+            <ActivityIndicator color="#C07840" />
           </View>
         ) : (
           <FlatList
@@ -226,7 +228,7 @@ export default function MessagingScreen({ navigation, route }: Props) {
             disabled={!draft.trim() || sending}
           >
             {sending ? (
-              <ActivityIndicator size="small" color="white" />
+              <ActivityIndicator size="small" color='#FDFBF6' />
             ) : (
               <Text style={styles.sendBtnText}>↑</Text>
             )}
@@ -238,7 +240,7 @@ export default function MessagingScreen({ navigation, route }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.cream },
+  container: { flex: 1, backgroundColor: 'transparent' },
 
   header: {
     flexDirection: 'row',
@@ -246,18 +248,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 56,
     paddingBottom: 14,
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.paper,
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(0,0,0,0.07)',
     gap: 10,
   },
   backBtn: { width: 52 },
-  backText: { fontSize: 15, color: COLORS.rust, fontFamily: FONTS.bodyMedium },
+  backText: { fontSize: 15, color: '#C07840', fontFamily: FONTS.bodyMedium },
   headerCenter: { flex: 1, alignItems: 'center' },
   headerName: {
     fontFamily: FONTS.headerItalic,
     fontSize: 16,
-    color: COLORS.textDark,
+    color: COLORS.bark,
   },
   headerSub: { fontSize: 11, color: COLORS.textLight, marginTop: 1, fontFamily: FONTS.body },
   videoBtn: {
@@ -307,7 +309,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.08)',
+    borderColor: 'rgba(150,80,50,0.18)',
   },
 
   bubble: {
@@ -316,22 +318,23 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 14,
   },
+  // v9 walnut bubble (kit canon, WCAG 7.4:1 with paper text — readable at 3am).
   bubbleOwn: {
-    backgroundColor: COLORS.rust,
+    backgroundColor: '#7A4A28',
     borderBottomRightRadius: 4,
   },
   bubbleOther: {
-    backgroundColor: 'white',
+    backgroundColor: COLORS.paper,
     borderBottomLeftRadius: 4,
-    shadowColor: '#000',
+    shadowColor: '#6B2E0E',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.06,
     shadowRadius: 3,
     elevation: 1,
   },
   bubbleText: { fontSize: 15, lineHeight: 22, fontFamily: FONTS.body },
-  bubbleTextOwn: { color: 'white' },
-  bubbleTextOther: { color: COLORS.textDark },
+  bubbleTextOwn: { color: '#FDFBF6' },                                 // v9 paper white (kit canon)
+  bubbleTextOther: { color: COLORS.bark },
 
   emptyState: {
     flex: 1,
@@ -341,7 +344,7 @@ const styles = StyleSheet.create({
     paddingTop: 80,
   },
   emptyEmoji: { fontSize: 48, marginBottom: 16 },
-  emptyTitle: { fontSize: 18, fontFamily: FONTS.bodySemiBold, color: COLORS.textDark, marginBottom: 8 },
+  emptyTitle: { fontSize: 18, fontFamily: FONTS.bodySemiBold, color: COLORS.bark, marginBottom: 8 },
   emptyText: { fontSize: 14, color: COLORS.textLight, textAlign: 'center', lineHeight: 20, fontFamily: FONTS.body },
 
   inputBar: {
@@ -350,7 +353,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 10,
     paddingBottom: Platform.OS === 'ios' ? 28 : 10,
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.paper,
     borderTopWidth: 1,
     borderTopColor: 'rgba(0,0,0,0.07)',
     gap: 8,
@@ -362,20 +365,20 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 16,
     fontSize: 15,
-    color: COLORS.textDark,
+    color: COLORS.bark,
     maxHeight: 120,
     borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.08)',
+    borderColor: 'rgba(150,80,50,0.18)',
     fontFamily: FONTS.body,
   },
   sendBtn: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: COLORS.rust,
+    backgroundColor: '#C07840',
     alignItems: 'center',
     justifyContent: 'center',
   },
   sendBtnDisabled: { opacity: 0.35 },
-  sendBtnText: { color: 'white', fontSize: 20, fontFamily: FONTS.bodySemiBold, lineHeight: 22 },
+  sendBtnText: { color: '#FDFBF6', fontSize: 20, fontFamily: FONTS.bodySemiBold, lineHeight: 22 },
 });

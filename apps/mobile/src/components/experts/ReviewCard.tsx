@@ -33,18 +33,18 @@ export function ReviewCard({ review }: Props) {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: 'white',
-    borderRadius: 14,
-    padding: 14,
+    backgroundColor: COLORS.paper,
+    borderRadius: 10,
+    padding: 16,
     marginBottom: 10,
-    shadowColor: '#000',
+    shadowColor: '#6B2E0E',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 3,
     elevation: 1,
   },
   header: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8, flexWrap: 'wrap' },
-  stars: { fontSize: 14, color: COLORS.gold },
+  stars: { fontSize: 14, color: COLORS.sand },
   date: { fontSize: 11, color: COLORS.textLight, fontFamily: FONTS.body },
   verifiedBadge: {
     backgroundColor: '#EEF2E6',
@@ -52,8 +52,8 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     paddingHorizontal: 8,
   },
-  verifiedText: { fontSize: 10, fontFamily: FONTS.bodySemiBold, color: COLORS.olive },
-  body: { fontSize: 13, color: COLORS.textDark, lineHeight: 20, fontFamily: FONTS.body },
+  verifiedText: { fontSize: 10, fontFamily: FONTS.bodySemiBold, color: COLORS.sage },
+  body: { fontSize: 13, color: COLORS.bark, lineHeight: 20, fontFamily: FONTS.body },
   aiNote: {
     marginTop: 8,
     backgroundColor: '#FFF8E8',

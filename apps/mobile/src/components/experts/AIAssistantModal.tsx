@@ -141,7 +141,7 @@ export function AIAssistantModal({ visible, onClose, specialist }: Props) {
                   </Text>
                 </View>
                 {loading ? (
-                  <ActivityIndicator color={COLORS.rust} size="small" />
+                  <ActivityIndicator color="#C07840" size="small" />
                 ) : (
                   <Text style={styles.menuCardArrow}>›</Text>
                 )}
@@ -198,7 +198,7 @@ export function AIAssistantModal({ visible, onClose, specialist }: Props) {
                 {loading && (
                   <View style={styles.bubbleAI}>
                     <Text style={styles.bubbleAILabel}>🤖 Village AI</Text>
-                    <ActivityIndicator color={COLORS.rust} size="small" style={{ marginTop: 4 }} />
+                    <ActivityIndicator color="#C07840" size="small" style={{ marginTop: 4 }} />
                   </View>
                 )}
               </ScrollView>
@@ -262,14 +262,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 20,
     paddingBottom: 14,
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.paper,
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(0,0,0,0.07)',
   },
   backBtn: { width: 64 },
-  backText: { fontSize: 14, color: COLORS.rust, fontFamily: FONTS.bodyMedium },
+  backText: { fontSize: 14, color: COLORS.coco, fontFamily: FONTS.bodyMedium },
   headerCenter: { flex: 1, alignItems: 'center' },
-  headerTitle: { fontSize: 15, fontFamily: FONTS.bodySemiBold, color: COLORS.textDark },
+  headerTitle: { fontSize: 15, fontFamily: FONTS.bodySemiBold, color: COLORS.bark },
   headerSub: { fontSize: 11, color: COLORS.textLight, marginTop: 1, fontFamily: FONTS.body },
 
   // Menu
@@ -285,17 +285,17 @@ const styles = StyleSheet.create({
   menuTitle: {
     fontFamily: FONTS.headerItalic,
     fontSize: 22,
-    color: COLORS.textDark,
+    color: COLORS.bark,
     textAlign: 'center',
   },
   menuCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'white',
+    backgroundColor: COLORS.paper,
     borderRadius: 16,
     padding: 16,
     gap: 12,
-    shadowColor: '#000',
+    shadowColor: '#6B2E0E',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 4,
@@ -303,7 +303,7 @@ const styles = StyleSheet.create({
   },
   menuCardDisabled: { opacity: 0.5 },
   menuCardIcon: { fontSize: 28 },
-  menuCardTitle: { fontSize: 15, fontFamily: FONTS.bodySemiBold, color: COLORS.textDark, marginBottom: 3 },
+  menuCardTitle: { fontSize: 15, fontFamily: FONTS.bodySemiBold, color: COLORS.bark, marginBottom: 3 },
   menuCardSub: { fontSize: 12, color: COLORS.textLight, lineHeight: 17, fontFamily: FONTS.body },
   menuCardArrow: { fontSize: 22, color: COLORS.textLight },
   disclaimer: {
@@ -322,41 +322,41 @@ const styles = StyleSheet.create({
   qaEmptyText: { fontSize: 14, color: COLORS.textLight, lineHeight: 20, textAlign: 'center', paddingTop: 12, fontFamily: FONTS.body },
   suggestedChips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'center' },
   chip: {
-    backgroundColor: 'white',
+    backgroundColor: COLORS.paper,
     borderRadius: 50,
     paddingVertical: 7,
     paddingHorizontal: 13,
     borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.1)',
+    borderColor: 'rgba(150,80,50,0.18)',
   },
-  chipText: { fontSize: 12, color: COLORS.textDark, fontFamily: FONTS.bodyMedium },
+  chipText: { fontSize: 12, color: COLORS.bark, fontFamily: FONTS.bodyMedium },
 
   bubble: { borderRadius: 16, padding: 13, maxWidth: '86%' },
   bubbleUser: {
-    backgroundColor: COLORS.rust,
+    backgroundColor: '#C07840',
     alignSelf: 'flex-end',
     borderBottomRightRadius: 4,
   },
   bubbleAI: {
-    backgroundColor: 'white',
+    backgroundColor: COLORS.paper,
     alignSelf: 'flex-start',
     borderBottomLeftRadius: 4,
-    shadowColor: '#000',
+    shadowColor: '#6B2E0E',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.06,
     shadowRadius: 3,
     elevation: 1,
   },
-  bubbleAILabel: { fontSize: 10, fontFamily: FONTS.bodySemiBold, color: COLORS.rust, marginBottom: 5, letterSpacing: 0.5 },
-  bubbleText: { fontSize: 14, color: COLORS.textDark, lineHeight: 21, fontFamily: FONTS.body },
-  bubbleTextUser: { color: 'white' },
+  bubbleAILabel: { fontSize: 10, fontFamily: FONTS.bodySemiBold, color: COLORS.coco, marginBottom: 5, letterSpacing: 0.5 },
+  bubbleText: { fontSize: 14, color: COLORS.bark, lineHeight: 21, fontFamily: FONTS.body },
+  bubbleTextUser: { color: '#FDFBF6' },
 
   inputBar: {
     flexDirection: 'row',
     alignItems: 'flex-end',
     padding: 12,
     paddingBottom: Platform.OS === 'ios' ? 28 : 12,
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.paper,
     borderTopWidth: 1,
     borderTopColor: 'rgba(0,0,0,0.07)',
     gap: 8,
@@ -368,36 +368,36 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 16,
     fontSize: 14,
-    color: COLORS.textDark,
+    color: COLORS.bark,
     maxHeight: 100,
     borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.08)',
+    borderColor: 'rgba(150,80,50,0.18)',
     fontFamily: FONTS.body,
   },
   sendBtn: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: COLORS.rust,
+    backgroundColor: '#C07840',
     alignItems: 'center',
     justifyContent: 'center',
   },
   sendBtnDisabled: { opacity: 0.35 },
-  sendBtnText: { color: 'white', fontSize: 20, fontFamily: FONTS.bodySemiBold, lineHeight: 22 },
+  sendBtnText: { color: '#FDFBF6', fontSize: 20, fontFamily: FONTS.bodySemiBold, lineHeight: 22 },
 
   // Follow-up questions
   followupContent: { padding: 20, gap: 12 },
   followupTitle: {
     fontFamily: FONTS.headerItalic,
     fontSize: 22,
-    color: COLORS.textDark,
+    color: COLORS.bark,
   },
   followupSub: { fontSize: 13, color: COLORS.textLight, marginTop: -6, fontFamily: FONTS.body },
   questionCard: {
     flexDirection: 'row',
-    backgroundColor: 'white',
+    backgroundColor: COLORS.paper,
     borderRadius: 14,
-    padding: 14,
+    padding: 16,
     gap: 12,
     alignItems: 'flex-start',
   },
@@ -405,14 +405,14 @@ const styles = StyleSheet.create({
     width: 26,
     height: 26,
     borderRadius: 13,
-    backgroundColor: COLORS.rust,
+    backgroundColor: '#C07840',
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
     marginTop: 1,
   },
-  questionNumText: { color: 'white', fontSize: 12, fontFamily: FONTS.bodySemiBold },
-  questionText: { fontSize: 14, color: COLORS.textDark, lineHeight: 21, flex: 1, fontFamily: FONTS.body },
+  questionNumText: { color: '#FDFBF6', fontSize: 12, fontFamily: FONTS.bodySemiBold },
+  questionText: { fontSize: 14, color: COLORS.bark, lineHeight: 21, flex: 1, fontFamily: FONTS.body },
   followupDisclaimer: {
     fontSize: 12,
     color: COLORS.textLight,

@@ -33,7 +33,7 @@ export default function CPSCBadge({ size = 'sm', onPress }: Props) {
   return body;
 }
 
-const GREEN = COLORS.olive ?? '#5C6B3A';
+const GREEN = COLORS.sage ?? '#5C6B3A';
 
 const styles = StyleSheet.create({
   badge: {

@@ -9,6 +9,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useAuthStore } from '@store/auth';
 import { submitMilkReview } from '@api/milk';
 import { COLORS, FONTS } from '@utils/constants';
+import { V9PageBackdrop } from '@components/shared/V9PageBackdrop';
 import { useT } from '@/i18n';
 import type { MilkStackParamList } from '@/navigation/MilkNavigator';
 
@@ -51,6 +52,7 @@ export default function MilkReviewSubmitScreen({ navigation, route }: Props) {
 
   return (
     <View style={styles.container}>
+      <V9PageBackdrop />
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
@@ -100,7 +102,7 @@ export default function MilkReviewSubmitScreen({ navigation, route }: Props) {
           disabled={rating < 1 || submitting}
         >
           {submitting ? (
-            <ActivityIndicator color="#FFF" />
+            <ActivityIndicator color="#FDFBF6" />
           ) : (
             <Text style={styles.submitBtnText}>{t('milkReview.submitBtn')}</Text>
           )}
@@ -111,14 +113,14 @@ export default function MilkReviewSubmitScreen({ navigation, route }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F5F0E8' },
+  container: { flex: 1, backgroundColor: 'transparent' },
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingTop: 56, paddingBottom: 12, paddingHorizontal: 16,
-    backgroundColor: '#FFF',
+    backgroundColor: COLORS.paper,
     borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.06)',
   },
-  back: { fontSize: 15, color: '#D87530', fontFamily: FONTS.bodyMedium },
+  back: { fontSize: 15, color: '#C07840', fontFamily: FONTS.bodyMedium },
   title: { fontSize: 17, fontFamily: FONTS.bodySemiBold, color: '#2C1810' },
 
   content: { padding: 24, alignItems: 'center' },
@@ -130,19 +132,26 @@ const styles = StyleSheet.create({
   star: { fontSize: 44, color: '#E5DDD2' },
   starActive: { color: '#C4A35A' },
 
-  ratingLabel: { fontSize: 15, fontFamily: FONTS.bodySemiBold, color: '#D87530', marginBottom: 28 },
+  ratingLabel: { fontSize: 15, fontFamily: FONTS.bodySemiBold, color: '#A77349', marginBottom: 28 },
 
+  // v9 input card lift — rust hairline + soft cocoa drop, so the review
+  // surface reads as a confirmed writing space rather than a flat field.
   bodyInput: {
     width: '100%', minHeight: 120,
-    backgroundColor: '#FFF', borderRadius: 12, padding: 14,
+    backgroundColor: COLORS.paper, borderRadius: 12, padding: 16,
     fontSize: 15, color: '#2C1810', textAlignVertical: 'top',
+    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(150,80,50,0.18)',
+    shadowColor: '#6B2E0E', shadowOpacity: 0.14, shadowOffset: { width: 0, height: 6 }, shadowRadius: 14, elevation: 2,
   },
   counter: { alignSelf: 'flex-end', fontSize: 11, color: '#9A8070', marginTop: 6 },
 
+  // v9 canonical CTA — rect variant
   submitBtn: {
-    width: '100%', backgroundColor: '#D87530', borderRadius: 14,
+    width: '100%', backgroundColor: '#C07840', borderRadius: 14,
     paddingVertical: 16, alignItems: 'center', marginTop: 24,
+    shadowColor: '#945A41', shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.24, shadowRadius: 10, elevation: 3,
   },
-  submitBtnDisabled: { opacity: 0.5 },
-  submitBtnText: { color: '#FFF', fontSize: 16, fontFamily: FONTS.bodySemiBold },
+  submitBtnDisabled: { opacity: 0.45 },
+  submitBtnText: { color: '#FDFBF6', fontSize: 16, fontFamily: FONTS.bodySemiBold },
 });

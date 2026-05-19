@@ -12,6 +12,7 @@ import { useAuthStore } from '@store/auth';
 import { useUserStore } from '@store/user';
 import { listMyMilkThreads, type MilkThreadRow } from '@api/milk';
 import { COLORS, FONTS } from '@utils/constants';
+import { V9PageBackdrop } from '@components/shared/V9PageBackdrop';
 import { useT, type Lang } from '@/i18n';
 import type { MilkStackParamList } from '@/navigation/MilkNavigator';
 
@@ -59,6 +60,7 @@ export default function MilkMessageThreadsScreen({ navigation }: Props) {
 
   return (
     <View style={styles.container}>
+      <V9PageBackdrop />
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
@@ -72,12 +74,12 @@ export default function MilkMessageThreadsScreen({ navigation }: Props) {
       </View>
 
       {loading ? (
-        <View style={styles.center}><ActivityIndicator color={COLORS.rust} /></View>
+        <View style={styles.center}><ActivityIndicator color="#C07840" /></View>
       ) : (
         <FlashList
           data={threads}
           keyExtractor={(thread) => thread.thread_id}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.rust} />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.coco} />}
           ItemSeparatorComponent={() => <View style={styles.sep} />}
           renderItem={({ item }) => (
             <TouchableOpacity
@@ -138,30 +140,30 @@ export default function MilkMessageThreadsScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F5F0E8' },
+  container: { flex: 1, backgroundColor: 'transparent' },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingTop: 56, paddingBottom: 12, paddingHorizontal: 16,
-    backgroundColor: '#FFF',
+    backgroundColor: COLORS.paper,
     borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.06)',
   },
-  back: { fontSize: 15, color: '#D87530', fontFamily: FONTS.bodyMedium },
+  back: { fontSize: 15, color: '#C07840', fontFamily: FONTS.bodyMedium },
   title: { fontSize: 17, fontFamily: FONTS.bodySemiBold, color: '#2C1810' },
 
   row: {
     flexDirection: 'row', alignItems: 'center', gap: 12,
-    paddingHorizontal: 16, paddingVertical: 14, backgroundColor: '#FFF',
+    paddingHorizontal: 16, paddingVertical: 14, backgroundColor: COLORS.paper,
   },
   sep: { height: 1, backgroundColor: 'rgba(0,0,0,0.05)', marginLeft: 76 },
   avatar: { width: 48, height: 48, borderRadius: 24 },
-  avatarFallback: { backgroundColor: '#D87530', alignItems: 'center', justifyContent: 'center' },
-  avatarInitial: { color: '#FFF', fontSize: 18, fontFamily: FONTS.bodySemiBold },
+  avatarFallback: { backgroundColor: COLORS.coco, alignItems: 'center', justifyContent: 'center' },
+  avatarInitial: { color: '#FDFBF6', fontSize: 18, fontFamily: FONTS.bodySemiBold },
   middle: { flex: 1 },
   nameRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   name: { fontSize: 15, fontFamily: FONTS.bodySemiBold, color: '#2C1810', flexShrink: 1 },
   donorTag: {
-    fontSize: 10, fontFamily: FONTS.bodySemiBold, color: '#FFF',
+    fontSize: 10, fontFamily: FONTS.bodySemiBold, color: '#FDFBF6',
     backgroundColor: '#6B7C3F', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6,
   },
   preview: { fontSize: 13, color: '#9A8070', marginTop: 4 },
@@ -169,17 +171,17 @@ const styles = StyleSheet.create({
   time: { fontSize: 11, color: '#9A8070' },
   unreadDot: {
     minWidth: 20, height: 20, paddingHorizontal: 6, borderRadius: 10,
-    backgroundColor: '#D87530', alignItems: 'center', justifyContent: 'center',
+    backgroundColor: COLORS.coco, alignItems: 'center', justifyContent: 'center',
   },
-  unreadText: { color: '#FFF', fontSize: 11, fontFamily: FONTS.bodySemiBold },
+  unreadText: { color: '#FDFBF6', fontSize: 11, fontFamily: FONTS.bodySemiBold },
 
   empty: { alignItems: 'center', paddingTop: 80, paddingHorizontal: 32, gap: 12 },
   emptyEmoji: { fontSize: 52 },
   emptyTitle: { fontSize: 22, fontFamily: FONTS.bodySemiBold, color: '#2C1810' },
   emptyBody: { fontSize: 14, color: '#9A8070', textAlign: 'center', lineHeight: 21 },
   browseBtn: {
-    marginTop: 8, backgroundColor: '#D87530', borderRadius: 12,
+    marginTop: 8, backgroundColor: '#C07840', borderRadius: 12,
     paddingVertical: 13, paddingHorizontal: 28,
   },
-  browseBtnText: { fontSize: 15, color: '#FFF', fontFamily: FONTS.bodySemiBold },
+  browseBtnText: { fontSize: 15, color: '#FDFBF6', fontFamily: FONTS.bodySemiBold },
 });

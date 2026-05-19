@@ -14,6 +14,7 @@ import { useNavigation } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
 import { COLORS, FONTS } from '@utils/constants';
+import { V9PageBackdrop } from '@components/shared/V9PageBackdrop';
 import { useT } from '@/i18n';
 import { supabase } from '@/lib/supabase';
 import {
@@ -352,6 +353,7 @@ export default function CreateListingScreen() {
 
   return (
     <View style={styles.container}>
+      <V9PageBackdrop />
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
@@ -386,7 +388,7 @@ export default function CreateListingScreen() {
             accessibilityLabel={lookupBusy ? t('gearCreate.scanBarcodeA11yBusy') : t('gearCreate.scanBarcodeA11yIdle')}
             accessibilityState={{ busy: lookupBusy, disabled: lookupBusy || visionBusy }}
           >
-            {lookupBusy ? <ActivityIndicator color={COLORS.rust} /> : (
+            {lookupBusy ? <ActivityIndicator color="#C07840" /> : (
               <>
                 <Text style={styles.quickFillIcon}>📷</Text>
                 <Text style={styles.quickFillText}>{t('gearCreate.scanBarcode')}</Text>
@@ -410,7 +412,7 @@ export default function CreateListingScreen() {
             }
             accessibilityState={{ disabled: images.length === 0, busy: visionBusy }}
           >
-            {visionBusy ? <ActivityIndicator color={COLORS.rust} /> : (
+            {visionBusy ? <ActivityIndicator color="#C07840" /> : (
               <>
                 <Text style={styles.quickFillIcon}>✨</Text>
                 <Text style={styles.quickFillText}>{t('gearCreate.identifyPhoto')}</Text>
@@ -591,7 +593,7 @@ export default function CreateListingScreen() {
             <Switch
               value={isFree}
               onValueChange={setIsFree}
-              trackColor={{ true: COLORS.rust, false: '#CCC' }}
+              trackColor={{ true: COLORS.coco, false: '#CCC' }}
               accessibilityLabel={t('gearCreate.freeLabel')}
               accessibilityRole="switch"
               accessibilityState={{ checked: isFree }}
@@ -665,7 +667,7 @@ export default function CreateListingScreen() {
         >
           {submitting ? (
             <View style={styles.submitBusy}>
-              <ActivityIndicator color="#FFF" />
+              <ActivityIndicator color="#FDFBF6" />
               {uploadProgress ? (
                 <Text style={styles.submitProgressText}>
                   {t('gearCreate.uploadingText', { current: uploadProgress.current, total: uploadProgress.total })}
@@ -722,15 +724,15 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 void PROHIBITED_CATEGORIES;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.cream },
+  container: { flex: 1, backgroundColor: 'transparent' },
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingTop: 56, paddingBottom: 12, paddingHorizontal: 16,
-    backgroundColor: '#FFF',
+    backgroundColor: COLORS.paper,
     borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.06)',
   },
-  back: { fontSize: 14, color: COLORS.rust, fontFamily: FONTS.bodySemiBold, minWidth: 50 },
-  headerTitle: { fontSize: 17, fontFamily: FONTS.bodySemiBold, color: COLORS.brownDeep },
+  back: { fontSize: 14, color: '#C07840', fontFamily: FONTS.bodySemiBold, minWidth: 50 },
+  headerTitle: { fontSize: 17, fontFamily: FONTS.bodySemiBold, color: COLORS.bark },
 
   content: { padding: 16, paddingBottom: 140 },
 
@@ -739,21 +741,21 @@ const styles = StyleSheet.create({
     padding: 12, marginBottom: 12,
     borderWidth: 1, borderColor: 'rgba(184,92,56,0.3)',
   },
-  prohibitedTitle: { fontSize: 12, fontFamily: FONTS.bodySemiBold, color: COLORS.rustDark, marginBottom: 4, letterSpacing: 0.4 },
-  prohibitedBody: { fontSize: 12, color: COLORS.textMid, lineHeight: 18, fontFamily: FONTS.body },
-  prohibitedLink: { color: COLORS.rust, fontFamily: FONTS.bodySemiBold, textDecorationLine: 'underline' },
+  prohibitedTitle: { fontSize: 12, fontFamily: FONTS.bodySemiBold, color: '#A77349', marginBottom: 4, letterSpacing: 0.4 },
+  prohibitedBody: { fontSize: 12, color: COLORS.barkSoft, lineHeight: 18, fontFamily: FONTS.body },
+  prohibitedLink: { color: '#C07840', fontFamily: FONTS.bodySemiBold, textDecorationLine: 'underline' },
 
   quickFillRow: { flexDirection: 'row', gap: 8, marginTop: 4 },
   quickFillBtn: {
     flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
     gap: 6, paddingVertical: 12, borderRadius: 12,
-    backgroundColor: '#FFF',
+    backgroundColor: COLORS.paper,
     borderWidth: 1.5, borderColor: 'rgba(184,92,56,0.35)',
   },
   quickFillIcon: { fontSize: 16 },
-  quickFillText: { fontSize: 13, color: COLORS.rustDark, fontFamily: FONTS.bodySemiBold },
+  quickFillText: { fontSize: 13, color: '#A77349', fontFamily: FONTS.bodySemiBold },
   autofillNote: {
-    fontSize: 12, color: COLORS.textMid, marginTop: 8,
+    fontSize: 12, color: COLORS.barkSoft, marginTop: 8,
     fontStyle: 'italic', lineHeight: 17, fontFamily: FONTS.body,
   },
   upcTag: {
@@ -769,10 +771,10 @@ const styles = StyleSheet.create({
   },
 
   input: {
-    backgroundColor: '#FFF', borderRadius: 10,
+    backgroundColor: COLORS.paper, borderRadius: 10,
     paddingHorizontal: 12, paddingVertical: 12,
-    fontSize: 14, color: COLORS.brownDeep,
-    borderWidth: 1, borderColor: 'rgba(0,0,0,0.06)',
+    fontSize: 14, color: COLORS.bark,
+    borderWidth: 1, borderColor: 'rgba(150,80,50,0.18)',
     fontFamily: FONTS.body,
   },
   textarea: { minHeight: 110, textAlignVertical: 'top' },
@@ -780,11 +782,11 @@ const styles = StyleSheet.create({
   chipWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   chip: {
     paddingHorizontal: 12, paddingVertical: 7, borderRadius: 14,
-    borderWidth: 1.5, borderColor: 'rgba(0,0,0,0.08)', backgroundColor: '#FFF',
+    borderWidth: 1.5, borderColor: 'rgba(150,80,50,0.18)', backgroundColor: COLORS.paper,
   },
-  chipActive: { backgroundColor: COLORS.rust, borderColor: COLORS.rust },
-  chipText: { fontSize: 12, fontFamily: FONTS.bodySemiBold, color: COLORS.textMid },
-  chipTextActive: { color: '#FFF' },
+  chipActive: { backgroundColor: '#C07840', borderColor: '#C07840' },  // v9 CTA = cinnamon
+  chipText: { fontSize: 12, fontFamily: FONTS.bodySemiBold, color: COLORS.barkSoft },
+  chipTextActive: { color: '#FDFBF6' },                                // v9 no pure white
 
   photoRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   photoWrap: { width: 84, height: 84, borderRadius: 10, overflow: 'hidden', position: 'relative' },
@@ -794,30 +796,32 @@ const styles = StyleSheet.create({
     width: 22, height: 22, borderRadius: 11,
     backgroundColor: 'rgba(0,0,0,0.6)', alignItems: 'center', justifyContent: 'center',
   },
-  photoRemoveText: { color: '#FFF', fontSize: 16, lineHeight: 18, fontFamily: FONTS.bodySemiBold },
+  photoRemoveText: { color: '#FDFBF6', fontSize: 16, lineHeight: 18, fontFamily: FONTS.bodySemiBold },
   photoAdd: {
     width: 84, height: 84, borderRadius: 10,
-    backgroundColor: '#FFF', alignItems: 'center', justifyContent: 'center',
-    borderWidth: 1.5, borderStyle: 'dashed', borderColor: 'rgba(0,0,0,0.2)',
+    backgroundColor: COLORS.paper, alignItems: 'center', justifyContent: 'center',
+    borderWidth: 1.5, borderStyle: 'dashed', borderColor: 'rgba(150,80,50,0.18)',
   },
-  photoAddIcon: { fontSize: 22, color: COLORS.rust, fontFamily: FONTS.bodySemiBold },
-  photoAddText: { fontSize: 11, color: COLORS.textMid, fontFamily: FONTS.bodySemiBold },
+  photoAddIcon: { fontSize: 22, color: '#A77349', fontFamily: FONTS.bodySemiBold },
+  photoAddText: { fontSize: 11, color: COLORS.barkSoft, fontFamily: FONTS.bodySemiBold },
 
+  // v9 card lift — soft drop so the price toggle reads as a discrete control.
   priceRow: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    backgroundColor: '#FFF', borderRadius: 10, padding: 12,
-    borderWidth: 1, borderColor: 'rgba(0,0,0,0.06)',
+    backgroundColor: COLORS.paper, borderRadius: 10, padding: 12,
+    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(150,80,50,0.18)',
+    shadowColor: '#6B2E0E', shadowOpacity: 0.10, shadowOffset: { width: 0, height: 3 }, shadowRadius: 10, elevation: 1,
   },
-  priceLabel: { fontSize: 14, color: COLORS.brownDeep, fontFamily: FONTS.bodyMedium },
+  priceLabel: { fontSize: 14, color: COLORS.bark, fontFamily: FONTS.bodyMedium },
   priceInputRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 8 },
-  priceCurrency: { fontSize: 18, fontFamily: FONTS.bodySemiBold, color: COLORS.textMid },
+  priceCurrency: { fontSize: 18, fontFamily: FONTS.bodySemiBold, color: COLORS.barkSoft },
 
   locationBtn: {
-    backgroundColor: '#FFF', borderRadius: 10,
+    backgroundColor: COLORS.paper, borderRadius: 10,
     paddingVertical: 12, alignItems: 'center', marginTop: 8,
-    borderWidth: 1.5, borderColor: 'rgba(0,0,0,0.08)',
+    borderWidth: 1.5, borderColor: 'rgba(150,80,50,0.18)',
   },
-  locationBtnText: { fontSize: 13, fontFamily: FONTS.bodySemiBold, color: COLORS.rustDark },
+  locationBtnText: { fontSize: 13, fontFamily: FONTS.bodySemiBold, color: COLORS.cocoDeep },
 
   legalNote: {
     fontSize: 11, color: COLORS.textLight,
@@ -829,13 +833,16 @@ const styles = StyleSheet.create({
     padding: 16, paddingBottom: 28,
     backgroundColor: COLORS.cream, borderTopWidth: 1, borderTopColor: 'rgba(0,0,0,0.06)',
   },
+  // v9 canonical CTA
   submitBtn: {
-    backgroundColor: COLORS.yolkLight, borderRadius: 999,
+    backgroundColor: '#C07840', borderRadius: 999,
     paddingVertical: 15, alignItems: 'center',
+    shadowColor: '#945A41', shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.24, shadowRadius: 10, elevation: 3,
   },
-  submitBtnText: { color: COLORS.brownDeep, fontSize: 15, fontFamily: FONTS.bodySemiBold, letterSpacing: 0.3 },
+  submitBtnText: { color: '#FDFBF6', fontSize: 15, fontFamily: FONTS.bodySemiBold, letterSpacing: 0.3 },
   submitBusy: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  submitProgressText: { color: COLORS.brownDeep, fontSize: 13, fontFamily: FONTS.bodyMedium },
+  submitProgressText: { color: COLORS.bark, fontSize: 13, fontFamily: FONTS.bodyMedium },
   uploadTrack: {
     height: 4,
     borderRadius: 2,
@@ -845,6 +852,6 @@ const styles = StyleSheet.create({
   },
   uploadFill: {
     height: '100%',
-    backgroundColor: COLORS.rust,
+    backgroundColor: '#C07840',                                        // v9 progress = cinnamon
   },
 });

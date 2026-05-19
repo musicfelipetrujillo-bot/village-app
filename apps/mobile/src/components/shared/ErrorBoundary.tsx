@@ -34,7 +34,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
     }
     if (__DEV__) {
       // Surface in dev so the redbox / Metro logs still show the original.
-      // eslint-disable-next-line no-console
+       
       console.error('[ErrorBoundary]', error, info.componentStack);
     }
   }
@@ -83,14 +83,14 @@ const styles = StyleSheet.create({
   title: {
     fontFamily: FONTS.headerBold,
     fontSize: 24,
-    color: COLORS.brownDeep,
+    color: COLORS.bark,
     textAlign: 'center',
     marginBottom: 12,
   },
   body: {
     fontFamily: FONTS.body,
     fontSize: 15,
-    color: COLORS.textMid,
+    color: COLORS.barkSoft,
     textAlign: 'center',
     lineHeight: 22,
     marginBottom: 28,
@@ -98,7 +98,7 @@ const styles = StyleSheet.create({
   devError: {
     fontFamily: FONTS.body,
     fontSize: 12,
-    color: COLORS.rustDark,
+    color: COLORS.cocoDeep,
     backgroundColor: 'rgba(184,92,56,0.08)',
     borderRadius: 8,
     padding: 12,
@@ -106,13 +106,13 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   btn: {
-    backgroundColor: COLORS.rust,
+    backgroundColor: '#C07840',
     borderRadius: 24,
     paddingHorizontal: 32,
     paddingVertical: 14,
   },
   btnText: {
-    color: '#FFF',
+    color: '#FDFBF6',
     fontFamily: FONTS.bodySemiBold,
     fontSize: 15,
     letterSpacing: 0.3,

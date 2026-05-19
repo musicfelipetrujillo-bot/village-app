@@ -16,6 +16,7 @@ import {
   type MilkMessageRow,
 } from '@api/milk';
 import { COLORS, FONTS } from '@utils/constants';
+import { V9PageBackdrop } from '@components/shared/V9PageBackdrop';
 import { useT } from '@/i18n';
 import type { MilkStackParamList } from '@/navigation/MilkNavigator';
 
@@ -97,6 +98,7 @@ export default function MilkMessageDetailScreen({ navigation, route }: Props) {
       style={styles.container}
       keyboardVerticalOffset={0}
     >
+      <V9PageBackdrop />
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
@@ -110,7 +112,7 @@ export default function MilkMessageDetailScreen({ navigation, route }: Props) {
       </View>
 
       {loading ? (
-        <View style={styles.center}><ActivityIndicator color={COLORS.rust} /></View>
+        <View style={styles.center}><ActivityIndicator color="#C07840" /></View>
       ) : (
         <FlatList
           ref={listRef}
@@ -122,7 +124,7 @@ export default function MilkMessageDetailScreen({ navigation, route }: Props) {
             return (
               <View style={[styles.bubbleRow, mine ? styles.bubbleRowMine : styles.bubbleRowTheirs]}>
                 <View style={[styles.bubble, mine ? styles.bubbleMine : styles.bubbleTheirs]}>
-                  <Text style={[styles.bubbleText, mine && { color: '#FFF' }]}>{item.body}</Text>
+                  <Text style={[styles.bubbleText, mine && { color: '#FDFBF6' }]}>{item.body}</Text>
                 </View>
               </View>
             );
@@ -158,15 +160,15 @@ export default function MilkMessageDetailScreen({ navigation, route }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F5F0E8' },
+  container: { flex: 1, backgroundColor: 'transparent' },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingTop: 56, paddingBottom: 12, paddingHorizontal: 16,
-    backgroundColor: '#FFF',
+    backgroundColor: COLORS.paper,
     borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.06)',
   },
-  back: { fontSize: 15, color: '#D87530', fontFamily: FONTS.bodyMedium },
+  back: { fontSize: 15, color: '#C07840', fontFamily: FONTS.bodyMedium },
   title: { flex: 1, fontSize: 16, fontFamily: FONTS.bodySemiBold, color: '#2C1810', textAlign: 'center' },
 
   listContent: { paddingHorizontal: 12, paddingTop: 12, paddingBottom: 12, gap: 6 },
@@ -174,8 +176,9 @@ const styles = StyleSheet.create({
   bubbleRowMine: { justifyContent: 'flex-end' },
   bubbleRowTheirs: { justifyContent: 'flex-start' },
   bubble: { maxWidth: '78%', paddingHorizontal: 14, paddingVertical: 10, borderRadius: 18 },
-  bubbleMine: { backgroundColor: '#D87530', borderBottomRightRadius: 4 },
-  bubbleTheirs: { backgroundColor: '#FFF', borderBottomLeftRadius: 4 },
+  // v9 walnut bubble (kit canon, WCAG 7.4:1 with paper text — readable at 3am).
+  bubbleMine: { backgroundColor: '#7A4A28', borderBottomRightRadius: 4 },
+  bubbleTheirs: { backgroundColor: COLORS.paper, borderBottomLeftRadius: 4 },
   bubbleText: { fontSize: 15, color: '#2C1810', lineHeight: 20 },
 
   empty: { alignItems: 'center', paddingTop: 80 },
@@ -184,7 +187,7 @@ const styles = StyleSheet.create({
   composer: {
     flexDirection: 'row', alignItems: 'flex-end', gap: 8,
     paddingHorizontal: 12, paddingVertical: 10, paddingBottom: 28,
-    backgroundColor: '#FFF',
+    backgroundColor: COLORS.paper,
     borderTopWidth: 1, borderTopColor: 'rgba(0,0,0,0.06)',
   },
   input: {
@@ -194,8 +197,8 @@ const styles = StyleSheet.create({
   },
   sendBtn: {
     width: 44, height: 44, borderRadius: 22,
-    backgroundColor: '#D87530', alignItems: 'center', justifyContent: 'center',
+    backgroundColor: '#C07840', alignItems: 'center', justifyContent: 'center',
   },
   sendBtnDisabled: { opacity: 0.4 },
-  sendBtnText: { color: '#FFF', fontSize: 22, fontFamily: FONTS.bodySemiBold },
+  sendBtnText: { color: '#FDFBF6', fontSize: 22, fontFamily: FONTS.bodySemiBold },
 });

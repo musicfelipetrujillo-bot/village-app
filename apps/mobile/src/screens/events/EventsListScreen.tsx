@@ -12,6 +12,8 @@ import { getEffectiveCoords } from '@utils/devLocation';
 import { useEventsStore } from '@store/events';
 import { formatDistance, type EventCard, type EventType, type AgeTag } from '@api/events';
 import { EventCardSkeleton } from '@components/shared/SkeletonLoader';
+import { KenBurnsImage } from '@components/shared/KenBurnsImage';
+import { V9PageBackdrop } from '@components/shared/V9PageBackdrop';
 import { useT } from '@/i18n';
 
 type TFn = (key: string, params?: Record<string, string | number>) => string;
@@ -88,6 +90,7 @@ export default function EventsListScreen() {
 
   return (
     <View style={styles.container}>
+      <V9PageBackdrop />
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} accessibilityLabel={t('eventsList.backA11y')}>
           <Text style={styles.back}>{t('eventsList.back')}</Text>
@@ -98,13 +101,22 @@ export default function EventsListScreen() {
         </TouchableOpacity>
       </View>
 
-      <View style={styles.masthead}>
-        <View style={styles.mastheadEyebrowRow}>
-          <View style={styles.mastheadAccentBar} />
-          <Text style={styles.mastheadEyebrow}>{t('eventsList.mastheadEyebrow')}</Text>
+      <View style={styles.heroHeader} accessibilityElementsHidden importantForAccessibility="no">
+        <KenBurnsImage
+          source={require('../../../assets/photos/events.jpg')}
+          style={styles.heroHeaderImage}
+        />
+        <View style={styles.heroHeaderScrimTop} />
+        <View style={styles.heroHeaderScrimMid} />
+        <View style={styles.heroHeaderScrimBottom} />
+        <View style={styles.heroCopy}>
+          <View style={styles.heroEyebrowRow}>
+            <View style={styles.heroEyebrowBar} />
+            <Text style={styles.heroEyebrowText}>{t('eventsList.mastheadEyebrow')}</Text>
+          </View>
+          <Text style={styles.heroTitle}>{t('eventsList.mastheadTitle')}</Text>
+          <Text style={styles.heroSub}>{t('eventsList.mastheadSub')}</Text>
         </View>
-        <Text style={styles.mastheadTitle}>{t('eventsList.mastheadTitle')}</Text>
-        <Text style={styles.mastheadSub}>{t('eventsList.mastheadSub')}</Text>
       </View>
 
       <View style={styles.filterRow}>
@@ -163,7 +175,7 @@ export default function EventsListScreen() {
             </View>
           }
           contentContainerStyle={{ padding: 16, paddingBottom: 120 }}
-          refreshControl={<RefreshControl refreshing={loading} onRefresh={onRefresh} tintColor={COLORS.rust} />}
+          refreshControl={<RefreshControl refreshing={loading} onRefresh={onRefresh} tintColor={COLORS.coco} />}
         />
       )}
     </View>
@@ -176,120 +188,193 @@ function EventCardView({ event, onPress, t }: { event: EventCard; onPress: () =>
   const timeStr = start.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
   const isWebinar = event.type === 'webinar';
 
+  // Concept B feed-row pattern — eyebrow + italic Playfair title + bullet-dot
+  // meta + footer chips. Mirrors SpecialistCard / DonorCard / PerkCardView.
+  const meta: string[] = [`${whenShort} · ${timeStr}`];
+  if (isWebinar) {
+    meta.push(event.platform?.toUpperCase() ?? t('eventsList.platformOnline'));
+  } else if (event.venue_name) {
+    meta.push(event.venue_name);
+  }
+  if (!isWebinar && event.distance_km != null) {
+    meta.push(formatDistance(event.distance_km));
+  }
+
   return (
     <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.9} accessibilityRole="button">
+      {/* Eyebrow row — type badge + partner pill */}
       <View style={styles.cardHeaderRow}>
-        <Text style={styles.cardBadge}>{isWebinar ? t('eventsList.badgeWebinar') : t('eventsList.badgeLocal')}</Text>
+        <Text style={styles.cardBadge}>
+          {isWebinar ? t('eventsList.badgeWebinar') : t('eventsList.badgeLocal')}
+        </Text>
         {event.is_partner && <Text style={styles.cardPartner}>{t('eventsList.partner')}</Text>}
       </View>
+      {/* Italic Playfair title — the editorial hero. */}
       <Text style={styles.cardTitle} numberOfLines={2}>{event.title}</Text>
       <Text style={styles.cardHost}>{t('eventsList.hostPrefix', { host: event.host_name })}</Text>
-      <Text style={styles.cardWhen}>{whenShort} · {timeStr}</Text>
+      {/* Meta row — bullet-dot separated. */}
+      <View style={styles.metaRow}>
+        {meta.map((token, i) => (
+          <React.Fragment key={`${token}-${i}`}>
+            {i > 0 ? <Text style={styles.metaDot}>·</Text> : null}
+            <Text style={styles.metaText}>{token}</Text>
+          </React.Fragment>
+        ))}
+      </View>
+      {/* Footer row — capacity chip + arrow CTA */}
       <View style={styles.cardFooter}>
-        {isWebinar ? (
-          <Text style={styles.cardMeta}>{event.platform?.toUpperCase() ?? t('eventsList.platformOnline')}</Text>
-        ) : (
-          <Text style={styles.cardMeta}>
-            {event.venue_name}{event.distance_km != null ? ` · ${formatDistance(event.distance_km)}` : ''}
-          </Text>
-        )}
-        {event.capacity != null && (
-          <Text style={styles.cardCapacity}>{event.going_count}/{event.capacity}</Text>
-        )}
+        {event.capacity != null ? (
+          <View style={styles.capacityChip}>
+            <Text style={styles.capacityChipText}>
+              {event.going_count}/{event.capacity}
+            </Text>
+          </View>
+        ) : <View />}
+        <Text style={styles.arrow}>→</Text>
       </View>
     </TouchableOpacity>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.cream },
+  container: { flex: 1, backgroundColor: 'transparent' },
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingTop: 56, paddingBottom: 12, paddingHorizontal: 16,
-    backgroundColor: '#FFF',
+    backgroundColor: COLORS.paper,
     borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.06)',
   },
-  back: { fontSize: 15, color: COLORS.rust, fontFamily: FONTS.bodySemiBold },
-  headerTitle: { fontSize: 16, fontFamily: FONTS.bodySemiBold, color: COLORS.brownDeep },
-  headerLink: { fontSize: 14, color: COLORS.rust, fontFamily: FONTS.bodySemiBold },
+  back: { fontSize: 15, color: '#C07840', fontFamily: FONTS.bodySemiBold },
+  headerTitle: { fontSize: 16, fontFamily: FONTS.bodySemiBold, color: COLORS.bark },
+  headerLink: { fontSize: 14, color: '#C07840', fontFamily: FONTS.bodySemiBold },
 
-  // Editorial masthead — bridges the small functional header bar and the
-  // chip filter rows. Same accent-bar + uppercase eyebrow + Playfair italic
-  // signature used on Home / Me so the page reads as part of the magazine
-  // spread rather than a list view.
-  masthead: {
-    backgroundColor: '#FFF',
-    paddingHorizontal: 16, paddingTop: 18, paddingBottom: 14,
+  // Magazine-cover hero — full-bleed photo dominates the top of the page.
+  // Matches Specialists / Milk / Gear hero pattern so the four verticals
+  // share a consistent editorial entry beat.
+  heroHeader: {
+    height: 340,
+    position: 'relative',
+    backgroundColor: COLORS.bark,
+    overflow: 'hidden',
   },
-  mastheadEyebrowRow: {
-    flexDirection: 'row', alignItems: 'center', marginBottom: 6,
+  heroHeaderImage: { width: '100%', height: '100%' },
+  heroHeaderScrimTop: {
+    position: 'absolute', left: 0, right: 0, top: 0, height: '40%',
+    backgroundColor: 'transparent',
   },
-  mastheadAccentBar: {
-    width: 12, height: 2, backgroundColor: COLORS.rust,
-    marginRight: 8, borderRadius: 1,
+  heroHeaderScrimMid: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(44,26,14,0.20)',
   },
-  mastheadEyebrow: {
+  heroHeaderScrimBottom: {
+    position: 'absolute', left: 0, right: 0, bottom: 0, height: '40%',
+    backgroundColor: 'transparent',
+  },
+  heroCopy: {
+    position: 'absolute',
+    left: 22, right: 22, bottom: 28,
+  },
+  heroEyebrowRow: {
+    flexDirection: 'row', alignItems: 'center', marginBottom: 8,
+  },
+  heroEyebrowBar: {
+    width: 22, height: 2, backgroundColor: COLORS.cream,
+    marginRight: 10, borderRadius: 1, opacity: 0.85,
+  },
+  heroEyebrowText: {
     fontSize: 11, lineHeight: 16, letterSpacing: 1.6,
     fontFamily: FONTS.bodySemiBold,
-    color: COLORS.textMid, textTransform: 'uppercase',
+    color: '#FDFBF6',
+    textTransform: 'uppercase',
+    opacity: 0.92,
   },
-  mastheadTitle: {
-    fontSize: 28, lineHeight: 34,
+  heroTitle: {
+    fontSize: 36, lineHeight: 42,
     fontFamily: FONTS.headerItalic, fontStyle: 'italic',
-    color: COLORS.brownDeep, marginBottom: 4,
+    color: '#FDFBF6',
+    marginBottom: 8,
   },
-  mastheadSub: {
-    fontSize: 13, lineHeight: 19, color: COLORS.textMid,
-    fontFamily: FONTS.body, maxWidth: 340,
+  heroSub: {
+    fontSize: 14, lineHeight: 20,
+    fontFamily: FONTS.body,
+    color: '#FDFBF6',
+    opacity: 0.92,
+    maxWidth: 320,
   },
 
   filterRow: {
     flexDirection: 'row', gap: 8,
     paddingHorizontal: 16, paddingTop: 12,
-    backgroundColor: '#FFF',
+    backgroundColor: COLORS.paper,
   },
   typeChip: {
     paddingHorizontal: 14, paddingVertical: 8, borderRadius: 16,
-    borderWidth: 1.5, borderColor: 'rgba(0,0,0,0.08)', backgroundColor: '#FFF',
+    borderWidth: 1.5, borderColor: 'rgba(150,80,50,0.18)', backgroundColor: COLORS.paper,
   },
-  typeChipActive: { backgroundColor: COLORS.rust, borderColor: COLORS.rust },
-  typeChipText: { fontSize: 13, fontFamily: FONTS.bodySemiBold, color: COLORS.textMid },
-  typeChipTextActive: { color: '#FFF' },
+  typeChipActive: { backgroundColor: COLORS.coco, borderColor: COLORS.coco },
+  typeChipText: { fontSize: 13, fontFamily: FONTS.bodySemiBold, color: COLORS.barkSoft },
+  typeChipTextActive: { color: '#FDFBF6' },
 
   ageRow: {
     flexDirection: 'row', flexWrap: 'wrap', gap: 6,
     paddingHorizontal: 16, paddingVertical: 10,
-    backgroundColor: '#FFF',
+    backgroundColor: COLORS.paper,
     borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.06)',
   },
   ageChip: {
     paddingHorizontal: 10, paddingVertical: 5, borderRadius: 12,
     backgroundColor: COLORS.cream,
   },
-  ageChipActive: { backgroundColor: COLORS.rustLight },
-  ageChipText: { fontSize: 12, fontFamily: FONTS.bodySemiBold, color: COLORS.textMid },
-  ageChipTextActive: { color: '#FFF' },
+  ageChipActive: { backgroundColor: COLORS.cocoSoft },
+  ageChipText: { fontSize: 12, fontFamily: FONTS.bodySemiBold, color: COLORS.barkSoft },
+  ageChipTextActive: { color: '#FDFBF6' },
 
+  // Concept B card — cream chrome, ceramicDeep border, hairline-divided footer.
   card: {
-    backgroundColor: '#FFF', borderRadius: 16, padding: 16, marginBottom: 12,
+    backgroundColor: COLORS.paper,
+    borderRadius: 14,
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: COLORS.sandSoft,
   },
-  cardHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  cardBadge: { fontSize: 10, fontFamily: FONTS.bodySemiBold, letterSpacing: 1, color: COLORS.rustDark, textTransform: 'uppercase' },
+  cardHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
+  cardBadge: { fontSize: 10, fontFamily: FONTS.bodySemiBold, letterSpacing: 1.6, color: COLORS.barkSoft, textTransform: 'uppercase' },
   cardPartner: {
-    fontSize: 10, fontFamily: FONTS.bodySemiBold, letterSpacing: 0.8, color: COLORS.olive,
-    backgroundColor: 'rgba(92,107,58,0.1)', borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2,
+    fontSize: 9, fontFamily: FONTS.bodySemiBold, letterSpacing: 0.6, color: COLORS.sage,
+    backgroundColor: 'rgba(92,107,58,0.1)', borderRadius: 999, paddingHorizontal: 7, paddingVertical: 2,
   },
-  cardTitle: { fontSize: 17, fontFamily: FONTS.bodySemiBold, color: COLORS.brownDeep, marginTop: 8 },
-  cardHost: { fontSize: 13, color: COLORS.textMid, marginTop: 2, fontFamily: FONTS.body },
-  cardWhen: { fontSize: 13, color: COLORS.brownDeep, fontFamily: FONTS.bodySemiBold, marginTop: 8 },
+  // Italic Playfair title — the editorial hero.
+  cardTitle: {
+    fontSize: 22,
+    lineHeight: 28,
+    fontFamily: FONTS.headerItalic,
+    fontStyle: 'italic',
+    color: COLORS.bark,
+    marginTop: 2,
+  },
+  cardHost: { fontSize: 13, color: COLORS.barkSoft, marginTop: 4, fontFamily: FONTS.body },
+  metaRow: {
+    flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 6, marginTop: 8,
+  },
+  metaText: { fontSize: 12, color: COLORS.barkSoft, fontFamily: FONTS.body },
+  metaDot: { fontSize: 12, color: COLORS.textLight },
   cardFooter: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    marginTop: 6,
+    marginTop: 12, paddingTop: 10,
+    borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: COLORS.sandSoft,
   },
-  cardMeta: { fontSize: 12, color: COLORS.textLight, flex: 1, fontFamily: FONTS.body },
-  cardCapacity: { fontSize: 12, color: COLORS.textMid, fontFamily: FONTS.bodySemiBold },
+  capacityChip: {
+    borderWidth: 1, borderColor: COLORS.sage, borderRadius: 999,
+    paddingHorizontal: 10, paddingVertical: 3,
+  },
+  capacityChipText: {
+    fontSize: 10, fontFamily: FONTS.bodySemiBold, letterSpacing: 0.6, color: COLORS.sage,
+  },
+  arrow: { fontSize: 18, fontFamily: FONTS.bodySemiBold, color: COLORS.coco },
 
   empty: { alignItems: 'center', paddingVertical: 60 },
-  emptyTitle: { fontSize: 15, fontFamily: FONTS.bodySemiBold, color: COLORS.brownDeep, marginBottom: 4 },
+  emptyTitle: { fontSize: 15, fontFamily: FONTS.bodySemiBold, color: COLORS.bark, marginBottom: 4 },
   emptyBody: { fontSize: 13, color: COLORS.textLight, textAlign: 'center', fontFamily: FONTS.body },
 });

@@ -9,6 +9,7 @@ import { getSavedDonors, unsaveDonor } from '@api/milk';
 import type { DonorSearchResult } from '@api/milk';
 import { DonorCard } from '@components/milk/DonorCard';
 import { COLORS, FONTS } from '@utils/constants';
+import { V9PageBackdrop } from '@components/shared/V9PageBackdrop';
 import { useT } from '@/i18n';
 import type { MilkStackParamList } from '@/navigation/MilkNavigator';
 
@@ -41,6 +42,7 @@ export default function SavedDonorsScreen({ navigation }: Props) {
 
   return (
     <View style={styles.container}>
+      <V9PageBackdrop />
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
@@ -55,7 +57,7 @@ export default function SavedDonorsScreen({ navigation }: Props) {
 
       {loading ? (
         <View style={styles.center}>
-          <ActivityIndicator color={COLORS.rust} />
+          <ActivityIndicator color="#C07840" />
         </View>
       ) : (
         <FlashList
@@ -92,22 +94,25 @@ export default function SavedDonorsScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F5F0E8' },
+  container: { flex: 1, backgroundColor: 'transparent' },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingTop: 56, paddingBottom: 12, paddingHorizontal: 16,
   },
-  backText: { fontSize: 15, color: '#9A8070', fontFamily: FONTS.bodyMedium },
+  backText: { fontSize: 15, color: '#C07840', fontFamily: FONTS.bodySemiBold },
   headerTitle: { fontSize: 17, fontFamily: FONTS.bodySemiBold, color: '#2C1810' },
   list: { paddingTop: 8, paddingBottom: 40 },
   empty: { alignItems: 'center', paddingTop: 80, paddingHorizontal: 32, gap: 12 },
   emptyEmoji: { fontSize: 52, color: '#C5B8AE' },
   emptyTitle: { fontSize: 22, fontFamily: FONTS.bodySemiBold, color: '#2C1810' },
   emptyBody: { fontSize: 14, color: '#9A8070', textAlign: 'center', lineHeight: 21, fontFamily: FONTS.body },
+  // v9 canonical CTA — cinnamon + action-deep shadow.
   browseBtn: {
-    marginTop: 8, backgroundColor: '#D87530', borderRadius: 12,
+    marginTop: 8, backgroundColor: '#C07840', borderRadius: 999,
     paddingVertical: 13, paddingHorizontal: 28,
+    shadowColor: '#945A41', shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.24, shadowRadius: 10, elevation: 3,
   },
-  browseBtnText: { fontSize: 15, color: '#FFF', fontFamily: FONTS.bodySemiBold },
+  browseBtnText: { fontSize: 15, color: '#FDFBF6', fontFamily: FONTS.bodySemiBold, letterSpacing: 0.3 },
 });

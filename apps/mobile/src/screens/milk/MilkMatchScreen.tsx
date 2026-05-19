@@ -10,6 +10,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { callMatchDonors, DIET_FLAG_KEYS, type DietFlagKey, type DonorMatch } from '@api/milk';
 import { DonorCard } from '@components/milk/DonorCard';
 import { COLORS, FONTS } from '@utils/constants';
+import { V9PageBackdrop } from '@components/shared/V9PageBackdrop';
 import { getEffectiveCoords } from '@utils/devLocation';
 import { useT } from '@/i18n';
 import type { MilkStackParamList } from '@/navigation/MilkNavigator';
@@ -91,6 +92,7 @@ export default function MilkMatchScreen({ navigation }: Props) {
 
   return (
     <View style={styles.container}>
+      <V9PageBackdrop />
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
@@ -246,7 +248,7 @@ export default function MilkMatchScreen({ navigation }: Props) {
           disabled={loading}
         >
           {loading ? (
-            <ActivityIndicator color="#FFF" />
+            <ActivityIndicator color="#FDFBF6" />
           ) : (
             <Text style={styles.findBtnText}>{matches ? t('milkMatch.ctaRerun') : t('milkMatch.ctaFind')}</Text>
           )}
@@ -257,15 +259,15 @@ export default function MilkMatchScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F5F0E8' },
+  container: { flex: 1, backgroundColor: 'transparent' },
 
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingTop: 56, paddingBottom: 12, paddingHorizontal: 16,
-    backgroundColor: '#FFF',
+    backgroundColor: COLORS.paper,
     borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.06)',
   },
-  back: { fontSize: 15, color: '#D87530', fontFamily: FONTS.bodyMedium },
+  back: { fontSize: 15, color: '#C07840', fontFamily: FONTS.bodyMedium },
   title: { fontSize: 17, fontFamily: FONTS.bodySemiBold, color: '#2C1810' },
 
   intro: { padding: 24, alignItems: 'center' },
@@ -275,7 +277,10 @@ const styles = StyleSheet.create({
 
   card: {
     marginHorizontal: 16, marginBottom: 12,
-    backgroundColor: '#FFF', borderRadius: 14, padding: 14,
+    backgroundColor: COLORS.paper, borderRadius: 14, padding: 16,
+    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(150, 80, 50, 0.18)',
+    shadowColor: '#6B2E0E', shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.18, shadowRadius: 18, elevation: 5,
   },
   label: { fontSize: 13, fontFamily: FONTS.bodySemiBold, color: '#2C1810', marginBottom: 10 },
   pillRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
@@ -283,9 +288,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12, paddingVertical: 8, borderRadius: 16,
     backgroundColor: '#F5F0E8', borderWidth: 1.5, borderColor: 'transparent',
   },
-  pillActive: { backgroundColor: '#FFF5F0', borderColor: '#D87530' },
+  pillActive: { backgroundColor: COLORS.pinkSoft, borderColor: COLORS.coco },
   pillText: { fontSize: 12, fontFamily: FONTS.bodyMedium, color: '#6B5C52', textTransform: 'capitalize' },
-  pillTextActive: { color: '#D87530' },
+  pillTextActive: { color: COLORS.coco },
 
   matchSection: { marginTop: 16, marginHorizontal: 0 },
   matchHeader: {
@@ -296,10 +301,10 @@ const styles = StyleSheet.create({
   matchBadge: {
     position: 'absolute', top: 14, right: 22, zIndex: 2,
     flexDirection: 'row', gap: 6, alignItems: 'center',
-    backgroundColor: '#D87530', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12,
+    backgroundColor: COLORS.coco, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12,
   },
-  matchBadgeRank: { color: '#FFF', fontSize: 11, fontFamily: FONTS.bodySemiBold },
-  matchBadgeScore: { color: '#FFF', fontSize: 10, fontFamily: FONTS.bodyMedium },
+  matchBadgeRank: { color: '#FDFBF6', fontSize: 11, fontFamily: FONTS.bodySemiBold },
+  matchBadgeScore: { color: '#FDFBF6', fontSize: 10, fontFamily: FONTS.bodyMedium },
   matchReason: {
     fontSize: 13, color: '#6B5C52', fontFamily: FONTS.headerItalic,
     marginHorizontal: 24, marginTop: -4, marginBottom: 14,
@@ -309,13 +314,13 @@ const styles = StyleSheet.create({
   ctaBar: {
     position: 'absolute', bottom: 0, left: 0, right: 0,
     paddingHorizontal: 16, paddingTop: 12, paddingBottom: 32,
-    backgroundColor: '#FFF',
+    backgroundColor: COLORS.paper,
     borderTopWidth: 1, borderTopColor: 'rgba(0,0,0,0.06)',
   },
   findBtn: {
-    backgroundColor: '#D87530', borderRadius: 14,
+    backgroundColor: '#C07840', borderRadius: 14,
     paddingVertical: 16, alignItems: 'center',
   },
   findBtnDisabled: { opacity: 0.5 },
-  findBtnText: { color: '#FFF', fontSize: 16, fontFamily: FONTS.bodySemiBold },
+  findBtnText: { color: '#FDFBF6', fontSize: 16, fontFamily: FONTS.bodySemiBold },
 });

@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { COLORS, FONTS } from '@utils/constants';
+import { V9PageBackdrop } from '@components/shared/V9PageBackdrop';
 import { authService } from '@/lib/auth';
 import type { AuthStackParamList } from '@/navigation/AuthStack';
 import { useT } from '@/i18n';
@@ -44,6 +45,7 @@ export default function ForgotPasswordScreen({ navigation }: Props) {
       style={{ flex: 1 }}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
+      <V9PageBackdrop />
       <View style={styles.container}>
         <TouchableOpacity
           style={styles.back}
@@ -54,7 +56,15 @@ export default function ForgotPasswordScreen({ navigation }: Props) {
           <Text style={styles.backText}>{`← ${t('forgotPassword.back')}`}</Text>
         </TouchableOpacity>
 
-        <Text style={styles.title}>{t('forgotPassword.title')}</Text>
+        {/* v9 editorial masthead */}
+        <View style={styles.eyebrowRow}>
+          <View style={styles.eyebrowBar} />
+          <Text style={styles.eyebrow}>{t('forgotPassword.eyebrow')}</Text>
+        </View>
+        <Text style={styles.title}>
+          {t('forgotPassword.titleLead')} <Text style={styles.titleEm}>{t('forgotPassword.titleEm')}</Text>
+        </Text>
+        <View style={styles.titleRule} />
 
         {sent ? (
           <View style={styles.sentCard}>
@@ -103,7 +113,7 @@ export default function ForgotPasswordScreen({ navigation }: Props) {
               accessibilityState={{ disabled: loading, busy: loading }}
             >
               {loading ? (
-                <ActivityIndicator color="white" />
+                <ActivityIndicator color="#FDFBF6" />
               ) : (
                 <Text style={styles.btnText}>{t('forgotPassword.cta')}</Text>
               )}
@@ -115,58 +125,94 @@ export default function ForgotPasswordScreen({ navigation }: Props) {
   );
 }
 
+// ─── v2 brand (villie · May 2026) ──────────────────────────────────────
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.cream, padding: 28, paddingTop: 60 },
-  back: { marginBottom: 32 },
-  backText: { fontSize: 15, color: COLORS.rust, fontFamily: FONTS.bodyMedium },
+  container: { flex: 1, backgroundColor: 'transparent', padding: 28, paddingTop: 60 },
+  back: { marginBottom: 18 },
+  backText: { fontSize: 13, color: '#C07840', fontFamily: FONTS.v2_link },
+  // v9 editorial masthead
+  eyebrowRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
+  eyebrowBar: { width: 22, height: 2, backgroundColor: '#A77349', marginRight: 10, borderRadius: 1 },
+  eyebrow: { fontSize: 10, fontFamily: FONTS.bodySemiBold, color: '#A77349', letterSpacing: 1.8, textTransform: 'uppercase' },
   title: {
-    fontFamily: FONTS.headerItalic,
-    fontSize: 34,
-    color: COLORS.textDark,
-    marginBottom: 24,
-    lineHeight: 42,
+    fontFamily: FONTS.v2_display,
+    fontSize: 32,
+    color: COLORS.v2_cocoa,
+    letterSpacing: -0.5,
+    marginBottom: 6,
+    lineHeight: 38,
   },
-  sub: { fontSize: 14, color: COLORS.textLight, marginBottom: 24, lineHeight: 22, fontFamily: FONTS.body },
+  titleEm: { fontFamily: FONTS.headerItalic, fontStyle: 'italic', color: '#C07840' },
+  titleRule: {
+    height: StyleSheet.hairlineWidth, backgroundColor: 'rgba(61,31,13,0.18)',
+    marginTop: 8, marginBottom: 18, width: 48,
+  },
+  sub: { fontSize: 14, color: COLORS.v2_walnut, marginBottom: 24, lineHeight: 22, fontFamily: FONTS.v2_body },
   form: { gap: 16 },
   inputGroup: { gap: 6 },
-  label: { fontSize: 13, fontFamily: FONTS.bodyMedium, color: COLORS.textMid },
+  label: { fontSize: 12, fontFamily: FONTS.v2_label, color: COLORS.v2_amber, letterSpacing: 0.8, textTransform: 'uppercase' },
   input: {
-    backgroundColor: 'white',
+    backgroundColor: COLORS.v2_card,
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 14,
     fontSize: 15,
-    color: COLORS.textDark,
-    borderWidth: 1.5,
-    borderColor: 'rgba(0,0,0,0.08)',
-    fontFamily: FONTS.body,
+    color: COLORS.v2_cocoa,
+    borderWidth: 1,
+    borderColor: 'rgba(61,31,14,0.12)',
+    fontFamily: FONTS.v2_body,
   },
-  inputError: { borderColor: COLORS.rust },
-  inputHint: { fontSize: 12, color: COLORS.rust, marginTop: 4, fontFamily: FONTS.body },
+  inputError: { borderColor: '#B22A2A', borderWidth: 1.5 },
+  inputHint: { fontSize: 12, color: '#8B2A2A', marginTop: 4, fontFamily: FONTS.v2_body },
+  // Primary CTA — cinnamon (the one spark)
+  // v9 canonical CTA — action-deep
   btn: {
-    backgroundColor: COLORS.rust,
-    borderRadius: 14,
-    paddingVertical: 16,
+    backgroundColor: '#C07840',
+    borderRadius: 999,
+    paddingVertical: 15,
     alignItems: 'center',
     marginTop: 8,
+    shadowColor: '#945A41',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.24,
+    shadowRadius: 10,
+    elevation: 3,
   },
   btnDisabled: { opacity: 0.6 },
-  btnText: { color: 'white', fontSize: 16, fontFamily: FONTS.bodySemiBold },
+  btnText: { color: COLORS.v2_card, fontSize: 15, fontFamily: FONTS.v2_link, letterSpacing: 0.3 },
 
-  sentCard: { alignItems: 'center', paddingTop: 40 },
+  // Success state — v9 card lift so "check your inbox" reads as a confirmed
+  // moment rather than floating text. Same recipe as DonorCard / GearCard.
+  sentCard: {
+    alignItems: 'center',
+    backgroundColor: COLORS.paper,
+    borderRadius: 16,
+    paddingHorizontal: 24,
+    paddingTop: 36,
+    paddingBottom: 28,
+    marginTop: 8,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(150,80,50,0.18)',
+    shadowColor: '#6B2E0E',
+    shadowOpacity: 0.18,
+    shadowOffset: { width: 0, height: 8 },
+    shadowRadius: 18,
+    elevation: 3,
+  },
   sentEmoji: { fontSize: 56, marginBottom: 16 },
   sentTitle: {
-    fontFamily: FONTS.headerItalic,
+    fontFamily: FONTS.v2_display,
     fontSize: 26,
-    color: COLORS.textDark,
+    color: COLORS.v2_cocoa,
+    letterSpacing: -0.5,
     marginBottom: 12,
   },
   sentSub: {
     fontSize: 14,
-    color: COLORS.textLight,
+    color: COLORS.v2_walnut,
     textAlign: 'center',
     lineHeight: 22,
     marginBottom: 32,
-    fontFamily: FONTS.body,
+    fontFamily: FONTS.v2_body,
   },
 });

@@ -167,7 +167,7 @@ export default function EventReviewScreen() {
       >
         {loading ? (
           <View style={s.loadingBlock}>
-            <ActivityIndicator color={COLORS.rust} />
+            <ActivityIndicator color={COLORS.coco} />
             <Text style={s.helpTxt}>Loading pending events…</Text>
           </View>
         ) : error ? (
@@ -259,7 +259,7 @@ export default function EventReviewScreen() {
                 disabled={rejecting}
               >
                 {rejecting
-                  ? <ActivityIndicator color={COLORS.white} />
+                  ? <ActivityIndicator color={COLORS.paper} />
                   : <Text style={s.primaryBtnTxt}>Reject</Text>}
               </TouchableOpacity>
             </View>
@@ -373,7 +373,7 @@ function EventCard({
           accessibilityLabel={`Approve ${row.title}`}
         >
           {busy
-            ? <ActivityIndicator color={COLORS.white} />
+            ? <ActivityIndicator color={COLORS.paper} />
             : <Text style={s.approveBtnTxt}>✓ Approve</Text>}
         </TouchableOpacity>
       </View>
@@ -383,9 +383,9 @@ function EventCard({
 
 function confStyle(c: string) {
   switch (c) {
-    case 'high':   return { backgroundColor: '#E2EBD2', borderColor: COLORS.olive };
-    case 'medium': return { backgroundColor: '#FFF5DB', borderColor: COLORS.gold };
-    case 'low':    return { backgroundColor: '#F7E0DC', borderColor: COLORS.rustDark };
+    case 'high':   return { backgroundColor: '#E2EBD2', borderColor: COLORS.sage };
+    case 'medium': return { backgroundColor: '#FFF5DB', borderColor: COLORS.sand };
+    case 'low':    return { backgroundColor: '#F7E0DC', borderColor: COLORS.cocoDeep };
     default:       return { backgroundColor: COLORS.cream, borderColor: 'rgba(0,0,0,0.12)' };
   }
 }
@@ -402,30 +402,30 @@ const s = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(0,0,0,0.06)',
   },
-  close: { fontSize: 22, color: COLORS.textDark, width: 24 },
+  close: { fontSize: 22, color: COLORS.bark, width: 24 },
   title: {
     fontFamily: FONTS.headerBold,
     fontSize: 18,
-    color: COLORS.textDark,
+    color: COLORS.bark,
   },
   scroll: { paddingHorizontal: 16, paddingBottom: 48 },
 
   loadingBlock: { paddingTop: 80, alignItems: 'center', gap: 12 },
-  helpTxt: { fontFamily: FONTS.body, fontSize: 13, color: COLORS.textMid },
+  helpTxt: { fontFamily: FONTS.body, fontSize: 13, color: COLORS.barkSoft },
 
   emptyBlock: { paddingTop: 80, alignItems: 'center', paddingHorizontal: 24 },
   emptyEmoji: { fontSize: 52, marginBottom: 12 },
   emptyTitle: {
     fontFamily: FONTS.headerBold,
     fontSize: 22,
-    color: COLORS.textDark,
+    color: COLORS.bark,
     marginBottom: 8,
   },
   emptyBody: {
     fontFamily: FONTS.body,
     fontSize: 14,
     lineHeight: 21,
-    color: COLORS.textMid,
+    color: COLORS.barkSoft,
     textAlign: 'center',
   },
 
@@ -433,14 +433,14 @@ const s = StyleSheet.create({
   statsTxt: {
     fontFamily: FONTS.bodySemiBold,
     fontSize: 14,
-    color: COLORS.textDark,
+    color: COLORS.bark,
   },
 
   bandBlock: { marginTop: 16 },
   bandHeading: {
     fontFamily: FONTS.headerBold,
     fontSize: 14,
-    color: COLORS.rustDark,
+    color: COLORS.cocoDeep,
     marginBottom: 8,
     textTransform: 'uppercase',
     letterSpacing: 0.6,
@@ -448,8 +448,8 @@ const s = StyleSheet.create({
 
   cardBlock: {
     marginBottom: 12,
-    padding: 14,
-    backgroundColor: COLORS.white,
+    padding: 16,
+    backgroundColor: COLORS.paper,
     borderRadius: 12,
     borderWidth: 1,
     borderColor: 'rgba(0,0,0,0.08)',
@@ -466,7 +466,7 @@ const s = StyleSheet.create({
     paddingVertical: 3,
     borderRadius: 999,
   },
-  webinarBadge: { backgroundColor: COLORS.brownMid },
+  webinarBadge: { backgroundColor: COLORS.barkSoft },
   typeBadgeTxt: {
     color: '#E6D8C4',
     fontFamily: FONTS.bodySemiBold,
@@ -481,20 +481,20 @@ const s = StyleSheet.create({
     borderWidth: 1,
   },
   confBadgeTxt: {
-    color: COLORS.brownMid,
+    color: COLORS.barkSoft,
     fontFamily: FONTS.bodySemiBold,
     fontSize: 10,
     letterSpacing: 0.4,
     textTransform: 'uppercase',
   },
   partnerBadge: {
-    backgroundColor: COLORS.olive,
+    backgroundColor: COLORS.sage,
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 999,
   },
   partnerBadgeTxt: {
-    color: COLORS.white,
+    color: COLORS.paper,
     fontFamily: FONTS.bodySemiBold,
     fontSize: 10,
     letterSpacing: 0.4,
@@ -506,7 +506,7 @@ const s = StyleSheet.create({
     borderRadius: 999,
   },
   thirdPartyBadgeTxt: {
-    color: COLORS.brownMid,
+    color: COLORS.barkSoft,
     fontFamily: FONTS.bodySemiBold,
     fontSize: 10,
     letterSpacing: 0.4,
@@ -515,25 +515,25 @@ const s = StyleSheet.create({
   cardTitle: {
     fontFamily: FONTS.headerBold,
     fontSize: 16,
-    color: COLORS.textDark,
+    color: COLORS.bark,
     lineHeight: 22,
     marginBottom: 6,
   },
   metaTxt: {
     fontFamily: FONTS.body,
     fontSize: 12,
-    color: COLORS.textMid,
+    color: COLORS.barkSoft,
     marginBottom: 2,
   },
   linkTxt: {
-    color: COLORS.rustDark,
+    color: COLORS.cocoDeep,
     textDecorationLine: 'underline',
   },
 
   langLabel: {
     fontFamily: FONTS.bodySemiBold,
     fontSize: 11,
-    color: COLORS.textMid,
+    color: COLORS.barkSoft,
     marginTop: 8,
     marginBottom: 3,
     textTransform: 'uppercase',
@@ -542,7 +542,7 @@ const s = StyleSheet.create({
   bodyTxt: {
     fontFamily: FONTS.body,
     fontSize: 13,
-    color: COLORS.textDark,
+    color: COLORS.bark,
     lineHeight: 19,
   },
 
@@ -552,12 +552,12 @@ const s = StyleSheet.create({
     backgroundColor: COLORS.cream,
     borderRadius: 8,
     borderLeftWidth: 3,
-    borderLeftColor: COLORS.gold,
+    borderLeftColor: COLORS.sand,
   },
   aiNotesLabel: {
     fontFamily: FONTS.bodySemiBold,
     fontSize: 10,
-    color: COLORS.textMid,
+    color: COLORS.barkSoft,
     textTransform: 'uppercase',
     letterSpacing: 0.6,
     marginBottom: 2,
@@ -565,7 +565,7 @@ const s = StyleSheet.create({
   aiNotesTxt: {
     fontFamily: FONTS.body,
     fontSize: 12,
-    color: COLORS.textDark,
+    color: COLORS.bark,
     lineHeight: 17,
   },
 
@@ -579,7 +579,7 @@ const s = StyleSheet.create({
   tagsLabel: {
     fontFamily: FONTS.bodySemiBold,
     fontSize: 11,
-    color: COLORS.textMid,
+    color: COLORS.barkSoft,
   },
   tagsEmpty: {
     fontFamily: FONTS.body,
@@ -594,7 +594,7 @@ const s = StyleSheet.create({
     borderRadius: 999,
   },
   tagPillTxt: {
-    color: COLORS.brownMid,
+    color: COLORS.barkSoft,
     fontFamily: FONTS.bodySemiBold,
     fontSize: 10,
     letterSpacing: 0.4,
@@ -603,29 +603,29 @@ const s = StyleSheet.create({
   actionRow: { flexDirection: 'row', gap: 8, marginTop: 12 },
   rejectBtn: {
     flex: 1,
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.paper,
     borderWidth: 1,
-    borderColor: COLORS.rustDark,
+    borderColor: COLORS.cocoDeep,
     borderRadius: 10,
     paddingVertical: 11,
     alignItems: 'center',
   },
   rejectBtnTxt: {
     fontFamily: FONTS.bodySemiBold,
-    color: COLORS.rustDark,
+    color: COLORS.cocoDeep,
     fontSize: 13,
     letterSpacing: 0.4,
   },
   approveBtn: {
     flex: 1,
-    backgroundColor: COLORS.olive,
+    backgroundColor: COLORS.sage,
     borderRadius: 10,
     paddingVertical: 11,
     alignItems: 'center',
   },
   approveBtnTxt: {
     fontFamily: FONTS.bodySemiBold,
-    color: COLORS.white,
+    color: COLORS.paper,
     fontSize: 13,
     letterSpacing: 0.4,
   },
@@ -633,9 +633,9 @@ const s = StyleSheet.create({
 
   errorBanner: {
     marginTop: 24,
-    padding: 14,
+    padding: 16,
     backgroundColor: '#F7E0DC',
-    borderColor: COLORS.rustDark,
+    borderColor: COLORS.cocoDeep,
     borderWidth: 1,
     borderRadius: 10,
     gap: 10,
@@ -643,17 +643,17 @@ const s = StyleSheet.create({
   errorTxt: {
     fontFamily: FONTS.body,
     fontSize: 13,
-    color: COLORS.rustDark,
+    color: COLORS.cocoDeep,
   },
   retryBtn: {
     alignSelf: 'flex-start',
-    backgroundColor: COLORS.rust,
+    backgroundColor: COLORS.coco,
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 999,
   },
   retryBtnTxt: {
-    color: COLORS.white,
+    color: COLORS.paper,
     fontFamily: FONTS.bodySemiBold,
     fontSize: 12,
   },
@@ -667,7 +667,7 @@ const s = StyleSheet.create({
   },
   modalCard: {
     width: '100%',
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.paper,
     borderRadius: 14,
     padding: 18,
     gap: 4,
@@ -675,18 +675,18 @@ const s = StyleSheet.create({
   modalTitle: {
     fontFamily: FONTS.headerBold,
     fontSize: 18,
-    color: COLORS.textDark,
+    color: COLORS.bark,
   },
   modalSub: {
     fontFamily: FONTS.body,
     fontSize: 13,
-    color: COLORS.textMid,
+    color: COLORS.barkSoft,
     marginBottom: 6,
   },
   label: {
     fontFamily: FONTS.bodySemiBold,
     fontSize: 11,
-    color: COLORS.textMid,
+    color: COLORS.barkSoft,
     marginTop: 8,
     marginBottom: 4,
     textTransform: 'uppercase',
@@ -699,7 +699,7 @@ const s = StyleSheet.create({
     paddingVertical: 10,
     fontFamily: FONTS.body,
     fontSize: 14,
-    color: COLORS.textDark,
+    color: COLORS.bark,
     borderWidth: 1,
     borderColor: 'rgba(0,0,0,0.08)',
   },
@@ -712,7 +712,7 @@ const s = StyleSheet.create({
   },
   primaryBtn: {
     minWidth: 110,
-    backgroundColor: COLORS.rust,
+    backgroundColor: COLORS.coco,
     borderRadius: 10,
     paddingVertical: 12,
     paddingHorizontal: 16,
@@ -720,12 +720,12 @@ const s = StyleSheet.create({
   },
   primaryBtnTxt: {
     fontFamily: FONTS.bodySemiBold,
-    color: COLORS.white,
+    color: COLORS.paper,
     fontSize: 13,
     letterSpacing: 0.4,
   },
   secondaryBtn: {
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.paper,
     borderWidth: 1,
     borderColor: 'rgba(0,0,0,0.12)',
     paddingHorizontal: 16,
@@ -734,7 +734,7 @@ const s = StyleSheet.create({
   },
   secondaryBtnTxt: {
     fontFamily: FONTS.bodySemiBold,
-    color: COLORS.textDark,
+    color: COLORS.bark,
     fontSize: 13,
   },
 });

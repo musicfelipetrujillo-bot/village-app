@@ -6,6 +6,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { COLORS, FONTS } from '@utils/constants';
+import { V9PageBackdrop } from '@components/shared/V9PageBackdrop';
 import { useT } from '@/i18n';
 
 interface Tile {
@@ -61,6 +62,7 @@ export default function DiscoverHomeScreen() {
 
   return (
     <View style={styles.container}>
+      <V9PageBackdrop />
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
@@ -97,27 +99,32 @@ export default function DiscoverHomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.cream },
+  container: { flex: 1, backgroundColor: 'transparent' },
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingTop: 56, paddingBottom: 12, paddingHorizontal: 16,
-    backgroundColor: '#FFF',
+    backgroundColor: '#FDFBF6',
     borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.06)',
   },
-  back: { fontSize: 15, color: COLORS.rust, fontFamily: FONTS.bodySemiBold },
-  title: { fontSize: 17, fontFamily: FONTS.bodySemiBold, color: COLORS.brownDeep },
+  back: { fontSize: 15, color: '#C07840', fontFamily: FONTS.bodySemiBold },
+  title: { fontSize: 17, fontFamily: FONTS.bodySemiBold, color: COLORS.bark },
 
   content: { padding: 20, paddingBottom: 60 },
   heading: {
-    fontSize: 22, fontFamily: FONTS.bodySemiBold, color: COLORS.brownDeep,
+    fontSize: 22, fontFamily: FONTS.bodySemiBold, color: COLORS.bark,
     fontStyle: 'italic', marginBottom: 16,
   },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
+  // v9 discover tile — paper (not pure #FFF) + lift recipe so 6 tiles
+  // float as a coherent grid on the U-shape backdrop.
   tile: {
-    width: '47%', backgroundColor: '#FFF', borderRadius: 16, padding: 16,
+    width: '47%', backgroundColor: COLORS.paper, borderRadius: 16, padding: 16,
     minHeight: 130,
+    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(150, 80, 50, 0.18)',
+    shadowColor: '#6B2E0E', shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.14, shadowRadius: 14, elevation: 3,
   },
   tileIcon: { fontSize: 32, marginBottom: 8 },
-  tileTitle: { fontSize: 15, fontFamily: FONTS.bodySemiBold, color: COLORS.brownDeep },
-  tileDesc: { fontSize: 12, color: COLORS.textMid, marginTop: 4, lineHeight: 16 },
+  tileTitle: { fontSize: 15, fontFamily: FONTS.bodySemiBold, color: COLORS.bark },
+  tileDesc: { fontSize: 12, color: COLORS.barkSoft, marginTop: 4, lineHeight: 16 },
 });

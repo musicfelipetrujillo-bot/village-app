@@ -7,19 +7,34 @@ import {
   useFonts as usePlayfair,
   PlayfairDisplay_400Regular,
   PlayfairDisplay_400Regular_Italic,
+  PlayfairDisplay_600SemiBold_Italic,
   PlayfairDisplay_700Bold,
+  PlayfairDisplay_800ExtraBold,
 } from '@expo-google-fonts/playfair-display';
+// ─── Brand Kit v2 (villie · May 2026) ─── canonical type families
+// Inter has been retired (was the v1 body family) — every FONTS.body* token
+// in constants.ts now resolves to Plus Jakarta Sans. Removing the Inter
+// import + font load saves ~80KB of bundle weight.
+import { Caprasimo_400Regular } from '@expo-google-fonts/caprasimo';
 import {
-  Inter_400Regular,
-  Inter_500Medium,
-  Inter_600SemiBold,
-  Inter_700Bold,
-} from '@expo-google-fonts/inter';
+  PlusJakartaSans_400Regular,
+  PlusJakartaSans_500Medium,
+  PlusJakartaSans_600SemiBold,
+  PlusJakartaSans_700Bold,
+} from '@expo-google-fonts/plus-jakarta-sans';
+import {
+  JetBrainsMono_400Regular,
+  JetBrainsMono_500Medium,
+} from '@expo-google-fonts/jetbrains-mono';
 import { RootNavigator } from '@/navigation/RootNavigator';
 import { useAuthStore } from '@store/auth';
 import { usePreAuthLanguage } from '@store/preAuthLanguage';
 import { supabase } from '@/lib/supabase';
 import { ErrorBoundary } from '@components/shared/ErrorBoundary';
+import { seedWebDevStores } from '@/lib/webDevSeed';
+
+// Seed mock data immediately so HomeScreen has data before first render.
+seedWebDevStores();
 
 // Keep splash up while we hydrate fonts — prevents the editorial Playfair
 // from flashing as system serif during the swap.
@@ -30,13 +45,22 @@ export default function App() {
   const hydrateLang = usePreAuthLanguage((s) => s.hydrate);
 
   const [fontsLoaded] = usePlayfair({
+    // Playfair Display — display family
     PlayfairDisplay_400Regular,
     PlayfairDisplay_400Regular_Italic,
-    PlayfairDisplay_700Bold,
-    Inter_400Regular,
-    Inter_500Medium,
-    Inter_600SemiBold,
-    Inter_700Bold,
+    PlayfairDisplay_600SemiBold_Italic,    // v2 flourish weight (italic per-screen)
+    PlayfairDisplay_700Bold,               // v2 roman default
+    PlayfairDisplay_800ExtraBold,          // v2 big numbers (week count, stats)
+    // Caprasimo — wordmark inline fallback only
+    Caprasimo_400Regular,
+    // Plus Jakarta Sans — v2 body / labels / buttons / links
+    PlusJakartaSans_400Regular,
+    PlusJakartaSans_500Medium,
+    PlusJakartaSans_600SemiBold,
+    PlusJakartaSans_700Bold,
+    // JetBrains Mono — v2 eyebrows / metadata / dates
+    JetBrainsMono_400Regular,
+    JetBrainsMono_500Medium,
   });
 
   useEffect(() => {

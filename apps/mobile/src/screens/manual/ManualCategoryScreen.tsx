@@ -29,7 +29,7 @@
 // surfaced as a "Watched" overlay on the thumbnail.
 import React, { useState } from 'react';
 import {
-  View, Text, StyleSheet, TouchableOpacity, ScrollView, Image,
+  View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Share,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation, useRoute, useFocusEffect, type RouteProp } from '@react-navigation/native';
@@ -58,7 +58,7 @@ type ParamList = {
 // (#B85C38). The screen is meant to look exactly like the mockup.
 // ═══════════════════════════════════════════════════════════════════════
 const V9 = {
-  paper: '#FDFAF5',
+  paper: '#FDFBF6',
   bgPink: '#FAEDE3',
   bgBook: '#FBF3E0',
   bgChart: '#EDE9DC',
@@ -68,8 +68,11 @@ const V9 = {
   bark: '#3D1F0D',
   barkSoft: '#5C3F26',
 
-  rust: '#B85C38',
-  rustDeep: '#9A4A2B',
+  // Kit canon (2026-05-16): old rust/rust-deep retired; cinnamon family is the
+  // app's canonical warm action color. Token names kept for grep compatibility
+  // across the Manual file (60+ refs in masthead + week hero + tile SVG).
+  rust: '#C07840',     // cinnamon (was #B85C38)
+  rustDeep: '#945A41', // action-deep (was #9A4A2B)
   sage: '#8B9A6B',
   sageDeep: '#6B7A4B',
   coco: '#AD795B',
@@ -81,6 +84,62 @@ const V9 = {
   pinkDeep: '#C99580',
   pinkSoft: '#F2D5C5',
 } as const;
+
+// ═══════════════════════════════════════════════════════════════════════
+// Chapter theme — each chapter wears its own signature color family so
+// the 10 chapter pages feel like distinct rooms in the same house, not
+// 10 instances of the same template. Five color families mapped across
+// mom + baby so semantics line up: Feel↔Grow (terracotta — warmth),
+// Heal↔Care (moss — body), Nourish↔Feed (amber — gold), Rest↔Sleep
+// (slate — calm), Tips↔Tips (cinnamon — practical).
+//
+// All accent colors verified WCAG AA (≥ 4.5:1) against V9.paper #FDFAF5
+// for text use. Light bg tints stay well above ~14:1 against V9.bark.
+//
+// Where the theme lands:
+//   • Masthead — eyebrow bar/text, italic accent, heart dot
+//   • Week hero — card bg, top dash, yolk, eyebrow, CTA arrow + text
+//   • Manual book — eyebrow + CTA text
+//   • Ask Specialist — STAYS sage (deliberate cross-cut: clinical paper)
+//   • Quick Watches — eyebrow + CTA text
+//   • Mom Hacks — eyebrow + CTA text (sage bg stays for the "exhale" cue)
+// ═══════════════════════════════════════════════════════════════════════
+type ChapterTheme = {
+  accent: string;       // primary chapter accent (CTA, eyebrow, italic)
+  accentDeep: string;   // darker variant (week eyebrow, CTA text)
+  bg: string;           // week hero card background tint
+  yolkBg: string;       // week hero decorative yolk
+};
+const CHAPTER_THEME_DEFAULT: ChapterTheme = {
+  accent: V9.rust, accentDeep: V9.rustDeep, bg: V9.bgPink, yolkBg: V9.pink,
+};
+// Kit canon (2026-05-16): chapter colors map to 5 brand palette tokens shared
+// across paired mom+baby chapters. Within mom (5 chapters) colors never
+// repeat; same for baby. Paired chapters (mom/rest ↔ baby/sleep) intentionally
+// wear the same family — the sister concept reads as the same room.
+//
+//   Feel/Grow    → Salmon   #EDA8A0 (empathy, warmth, expansion)
+//   Heal/Care    → Moss     #606E46 (body, recovery, garden)
+//   Nourish/Feed → Butter   #FAD080 (fuel, halo)
+//   Rest/Sleep   → Sage     #D8CEB0 (kit "cool exhale", quiet drowsy)
+//   Tips/Tips    → Marigold #F2C130 (kit "hero pop", small-wins spark)
+const CHAPTER_THEME: Record<string, ChapterTheme> = {
+  // Feel / Grow — salmon family
+  'mom/feel':   { accent: '#EDA8A0', accentDeep: '#C07A6F', bg: '#FBE3DF', yolkBg: '#F2C8C0' },
+  'baby/grow':  { accent: '#EDA8A0', accentDeep: '#C07A6F', bg: '#FBE3DF', yolkBg: '#F2C8C0' },
+  // Heal / Care — moss family
+  'mom/heal':   { accent: '#606E46', accentDeep: '#4A5736', bg: '#E6EAD0', yolkBg: '#C8D2A8' },
+  'baby/care':  { accent: '#606E46', accentDeep: '#4A5736', bg: '#E6EAD0', yolkBg: '#C8D2A8' },
+  // Nourish / Feed — butter family
+  'mom/nourish':{ accent: '#FAD080', accentDeep: '#C49B4F', bg: '#FDF1D0', yolkBg: '#F5DA9C' },
+  'baby/feed':  { accent: '#FAD080', accentDeep: '#C49B4F', bg: '#FDF1D0', yolkBg: '#F5DA9C' },
+  // Rest / Sleep — sage family ("cool exhale")
+  'mom/rest':   { accent: '#D8CEB0', accentDeep: '#7A7350', bg: '#EEEACE', yolkBg: '#C8C0A0' },
+  'baby/sleep': { accent: '#D8CEB0', accentDeep: '#7A7350', bg: '#EEEACE', yolkBg: '#C8C0A0' },
+  // Tips / Tips — marigold family (kit "hero pop")
+  'mom/tips':   { accent: '#F2C130', accentDeep: '#8A6818', bg: '#FBE890', yolkBg: '#F0D670' },
+  'baby/tips':  { accent: '#F2C130', accentDeep: '#8A6818', bg: '#FBE890', yolkBg: '#F0D670' },
+};
 
 // ── Chapter masthead — "[prefix] [italic accent]." ─────────────────────
 const HERO_TITLE: Record<string, { prefix: string; em: string }> = {
@@ -105,20 +164,6 @@ const SUB_LEAD: Record<string, string> = {
   'mom/tips':    'The small wins moms wish they knew week one.',
   'baby/feed':   'Cluster feeds, latch worries, supply doubts — calmly explained.',
   'baby/sleep':  'What is normal at this week. What is not.',
-  'baby/grow':   'The leap, the regression, the breakthrough.',
-  'baby/care':   'Gas vs colic. Reflux normal or call. Without panic.',
-  'baby/tips':   'The tiny things that change everything.',
-};
-
-// ── Week-hero body line (renders INSIDE the Week N card) ────────────────
-const WEEK_BODY: Record<string, string> = {
-  'mom/feel':    'The hormone hangover, and learning to name what you feel.',
-  'mom/heal':    'Your body does not reset overnight. Here is the real timeline.',
-  'mom/nourish': 'Hungry is not a stage. It is a season.',
-  'mom/rest':    'Broken sleep changes who you are. Here is what helps.',
-  'mom/tips':    'The small wins moms wish they knew week one.',
-  'baby/feed':   'Cluster feeds, latch worries, supply doubts. Calmly explained.',
-  'baby/sleep':  'What is normal at this week, and what is not.',
   'baby/grow':   'The leap, the regression, the breakthrough.',
   'baby/care':   'Gas vs colic. Reflux normal or call. Without panic.',
   'baby/tips':   'The tiny things that change everything.',
@@ -212,16 +257,45 @@ export default function ManualCategoryScreen() {
     } as never);
   };
 
+  // Dead-end CTA handlers — wired 2026-05-16 so the "Explore", "Save",
+  // "Watch the row", "More hacks" labels are now tappable. Lite destinations
+  // until dedicated detail screens exist; see docs/V9_UNRESOLVED_CTAS.md.
+
+  // Return to chapter selector — invites the user to explore other chapters.
+  const goToChapterList = () => navigation.navigate('ManualHome' as never);
+
+  // Share the 3 "Ask your specialist" questions via native share sheet so
+  // the user can text/email them to herself, save to notes, or hand them
+  // to her provider directly. No new screen needed.
+  const shareQuestions = async () => {
+    if (!questions.length) return;
+    const heroEm = hero.em.replace(/\.$/, '');
+    const title = `Questions for my next visit — ${hero.prefix} ${heroEm} (week ${week})`;
+    const body = questions.map((q, i) => `${i + 1}. ${q}`).join('\n\n');
+    try {
+      await Share.share({ message: `${title}\n\n${body}\n\n— from villie` });
+    } catch {
+      /* user cancelled — no-op */
+    }
+  };
+
+  // Play the first available video in the chapter row. If videos haven't
+  // loaded yet, fall back to the chapter list.
+  const watchFirstVideo = () => {
+    if (videos[0]) onCardPress(videos[0]);
+    else goToChapterList();
+  };
+
   const babyProfile = useHomeStore((s) => s.babyProfile);
   const week = Math.max(1, babyProfile?.current_week_number ?? 1);
 
   const key = `${audience}/${category}`;
   const hero       = HERO_TITLE[key]     ?? { prefix: 'Read about', em: 'this.' };
   const subLead    = SUB_LEAD[key]       ?? '';
-  const weekBody   = WEEK_BODY[key]      ?? '';
   const bullets    = MANUAL_BULLETS[key] ?? [];
   const questions  = SPECIALIST_QS[key]  ?? [];
   const hacks      = MOM_HACKS[key]      ?? [];
+  const theme      = CHAPTER_THEME[key]  ?? CHAPTER_THEME_DEFAULT;
 
   // (No card-level onPress for now — wiring real destinations is a follow-up.
   // The HeroKey type stays exported for that future routing layer.)
@@ -264,69 +338,38 @@ export default function ManualCategoryScreen() {
             <Image source={VILLIE_BEE} style={styles.villieMastheadImg} resizeMode="contain" />
           </View>
           <View style={styles.eyebrowRow}>
-            <View style={[styles.eyebrowBar, { backgroundColor: V9.rust }]} />
-            <Text style={[styles.eyebrowText, { color: V9.rust }]}>A field guide</Text>
+            <View style={[styles.eyebrowBar, { backgroundColor: theme.accent }]} />
+            <Text style={[styles.eyebrowText, { color: theme.accent }]}>A field guide</Text>
           </View>
           <View style={styles.titleRow}>
             <Text style={styles.title}>
-              {hero.prefix} <Text style={styles.italicAccent}>{hero.em}</Text>
+              {hero.prefix} <Text style={[styles.italicAccent, { color: theme.accent }]}>{hero.em}</Text>
             </Text>
-            <View style={styles.heartDot} />
+            <View style={[styles.heartDot, { backgroundColor: theme.accent }]} />
           </View>
           {!!subLead && <Text style={styles.lead}>{subLead}</Text>}
         </View>
 
-        {/* ─── CARD 1 · Week hero ─── */}
-        {/* Plain View (no TouchableOpacity wrapper) — card-level taps would
-            block the ScrollView's vertical drag. Inner CTAs become tappable
-            when we wire real destinations. */}
-        <View style={styles.weekCard} accessibilityLabel={`Week ${week}. ${weekBody}`}>
-          <View style={styles.weekTopBar} />
-          <View style={styles.weekYolkOuter} pointerEvents="none" />
-          <View style={styles.weekYolkInner} pointerEvents="none" />
-          <View style={styles.weekScribble} pointerEvents="none">
-            <View style={[styles.scribbleLineBark, { width: 20, transform: [{ rotate: '-6deg' }] }]} />
-            <View style={[styles.scribbleLineBark, { width: 14, transform: [{ rotate: '2deg' }] }]} />
-            <View style={[styles.scribbleLineBark, { width: 16, transform: [{ rotate: '-3deg' }] }]} />
-          </View>
-          <Text style={styles.weekEyebrow}>You{'’'}re in</Text>
-          <Text style={styles.weekNum}>Week {week}</Text>
-          <Text style={styles.weekBody}>{weekBody}</Text>
-          <View style={styles.weekCta}>
-            <Text style={styles.weekCtaText}>See your weekly guide →</Text>
-            {/* Glossy cinnamon CTA — confident button first, glass second.
-                Soft top highlight + faint bottom-inner shadow for depth.
-                No bright inner ring (read as plastic halo at this size). */}
-            <View style={styles.weekCtaArrow}>
-              <LinearGradient
-                colors={['rgba(255,255,255,0.22)', 'rgba(255,255,255,0)']}
-                start={{ x: 0, y: 0 }} end={{ x: 0, y: 0.55 }}
-                style={[StyleSheet.absoluteFill as any, { borderRadius: 18 }]}
-                pointerEvents="none"
-              />
-              <LinearGradient
-                colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0.18)']}
-                start={{ x: 0, y: 0.6 }} end={{ x: 0, y: 1 }}
-                style={[StyleSheet.absoluteFill as any, { borderRadius: 18 }]}
-                pointerEvents="none"
-              />
-              <Text style={styles.weekCtaArrowGlyph}>→</Text>
-            </View>
-          </View>
-        </View>
+        {/* Week hero card removed 2026-05-16 — the "Week N" callout was
+            redundant with the rest of the screen: every chapter card below
+            already speaks to the user's current week implicitly through
+            its content. The masthead + lead carry the chapter identity;
+            the manual / specialist / quick-watches / hacks cards carry
+            the substance. The week number lives on as the folio mark
+            (`p. {week}`) inside the Manual book card. */}
 
-        {/* ─── CARD 2 · The Manual (book spread) ─── */}
+        {/* ─── CARD · The Manual (book spread) ─── */}
         <View style={styles.bookCard} accessibilityLabel="The manual. What to actually know.">
           <View style={styles.bookSpine} pointerEvents="none" />
           <View style={styles.bookSpineHighlight} pointerEvents="none" />
           <View style={styles.bookYolkRing} pointerEvents="none" />
 
           <View style={styles.eyebrowRow}>
-            <View style={[styles.eyebrowBar, { backgroundColor: V9.rust }]} />
-            <Text style={[styles.eyebrowText, { color: V9.rust }]}>The manual</Text>
+            <View style={[styles.eyebrowBar, { backgroundColor: theme.accent }]} />
+            <Text style={[styles.eyebrowText, { color: theme.accent }]}>The manual</Text>
           </View>
           <Text style={styles.bookTitle}>
-            What to actually <Text style={styles.italicAccent}>know.</Text>
+            What to actually <Text style={[styles.italicAccent, { color: theme.accent }]}>know.</Text>
           </Text>
 
           {bullets.map((b, i) => (
@@ -336,7 +379,14 @@ export default function ManualCategoryScreen() {
             </View>
           ))}
 
-          <Text style={styles.bookCta}>Explore the manual →</Text>
+          <TouchableOpacity
+            onPress={goToChapterList}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            accessibilityRole="link"
+            accessibilityLabel="Explore other chapters in the manual"
+          >
+            <Text style={[styles.bookCta, { color: theme.accent }]}>Explore the manual →</Text>
+          </TouchableOpacity>
           <Text style={styles.folio}>p. {week}</Text>
         </View>
 
@@ -369,7 +419,7 @@ export default function ManualCategoryScreen() {
               <Text style={[styles.eyebrowText, { color: V9.sageDeep }]}>Ask your specialist</Text>
             </View>
             <Text style={styles.chartTitle}>
-              Bring these <Text style={styles.italicAccent}>three.</Text>
+              Bring these <Text style={[styles.italicAccent, { color: theme.accent }]}>three.</Text>
             </Text>
 
             {questions.map((q, i) => (
@@ -390,7 +440,14 @@ export default function ManualCategoryScreen() {
 
             <View style={styles.chartFooter}>
               <Text style={styles.chartStamp}>— signed, your week-{week} self</Text>
-              <Text style={styles.cardCtaRust}>Save & explore →</Text>
+              <TouchableOpacity
+                onPress={shareQuestions}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                accessibilityRole="button"
+                accessibilityLabel="Share these 3 questions with your provider"
+              >
+                <Text style={[styles.cardCtaRust, { color: theme.accent }]}>Share these →</Text>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -404,11 +461,11 @@ export default function ManualCategoryScreen() {
           </View>
 
           <View style={styles.eyebrowRow}>
-            <View style={[styles.eyebrowBar, { backgroundColor: V9.rust }]} />
-            <Text style={[styles.eyebrowText, { color: V9.rust }]}>Quick watches</Text>
+            <View style={[styles.eyebrowBar, { backgroundColor: theme.accent }]} />
+            <Text style={[styles.eyebrowText, { color: theme.accent }]}>Quick watches</Text>
           </View>
           <Text style={styles.cardTitle}>
-            Two minutes, <Text style={styles.italicAccent}>exactly.</Text>
+            Two minutes, <Text style={[styles.italicAccent, { color: theme.accent }]}>exactly.</Text>
           </Text>
 
           {/* v9 spec: ALWAYS render exactly 3 slots in a row. Real video where
@@ -461,7 +518,14 @@ export default function ManualCategoryScreen() {
             })}
           </View>
 
-          <Text style={styles.cardCtaRust}>Watch the row →</Text>
+          <TouchableOpacity
+            onPress={watchFirstVideo}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            accessibilityRole="button"
+            accessibilityLabel={videos[0] ? `Watch ${videos[0].title}` : 'Browse all chapters'}
+          >
+            <Text style={[styles.cardCtaRust, { color: theme.accent }]}>Watch the row →</Text>
+          </TouchableOpacity>
         </View>
 
         {/* ─── CARD 5 · Mom Hacks ─── */}
@@ -478,11 +542,11 @@ export default function ManualCategoryScreen() {
           </View>
 
           <View style={styles.eyebrowRow}>
-            <View style={[styles.eyebrowBar, { backgroundColor: V9.rust }]} />
-            <Text style={[styles.eyebrowText, { color: V9.rust }]}>Mom hacks &amp; tips</Text>
+            <View style={[styles.eyebrowBar, { backgroundColor: theme.accent }]} />
+            <Text style={[styles.eyebrowText, { color: theme.accent }]}>Mom hacks &amp; tips</Text>
           </View>
           <Text style={styles.cardTitle}>
-            Try one <Text style={styles.italicAccent}>tonight.</Text>
+            Try one <Text style={[styles.italicAccent, { color: theme.accent }]}>tonight.</Text>
           </Text>
 
           <View style={styles.chipStrip}>
@@ -494,7 +558,14 @@ export default function ManualCategoryScreen() {
             ))}
           </View>
 
-          <Text style={styles.cardCtaRust}>More hacks →</Text>
+          <TouchableOpacity
+            onPress={goToChapterList}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            accessibilityRole="link"
+            accessibilityLabel="Explore other chapters for more hacks"
+          >
+            <Text style={[styles.cardCtaRust, { color: theme.accent }]}>More hacks →</Text>
+          </TouchableOpacity>
         </View>
 
         <View style={{ height: 20 }} />

@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import {
   View, Text, StyleSheet, Modal, TouchableOpacity, ScrollView,
 } from 'react-native';
-import { FONTS } from '@utils/constants';
+import { COLORS, FONTS } from '@utils/constants';
+import { PrimaryCTA } from '@components/shared/PrimaryCTA';
 
 export interface MilkFilters {
   radius_miles: number;
@@ -139,9 +140,12 @@ export function FilterDrawerModal({ visible, filters, onApply, onClose }: Props)
             <TouchableOpacity style={styles.cancelBtn} onPress={onClose}>
               <Text style={styles.cancelText}>Cancel</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.applyBtn} onPress={handleApply}>
-              <Text style={styles.applyText}>Show Results</Text>
-            </TouchableOpacity>
+            <PrimaryCTA
+              shape="rect"
+              label="Show Results"
+              onPress={handleApply}
+              style={{ flex: 2 }}
+            />
           </View>
         </View>
       </View>
@@ -152,29 +156,29 @@ export function FilterDrawerModal({ visible, filters, onApply, onClose }: Props)
 const styles = StyleSheet.create({
   overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
   sheet: {
-    backgroundColor: '#FDFAF5', borderTopLeftRadius: 24, borderTopRightRadius: 24,
+    backgroundColor: '#FDFBF6', borderTopLeftRadius: 24, borderTopRightRadius: 24,
     paddingHorizontal: 24, paddingBottom: 40, maxHeight: '85%',
   },
   handle: { width: 36, height: 4, borderRadius: 2, backgroundColor: '#E0D5C5', alignSelf: 'center', marginTop: 12, marginBottom: 8 },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 16 },
   title: { fontSize: 20, fontFamily: FONTS.bodySemiBold, color: '#2C1810' },
-  reset: { fontSize: 14, color: '#D87530', fontFamily: FONTS.bodySemiBold },
+  reset: { fontSize: 14, color: COLORS.coco, fontFamily: FONTS.bodySemiBold },
   sectionLabel: { fontSize: 12, fontFamily: FONTS.bodySemiBold, color: '#9A8070', letterSpacing: 0.8, textTransform: 'uppercase', marginTop: 20, marginBottom: 10 },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   chip: {
     paddingHorizontal: 14, paddingVertical: 8,
-    backgroundColor: '#FFF', borderRadius: 20,
+    backgroundColor: COLORS.paper, borderRadius: 20,
     borderWidth: 1.5, borderColor: '#E0D5C5',
   },
-  chipActive: { borderColor: '#D87530', backgroundColor: '#FFF5F0' },
+  chipActive: { borderColor: COLORS.coco, backgroundColor: COLORS.pinkSoft },
   chipText: { fontSize: 13, color: '#6B5C52', fontFamily: FONTS.bodyMedium },
-  chipTextActive: { color: '#D87530' },
+  chipTextActive: { color: COLORS.coco },
   footer: { flexDirection: 'row', gap: 12, marginTop: 24 },
   cancelBtn: {
     flex: 1, borderWidth: 1.5, borderColor: '#9A8070',
     borderRadius: 12, paddingVertical: 14, alignItems: 'center',
   },
   cancelText: { fontSize: 15, color: '#9A8070', fontFamily: FONTS.bodySemiBold },
-  applyBtn: { flex: 2, backgroundColor: '#D87530', borderRadius: 12, paddingVertical: 14, alignItems: 'center' },
-  applyText: { fontSize: 15, color: '#FFF', fontFamily: FONTS.bodySemiBold },
+  applyBtn: { flex: 2, backgroundColor: '#C07840', borderRadius: 12, paddingVertical: 14, alignItems: 'center' },
+  applyText: { fontSize: 15, color: '#FDFBF6', fontFamily: FONTS.bodySemiBold },
 });

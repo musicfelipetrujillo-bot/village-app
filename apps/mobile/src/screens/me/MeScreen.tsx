@@ -18,14 +18,16 @@
 // because each tab hosts its own native stack and the destination screens
 // (SavedDonors, MyRsvps, etc.) already exist — we're not forking them.
 
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState, useRef } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, ScrollView,
-  Linking, Alert, SafeAreaView, Image,
+  Linking, Alert, Image, Animated, Easing,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import * as Clipboard from 'expo-clipboard';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuthStore } from '@store/auth';
 import { useUserStore } from '@store/user';
 import { useHomeStore } from '@store/home';
@@ -39,6 +41,18 @@ import {
 } from '@utils/constants';
 import type { MeStackParamList } from '@/navigation/MeNavigator';
 import { useT } from '@/i18n';
+
+const _BEE_N = 60;
+const _BEE_INPUT = Array.from({ length: _BEE_N + 1 }, (_, i) => i / _BEE_N);
+const _BEE_SINE_Y = _BEE_INPUT.map(
+  t => (1 - t) * (60 - Math.sin(t * Math.PI * 2.5) * 20)
+);
+const VILLIE_BEE = require('../../../assets/brand/villie-bee.png');
+
+// AsyncStorage key — gates the FIRST focus per app session so the bee
+// doesn't auto-replay on every cold launch the same day. In-session
+// tab refocus still replays the bee.
+const BEE_LAST_PLAYED_KEY = 'village.beeLastPlayedDate.v1';
 
 type MeNav = NativeStackNavigationProp<MeStackParamList, 'MeRoot'>;
 
@@ -77,6 +91,22 @@ const LANGUAGE_LABELS: Record<typeof SUPPORTED_LANGUAGES[number], string> = {
 };
 
 type Translator = (key: string, vars?: Record<string, string | number>) => string;
+
+// Page background gradient — tan-to-blush, consistent with Inbox / Manual.
+// v9 page wash — 7-stop U-shape gradient: warm pink at top + bottom,
+// paper-white middle. Matches HomeScreen + Manual Home so every tab
+// reads as the same paper page.
+const PAGE_BG_COLORS = [
+  '#FDF1EB', '#FDF8F4', '#FCFCFB',
+  '#FCFCFB', '#FCF6EF', '#F9E9DD', '#F5DFD3',
+] as const;
+const PAGE_BG_LOCATIONS = [0, 0.12, 0.30, 0.62, 0.76, 0.90, 1] as const;
+
+// DEV tools pill — same env gate as RootNavigator. The pill renders
+// inside MeScreen (outside the ScrollView) so it stays anchored below
+// the Edit button and never shifts on scroll.
+const INTERNAL_AGENTS_ENABLED =
+  process.env.EXPO_PUBLIC_INTERNAL_AGENTS_ENABLED === '1';
 
 function formatContact(item: CrisisItem, t: Translator): string {
   if (item.type === 'sms') return t('me.crisisSmsFormat', { body: item.body ?? '', contact: item.contact });
@@ -154,11 +184,54 @@ export default function MeScreen() {
   // approving the last item. Null = not loaded yet (don't render "0").
   const [pendingCount, setPendingCount] = useState<number | null>(null);
   const [pendingEventCount, setPendingEventCount] = useState<number | null>(null);
+  const [devOpen, setDevOpen] = useState(false);
+  const showClinicalReview = INTERNAL_AGENTS_ENABLED || isReviewer;
+  const showEventReview = INTERNAL_AGENTS_ENABLED || isEventReviewer;
+  const showDevTools = INTERNAL_AGENTS_ENABLED || showClinicalReview || showEventReview;
   const babyProfile = useHomeStore((s) => s.babyProfile);
+  const clearUnreadNotifs = useHomeStore((s) => s.clearUnreadNotifs);
+
+  const beeAnim    = useRef(new Animated.Value(0)).current;
+  const beeRandX   = useRef(new Animated.Value(0)).current;
+  const beeRandY   = useRef(new Animated.Value(0)).current;
+  // First-focus-of-session ref — see VillageHomeScreen for rationale.
+  // Daily gate on first focus, replay on every subsequent leave+return.
+  const firstFocusRef = useRef(true);
+  const beeBaseX = useRef(beeAnim.interpolate({ inputRange: [0, 1], outputRange: [-300, 0] })).current;
+  const beeBaseY = useRef(beeAnim.interpolate({ inputRange: _BEE_INPUT, outputRange: _BEE_SINE_Y })).current;
+  const beeFade  = useRef(beeAnim.interpolate({ inputRange: [0, 0.75, 1], outputRange: [0, 0, 1] })).current;
+  const beeTranslateX = useRef(Animated.add(beeBaseX, Animated.multiply(beeRandX, beeFade))).current;
+  const beeTranslateY = useRef(Animated.add(beeBaseY, Animated.multiply(beeRandY, beeFade))).current;
 
   useEffect(() => {
     if (!profile) fetchProfile();
   }, [profile, fetchProfile]);
+
+  // Clear the tab badge the moment the user opens Profile.
+  useFocusEffect(useCallback(() => {
+    clearUnreadNotifs();
+    let cancelled = false;
+    (async () => {
+      const isFirst = firstFocusRef.current;
+      firstFocusRef.current = false;
+      if (isFirst) {
+        try {
+          const today = new Date().toISOString().slice(0, 10);
+          const last = await AsyncStorage.getItem(BEE_LAST_PLAYED_KEY);
+          if (last === today) return;
+          await AsyncStorage.setItem(BEE_LAST_PLAYED_KEY, today);
+        } catch {
+          // storage error → fall through and play
+        }
+      }
+      if (cancelled) return;
+      beeRandX.setValue((Math.random() - 0.5) * 24);
+      beeRandY.setValue((Math.random() - 0.5) * 16);
+      beeAnim.setValue(0);
+      Animated.timing(beeAnim, { toValue: 1, duration: 3200, easing: Easing.linear, useNativeDriver: true }).start();
+    })();
+    return () => { cancelled = true; };
+  }, [clearUnreadNotifs, beeAnim, beeRandX, beeRandY]));
 
   // Reviewer-only: fetch the pending-review queue length whenever Me regains
   // focus. RLS + SECURITY DEFINER guard means non-reviewers get an empty list
@@ -320,45 +393,95 @@ export default function MeScreen() {
   const completion = computeCompletion(profile);
 
   return (
-    <SafeAreaView style={s.safe}>
+    <View style={s.safe}>
+      {/* v9 page wash — paper-white middle, warm pink wash top + bottom.
+          Plain View (not SafeAreaView) so the header card can bleed to
+          the very top edge of the screen — header.paddingTop: 56
+          reserves space for the status bar. */}
+      <LinearGradient
+        colors={PAGE_BG_COLORS as unknown as readonly [string, string, ...string[]]}
+        locations={PAGE_BG_LOCATIONS as unknown as readonly [number, number, ...number[]]}
+        style={StyleSheet.absoluteFill}
+        pointerEvents="none"
+      />
       <ScrollView contentContainerStyle={s.container}>
-        {/* Profile header */}
+        {/* Profile header — soft full-bleed pastel cover card. Pale
+            golden-rose wash keeps the identity dialled back; bark text +
+            coco italic name + hairline rule carry HomeScreen's vibe. */}
         <View style={s.header}>
-          {profile?.avatar_url ? (
-            <Image source={{ uri: profile.avatar_url }} style={s.avatarImg} />
-          ) : (
-            <View style={s.avatar}>
-              <Text style={s.avatarTxt}>{initial}</Text>
+          <LinearGradient
+            colors={['#FCF6EF', '#F8EDE0', '#F2DDD0']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={StyleSheet.absoluteFill}
+            pointerEvents="none"
+          />
+          {/* iOS-26 wet-glass top sheen — matches Home + Manual */}
+          <LinearGradient
+            colors={['rgba(255,255,255,0.55)', 'rgba(255,255,255,0)']}
+            start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }}
+            style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 18 }}
+            pointerEvents="none"
+          />
+          <View
+            pointerEvents="none"
+            style={{
+              position: 'absolute', top: 0, left: 0, right: 0,
+              height: StyleSheet.hairlineWidth,
+              backgroundColor: 'rgba(255,255,255,0.7)',
+            }}
+          />
+          {/* Villie bee brand mark */}
+          <Animated.Image source={VILLIE_BEE} resizeMode="contain"
+            accessible={false}
+            style={[s.headerBee, { transform: [{ translateX: beeTranslateX }, { translateY: beeTranslateY }, { rotate: '12deg' }] }]} />
+
+          {/* Eyebrow: stage label */}
+          {stageLabel ? (
+            <View style={s.eyebrowRow}>
+              <View style={s.eyebrowBar} />
+              <Text style={s.eyebrow}>{stageLabel.toUpperCase()}</Text>
             </View>
-          )}
-          <View style={s.headerMeta}>
-            <Text style={s.name} numberOfLines={1}>{fullName}</Text>
-            <Text style={s.email} numberOfLines={1}>{email}</Text>
-            {stageLabel ? (
-              <View style={s.stagePill}>
-                <Text style={s.stagePillText}>{stageLabel}</Text>
-              </View>
-            ) : null}
-          </View>
-          {profile ? (
-            <TouchableOpacity
-              onPress={() => handleLanguageChange(lang === 'en' ? 'es' : 'en')}
-              style={s.langPill}
-              accessibilityRole="button"
-              accessibilityLabel={lang === 'en' ? t('me.langSwitchToEs') : t('me.langSwitchToEn')}
-              accessibilityHint={lang === 'en' ? t('me.langPillHintEn') : t('me.langPillHintEs')}
-            >
-              <Text style={s.langPillText}>🌐 {lang === 'en' ? 'EN' : 'ES'}</Text>
-            </TouchableOpacity>
           ) : null}
-          <TouchableOpacity
-            onPress={goEditProfile}
-            style={s.editBtn}
-            accessibilityRole="button"
-            accessibilityLabel={t('me.editA11y')}
-          >
-            <Text style={s.editBtnText}>{t('me.edit')}</Text>
-          </TouchableOpacity>
+
+          {/* Avatar + name + controls row */}
+          <View style={s.headerMainRow}>
+            {profile?.avatar_url ? (
+              <Image source={{ uri: profile.avatar_url }} style={s.avatarImg} />
+            ) : (
+              <View style={s.avatar}>
+                <Text style={s.avatarTxt}>{initial}</Text>
+              </View>
+            )}
+            <View style={s.headerMeta}>
+              <Text style={s.name} numberOfLines={1}>{fullName}</Text>
+              {email && email !== '—' ? (
+                <Text style={s.email} numberOfLines={1}>{email}</Text>
+              ) : null}
+            </View>
+            <View style={s.headerControls}>
+              {profile ? (
+                <TouchableOpacity
+                  onPress={() => handleLanguageChange(lang === 'en' ? 'es' : 'en')}
+                  style={s.langPill}
+                  accessibilityRole="button"
+                  accessibilityLabel={lang === 'en' ? t('me.langSwitchToEs') : t('me.langSwitchToEn')}
+                  accessibilityHint={lang === 'en' ? t('me.langPillHintEn') : t('me.langPillHintEs')}
+                >
+                  <Text style={s.langPillText}>🌐 {lang === 'en' ? 'EN' : 'ES'}</Text>
+                </TouchableOpacity>
+              ) : null}
+              <TouchableOpacity
+                onPress={goEditProfile}
+                style={s.editBtn}
+                accessibilityRole="button"
+                accessibilityLabel={t('me.editA11y')}
+              >
+                <Text style={s.editBtnText}>{t('me.edit')}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+          <View style={s.headerRule} />
         </View>
 
         {/* Profile completion — hidden at 100% and on cold launch (null) */}
@@ -660,7 +783,53 @@ export default function MeScreen() {
 
         <Text style={s.footer}>{t('me.footer')}</Text>
       </ScrollView>
-    </SafeAreaView>
+
+      {/* DEV tools pill — fixed in the card header area, right edge aligned
+          with the edit button. Stays anchored even when scrolling. */}
+      {showDevTools ? (
+        <View
+          pointerEvents="box-none"
+          style={{
+            position: 'absolute',
+            top: 150,
+            right: 20,
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 6,
+          }}
+        >
+          {devOpen ? (
+            <>
+              {INTERNAL_AGENTS_ENABLED ? (
+                <DevPill label="AGT" bg="#1C1008" fg="#E6D8C4"
+                  onPress={() => { setDevOpen(false); (navigation.getParent() as any)?.navigate('InternalAgents'); }}
+                  a11y="Open internal agents console"
+                />
+              ) : null}
+              {showClinicalReview ? (
+                <DevPill label="CLN" bg="#5C6B3A" fg="#FDFBF6"
+                  onPress={() => { setDevOpen(false); goClinicalReview(); }}
+                  a11y="Open clinical-advisor review dashboard"
+                />
+              ) : null}
+              {showEventReview ? (
+                <DevPill label="EVT" bg="#C4A35A" fg="#1C1008"
+                  onPress={() => { setDevOpen(false); goEventReview(); }}
+                  a11y="Open event-ingest review dashboard"
+                />
+              ) : null}
+            </>
+          ) : null}
+          <DevPill
+            label={devOpen ? '×' : 'DEV'}
+            bg="#2C1A0E"
+            fg="#FDFBF6"
+            onPress={() => setDevOpen((v) => !v)}
+            a11y={devOpen ? 'Close dev tools menu' : 'Open dev tools menu'}
+          />
+        </View>
+      ) : null}
+    </View>
   );
 }
 
@@ -673,6 +842,21 @@ interface CompletionResult {
 // stage-independent. due_date used to be a 5th slot for trimester users, but
 // that branch went away when TTC + trimester chips were dropped from the
 // picker — every postpartum user can now reach 100% without it.
+function DevPill({ label, bg, fg, onPress, a11y }: {
+  label: string; bg: string; fg: string; onPress: () => void; a11y: string;
+}) {
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={a11y}
+      style={{ backgroundColor: bg, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 999, opacity: 0.85 }}
+    >
+      <Text style={{ color: fg, fontSize: 10, fontWeight: '700', letterSpacing: 1 }}>{label}</Text>
+    </TouchableOpacity>
+  );
+}
+
 function computeCompletion(
   profile: ReturnType<typeof useUserStore.getState>['profile'],
 ): CompletionResult | null {
@@ -717,18 +901,67 @@ const s = StyleSheet.create({
   safe: { flex: 1, backgroundColor: COLORS.cream },
   container: { paddingBottom: 48 },
 
+  // Soft full-bleed cover card — matches InboxHomeScreen.header dimensions
+  // exactly so every tab masthead reads the same size. paddingBottom is
+  // tight so the hairline rule sits right at the card's bottom edge.
   header: {
+    paddingHorizontal: 24,
+    paddingTop: 56,
+    paddingBottom: 6,
+    borderBottomLeftRadius: 28,
+    borderBottomRightRadius: 28,
+    overflow: 'hidden',
+    marginBottom: 8,
+    // v9 paper-leaning shadow — was 0.10/4y/12r/elev2. Now lifts the
+    // masthead off the U-shape backdrop like Home's card recipe.
+    shadowColor: '#6B2E0E',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.20,
+    shadowRadius: 18,
+    elevation: 5,
+    position: 'relative',
+  },
+  headerBee: {
+    // Bee hovers between the name and the Edit pill, leaning towards Edit.
+    // Edit lives in `headerControls` at the right edge with 20px header
+    // padding; right: 50 sits the bee ~50px from screen right, which is
+    // just left of the controls stack — over the meta column past the name.
+    position: 'absolute',
+    right: 50, top: 64,
+    width: 88, height: 80,
+    opacity: 0.55,
+    transform: [{ rotate: '12deg' }],
+  },
+  eyebrowRow: {
+    flexDirection: 'row', alignItems: 'center', marginBottom: 12,
+  },
+  eyebrowBar: {
+    width: 22, height: 2,
+    backgroundColor: '#A77349',  // v9 rust-deep — unified across surfaces
+    marginRight: 10,
+  },
+  eyebrow: {
+    fontSize: 10, fontFamily: FONTS.bodySemiBold,
+    color: '#A77349',
+    letterSpacing: 1.8, textTransform: 'uppercase',
+  },
+  headerMainRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingTop: 12,
-    paddingBottom: 20,
+  },
+  headerControls: {
+    flexDirection: 'column',
+    alignItems: 'flex-end',
+    gap: 6,
+    marginLeft: 8,
   },
   avatar: {
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: COLORS.rust,
+    backgroundColor: COLORS.sandSoft,
+    borderWidth: 1,
+    borderColor: 'rgba(61,31,13,0.18)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -736,85 +969,72 @@ const s = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: COLORS.rustLight,
+    borderWidth: 1,
+    borderColor: 'rgba(61,31,13,0.18)',
+    backgroundColor: COLORS.sandSoft,
   },
   avatarTxt: {
     fontFamily: FONTS.headerBold,
-    color: COLORS.white,
+    color: COLORS.bark,
     fontSize: 26,
   },
   headerMeta: { flex: 1, marginLeft: 14 },
-  // Profile name — Playfair italic per the editorial header pattern
-  // (eyebrow + Playfair italic title is the canonical magazine
-  // signature). 24pt sits between the section eyebrow and the hero
-  // titles on Home/Milk so the page lead is felt without dominating.
+  // Italic Playfair in coco — mirrors HomeScreen.greetingNameAccent.
   name: {
     fontFamily: FONTS.headerItalic,
     fontStyle: 'italic',
     fontSize: 24,
     lineHeight: 30,
-    color: COLORS.brownDeep,
+    color: '#C07840',
   },
   email: {
     fontFamily: FONTS.body,
     fontSize: 13,
-    color: COLORS.textMid,
+    color: COLORS.barkSoft,
     marginTop: 2,
   },
-  stagePill: {
-    alignSelf: 'flex-start',
-    marginTop: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 999,
-    backgroundColor: 'rgba(184,92,56,0.12)',
-  },
-  stagePillText: {
-    fontFamily: FONTS.bodySemiBold,
-    fontSize: 11,
-    color: COLORS.rustDark,
-    letterSpacing: 0.3,
-  },
   editBtn: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
     borderRadius: 999,
-    borderWidth: 1.5,
-    borderColor: COLORS.rust,
+    borderWidth: 1,
+    borderColor: 'rgba(61,31,13,0.22)',
     backgroundColor: 'transparent',
-    marginLeft: 8,
   },
   editBtnText: {
     fontFamily: FONTS.bodySemiBold,
-    fontSize: 12,
-    color: COLORS.rust,
+    fontSize: 11,
+    color: COLORS.bark,
     letterSpacing: 0.3,
   },
-  // Language toggle in the header — single-tap flips EN↔ES so a discharge-day
-  // Spanish-speaking user doesn't have to scroll into Preferences to find it.
-  // The full segmented control in Preferences stays for clarity / a11y.
   langPill: {
-    paddingHorizontal: 10,
-    paddingVertical: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 5,
     borderRadius: 999,
-    borderWidth: 1.5,
-    borderColor: COLORS.rust,
-    backgroundColor: 'rgba(184,92,56,0.08)',
-    marginLeft: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(61,31,13,0.22)',
+    backgroundColor: 'rgba(255,255,255,0.45)',
   },
   langPillText: {
     fontFamily: FONTS.bodySemiBold,
-    fontSize: 12,
-    color: COLORS.rustDark,
+    fontSize: 11,
+    color: COLORS.bark,
     letterSpacing: 0.4,
+  },
+  // Hairline rule — matches HomeScreen.greetingRule.
+  headerRule: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: 'rgba(61,31,13,0.18)',
+    marginTop: 14,
+    width: 48,
   },
 
   completion: {
     marginHorizontal: 20,
     marginBottom: 24,
-    padding: 14,
+    padding: 16,
     borderRadius: 14,
-    backgroundColor: '#FFF',
+    backgroundColor: COLORS.paper,
     borderWidth: 1,
     borderColor: 'rgba(184,92,56,0.25)',
   },
@@ -827,13 +1047,13 @@ const s = StyleSheet.create({
   completionTitle: {
     fontFamily: FONTS.bodySemiBold,
     fontSize: 13,
-    color: COLORS.brownDeep,
+    color: COLORS.bark,
     letterSpacing: 0.2,
   },
   completionCta: {
     fontFamily: FONTS.bodySemiBold,
     fontSize: 12,
-    color: COLORS.rust,
+    color: '#C07840',
   },
   progressTrack: {
     height: 6,
@@ -843,12 +1063,12 @@ const s = StyleSheet.create({
   },
   progressFill: {
     height: '100%',
-    backgroundColor: COLORS.rust,
+    backgroundColor: COLORS.coco,
   },
   completionHint: {
     marginTop: 8,
     fontSize: 12,
-    color: COLORS.textMid,
+    color: COLORS.barkSoft,
   },
 
   section: { paddingHorizontal: 20, marginBottom: 24 },
@@ -860,29 +1080,37 @@ const s = StyleSheet.create({
     marginBottom: 10,
   },
   sectionAccentBar: {
-    width: 12, height: 2, backgroundColor: COLORS.rust, borderRadius: 1,
+    width: 12, height: 2, backgroundColor: '#A77349', borderRadius: 1,
   },
   sectionEyebrow: {
     fontSize: 11, fontFamily: FONTS.bodySemiBold, letterSpacing: 2,
-    color: COLORS.textMid, textTransform: 'uppercase',
+    color: '#A77349', textTransform: 'uppercase',
   },
   // Kept for legacy callers. New section headings use sectionEyebrow.
   sectionTitle: {
     fontFamily: FONTS.headerBold,
     fontSize: 16,
-    color: COLORS.textDark,
+    color: COLORS.bark,
     marginBottom: 4,
   },
   sectionSubtitle: {
     fontFamily: FONTS.body,
     fontSize: 12,
-    color: COLORS.textMid,
+    color: COLORS.barkSoft,
     marginBottom: 10,
   },
   card: {
-    backgroundColor: COLORS.cardBg,
-    borderRadius: 12,
+    backgroundColor: COLORS.paper,
+    borderRadius: 14,
     overflow: 'hidden',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(150, 80, 50, 0.18)',
+    // v9 lift — same cocoa drop recipe as Home cards
+    shadowColor: '#6B2E0E',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.18,
+    shadowRadius: 18,
+    elevation: 5,
   },
   row: {
     paddingHorizontal: 14,
@@ -899,25 +1127,25 @@ const s = StyleSheet.create({
   rowLabel: {
     fontFamily: FONTS.bodySemiBold,
     fontSize: 14,
-    color: COLORS.textDark,
+    color: COLORS.bark,
   },
-  rowLabelDanger: { color: COLORS.rustDark },
+  rowLabelDanger: { color: COLORS.cocoDeep },
   rowDetail: {
     fontFamily: FONTS.body,
     fontSize: 12,
-    color: COLORS.textMid,
+    color: COLORS.barkSoft,
     marginTop: 2,
   },
   rowChevron: { fontSize: 18, marginLeft: 12 },
 
   // Crisis section header callout — visually distinct from the action rows so
   // the eye lands on "you don't need to know what to say" before scanning the
-  // line items. Lighter rust tint + left border for the same visual language as
-  // CrisisResourcesSheet's per-card accent.
+  // line items. Lighter rust tint + full cinnamon hairline (side-stripe was a
+  // v9 absolute ban — replaced with a full border in the same accent color).
   crisisCallout: {
-    backgroundColor: '#FFF5F0',
-    borderLeftWidth: 3,
-    borderLeftColor: COLORS.rust,
+    backgroundColor: COLORS.pinkSoft,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(192,120,64,0.45)',
     borderRadius: 10,
     padding: 12,
     margin: 14,
@@ -926,17 +1154,17 @@ const s = StyleSheet.create({
   crisisCalloutTitle: {
     fontSize: 13,
     fontFamily: FONTS.bodySemiBold,
-    color: COLORS.rustDark,
+    color: '#A77349',
     marginBottom: 4,
   },
   crisisCalloutBody: {
     fontSize: 13,
-    color: COLORS.textMid,
+    color: COLORS.barkSoft,
     lineHeight: 18,
   },
   crisisCalloutNumber: {
     fontFamily: FONTS.bodySemiBold,
-    color: COLORS.rustDark,
+    color: '#A77349',
   },
 
   babyRow: {
@@ -958,12 +1186,12 @@ const s = StyleSheet.create({
   babyName: {
     fontFamily: FONTS.bodySemiBold,
     fontSize: 15,
-    color: COLORS.textDark,
+    color: COLORS.bark,
   },
   babyMeta: {
     fontFamily: FONTS.body,
     fontSize: 12,
-    color: COLORS.textMid,
+    color: COLORS.barkSoft,
     marginTop: 2,
   },
 
@@ -971,13 +1199,13 @@ const s = StyleSheet.create({
   emptyText: {
     fontFamily: FONTS.body,
     fontSize: 13,
-    color: COLORS.textMid,
+    color: COLORS.barkSoft,
     lineHeight: 18,
   },
   emptyHint: {
     fontFamily: FONTS.bodySemiBold,
     fontSize: 12,
-    color: COLORS.rustDark,
+    color: '#A77349',
     marginTop: 6,
   },
 
@@ -990,19 +1218,19 @@ const s = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 999,
     borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.1)',
+    borderColor: 'rgba(150,80,50,0.18)',
     backgroundColor: COLORS.cream,
   },
   langChipActive: {
-    backgroundColor: COLORS.rust,
-    borderColor: COLORS.rust,
+    backgroundColor: COLORS.coco,
+    borderColor: COLORS.coco,
   },
   langChipText: {
     fontFamily: FONTS.bodySemiBold,
     fontSize: 13,
-    color: COLORS.textDark,
+    color: COLORS.bark,
   },
-  langChipTextActive: { color: COLORS.white },
+  langChipTextActive: { color: COLORS.paper },
 
   // Olive-tinted pill matching the CLN launcher in RootNavigator so the two
   // surfaces visually belong to the same internal-tools subsystem.
@@ -1011,7 +1239,7 @@ const s = StyleSheet.create({
     height: 22,
     borderRadius: 11,
     paddingHorizontal: 7,
-    backgroundColor: COLORS.olive,
+    backgroundColor: COLORS.sage,
     alignItems: 'center',
     justifyContent: 'center',
     marginLeft: 8,
@@ -1019,13 +1247,13 @@ const s = StyleSheet.create({
   reviewBadgeText: {
     fontFamily: FONTS.bodySemiBold,
     fontSize: 12,
-    color: COLORS.white,
+    color: COLORS.paper,
     letterSpacing: 0.3,
   },
   signOutTxt: {
     fontFamily: FONTS.bodySemiBold,
     fontSize: 14,
-    color: COLORS.rustDark,
+    color: '#A77349',
     textAlign: 'center',
   },
   footer: {

@@ -47,7 +47,7 @@ export default function CPSCRecallBlockModal({ visible, productName, recall, onC
 
           <Text style={styles.sub}>
             <Text style={styles.productName}>{productName || 'This product'}</Text>
-            {` is under an active CPSC recall and can't be sold on The Village. This protects your family and the buyer.`}
+            {` is under an active CPSC recall and can't be sold on Villie. This protects your family and the buyer.`}
           </Text>
 
           {recall?.title ? (
@@ -83,7 +83,7 @@ export default function CPSCRecallBlockModal({ visible, productName, recall, onC
           {expanded ? (
             <Text style={styles.whyBody}>
               Federal law (CPSIA §19) makes it unlawful to resell or distribute any product that
-              has been recalled by the Consumer Product Safety Commission. The Village checks
+              has been recalled by the Consumer Product Safety Commission. Villie checks
               every listing against the CPSC recall database at submission and nightly.
               {'\n\n'}
               If you believe this is a mistake — for example the recall was resolved or the model
@@ -122,49 +122,49 @@ const styles = StyleSheet.create({
   iconCircle: {
     width: 72, height: 72, borderRadius: 36,
     backgroundColor: 'rgba(184,92,56,0.12)',
-    borderWidth: 2, borderColor: COLORS.rust,
+    borderWidth: 2, borderColor: COLORS.coco,
     alignItems: 'center', justifyContent: 'center',
     alignSelf: 'center', marginBottom: 20,
   },
-  iconText: { fontSize: 34, color: COLORS.rustDark, fontFamily: FONTS.bodySemiBold },
+  iconText: { fontSize: 34, color: COLORS.cocoDeep, fontFamily: FONTS.bodySemiBold },
 
   headline: {
-    fontSize: 24, fontFamily: FONTS.bodySemiBold, color: COLORS.brownDeep,
+    fontSize: 24, fontFamily: FONTS.bodySemiBold, color: COLORS.bark,
     textAlign: 'center', marginBottom: 12,
   },
   sub: {
-    fontSize: 15, color: COLORS.textMid, lineHeight: 22,
+    fontSize: 15, color: COLORS.barkSoft, lineHeight: 22,
     textAlign: 'center', marginBottom: 20, paddingHorizontal: 4, fontFamily: FONTS.body,
   },
-  productName: { fontFamily: FONTS.bodySemiBold, color: COLORS.brownDeep },
+  productName: { fontFamily: FONTS.bodySemiBold, color: COLORS.bark },
 
   recallCard: {
-    backgroundColor: '#FFF', borderRadius: 14, padding: 16,
+    backgroundColor: COLORS.paper, borderRadius: 14, padding: 16,
     borderWidth: 1, borderColor: 'rgba(184,92,56,0.3)',
     marginBottom: 18,
   },
   recallLabel: {
     fontSize: 10, fontFamily: FONTS.bodySemiBold, letterSpacing: 1,
-    color: COLORS.rustDark, textTransform: 'uppercase', marginBottom: 6,
+    color: COLORS.cocoDeep, textTransform: 'uppercase', marginBottom: 6,
   },
-  recallTitle: { fontSize: 15, fontFamily: FONTS.bodySemiBold, color: COLORS.brownDeep, lineHeight: 21 },
+  recallTitle: { fontSize: 15, fontFamily: FONTS.bodySemiBold, color: COLORS.bark, lineHeight: 21 },
   recallMeta: { fontSize: 12, color: COLORS.textLight, marginTop: 4, fontFamily: FONTS.body },
   sectionLabel: {
     fontSize: 11, fontFamily: FONTS.bodySemiBold, letterSpacing: 0.6,
     color: COLORS.textLight, textTransform: 'uppercase',
     marginTop: 12, marginBottom: 4,
   },
-  body: { fontSize: 13, color: COLORS.textMid, lineHeight: 19, fontFamily: FONTS.body },
+  body: { fontSize: 13, color: COLORS.barkSoft, lineHeight: 19, fontFamily: FONTS.body },
 
   whyBtn: { paddingVertical: 10, alignItems: 'center' },
-  whyBtnText: { fontSize: 13, color: COLORS.rust, fontFamily: FONTS.bodySemiBold, textDecorationLine: 'underline' },
+  whyBtnText: { fontSize: 13, color: COLORS.coco, fontFamily: FONTS.bodySemiBold, textDecorationLine: 'underline' },
   whyBody: {
-    fontSize: 13, color: COLORS.textMid, lineHeight: 20,
+    fontSize: 13, color: COLORS.barkSoft, lineHeight: 20,
     marginBottom: 12, paddingHorizontal: 4, fontFamily: FONTS.body,
   },
 
   linkBtn: { paddingVertical: 10, alignItems: 'center', marginTop: 6 },
-  linkBtnText: { fontSize: 13, color: COLORS.rust, fontFamily: FONTS.bodySemiBold },
+  linkBtnText: { fontSize: 13, color: COLORS.coco, fontFamily: FONTS.bodySemiBold },
 
   footer: {
     padding: 16, paddingBottom: 32,
@@ -172,8 +172,8 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.cream,
   },
   closeBtn: {
-    backgroundColor: COLORS.rust, borderRadius: 14,
+    backgroundColor: '#C07840', borderRadius: 14,
     paddingVertical: 15, alignItems: 'center',
   },
-  closeBtnText: { color: '#FFF', fontSize: 15, fontFamily: FONTS.bodySemiBold, letterSpacing: 0.3 },
+  closeBtnText: { color: '#FDFBF6', fontSize: 15, fontFamily: FONTS.bodySemiBold, letterSpacing: 0.3 },
 });

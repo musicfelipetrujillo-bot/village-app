@@ -8,6 +8,8 @@ import {
 import * as Clipboard from 'expo-clipboard';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { COLORS, FONTS } from '@utils/constants';
+import { V9PageBackdrop } from '@components/shared/V9PageBackdrop';
+import { tap, confirm } from '@utils/haptics';
 import { perksApi, disclosureTextFor, type ClaimResult, type PerkDetail } from '@api/perks';
 import { usePerksStore } from '@store/perks';
 import { useT } from '@/i18n';
@@ -47,12 +49,14 @@ export default function PerkClaimScreen() {
 
   const copyCode = async () => {
     if (!claim?.discount_code) return;
+    tap();
     await Clipboard.setStringAsync(claim.discount_code);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
   const openClickUrl = async () => {
+    confirm();
     if (!claim?.click_url) return;
     const can = await Linking.canOpenURL(claim.click_url);
     if (!can) {
@@ -65,7 +69,7 @@ export default function PerkClaimScreen() {
   if (loading) {
     return (
       <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-        <ActivityIndicator color={COLORS.rust} size="large" />
+        <ActivityIndicator color="#C07840" size="large" />
       </View>
     );
   }
@@ -94,6 +98,7 @@ export default function PerkClaimScreen() {
 
   return (
     <View style={styles.container}>
+      <V9PageBackdrop />
       <View style={styles.closeBar}>
         <TouchableOpacity onPress={() => navigation.goBack()} accessibilityLabel={t('perkClaim.closeA11y')}>
           <Text style={styles.close}>✕</Text>
@@ -159,48 +164,51 @@ export default function PerkClaimScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.cream },
+  container: { flex: 1, backgroundColor: 'transparent' },
   closeBar: {
     paddingTop: 56, paddingHorizontal: 20, paddingBottom: 8,
     alignItems: 'flex-end',
   },
-  close: { fontSize: 22, color: COLORS.textMid, fontFamily: FONTS.bodySemiBold, padding: 4 },
+  close: { fontSize: 22, color: COLORS.barkSoft, fontFamily: FONTS.bodySemiBold, padding: 4 },
 
   centerBlock: { alignItems: 'center', paddingHorizontal: 24, paddingTop: 20 },
   okEmoji: { fontSize: 56, marginBottom: 12 },
-  brand: { fontSize: 14, color: COLORS.textMid, fontFamily: FONTS.bodySemiBold },
+  brand: { fontSize: 14, color: COLORS.barkSoft, fontFamily: FONTS.bodySemiBold },
   title: {
-    fontSize: 22, fontFamily: FONTS.bodySemiBold, color: COLORS.brownDeep,
+    fontSize: 22, fontFamily: FONTS.bodySemiBold, color: COLORS.bark,
     marginTop: 6, textAlign: 'center', lineHeight: 28,
   },
 
   instruction: {
-    fontSize: 14, color: COLORS.textMid, marginTop: 28, marginBottom: 12,
+    fontSize: 14, color: COLORS.barkSoft, marginTop: 28, marginBottom: 12,
     textAlign: 'center',
   },
 
   codeBox: {
-    backgroundColor: '#FFF', borderRadius: 14,
-    borderWidth: 1.5, borderColor: COLORS.rust, borderStyle: 'dashed',
+    backgroundColor: COLORS.paper, borderRadius: 14,
+    borderWidth: 1.5, borderColor: COLORS.coco, borderStyle: 'dashed',
     paddingVertical: 18, paddingHorizontal: 28,
     alignItems: 'center', minWidth: 240,
   },
-  codeText: { fontSize: 22, fontFamily: FONTS.bodySemiBold, color: COLORS.rustDark, letterSpacing: 1.5 },
+  codeText: { fontSize: 22, fontFamily: FONTS.bodySemiBold, color: '#A77349', letterSpacing: 1.5 },
   codeCopy: { fontSize: 11, color: COLORS.textLight, marginTop: 6, fontFamily: FONTS.bodySemiBold },
 
+  // v9 canonical CTA — rect variant
   primaryBtn: {
     marginTop: 16,
-    backgroundColor: COLORS.rust, borderRadius: 14,
+    backgroundColor: '#C07840', borderRadius: 14,
     paddingHorizontal: 28, paddingVertical: 14,
     minWidth: 240, alignItems: 'center',
+    shadowColor: '#945A41', shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.24, shadowRadius: 10, elevation: 3,
   },
-  primaryBtnText: { color: '#FFF', fontSize: 15, fontFamily: FONTS.bodySemiBold, letterSpacing: 0.3 },
+  primaryBtnText: { color: '#FDFBF6', fontSize: 15, fontFamily: FONTS.bodySemiBold, letterSpacing: 0.3 },
 
   secondaryBtn: {
     marginTop: 24,
     paddingHorizontal: 20, paddingVertical: 10,
   },
-  secondaryBtnText: { color: COLORS.rust, fontSize: 14, fontFamily: FONTS.bodySemiBold },
+  secondaryBtnText: { color: '#C07840', fontSize: 14, fontFamily: FONTS.bodySemiBold },
 
   disclosure: {
     fontSize: 11, color: COLORS.textLight, marginTop: 24,
@@ -208,6 +216,6 @@ const styles = StyleSheet.create({
   },
 
   errorEmoji: { fontSize: 44, marginBottom: 8 },
-  errorTitle: { fontSize: 17, fontFamily: FONTS.bodySemiBold, color: COLORS.brownDeep, marginTop: 4 },
-  errorBody: { fontSize: 13, color: COLORS.textMid, marginTop: 4, textAlign: 'center' },
+  errorTitle: { fontSize: 17, fontFamily: FONTS.bodySemiBold, color: COLORS.bark, marginTop: 4 },
+  errorBody: { fontSize: 13, color: COLORS.barkSoft, marginTop: 4, textAlign: 'center' },
 });

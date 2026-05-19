@@ -38,7 +38,7 @@ type Step = 1 | 2 | 3;
 const ACKS: { id: string; text: string }[] = [
   {
     id: 'not_verified',
-    text: 'I understand The Village does not test, screen, or guarantee the safety of donor milk.',
+    text: 'I understand Villie does not test, screen, or guarantee the safety of donor milk.',
   },
   {
     id: 'pediatrician',
@@ -148,9 +148,9 @@ export function LegalDisclosureModal({
                 contaminants, or prescription and illegal drugs.
               </Text>
 
-              <Text style={styles.sectionTitle}>The Village is a platform, not a milk bank</Text>
+              <Text style={styles.sectionTitle}>Villie is a platform, not a milk bank</Text>
               <Text style={styles.para}>
-                The Village does not test, pasteurize, screen, store, ship, or otherwise handle
+                Villie does not test, pasteurize, screen, store, ship, or otherwise handle
                 any breast milk. We connect willing donors and recipients who choose to share
                 milk informally. We do not verify a donor's health status, medications, diet,
                 storage practices, or milk quality.
@@ -169,13 +169,13 @@ export function LegalDisclosureModal({
               <Text style={styles.para}>
                 Badges (Basic / Verified / Verified + Bloodwork) indicate only that the donor has
                 submitted the stated documentation. They are not a certification of safety,
-                health, or suitability by The Village or any medical professional.
+                health, or suitability by Villie or any medical professional.
               </Text>
 
               <Text style={styles.sectionTitle}>Emergencies</Text>
               <Text style={styles.para}>
                 If your baby shows signs of illness after consuming donor milk, stop feeding
-                immediately and contact your pediatrician or call 911. The Village is not a
+                immediately and contact your pediatrician or call 911. Villie is not a
                 medical or emergency service.
               </Text>
 
@@ -239,7 +239,7 @@ export function LegalDisclosureModal({
                 accessibilityState={{ disabled: !allAcksChecked || submitting }}
               >
                 {submitting
-                  ? <ActivityIndicator color={COLORS.white} />
+                  ? <ActivityIndicator color={COLORS.paper} />
                   : <Text style={styles.ctaLabel}>Accept and continue</Text>}
               </TouchableOpacity>
             </View>
@@ -265,33 +265,33 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20, paddingTop: 56, paddingBottom: 16,
     borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.06)',
   },
-  stepLabel: { fontSize: 13, color: COLORS.textMid, fontFamily: FONTS.bodyMedium, letterSpacing: 0.5 },
-  close: { fontSize: 22, color: COLORS.textMid },
+  stepLabel: { fontSize: 13, color: COLORS.barkSoft, fontFamily: FONTS.bodyMedium, letterSpacing: 0.5 },
+  close: { fontSize: 22, color: COLORS.barkSoft },
   body: { flex: 1 },
   bodyContent: { padding: 20, paddingBottom: 40 },
-  headline: { fontSize: 26, fontFamily: FONTS.bodySemiBold, color: COLORS.brownDeep, marginBottom: 8 },
-  subhead: { fontSize: 15, color: COLORS.textMid, marginBottom: 24, lineHeight: 22 },
-  sectionTitle: { fontSize: 16, fontFamily: FONTS.bodySemiBold, color: COLORS.brownDeep, marginTop: 20, marginBottom: 6 },
-  para: { fontSize: 14, color: COLORS.textDark, lineHeight: 21 },
+  headline: { fontSize: 26, fontFamily: FONTS.bodySemiBold, color: COLORS.bark, marginBottom: 8 },
+  subhead: { fontSize: 15, color: COLORS.barkSoft, marginBottom: 24, lineHeight: 22 },
+  sectionTitle: { fontSize: 16, fontFamily: FONTS.bodySemiBold, color: COLORS.bark, marginTop: 20, marginBottom: 6 },
+  para: { fontSize: 14, color: COLORS.bark, lineHeight: 21 },
   scrollCueBox: {
     marginTop: 32, padding: 16, borderRadius: 10,
     backgroundColor: 'rgba(184,92,56,0.08)', borderWidth: 1, borderColor: 'rgba(184,92,56,0.25)',
   },
-  scrollCue: { fontSize: 13, color: COLORS.rustDark, textAlign: 'center' },
+  scrollCue: { fontSize: 13, color: COLORS.cocoDeep, textAlign: 'center' },
   ackRow: {
     flexDirection: 'row', alignItems: 'flex-start',
     padding: 16, marginBottom: 12, borderRadius: 12,
-    borderWidth: 1.5, borderColor: 'rgba(0,0,0,0.1)',
-    backgroundColor: COLORS.cardBg,
+    borderWidth: 1.5, borderColor: 'rgba(150,80,50,0.18)',
+    backgroundColor: COLORS.paper,
   },
-  ackRowActive: { borderColor: COLORS.olive, backgroundColor: 'rgba(92,107,58,0.06)' },
+  ackRowActive: { borderColor: COLORS.sage, backgroundColor: 'rgba(92,107,58,0.06)' },
   checkbox: {
     width: 24, height: 24, borderRadius: 6, borderWidth: 2, borderColor: COLORS.textLight,
     marginRight: 12, alignItems: 'center', justifyContent: 'center',
   },
-  checkboxChecked: { backgroundColor: COLORS.olive, borderColor: COLORS.olive },
-  checkmark: { color: COLORS.white, fontSize: 16, fontFamily: FONTS.bodySemiBold },
-  ackText: { flex: 1, fontSize: 14, color: COLORS.textDark, lineHeight: 21 },
+  checkboxChecked: { backgroundColor: COLORS.sage, borderColor: COLORS.sage },
+  checkmark: { color: COLORS.paper, fontSize: 16, fontFamily: FONTS.bodySemiBold },
+  ackText: { flex: 1, fontSize: 14, color: COLORS.bark, lineHeight: 21 },
   error: { color: '#B3261E', fontSize: 13, marginTop: 8 },
   footer: {
     flexDirection: 'row', gap: 10,
@@ -299,25 +299,25 @@ const styles = StyleSheet.create({
     borderTopWidth: 1, borderTopColor: 'rgba(0,0,0,0.06)', backgroundColor: COLORS.cream,
   },
   cta: {
-    backgroundColor: COLORS.yolkLight, paddingVertical: 16, paddingHorizontal: 24,
+    backgroundColor: COLORS.sandSoft, paddingVertical: 16, paddingHorizontal: 24,
     borderRadius: 999, alignItems: 'center', justifyContent: 'center', flex: 1,
   },
   ctaFlex: { flex: 1 },
   ctaDisabled: { backgroundColor: COLORS.textLight, opacity: 0.7 },
-  ctaLabel: { color: COLORS.brownDeep, fontSize: 16, fontFamily: FONTS.bodySemiBold },
+  ctaLabel: { color: COLORS.bark, fontSize: 16, fontFamily: FONTS.bodySemiBold },
   back: {
     paddingVertical: 16, paddingHorizontal: 20, borderRadius: 12,
     borderWidth: 1, borderColor: COLORS.textLight, alignItems: 'center', justifyContent: 'center',
   },
-  backLabel: { color: COLORS.textMid, fontSize: 15, fontFamily: FONTS.bodyMedium },
+  backLabel: { color: COLORS.barkSoft, fontSize: 15, fontFamily: FONTS.bodyMedium },
   successWrap: {
     flex: 1, alignItems: 'center', justifyContent: 'center', padding: 40,
   },
   successIcon: {
-    fontSize: 52, color: COLORS.white, backgroundColor: COLORS.olive,
+    fontSize: 52, color: COLORS.paper, backgroundColor: COLORS.sage,
     width: 96, height: 96, borderRadius: 48, textAlign: 'center', lineHeight: 96,
     marginBottom: 20,
   },
-  successTitle: { fontSize: 22, fontFamily: FONTS.bodySemiBold, color: COLORS.brownDeep, marginBottom: 6 },
-  successBody: { fontSize: 15, color: COLORS.textMid, textAlign: 'center' },
+  successTitle: { fontSize: 22, fontFamily: FONTS.bodySemiBold, color: COLORS.bark, marginBottom: 6 },
+  successBody: { fontSize: 15, color: COLORS.barkSoft, textAlign: 'center' },
 });

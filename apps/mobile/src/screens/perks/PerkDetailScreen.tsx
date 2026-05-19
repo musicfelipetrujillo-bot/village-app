@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { COLORS, FONTS } from '@utils/constants';
+import { V9PageBackdrop } from '@components/shared/V9PageBackdrop';
 import {
   perksApi,
   categoryLabel,
@@ -40,7 +41,7 @@ export default function PerkDetailScreen() {
   if (loading) {
     return (
       <View style={[styles.container, { justifyContent: 'center' }]}>
-        <ActivityIndicator color={COLORS.rust} />
+        <ActivityIndicator color="#C07840" />
       </View>
     );
   }
@@ -61,6 +62,7 @@ export default function PerkDetailScreen() {
 
   return (
     <View style={styles.container}>
+      <V9PageBackdrop />
       <Header onBack={() => navigation.goBack()} t={t} />
 
       <ScrollView contentContainerStyle={{ paddingBottom: 120 }}>
@@ -144,64 +146,72 @@ function MetaRow({ label, value }: { label: string; value: string }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.cream },
+  container: { flex: 1, backgroundColor: 'transparent' },
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingTop: 56, paddingBottom: 12, paddingHorizontal: 16,
-    backgroundColor: '#FFF',
+    backgroundColor: COLORS.paper,
     borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.06)',
   },
-  back: { fontSize: 15, color: COLORS.rust, fontFamily: FONTS.bodySemiBold },
-  headerTitle: { fontSize: 16, fontFamily: FONTS.bodySemiBold, color: COLORS.brownDeep },
+  back: { fontSize: 15, color: '#C07840', fontFamily: FONTS.bodySemiBold },
+  headerTitle: { fontSize: 16, fontFamily: FONTS.bodySemiBold, color: COLORS.bark },
 
-  heroBlock: { padding: 20, backgroundColor: '#FFF' },
+  heroBlock: { padding: 20, backgroundColor: COLORS.paper },
   badgeRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  categoryBadge: { fontSize: 10, fontFamily: FONTS.bodySemiBold, letterSpacing: 1.2, color: COLORS.olive },
+  categoryBadge: { fontSize: 10, fontFamily: FONTS.bodySemiBold, letterSpacing: 1.2, color: COLORS.sage },
   partnerBadge: {
-    fontSize: 10, fontFamily: FONTS.bodySemiBold, letterSpacing: 0.8, color: COLORS.gold,
+    fontSize: 10, fontFamily: FONTS.bodySemiBold, letterSpacing: 0.8, color: COLORS.sand,
     backgroundColor: 'rgba(196,163,90,0.15)', borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2,
   },
-  brandName: { fontSize: 14, fontFamily: FONTS.bodySemiBold, color: COLORS.textMid, marginTop: 10 },
-  title: { fontSize: 24, fontFamily: FONTS.bodySemiBold, color: COLORS.brownDeep, marginTop: 4, lineHeight: 30 },
+  brandName: { fontSize: 14, fontFamily: FONTS.bodySemiBold, color: COLORS.barkSoft, marginTop: 10 },
+  title: { fontSize: 26, fontFamily: FONTS.headerBold, color: COLORS.bark, marginTop: 4, lineHeight: 32, letterSpacing: -0.4 },
   offerBanner: {
     marginTop: 14, alignSelf: 'flex-start',
-    fontSize: 14, fontFamily: FONTS.bodySemiBold, color: '#FFF',
-    backgroundColor: COLORS.rust, borderRadius: 10,
+    fontSize: 14, fontFamily: FONTS.bodySemiBold, color: '#FDFBF6',
+    backgroundColor: '#C07840', borderRadius: 10,
     paddingHorizontal: 12, paddingVertical: 6,
   },
 
   body: { padding: 20 },
-  shortDesc: { fontSize: 15, fontFamily: FONTS.bodySemiBold, color: COLORS.brownDeep, lineHeight: 22 },
-  longDesc: { fontSize: 14, color: COLORS.textMid, lineHeight: 22, marginTop: 10 },
+  shortDesc: { fontSize: 15, fontFamily: FONTS.bodySemiBold, color: COLORS.bark, lineHeight: 22 },
+  longDesc: { fontSize: 14, color: COLORS.barkSoft, lineHeight: 22, marginTop: 10 },
 
   disclosureBlock: {
     marginTop: 20, padding: 12, borderRadius: 10,
     backgroundColor: 'rgba(196,163,90,0.08)',
     borderWidth: 1, borderColor: 'rgba(196,163,90,0.3)',
   },
-  disclosureLabel: { fontSize: 10, fontFamily: FONTS.bodySemiBold, letterSpacing: 1, color: COLORS.gold, marginBottom: 4 },
-  disclosureBody: { fontSize: 12, color: COLORS.textMid, lineHeight: 17 },
+  disclosureLabel: { fontSize: 10, fontFamily: FONTS.bodySemiBold, letterSpacing: 1, color: COLORS.sand, marginBottom: 4 },
+  disclosureBody: { fontSize: 12, color: COLORS.barkSoft, lineHeight: 17 },
 
-  metaBlock: { marginTop: 20, backgroundColor: '#FFF', borderRadius: 12, padding: 14 },
+  metaBlock: {
+    marginTop: 20, backgroundColor: COLORS.paper, borderRadius: 12, padding: 14,
+    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(150, 80, 50, 0.18)',
+    shadowColor: '#6B2E0E', shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.18, shadowRadius: 18, elevation: 5,
+  },
   metaRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 6 },
   metaLabel: { fontSize: 12, fontFamily: FONTS.bodySemiBold, color: COLORS.textLight, textTransform: 'uppercase', letterSpacing: 0.5 },
-  metaValue: { fontSize: 13, color: COLORS.brownDeep, fontFamily: FONTS.bodyMedium, flexShrink: 1, textAlign: 'right', marginLeft: 12 },
+  metaValue: { fontSize: 13, color: COLORS.bark, fontFamily: FONTS.bodyMedium, flexShrink: 1, textAlign: 'right', marginLeft: 12 },
 
-  termsLink: { fontSize: 13, color: COLORS.rust, fontFamily: FONTS.bodySemiBold, marginTop: 16 },
+  termsLink: { fontSize: 13, color: '#C07840', fontFamily: FONTS.bodySemiBold, marginTop: 16 },
 
   footer: {
     position: 'absolute', left: 0, right: 0, bottom: 0,
     padding: 16, paddingBottom: 28,
-    backgroundColor: '#FFF',
+    backgroundColor: COLORS.paper,
     borderTopWidth: 1, borderTopColor: 'rgba(0,0,0,0.06)',
   },
+  // v9 canonical CTA
   cta: {
-    backgroundColor: COLORS.yolkLight, borderRadius: 999,
+    backgroundColor: '#C07840', borderRadius: 999,
     paddingVertical: 15, alignItems: 'center',
+    shadowColor: '#945A41', shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.24, shadowRadius: 10, elevation: 3,
   },
-  ctaText: { color: COLORS.brownDeep, fontSize: 15, fontFamily: FONTS.bodySemiBold, letterSpacing: 0.3 },
+  ctaText: { color: '#FDFBF6', fontSize: 15, fontFamily: FONTS.bodySemiBold, letterSpacing: 0.3 },
 
   emptyWrap: { alignItems: 'center', paddingVertical: 80 },
-  emptyTitle: { fontSize: 17, fontFamily: FONTS.bodySemiBold, color: COLORS.brownDeep, marginBottom: 4 },
+  emptyTitle: { fontSize: 17, fontFamily: FONTS.bodySemiBold, color: COLORS.bark, marginBottom: 4 },
   emptyBody: { fontSize: 13, color: COLORS.textLight },
 });

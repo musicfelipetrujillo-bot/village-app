@@ -8,7 +8,7 @@
 //
 // Scope is narrower than OnboardingProfileScreen because:
 //   1) OnboardingProfile lives in AuthStack (unreachable while signed in),
-//   2) it's a wizard w/ hard "Enter The Village →" finish semantics that don't
+//   2) it's a wizard w/ hard "Enter Villie →" finish semantics that don't
 //      map to an edit flow, and
 //   3) we only need the *mutable* fields here — email + avatar belong to auth
 //      and are edited elsewhere (deferred).
@@ -23,6 +23,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useUserStore } from '@store/user';
 import { supabase } from '@/lib/supabase';
 import { COLORS, FONTS, PREGNANCY_STAGES } from '@utils/constants';
+import { V9PageBackdrop } from '@components/shared/V9PageBackdrop';
 import { formatZipInput, isPlausibleZip } from '@utils/zip';
 import { useT } from '@/i18n';
 import type { MeStackParamList } from '@/navigation/MeNavigator';
@@ -86,7 +87,7 @@ export default function EditProfileScreen({ navigation }: Props) {
     return (
       <SafeAreaView style={s.safe}>
         <View style={s.centerMsg}>
-          <ActivityIndicator color={COLORS.rust} />
+          <ActivityIndicator color="#C07840" />
           <Text style={s.emptyText}>{t('editProfile.loadingProfile')}</Text>
         </View>
       </SafeAreaView>
@@ -263,6 +264,7 @@ function EditProfileForm({
 
   return (
     <SafeAreaView style={s.safe}>
+      <V9PageBackdrop />
       <View style={s.topBar}>
         <TouchableOpacity
           onPress={handleCancel}
@@ -280,7 +282,7 @@ function EditProfileForm({
           accessibilityState={{ disabled: !dirty || saving }}
         >
           {saving ? (
-            <ActivityIndicator color={COLORS.rust} />
+            <ActivityIndicator color="#C07840" />
           ) : (
             <Text style={[s.topLink, s.topLinkPrimary, (!dirty) && s.topLinkDisabled]}>{t('editProfile.topSave')}</Text>
           )}
@@ -308,7 +310,7 @@ function EditProfileForm({
             )}
             {avatarUploading ? (
               <View style={s.avatarOverlay}>
-                <ActivityIndicator color="#FFF" />
+                <ActivityIndicator color="#FDFBF6" />
               </View>
             ) : (
               <View style={s.avatarBadge}>
@@ -394,7 +396,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 }
 
 const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: COLORS.cream },
+  safe: { flex: 1, backgroundColor: 'transparent' },
   centerMsg: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12 },
 
   topBar: {
@@ -410,14 +412,14 @@ const s = StyleSheet.create({
   topTitle: {
     fontFamily: FONTS.headerBold,
     fontSize: 16,
-    color: COLORS.textDark,
+    color: COLORS.bark,
   },
   topLink: {
     fontFamily: FONTS.bodySemiBold,
     fontSize: 14,
-    color: COLORS.textMid,
+    color: COLORS.barkSoft,
   },
-  topLinkPrimary: { color: COLORS.rust },
+  topLinkPrimary: { color: COLORS.coco },
   topLinkDisabled: { opacity: 0.4 },
 
   content: { padding: 20, paddingBottom: 48, gap: 20 },
@@ -425,24 +427,24 @@ const s = StyleSheet.create({
   fieldLabel: {
     fontFamily: FONTS.bodySemiBold,
     fontSize: 13,
-    color: COLORS.textMid,
+    color: COLORS.barkSoft,
   },
   input: {
-    backgroundColor: COLORS.cardBg,
+    backgroundColor: COLORS.paper,
     borderRadius: 12,
     paddingHorizontal: 14,
     paddingVertical: 12,
     fontFamily: FONTS.body,
     fontSize: 15,
-    color: COLORS.textDark,
+    color: COLORS.bark,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'rgba(0,0,0,0.08)',
+    borderColor: 'rgba(150,80,50,0.18)',
   },
-  inputError: { borderWidth: 1.5, borderColor: COLORS.rust },
+  inputError: { borderWidth: 1.5, borderColor: '#B22A2A' },           // form error = red (matches Auth screens)
   errText: {
     fontFamily: FONTS.body,
     fontSize: 12,
-    color: COLORS.rust,
+    color: '#A77349',
     marginTop: 6,
   },
 
@@ -452,19 +454,19 @@ const s = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 12,
     borderWidth: 1.5,
-    borderColor: 'rgba(0,0,0,0.08)',
-    backgroundColor: COLORS.cardBg,
+    borderColor: 'rgba(150,80,50,0.18)',
+    backgroundColor: COLORS.paper,
   },
   stageChipActive: {
-    borderColor: COLORS.rust,
-    backgroundColor: 'rgba(184,92,56,0.08)',
+    borderColor: '#C07840',                                            // v9 active = cinnamon
+    backgroundColor: 'rgba(192,120,64,0.08)',
   },
   stageChipText: {
     fontFamily: FONTS.bodySemiBold,
     fontSize: 14,
-    color: COLORS.textDark,
+    color: COLORS.bark,
   },
-  stageChipTextActive: { color: COLORS.rustDark },
+  stageChipTextActive: { color: '#3D1F0E' },                           // cocoa ink on cinnamon-tint pill
 
   helper: {
     fontFamily: FONTS.body,
@@ -476,47 +478,50 @@ const s = StyleSheet.create({
   emptyText: {
     fontFamily: FONTS.body,
     fontSize: 13,
-    color: COLORS.textMid,
+    color: COLORS.barkSoft,
   },
 
   errorTitle: {
     fontFamily: FONTS.headerBold,
     fontSize: 16,
-    color: COLORS.textDark,
+    color: COLORS.bark,
     marginBottom: 6,
   },
   errorBody: {
     fontFamily: FONTS.body,
     fontSize: 13,
-    color: COLORS.textMid,
+    color: COLORS.barkSoft,
     textAlign: 'center',
     paddingHorizontal: 32,
     marginBottom: 16,
   },
+  // v9 canonical CTA — cinnamon + action-deep shadow.
   retryBtn: {
-    backgroundColor: COLORS.rust,
+    backgroundColor: '#C07840',
     paddingHorizontal: 28,
     paddingVertical: 12,
     borderRadius: 999,
+    shadowColor: '#945A41', shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.24, shadowRadius: 10, elevation: 3,
   },
   retryBtnText: {
     fontFamily: FONTS.bodySemiBold,
     fontSize: 14,
-    color: COLORS.white,
+    color: COLORS.paper,
   },
 
   avatarBlock: { alignItems: 'center', gap: 8, marginBottom: 8 },
   avatarTouch: { position: 'relative' },
   avatarImg: { width: 96, height: 96, borderRadius: 48, backgroundColor: COLORS.cream },
   avatarFallback: {
-    backgroundColor: COLORS.rust,
+    backgroundColor: COLORS.coco,
     alignItems: 'center',
     justifyContent: 'center',
   },
   avatarFallbackText: {
     fontFamily: FONTS.headerBold,
     fontSize: 36,
-    color: '#FFF',
+    color: '#FDFBF6',
   },
   avatarOverlay: {
     position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
@@ -524,14 +529,15 @@ const s = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.45)',
     alignItems: 'center', justifyContent: 'center',
   },
+  // Edit-pencil affordance — cinnamon = action.
   avatarBadge: {
     position: 'absolute', right: 0, bottom: 0,
     width: 30, height: 30, borderRadius: 15,
-    backgroundColor: COLORS.rust,
+    backgroundColor: '#C07840',
     alignItems: 'center', justifyContent: 'center',
     borderWidth: 2, borderColor: COLORS.cream,
   },
-  avatarBadgeText: { color: '#FFF', fontSize: 14, fontFamily: FONTS.bodySemiBold },
+  avatarBadgeText: { color: '#FDFBF6', fontSize: 14, fontFamily: FONTS.bodySemiBold },
   avatarHint: {
     fontFamily: FONTS.body,
     fontSize: 12,

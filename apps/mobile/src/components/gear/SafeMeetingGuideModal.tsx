@@ -70,7 +70,7 @@ export default function SafeMeetingGuideModal({
 
           <Text style={styles.headline}>Meeting a stranger from the internet</Text>
           <Text style={styles.subhead}>
-            The Village does not verify sellers, items, or transactions. Please read
+            Villie does not verify sellers, items, or transactions. Please read
             this guide before you message. Scroll to the bottom to continue.
           </Text>
 
@@ -101,7 +101,7 @@ export default function SafeMeetingGuideModal({
 
           <Text style={styles.sectionTitle}>Cash or P2P only</Text>
           <Text style={styles.para}>
-            The Village does not process payments. Pay in cash, or via a peer
+            Villie does not process payments. Pay in cash, or via a peer
             payment app (Venmo / Zelle / Apple Cash) at the time of pickup. Never
             wire money in advance, and never share bank-account, SSN, or card
             details with a seller.
@@ -119,7 +119,7 @@ export default function SafeMeetingGuideModal({
             • Leave the meeting immediately and call 911 if you feel unsafe.{'\n'}
             • Tap &ldquo;Report this listing&rdquo; from the listing page — we review flagged
             listings within 24 hours.{'\n'}
-            • The Village is a platform, not a party to the transaction. We will
+            • Villie is a platform, not a party to the transaction. We will
             cooperate with law enforcement on valid requests.
           </Text>
 
@@ -141,7 +141,7 @@ export default function SafeMeetingGuideModal({
             accessibilityState={{ disabled: !hasScrolledToEnd || submitting }}
           >
             {submitting ? (
-              <ActivityIndicator color="#FFF" />
+              <ActivityIndicator color="#FDFBF6" />
             ) : (
               <Text style={styles.ctaLabel}>
                 {hasScrolledToEnd ? 'I understand — start messaging' : 'Scroll to the bottom'}
@@ -161,8 +161,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20, paddingTop: 56, paddingBottom: 16,
     borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.06)',
   },
-  stepLabel: { fontSize: 13, color: COLORS.textMid, fontFamily: FONTS.bodySemiBold, letterSpacing: 0.4 },
-  close: { fontSize: 22, color: COLORS.textMid },
+  stepLabel: { fontSize: 13, color: COLORS.barkSoft, fontFamily: FONTS.bodySemiBold, letterSpacing: 0.4 },
+  close: { fontSize: 22, color: COLORS.barkSoft },
 
   body: { flex: 1 },
   bodyContent: { padding: 20, paddingBottom: 40 },
@@ -170,25 +170,25 @@ const styles = StyleSheet.create({
   iconCircle: {
     width: 64, height: 64, borderRadius: 32,
     backgroundColor: 'rgba(92,107,58,0.12)',
-    borderWidth: 2, borderColor: COLORS.olive,
+    borderWidth: 2, borderColor: COLORS.sage,
     alignItems: 'center', justifyContent: 'center',
     alignSelf: 'center', marginBottom: 16,
   },
   iconText: { fontSize: 30 },
 
-  headline: { fontSize: 24, fontFamily: FONTS.bodySemiBold, color: COLORS.brownDeep, textAlign: 'center', marginBottom: 8 },
-  subhead: { fontSize: 14, color: COLORS.textMid, textAlign: 'center', marginBottom: 20, lineHeight: 21, fontFamily: FONTS.body },
+  headline: { fontSize: 24, fontFamily: FONTS.bodySemiBold, color: COLORS.bark, textAlign: 'center', marginBottom: 8 },
+  subhead: { fontSize: 14, color: COLORS.barkSoft, textAlign: 'center', marginBottom: 20, lineHeight: 21, fontFamily: FONTS.body },
 
-  sectionTitle: { fontSize: 15, fontFamily: FONTS.bodySemiBold, color: COLORS.brownDeep, marginTop: 18, marginBottom: 6 },
-  para: { fontSize: 14, color: COLORS.textDark, lineHeight: 21, fontFamily: FONTS.body },
-  linkInline: { color: COLORS.rust, fontFamily: FONTS.bodySemiBold },
+  sectionTitle: { fontSize: 15, fontFamily: FONTS.bodySemiBold, color: COLORS.bark, marginTop: 18, marginBottom: 6 },
+  para: { fontSize: 14, color: COLORS.bark, lineHeight: 21, fontFamily: FONTS.body },
+  linkInline: { color: COLORS.coco, fontFamily: FONTS.bodySemiBold },
 
   scrollCueBox: {
-    marginTop: 28, padding: 14, borderRadius: 10,
+    marginTop: 28, padding: 16, borderRadius: 10,
     backgroundColor: 'rgba(184,92,56,0.08)',
     borderWidth: 1, borderColor: 'rgba(184,92,56,0.25)',
   },
-  scrollCue: { fontSize: 13, color: COLORS.rustDark, textAlign: 'center', fontFamily: FONTS.body },
+  scrollCue: { fontSize: 13, color: COLORS.cocoDeep, textAlign: 'center', fontFamily: FONTS.body },
 
   footer: {
     padding: 16, paddingBottom: 28,
@@ -196,9 +196,9 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.cream,
   },
   cta: {
-    backgroundColor: COLORS.yolkLight, paddingVertical: 15, borderRadius: 999,
+    backgroundColor: COLORS.sandSoft, paddingVertical: 15, borderRadius: 999,
     alignItems: 'center', justifyContent: 'center',
   },
   ctaDisabled: { backgroundColor: COLORS.textLight, opacity: 0.6 },
-  ctaLabel: { color: COLORS.brownDeep, fontSize: 15, fontFamily: FONTS.bodySemiBold, letterSpacing: 0.3 },
+  ctaLabel: { color: COLORS.bark, fontSize: 15, fontFamily: FONTS.bodySemiBold, letterSpacing: 0.3 },
 });

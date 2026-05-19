@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { COLORS, FONTS } from '@utils/constants';
+import { V9PageBackdrop } from '@components/shared/V9PageBackdrop';
 import { useT } from '@/i18n';
 import { useAuthStore } from '@store/auth';
 import { useExpertsStore } from '@store/experts';
@@ -47,6 +48,7 @@ export default function FavoritesScreen({ navigation }: Props) {
 
   return (
     <View style={styles.container}>
+      <V9PageBackdrop />
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
@@ -58,7 +60,7 @@ export default function FavoritesScreen({ navigation }: Props) {
 
       {loading ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={COLORS.rust} />
+          <ActivityIndicator color="#C07840" />
         </View>
       ) : (
         <FlatList
@@ -93,7 +95,7 @@ export default function FavoritesScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.cream },
+  container: { flex: 1, backgroundColor: 'transparent' },
 
   header: {
     paddingHorizontal: 20,
@@ -104,11 +106,11 @@ const styles = StyleSheet.create({
     borderBottomColor: 'rgba(0,0,0,0.06)',
   },
   backBtn: { marginBottom: 10 },
-  backText: { fontSize: 15, color: COLORS.rust, fontFamily: FONTS.bodyMedium },
+  backText: { fontSize: 15, color: '#C07840', fontFamily: FONTS.bodyMedium },
   title: {
     fontFamily: FONTS.headerItalic,
     fontSize: 28,
-    color: COLORS.textDark,
+    color: COLORS.bark,
   },
   subtitle: { fontSize: 14, color: COLORS.textLight, marginTop: 2, fontFamily: FONTS.body },
 
@@ -118,13 +120,13 @@ const styles = StyleSheet.create({
 
   empty: { alignItems: 'center', paddingTop: 80, paddingHorizontal: 32 },
   emptyEmoji: { fontSize: 52, marginBottom: 16 },
-  emptyTitle: { fontSize: 18, fontFamily: FONTS.bodySemiBold, color: COLORS.textDark, marginBottom: 8, textAlign: 'center' },
+  emptyTitle: { fontSize: 18, fontFamily: FONTS.bodySemiBold, color: COLORS.bark, marginBottom: 8, textAlign: 'center' },
   emptyText: { fontSize: 14, color: COLORS.textLight, textAlign: 'center', lineHeight: 20, marginBottom: 24, fontFamily: FONTS.body },
   browseBtn: {
-    backgroundColor: COLORS.rust,
+    backgroundColor: '#C07840',
     borderRadius: 12,
     paddingVertical: 13,
     paddingHorizontal: 28,
   },
-  browseBtnText: { color: 'white', fontSize: 15, fontFamily: FONTS.bodySemiBold },
+  browseBtnText: { color: '#FDFBF6', fontSize: 15, fontFamily: FONTS.bodySemiBold },
 });

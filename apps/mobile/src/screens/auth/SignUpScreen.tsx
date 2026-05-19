@@ -3,13 +3,15 @@ import {
   View, Text, StyleSheet, TextInput, TouchableOpacity,
   ScrollView, KeyboardAvoidingView, Platform, ActivityIndicator, Alert, Image,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { COLORS, FONTS } from '@utils/constants';
+import { confirm } from '@utils/haptics';
 import { authService } from '@/lib/auth';
 import type { AuthStackParamList } from '@/navigation/AuthStack';
 import { useT } from '@/i18n';
 
-const WORDMARK = require('../../../assets/brand/the-village-wordmark.png');
+const WORDMARK = require('../../../assets/brand/villie-wordmark-v2.png');
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'SignUp'>;
 
@@ -37,8 +39,13 @@ function scorePassword(pw: string): Strength {
     3: 'signUp.strengthStrong',
     4: 'signUp.strengthVeryStrong',
   } as const;
-  // Olive-ish progression so colors track brand palette.
-  const colors = { 1: '#D87530', 2: '#C4A35A', 3: '#7A8A50', 4: '#5C6B3A' } as const;
+  // Warm progression using brand tokens: alert → sand → sage → sageDeep.
+  const colors = {
+    1: COLORS.statusAlert,
+    2: COLORS.sand,
+    3: COLORS.sage,
+    4: COLORS.sageDeep,
+  } as const;
   return { score, labelKey: labelKeys[score], color: colors[score] };
 }
 
@@ -55,6 +62,7 @@ export default function SignUpScreen({ navigation, route }: Props) {
   const strengthLabel = t(strength.labelKey);
 
   const handleSignUp = async () => {
+    confirm();
     if (!fullName.trim() || !email.trim() || !password.trim()) {
       Alert.alert(t('signUp.errMissingFields'));
       return;
@@ -83,6 +91,16 @@ export default function SignUpScreen({ navigation, route }: Props) {
       style={{ flex: 1 }}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
+      {/* v9 page wash — paper U-shape matching Login + Home + Manual + Me */}
+      <LinearGradient
+        colors={[
+          '#FDF1EB', '#FDF8F4', '#FCFCFB',
+          '#FCFCFB', '#FCF6EF', '#F9E9DD', '#F5DFD3',
+        ]}
+        locations={[0, 0.12, 0.30, 0.62, 0.76, 0.90, 1]}
+        style={StyleSheet.absoluteFill}
+        pointerEvents="none"
+      />
       <ScrollView
         style={styles.container}
         contentContainerStyle={styles.content}
@@ -92,7 +110,7 @@ export default function SignUpScreen({ navigation, route }: Props) {
           source={WORDMARK}
           style={styles.wordmark}
           resizeMode="contain"
-          accessibilityLabel="The Village"
+          accessibilityLabel="villie"
         />
         <Text style={styles.title}>{t('signUp.title')}</Text>
         <Text style={styles.sub}>{t('signUp.sub')}</Text>
@@ -186,7 +204,7 @@ export default function SignUpScreen({ navigation, route }: Props) {
             accessibilityState={{ disabled: loading, busy: loading }}
           >
             {loading ? (
-              <ActivityIndicator color="white" />
+              <ActivityIndicator color="#FDFBF6" />
             ) : (
               <Text style={styles.btnText}>{t('signUp.cta')}</Text>
             )}
@@ -208,36 +226,45 @@ export default function SignUpScreen({ navigation, route }: Props) {
   );
 }
 
+// ─── v2 brand (villie · May 2026) ──────────────────────────────────────
+// Mirrors LoginScreen's v2 styling — Plus Jakarta body, JetBrains Mono
+// uppercase labels, cinnamon password/footer links, cinnamon CTA. The
+// inputError border uses persimmon-ish red for clarity (not cinnamon —
+// errors need a distinct signal).
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.cream },
+  // bg removed — v9 LinearGradient backdrop renders behind.
+  container: { flex: 1, backgroundColor: 'transparent' },
   content: { padding: 28, paddingTop: 60, flexGrow: 1 },
 
-  wordmark: { width: 200, height: 84, marginBottom: 16, alignSelf: 'flex-start' },
+  wordmark: { width: 150, height: 95, marginBottom: 12, marginLeft: -4, alignSelf: 'flex-start' },
 
   title: {
-    fontFamily: FONTS.headerItalic,
+    fontFamily: FONTS.v2_display,
     fontSize: 32,
-    color: COLORS.textDark,
+    color: COLORS.v2_cocoa,
+    letterSpacing: -0.6,
+    lineHeight: 36,
     marginBottom: 6,
   },
-  sub: { fontSize: 14, color: COLORS.textLight, marginBottom: 32, fontFamily: FONTS.body },
+  sub: { fontSize: 14, color: COLORS.v2_walnut, marginBottom: 32, fontFamily: FONTS.v2_body, lineHeight: 20 },
 
   form: { gap: 16 },
   inputGroup: { gap: 6 },
-  label: { fontSize: 13, fontFamily: FONTS.bodyMedium, color: COLORS.textMid },
+  label: { fontSize: 12, fontFamily: FONTS.v2_label, color: COLORS.v2_amber, letterSpacing: 0.8, textTransform: 'uppercase' },
   input: {
-    backgroundColor: 'white',
+    backgroundColor: COLORS.v2_card,
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 14,
     fontSize: 15,
-    color: COLORS.textDark,
-    borderWidth: 1.5,
-    borderColor: 'rgba(0,0,0,0.08)',
-    fontFamily: FONTS.body,
+    color: COLORS.v2_cocoa,
+    borderWidth: 1,
+    borderColor: 'rgba(61,31,14,0.12)',
+    fontFamily: FONTS.v2_body,
   },
-  inputError: { borderColor: COLORS.rust },
-  inputHint: { fontSize: 12, color: COLORS.rust, marginTop: 4, fontFamily: FONTS.body },
+  // Error border — persimmon-tone red (distinct from cinnamon action color)
+  inputError: { borderColor: '#B22A2A', borderWidth: 1.5 },
+  inputHint: { fontSize: 12, color: '#8B2A2A', marginTop: 4, fontFamily: FONTS.v2_body },
 
   passwordRow: { position: 'relative' },
   passwordInput: { paddingRight: 64 },
@@ -246,7 +273,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center', paddingHorizontal: 10,
   },
   passwordToggleText: {
-    fontSize: 13, color: COLORS.rust, fontFamily: FONTS.bodySemiBold,
+    fontSize: 12, color: COLORS.v2_cinnamon, fontFamily: FONTS.v2_link,
+    textTransform: 'uppercase', letterSpacing: 0.4,
   },
 
   strengthRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 8 },
@@ -255,29 +283,37 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 4,
     borderRadius: 2,
-    backgroundColor: 'rgba(0,0,0,0.08)',
+    backgroundColor: 'rgba(61,31,14,0.10)',
   },
-  strengthLabel: { fontSize: 11, fontFamily: FONTS.bodySemiBold, minWidth: 80, textAlign: 'right' },
+  strengthLabel: { fontSize: 10, fontFamily: FONTS.v2_mono, color: COLORS.v2_amber, letterSpacing: 0.6, minWidth: 80, textAlign: 'right', textTransform: 'uppercase' },
 
+  // Primary CTA — cinnamon (the one spark)
+  // v9 canonical CTA — action-deep (WCAG AA on paper text)
   btn: {
-    backgroundColor: COLORS.yolkLight,
+    backgroundColor: '#C07840',
     borderRadius: 999,
-    paddingVertical: 16,
+    paddingVertical: 15,
     alignItems: 'center',
     marginTop: 8,
+    shadowColor: '#945A41',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.24,
+    shadowRadius: 10,
+    elevation: 3,
   },
   btnDisabled: { opacity: 0.6 },
-  btnText: { color: COLORS.brownDeep, fontSize: 16, fontFamily: FONTS.bodySemiBold, letterSpacing: 0.3 },
+  btnText: { color: COLORS.v2_card, fontSize: 15, fontFamily: FONTS.v2_link, letterSpacing: 0.3 },
 
   legal: {
     fontSize: 11,
-    color: COLORS.textLight,
+    color: COLORS.v2_walnut,
+    opacity: 0.75,
     textAlign: 'center',
     lineHeight: 16,
-    fontFamily: FONTS.body,
+    fontFamily: FONTS.v2_body,
   },
 
   footer: { flexDirection: 'row', justifyContent: 'center', marginTop: 32 },
-  footerText: { fontSize: 14, color: COLORS.textLight, fontFamily: FONTS.body },
-  footerLink: { fontSize: 14, color: COLORS.rust, fontFamily: FONTS.bodyMedium },
+  footerText: { fontSize: 14, color: COLORS.v2_walnut, fontFamily: FONTS.v2_body },
+  footerLink: { fontSize: 14, color: COLORS.v2_cinnamon, fontFamily: FONTS.v2_link, marginLeft: 4 },
 });

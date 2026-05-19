@@ -3,13 +3,15 @@ import {
   View, Text, StyleSheet, TextInput, TouchableOpacity,
   ScrollView, KeyboardAvoidingView, Platform, ActivityIndicator, Alert, Image,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { COLORS, FONTS } from '@utils/constants';
+import { confirm } from '@utils/haptics';
 import { authService } from '@/lib/auth';
 import type { AuthStackParamList } from '@/navigation/AuthStack';
 import { useT } from '@/i18n';
 
-const WORDMARK = require('../../../assets/brand/the-village-wordmark.png');
+const WORDMARK = require('../../../assets/brand/villie-wordmark-v2.png');
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'Login'>;
 
@@ -21,6 +23,7 @@ export default function LoginScreen({ navigation }: Props) {
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
+    confirm();
     if (!email.trim() || !password.trim()) {
       Alert.alert(t('login.errMissingFields'));
       return;
@@ -41,6 +44,17 @@ export default function LoginScreen({ navigation }: Props) {
       style={{ flex: 1 }}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
+      {/* v9 page wash — same paper U-shape as Home / Manual / Me so the
+          first surface after Splash already speaks the brand's paper voice. */}
+      <LinearGradient
+        colors={[
+          '#FDF1EB', '#FDF8F4', '#FCFCFB',
+          '#FCFCFB', '#FCF6EF', '#F9E9DD', '#F5DFD3',
+        ]}
+        locations={[0, 0.12, 0.30, 0.62, 0.76, 0.90, 1]}
+        style={StyleSheet.absoluteFill}
+        pointerEvents="none"
+      />
       <ScrollView
         style={styles.container}
         contentContainerStyle={styles.content}
@@ -50,7 +64,7 @@ export default function LoginScreen({ navigation }: Props) {
           source={WORDMARK}
           style={styles.wordmark}
           resizeMode="contain"
-          accessibilityLabel="The Village"
+          accessibilityLabel="villie"
         />
         <Text style={styles.title}>{t('login.title')}</Text>
         <Text style={styles.sub}>{t('login.sub')}</Text>
@@ -112,7 +126,7 @@ export default function LoginScreen({ navigation }: Props) {
             accessibilityState={{ disabled: loading, busy: loading }}
           >
             {loading ? (
-              <ActivityIndicator color="white" />
+              <ActivityIndicator color="#FDFBF6" />
             ) : (
               <Text style={styles.btnText}>{t('login.cta')}</Text>
             )}
@@ -130,33 +144,44 @@ export default function LoginScreen({ navigation }: Props) {
   );
 }
 
+// ─── v2 brand (villie · May 2026) ──────────────────────────────────────
+// Page v2_cream, title Playfair roman 700 cocoa (no italic — "less italic,
+// more presence"), body Plus Jakarta walnut, inputs on v2_card, password
+// toggle + forgot + footer link in cinnamon (inline link affordance), CTA
+// cinnamon (the one spark per screen).
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.cream },
+  // bg removed — v9 LinearGradient backdrop renders behind. `transparent`
+  // lets the gradient bleed through the ScrollView.
+  container: { flex: 1, backgroundColor: 'transparent' },
   content: { padding: 28, paddingTop: 60, flexGrow: 1 },
 
-  wordmark: { width: 200, height: 84, marginBottom: 16, alignSelf: 'flex-start' },
+  // Stacked logo content is 1028×647 (≈1.59:1) after cream strip + tight
+  // crop. 150×95 keeps the auth header tight while preserving aspect.
+  wordmark: { width: 150, height: 105, marginBottom: 12, marginLeft: -4, alignSelf: 'flex-start' },
 
   title: {
-    fontFamily: FONTS.headerItalic,
+    fontFamily: FONTS.v2_display,
     fontSize: 32,
-    color: COLORS.textDark,
+    color: COLORS.v2_cocoa,
+    letterSpacing: -0.6,
+    lineHeight: 36,
     marginBottom: 6,
   },
-  sub: { fontSize: 14, color: COLORS.textLight, marginBottom: 32, fontFamily: FONTS.body },
+  sub: { fontSize: 14, color: COLORS.v2_walnut, marginBottom: 32, fontFamily: FONTS.v2_body, lineHeight: 20 },
 
   form: { gap: 16 },
   inputGroup: { gap: 6 },
-  label: { fontSize: 13, fontFamily: FONTS.bodyMedium, color: COLORS.textMid },
+  label: { fontSize: 12, fontFamily: FONTS.v2_label, color: COLORS.v2_amber, letterSpacing: 0.8, textTransform: 'uppercase' },
   input: {
-    backgroundColor: 'white',
+    backgroundColor: COLORS.v2_card,
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 14,
     fontSize: 15,
-    color: COLORS.textDark,
-    borderWidth: 1.5,
-    borderColor: 'rgba(0,0,0,0.08)',
-    fontFamily: FONTS.body,
+    color: COLORS.v2_cocoa,
+    borderWidth: 1,
+    borderColor: 'rgba(61,31,14,0.12)',
+    fontFamily: FONTS.v2_body,
   },
 
   passwordRow: { position: 'relative' },
@@ -166,28 +191,36 @@ const styles = StyleSheet.create({
     justifyContent: 'center', paddingHorizontal: 10,
   },
   passwordToggleText: {
-    fontSize: 13, color: COLORS.rust, fontFamily: FONTS.bodySemiBold,
+    fontSize: 12, color: COLORS.v2_cinnamon, fontFamily: FONTS.v2_link,
+    textTransform: 'uppercase', letterSpacing: 0.4,
   },
 
   forgotLink: {
     fontSize: 13,
-    color: COLORS.rust,
-    fontFamily: FONTS.bodyMedium,
+    color: COLORS.v2_cinnamon,
+    fontFamily: FONTS.v2_link,
     textAlign: 'right',
     marginTop: -4,
   },
 
+  // v9 canonical CTA — action-deep (WCAG AA 5.56:1 on paper text;
+  // cinnamon #C07840 fails AA at normal text size).
   btn: {
-    backgroundColor: COLORS.yolkLight,
+    backgroundColor: '#C07840',
     borderRadius: 999,
-    paddingVertical: 16,
+    paddingVertical: 15,
     alignItems: 'center',
     marginTop: 8,
+    shadowColor: '#945A41',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.24,
+    shadowRadius: 10,
+    elevation: 3,
   },
   btnDisabled: { opacity: 0.6 },
-  btnText: { color: COLORS.brownDeep, fontSize: 16, fontFamily: FONTS.bodySemiBold, letterSpacing: 0.3 },
+  btnText: { color: COLORS.v2_card, fontSize: 15, fontFamily: FONTS.v2_link, letterSpacing: 0.3 },
 
   footer: { flexDirection: 'row', justifyContent: 'center', marginTop: 32 },
-  footerText: { fontSize: 14, color: COLORS.textLight, fontFamily: FONTS.body },
-  footerLink: { fontSize: 14, color: COLORS.rust, fontFamily: FONTS.bodyMedium },
+  footerText: { fontSize: 14, color: COLORS.v2_walnut, fontFamily: FONTS.v2_body },
+  footerLink: { fontSize: 14, color: COLORS.v2_cinnamon, fontFamily: FONTS.v2_link, marginLeft: 4 },
 });

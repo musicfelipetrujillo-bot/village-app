@@ -89,7 +89,7 @@ export default function AIHelpChatScreen() {
       <View>
         <View style={[styles.bubbleRow, mine ? styles.bubbleRowMine : styles.bubbleRowTheirs]}>
           <View style={[styles.bubble, mine ? styles.bubbleMine : styles.bubbleTheirs]}>
-            <Text style={[styles.bubbleText, mine && { color: '#FFF' }]}>{item.content}</Text>
+            <Text style={[styles.bubbleText, mine && { color: '#FDFBF6' }]}>{item.content}</Text>
           </View>
         </View>
         {item.crisisResources && (
@@ -134,7 +134,7 @@ export default function AIHelpChatScreen() {
 
       {sending && (
         <View style={styles.typingRow}>
-          <ActivityIndicator color={COLORS.rust} size="small" />
+          <ActivityIndicator color="#C07840" size="small" />
           <Text style={styles.typingText}>{t('help.typing')}</Text>
         </View>
       )}
@@ -169,12 +169,12 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingTop: 56, paddingBottom: 12, paddingHorizontal: 16,
-    backgroundColor: '#FFF',
+    backgroundColor: COLORS.paper,
     borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.06)',
   },
-  close: { fontSize: 15, color: COLORS.rust, fontFamily: FONTS.bodyMedium },
+  close: { fontSize: 15, color: '#A77349', fontFamily: FONTS.bodyMedium },
   headerTitleWrap: { flex: 1, alignItems: 'center' },
-  titleHeader: { fontSize: 18, fontFamily: FONTS.bodySemiBold, color: COLORS.brownDeep },
+  titleHeader: { fontSize: 18, fontFamily: FONTS.bodySemiBold, color: COLORS.bark },
   subtitle: { fontSize: 11, color: COLORS.textLight, marginTop: 2, letterSpacing: 0.5, fontFamily: FONTS.body },
 
   listContent: { paddingHorizontal: 12, paddingTop: 12, paddingBottom: 12, gap: 6 },
@@ -182,18 +182,19 @@ const styles = StyleSheet.create({
   bubbleRowMine: { justifyContent: 'flex-end' },
   bubbleRowTheirs: { justifyContent: 'flex-start' },
   bubble: { maxWidth: '82%', paddingHorizontal: 14, paddingVertical: 10, borderRadius: 18 },
-  bubbleMine: { backgroundColor: COLORS.rust, borderBottomRightRadius: 4 },
-  bubbleTheirs: { backgroundColor: '#FFF', borderBottomLeftRadius: 4 },
-  bubbleText: { fontSize: 15, color: COLORS.brownDeep, lineHeight: 20, fontFamily: FONTS.body },
+  // v9 walnut bubble (kit canon, WCAG 7.4:1 with paper text).
+  bubbleMine: { backgroundColor: '#7A4A28', borderBottomRightRadius: 4 },
+  bubbleTheirs: { backgroundColor: COLORS.paper, borderBottomLeftRadius: 4 },
+  bubbleText: { fontSize: 15, color: COLORS.bark, lineHeight: 20, fontFamily: FONTS.body },
 
   crisisCard: {
     marginTop: 6, marginHorizontal: 8, padding: 12, borderRadius: 12,
-    backgroundColor: '#FFF7F2', borderWidth: 1, borderColor: COLORS.rustLight,
+    backgroundColor: '#FFF7F2', borderWidth: 1, borderColor: COLORS.cocoSoft,
   },
-  crisisTitle: { fontSize: 12, fontFamily: FONTS.bodySemiBold, color: COLORS.rustDark, letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 8 },
+  crisisTitle: { fontSize: 12, fontFamily: FONTS.bodySemiBold, color: '#A77349', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 8 },
   crisisRow: { paddingVertical: 6 },
-  crisisName: { fontSize: 15, fontFamily: FONTS.bodySemiBold, color: COLORS.brownDeep },
-  crisisDesc: { fontSize: 13, color: COLORS.textMid, marginTop: 2, fontFamily: FONTS.body },
+  crisisName: { fontSize: 15, fontFamily: FONTS.bodySemiBold, color: COLORS.bark },
+  crisisDesc: { fontSize: 13, color: COLORS.barkSoft, marginTop: 2, fontFamily: FONTS.body },
 
   typingRow: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 20, paddingBottom: 6 },
   typingText: { fontSize: 12, color: COLORS.textLight, fontStyle: 'italic', fontFamily: FONTS.body },
@@ -201,19 +202,19 @@ const styles = StyleSheet.create({
   composer: {
     flexDirection: 'row', alignItems: 'flex-end', gap: 8,
     paddingHorizontal: 12, paddingVertical: 10, paddingBottom: 28,
-    backgroundColor: '#FFF',
+    backgroundColor: COLORS.paper,
     borderTopWidth: 1, borderTopColor: 'rgba(0,0,0,0.06)',
   },
   input: {
     flex: 1, maxHeight: 120,
     backgroundColor: COLORS.cream, borderRadius: 22,
-    paddingHorizontal: 16, paddingVertical: 10, fontSize: 15, color: COLORS.brownDeep,
+    paddingHorizontal: 16, paddingVertical: 10, fontSize: 15, color: COLORS.bark,
     fontFamily: FONTS.body,
   },
   sendBtn: {
     width: 44, height: 44, borderRadius: 22,
-    backgroundColor: COLORS.rust, alignItems: 'center', justifyContent: 'center',
+    backgroundColor: '#C07840', alignItems: 'center', justifyContent: 'center',
   },
   sendBtnDisabled: { opacity: 0.4 },
-  sendBtnText: { color: '#FFF', fontSize: 22, fontFamily: FONTS.bodySemiBold },
+  sendBtnText: { color: '#FDFBF6', fontSize: 22, fontFamily: FONTS.bodySemiBold },
 });

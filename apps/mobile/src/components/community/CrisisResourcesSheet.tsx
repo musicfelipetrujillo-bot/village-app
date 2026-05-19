@@ -12,7 +12,7 @@ import {
   Modal, View, Text, TouchableOpacity, StyleSheet, Linking, Platform, Alert,
 } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
-import { FONTS } from '@utils/constants';
+import { COLORS, FONTS } from '@utils/constants';
 import { useT } from '@/i18n';
 
 interface Props {
@@ -40,7 +40,7 @@ const RESOURCES: Resource[] = [
     title: '988 Suicide & Crisis Lifeline',
     subtitleKey: 'crisis.subtitle988',
     action: { type: 'tel', value: '988' },
-    accent: '#D87530',
+    accent: COLORS.coco,
   },
   {
     title: 'Crisis Text Line',
@@ -58,7 +58,7 @@ const RESOURCES: Resource[] = [
     title: '911 — Emergency',
     subtitleKey: 'crisis.subtitle911',
     action: { type: 'tel', value: '911' },
-    accent: '#9A4A2B',
+    accent: '#C07840',  // v9 cinnamon — emergency action color per brand kit
   },
 ];
 
@@ -134,7 +134,7 @@ export default function CrisisResourcesSheet({ visible, onClose, lead }: Props) 
             return (
               <TouchableOpacity
                 key={i}
-                style={[styles.card, { borderLeftColor: r.accent }]}
+                style={[styles.card, { borderColor: r.accent }]}
                 onPress={() => open(r.action)}
                 onLongPress={() => copy(r.action, r.title)}
                 delayLongPress={400}
@@ -180,7 +180,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   sheet: {
-    backgroundColor: '#FDFAF5',
+    backgroundColor: '#FDFBF6',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     paddingHorizontal: 20,
@@ -210,10 +210,14 @@ const styles = StyleSheet.create({
     marginBottom: 18,
     lineHeight: 20,
   },
+  // v9: side-stripe was a v9 absolute ban — rewritten as a 1.5px full border
+  // in the same per-resource accent color (988=coco, Crisis Text=sage-deep,
+  // PSI=butter, 911=cinnamon). Border color is overridden inline per item.
   card: {
-    backgroundColor: 'white',
+    backgroundColor: COLORS.paper,
     borderRadius: 12,
-    borderLeftWidth: 4,
+    borderWidth: 1.5,
+    borderColor: 'rgba(150,80,50,0.18)', // inline accent override per resource
     padding: 16,
     marginBottom: 10,
     minHeight: 64, // larger tap target — motor control may be impaired in crisis
@@ -249,6 +253,6 @@ const styles = StyleSheet.create({
   closeText: {
     fontSize: 14,
     fontFamily: FONTS.bodySemiBold,
-    color: '#D87530',
+    color: COLORS.coco,
   },
 });

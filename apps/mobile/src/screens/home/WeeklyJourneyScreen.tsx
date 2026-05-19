@@ -1,20 +1,24 @@
 // V4 Phase B — Weekly Journey screen.
 // Mom-focused weekly content lane: maternal insights + village supports +
-// interactive checklist. See docs/PHASE_B_WEEKLY_JOURNEY_PROPOSAL.md.
+// interactive checklist.
 //
-// Why this exists alongside MilestoneDetail:
-//   • MilestoneDetail = baby-focused — what's happening developmentally for
-//     the baby this week (sourced from milestone_library, V4 Phase G1).
-//   • WeeklyJourney   = mom-focused — recovery, emotional, sleep,
-//     relationships, identity for the postpartum mom (sourced from
-//     maternal_insights + village_supports + week_checklists, Phase B).
-// HomeScreen's HeroWeekCard now routes to WeeklyJourney; the BabyThisWeek and
-// "You / Village" small cards continue to deep-link into MilestoneDetail.
-import React, { useCallback, useEffect, useState } from 'react';
+// Layout (2026-05-02 redesign — direction "B"):
+//   • Slim hero: eyebrow + Playfair italic week numeral + tagline + thin
+//     progress bar (week / 52, capped). No more big emoji photo lane —
+//     the screen pacing now does the work that the hero used to.
+//   • Segmented control with counts under the hero: About you · Village ·
+//     To-dos. Telegraphs scope in one glance ("oh, three small things").
+//   • About you / Village → horizontal snap carousel, one card per swipe.
+//     Each card shows category eyebrow + emoji token + title + 3-line
+//     teaser; "Read more" expands the full body inline. Crisis insights
+//     keep the rust-tinted footer; supports keep the olive CTA pill.
+//   • To-dos → 2-col tile grid. Essential tiles get a rust border + chip.
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator,
-  RefreshControl, Alert,
+  RefreshControl, Alert, Dimensions,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import { COLORS, FONTS } from '@utils/constants';
 import { useT } from '@/i18n';
@@ -30,12 +34,13 @@ import {
   type ChecklistItem,
 } from '@api/weekly-journey';
 import CrisisResourcesSheet from '@components/community/CrisisResourcesSheet';
+import {
+  YolkCircle,
+  ScribbleMark,
+} from '@components/shared/DecorativeMarks';
 
 type ParamList = { WeeklyJourney: { week?: number } };
 
-// village_supports.cta_target uses lowercase tab keys for editability in
-// Studio. Map to the actual react-navigation Tab.Screen names registered in
-// AppNavigator.
 const TAB_KEY_MAP: Record<string, string> = {
   home:      'Home',
   milk:      'Milk',
@@ -45,6 +50,10 @@ const TAB_KEY_MAP: Record<string, string> = {
   me:        'Me',
 };
 
+type Segment = 'aboutYou' | 'village' | 'todos';
+
+const SCREEN_W = Dimensions.get('window').width;
+
 export default function WeeklyJourneyScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute<RouteProp<ParamList, 'WeeklyJourney'>>();
@@ -52,8 +61,6 @@ export default function WeeklyJourneyScreen() {
   const lang = useUserStore((s) => s.profile?.preferred_language ?? 'en') as 'en' | 'es';
   const babyProfile = useHomeStore((s) => s.babyProfile);
 
-  // Resolve the target week: explicit param wins, else fall back to the
-  // baby's current postpartum week (clamped 1..104), else 1 for cold-launch.
   const week = Math.min(
     104,
     Math.max(1, route.params?.week ?? babyProfile?.current_week_number ?? 1),
@@ -64,10 +71,9 @@ export default function WeeklyJourneyScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [crisisOpen, setCrisisOpen] = useState(false);
   const [crisisLead, setCrisisLead] = useState<string | undefined>(undefined);
-  // Optimistic state for checklist toggles. Keyed by item id; reflects the
-  // intended `completed` value while the server write is in flight, reverted
-  // on error.
   const [pendingTicks, setPendingTicks] = useState<Record<string, boolean>>({});
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const [segment, setSegment] = useState<Segment>('aboutYou');
 
   const load = useCallback(async () => {
     try {
@@ -96,14 +102,10 @@ export default function WeeklyJourneyScreen() {
     const next = !currentlyCompleted;
     setPendingTicks((p) => ({ ...p, [item.id]: next }));
     try {
-      if (next) {
-        await weeklyJourneyApi.markChecklistComplete(item.id);
-      } else {
-        await weeklyJourneyApi.unmarkChecklistComplete(item.id);
-      }
+      if (next) await weeklyJourneyApi.markChecklistComplete(item.id);
+      else await weeklyJourneyApi.unmarkChecklistComplete(item.id);
     } catch (e) {
       console.error('checklist toggle', e);
-      // Revert on error.
       setPendingTicks((p) => ({ ...p, [item.id]: currentlyCompleted }));
       Alert.alert(t('weeklyJourney.toggleErrorTitle'), t('weeklyJourney.toggleErrorBody'));
     }
@@ -113,30 +115,20 @@ export default function WeeklyJourneyScreen() {
     const parsed = parseCtaTarget(target);
     if (!parsed) return;
     const tabName = TAB_KEY_MAP[parsed.tab];
-    if (!tabName) {
-      console.warn('weekly-journey: unknown cta tab', parsed.tab);
-      return;
-    }
-    // Tab navigator lives one level above HomeNavigator. Hop up via
-    // getParent() to switch tabs, then drill into the target screen.
+    if (!tabName) return;
     const tabNav = navigation.getParent?.();
     if (!tabNav) return;
     if (!parsed.route) {
       tabNav.navigate(tabName);
       return;
     }
-    // Per-tab mapping for the optional third segment. Each entry knows the
-    // param key its target screen reads. Add new tabs here as deeplinks land.
     let params: Record<string, unknown> | undefined;
     if (parsed.param) {
       switch (parsed.tab) {
         case 'experts':
-          // ExpertsHomeScreen reads `specialty` and pre-selects the chip.
           params = { specialty: parsed.param };
           break;
         default:
-          // Unknown tab/route combo with a param — pass through as `param`
-          // so target screens can opt into reading it without us guessing.
           params = { param: parsed.param };
       }
     }
@@ -148,18 +140,24 @@ export default function WeeklyJourneyScreen() {
     setCrisisOpen(true);
   }, []);
 
+  const insights = useMemo(() => payload?.maternal_insights ?? [], [payload]);
+  const supports = useMemo(() => payload?.village_supports   ?? [], [payload]);
+  const checklists = useMemo(() => payload?.checklists       ?? [], [payload]);
+  const isEmpty = insights.length === 0 && supports.length === 0 && checklists.length === 0;
+  const completedCount = checklists.reduce((n, ci) => n + ((pendingTicks[ci.id] ?? ci.completed) ? 1 : 0), 0);
+
+  // Progress fraction for the hairline bar — first 52 weeks are the heavy
+  // content window for postpartum, so use that as the denominator and cap
+  // at 1.0 for weeks 53–104 (still meaningful, just maxed out visually).
+  const progressFrac = Math.min(1, week / 52);
+
   if (loading && !payload) {
     return (
       <View style={[styles.container, styles.center]}>
-        <ActivityIndicator color={COLORS.rust} />
+        <ActivityIndicator color="#C07840" />
       </View>
     );
   }
-
-  const insights = payload?.maternal_insights ?? [];
-  const supports = payload?.village_supports ?? [];
-  const checklists = payload?.checklists ?? [];
-  const isEmpty = insights.length === 0 && supports.length === 0 && checklists.length === 0;
 
   return (
     <View style={styles.container}>
@@ -177,115 +175,219 @@ export default function WeeklyJourneyScreen() {
 
       <ScrollView
         contentContainerStyle={styles.content}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.rust} />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.coco} />}
       >
-        {/* Hero — rust-on-cream Playfair italic week numeral, mom-focused tagline. */}
-        <View style={styles.hero}>
-          <View style={styles.heroTextCol}>
+        {/* Editorial hero card. Paper-tinted card with marks contained inside
+            so the screen leads with a real "magazine cover" beat instead of
+            floating text on cream. Yolk highlight sits behind the Playfair
+            week numeral; leaf sprig anchors the top-right; a hairline rule
+            separates the week numeral from the tagline (editorial divider
+            pattern). All marks pointer-events:none so taps fall through. */}
+        <View style={styles.heroOuter}>
+          <View style={styles.heroCard}>
+            {/* v9 paper-leaning hero wash — cream→blush, softer than the
+                old golden→blush so the week hero sits on the page. */}
+            <LinearGradient
+              colors={['#FCF6EF', '#F8EDE0', '#F2DDD0']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={StyleSheet.absoluteFill}
+              pointerEvents="none"
+            />
+            <YolkCircle size={120} top={26} left={-26} opacity={0.55} />
+
             <Text style={styles.heroEyebrow}>{t('weeklyJourney.heroEyebrow')}</Text>
             <Text style={styles.heroWeekText}>{t('weeklyJourney.heroWeekFmt', { week })}</Text>
+
+            <View style={styles.heroDivider} />
+
             <Text style={styles.heroTagline}>{t('weeklyJourney.heroTagline')}</Text>
-          </View>
-          <View style={styles.heroPhotoLane}>
-            <Text style={styles.heroEmoji}>🌗</Text>
+
+            <View style={styles.progressTrack}>
+              <View style={[styles.progressFill, { width: `${progressFrac * 100}%` }]} />
+            </View>
+            <Text style={styles.progressLabel}>
+              {t('weeklyJourney.progressLabel', { week, total: 52 })}
+            </Text>
           </View>
         </View>
 
         {isEmpty && (
           <View style={styles.empty}>
+            <YolkCircle size={120} top={20} left={SCREEN_W / 2 - 60} opacity={0.45} />
             <Text style={styles.emptyEmoji}>🌱</Text>
             <Text style={styles.emptyTitle}>{t('weeklyJourney.emptyTitle')}</Text>
             <Text style={styles.emptyBody}>{t('weeklyJourney.emptyBody', { week })}</Text>
           </View>
         )}
 
-        {/* Section 1 — About you this week */}
-        {insights.length > 0 && (
+        {!isEmpty && (
           <>
-            <Text style={styles.sectionTitle}>{t('weeklyJourney.aboutYouTitle')}</Text>
-            {insights.map((mi) => (
-              <View key={mi.id} style={styles.insightCard}>
-                <View style={styles.cardHeaderRow}>
-                  <Text style={styles.cardCategory}>{insightCategoryLabel(mi.category, lang)}</Text>
-                  {mi.hero_emoji && <Text style={styles.cardEmoji}>{mi.hero_emoji}</Text>}
-                </View>
-                <Text style={styles.cardTitle}>{mi.title}</Text>
-                <Text style={styles.cardBody}>{mi.body}</Text>
-                {mi.requires_crisis_footer && (
-                  <TouchableOpacity
-                    style={styles.crisisFooter}
-                    onPress={() => openCrisis(t('weeklyJourney.crisisLead'))}
-                    accessibilityRole="button"
-                    accessibilityLabel={t('weeklyJourney.crisisFooterA11y')}
-                  >
-                    <Text style={styles.crisisFooterText}>
-                      {t('weeklyJourney.crisisFooterCta')}
-                    </Text>
-                  </TouchableOpacity>
-                )}
-              </View>
-            ))}
-          </>
-        )}
+            {/* Segmented control */}
+            <View style={styles.segmentRow}>
+              <SegmentPill
+                label={t('weeklyJourney.segAboutYou')}
+                count={insights.length}
+                active={segment === 'aboutYou'}
+                onPress={() => setSegment('aboutYou')}
+              />
+              <SegmentPill
+                label={t('weeklyJourney.segVillage')}
+                count={supports.length}
+                active={segment === 'village'}
+                onPress={() => setSegment('village')}
+              />
+              <SegmentPill
+                label={t('weeklyJourney.segTodos')}
+                count={checklists.length}
+                badge={checklists.length > 0 ? `${completedCount}/${checklists.length}` : undefined}
+                active={segment === 'todos'}
+                onPress={() => setSegment('todos')}
+              />
+            </View>
 
-        {/* Section 2 — Your village */}
-        {supports.length > 0 && (
-          <>
-            <Text style={styles.sectionTitle}>{t('weeklyJourney.yourVillageTitle')}</Text>
-            {supports.map((vs) => (
-              <View key={vs.id} style={styles.supportCard}>
-                <View style={styles.cardHeaderRow}>
-                  <Text style={styles.cardCategory}>{supportTypeLabel(vs.support_type, lang)}</Text>
-                  {vs.hero_emoji && <Text style={styles.cardEmoji}>{vs.hero_emoji}</Text>}
-                </View>
-                <Text style={styles.cardTitle}>{vs.title}</Text>
-                <Text style={styles.cardBody}>{vs.body}</Text>
-                {vs.cta_label && vs.cta_target && (
-                  <TouchableOpacity
-                    style={styles.supportCta}
-                    onPress={() => dispatchCta(vs.cta_target)}
-                    accessibilityRole="button"
-                    accessibilityLabel={vs.cta_label}
-                  >
-                    <Text style={styles.supportCtaText}>{vs.cta_label} →</Text>
-                  </TouchableOpacity>
-                )}
+            {/* About you stack */}
+            {segment === 'aboutYou' && insights.length > 0 && (
+              <View style={styles.stack}>
+                {insights.map((mi) => {
+                  const isOpen = !!expanded[mi.id];
+                  const longBody = (mi.body?.length ?? 0) > 120;
+                  return (
+                    <View key={mi.id} style={styles.stackCard}>
+                      <Text style={styles.cardCategory}>{insightCategoryLabel(mi.category, lang)}</Text>
+                      <Text style={styles.stackCardTitle}>{mi.title}</Text>
+                      <Text
+                        style={styles.stackCardBody}
+                        numberOfLines={isOpen ? undefined : 3}
+                      >
+                        {mi.body}
+                      </Text>
+                      {longBody && (
+                        <TouchableOpacity
+                          onPress={() => setExpanded((p) => ({ ...p, [mi.id]: !isOpen }))}
+                          accessibilityRole="button"
+                          accessibilityLabel={isOpen ? t('weeklyJourney.readLess') : t('weeklyJourney.readMore')}
+                        >
+                          <Text style={styles.readMoreText}>
+                            {isOpen ? t('weeklyJourney.readLess') : t('weeklyJourney.readMore')}
+                          </Text>
+                        </TouchableOpacity>
+                      )}
+                      {mi.requires_crisis_footer && (
+                        <TouchableOpacity
+                          style={styles.crisisFooter}
+                          onPress={() => openCrisis(t('weeklyJourney.crisisLead'))}
+                          accessibilityRole="button"
+                          accessibilityLabel={t('weeklyJourney.crisisFooterA11y')}
+                        >
+                          <Text style={styles.crisisFooterText}>
+                            {t('weeklyJourney.crisisFooterCta')}
+                          </Text>
+                        </TouchableOpacity>
+                      )}
+                    </View>
+                  );
+                })}
               </View>
-            ))}
-          </>
-        )}
+            )}
 
-        {/* Section 3 — This week's checklist */}
-        {checklists.length > 0 && (
-          <>
-            <Text style={styles.sectionTitle}>{t('weeklyJourney.checklistTitle')}</Text>
-            {checklists.map((ci) => {
-              const completed = pendingTicks[ci.id] ?? ci.completed;
-              return (
-                <TouchableOpacity
-                  key={ci.id}
-                  style={[styles.checklistRow, ci.is_essential && styles.checklistRowEssential]}
-                  onPress={() => toggleChecklist(ci)}
-                  accessibilityRole="checkbox"
-                  accessibilityState={{ checked: completed }}
-                  accessibilityLabel={ci.item_text}
-                  activeOpacity={0.7}
-                >
-                  <View style={[styles.checkbox, completed && styles.checkboxChecked]}>
-                    {completed && <Text style={styles.checkmark}>✓</Text>}
-                  </View>
-                  <View style={styles.checklistTextCol}>
-                    <Text style={styles.checklistCategory}>
-                      {checklistCategoryLabel(ci.category, lang)}
-                      {ci.is_essential && <Text style={styles.essentialDot}>{' · '}{t('weeklyJourney.essential')}</Text>}
-                    </Text>
-                    <Text style={[styles.checklistText, completed && styles.checklistTextDone]}>
-                      {ci.item_text}
-                    </Text>
-                  </View>
-                </TouchableOpacity>
-              );
-            })}
+            {/* Village stack */}
+            {segment === 'village' && supports.length > 0 && (
+              <View style={styles.stack}>
+                {supports.map((vs) => {
+                  const isOpen = !!expanded[vs.id];
+                  const longBody = (vs.body?.length ?? 0) > 120;
+                  return (
+                    <View key={vs.id} style={[styles.stackCard, styles.supportCard]}>
+                      <Text style={styles.cardCategory}>{supportTypeLabel(vs.support_type, lang)}</Text>
+                      <Text style={styles.stackCardTitle}>{vs.title}</Text>
+                      <Text
+                        style={styles.stackCardBody}
+                        numberOfLines={isOpen ? undefined : 3}
+                      >
+                        {vs.body}
+                      </Text>
+                      {longBody && (
+                        <TouchableOpacity
+                          onPress={() => setExpanded((p) => ({ ...p, [vs.id]: !isOpen }))}
+                          accessibilityRole="button"
+                          accessibilityLabel={isOpen ? t('weeklyJourney.readLess') : t('weeklyJourney.readMore')}
+                        >
+                          <Text style={styles.readMoreText}>
+                            {isOpen ? t('weeklyJourney.readLess') : t('weeklyJourney.readMore')}
+                          </Text>
+                        </TouchableOpacity>
+                      )}
+                      {vs.cta_label && vs.cta_target && (
+                        <TouchableOpacity
+                          style={styles.supportCta}
+                          onPress={() => dispatchCta(vs.cta_target)}
+                          accessibilityRole="button"
+                          accessibilityLabel={vs.cta_label}
+                        >
+                          <Text style={styles.supportCtaText}>{vs.cta_label} →</Text>
+                        </TouchableOpacity>
+                      )}
+                    </View>
+                  );
+                })}
+              </View>
+            )}
+
+            {/* To-dos grid */}
+            {segment === 'todos' && checklists.length > 0 && (
+              <View style={styles.todosGrid}>
+                {checklists.map((ci) => {
+                  const completed = pendingTicks[ci.id] ?? ci.completed;
+                  return (
+                    <TouchableOpacity
+                      key={ci.id}
+                      style={[
+                        styles.todoTile,
+                        ci.is_essential && styles.todoTileEssential,
+                        completed && styles.todoTileDone,
+                      ]}
+                      onPress={() => toggleChecklist(ci)}
+                      accessibilityRole="checkbox"
+                      accessibilityState={{ checked: completed }}
+                      accessibilityLabel={ci.item_text}
+                      activeOpacity={0.75}
+                    >
+                      {/* Scribble accent on essential tiles only — completed
+                          tiles drop the mark to read as "settled". */}
+                      {ci.is_essential && !completed && (
+                        <ScribbleMark size={22} bottom={10} right={10} tint={COLORS.coco} />
+                      )}
+                      <View style={styles.todoTileTopRow}>
+                        <Text style={styles.todoCategory}>
+                          {checklistCategoryLabel(ci.category, lang)}
+                        </Text>
+                        <View style={[styles.checkbox, completed && styles.checkboxChecked]}>
+                          {completed && <Text style={styles.checkmark}>✓</Text>}
+                        </View>
+                      </View>
+                      {ci.is_essential && (
+                        <Text style={styles.essentialPill}>{t('weeklyJourney.essential')}</Text>
+                      )}
+                      <Text style={[styles.todoText, completed && styles.todoTextDone]} numberOfLines={4}>
+                        {ci.item_text}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            )}
+
+            {/* Empty-state for an empty segment when other segments have data */}
+            {segment === 'aboutYou' && insights.length === 0 && (
+              <SegmentEmpty t={t} which="aboutYou" />
+            )}
+            {segment === 'village' && supports.length === 0 && (
+              <SegmentEmpty t={t} which="village" />
+            )}
+            {segment === 'todos' && checklists.length === 0 && (
+              <SegmentEmpty t={t} which="todos" />
+            )}
           </>
         )}
 
@@ -310,6 +412,49 @@ export default function WeeklyJourneyScreen() {
   );
 }
 
+function SegmentPill({
+  label, count, badge, active, onPress,
+}: {
+  label: string; count: number; badge?: string; active: boolean; onPress: () => void;
+}) {
+  return (
+    <TouchableOpacity
+      style={[styles.segmentPill, active && styles.segmentPillActive]}
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityState={{ selected: active }}
+      accessibilityLabel={`${label} (${badge ?? count})`}
+      activeOpacity={0.8}
+    >
+      <Text style={[styles.segmentPillText, active && styles.segmentPillTextActive]}>
+        {label}
+      </Text>
+      <View style={[styles.segmentCountChip, active && styles.segmentCountChipActive]}>
+        <Text style={[styles.segmentCountText, active && styles.segmentCountTextActive]}>
+          {badge ?? count}
+        </Text>
+      </View>
+    </TouchableOpacity>
+  );
+}
+
+function SegmentEmpty({
+  t, which,
+}: {
+  t: (k: string, p?: Record<string, any>) => string;
+  which: 'aboutYou' | 'village' | 'todos';
+}) {
+  const key =
+    which === 'aboutYou' ? 'weeklyJourney.segEmptyAboutYou' :
+    which === 'village'  ? 'weeklyJourney.segEmptyVillage'  :
+                           'weeklyJourney.segEmptyTodos';
+  return (
+    <View style={styles.segEmpty}>
+      <Text style={styles.segEmptyText}>{t(key)}</Text>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.cream },
   center: { alignItems: 'center', justifyContent: 'center' },
@@ -317,111 +462,220 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingTop: 56, paddingBottom: 12, paddingHorizontal: 16,
-    backgroundColor: '#FFF',
+    backgroundColor: COLORS.paper,
     borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.06)',
   },
-  headerBack: { fontSize: 15, color: COLORS.rust, fontFamily: FONTS.bodySemiBold },
-  headerTitle: { fontSize: 16, fontFamily: FONTS.bodySemiBold, color: COLORS.brownDeep },
+  headerBack: { fontSize: 15, color: '#C07840', fontFamily: FONTS.bodySemiBold },
+  headerTitle: { fontSize: 16, fontFamily: FONTS.bodySemiBold, color: COLORS.bark },
 
-  // paddingBottom clears the global Villie FAB (56h + 16 offset above the
-  // tab bar = ~72px footprint above the ScrollView's rendered bottom edge).
-  content: { paddingHorizontal: 20, paddingTop: 16, paddingBottom: 100 },
+  // paddingBottom clears the global Villie FAB.
+  content: { paddingTop: 16, paddingBottom: 100 },
 
-  // Hero — mirrors MilestoneDetail's rust-on-cream block, but mom-targeted copy.
-  hero: {
-    backgroundColor: COLORS.rust,
-    borderRadius: 24, padding: 22, marginBottom: 18,
-    flexDirection: 'row',
-    shadowColor: '#D87530',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.18, shadowRadius: 12, elevation: 4,
+  // Editorial hero card — sits inside an outer padded container so the
+  // marks anchor to the card, not the screen edge.
+  heroOuter: { paddingHorizontal: 16, marginBottom: 16 },
+  heroCard: {
+    position: 'relative', overflow: 'hidden',
+    backgroundColor: '#F2E9C4',
+    borderRadius: 10,
+    paddingHorizontal: 22, paddingTop: 22, paddingBottom: 20,
+    borderWidth: 1, borderColor: COLORS.sandSoft,
+    shadowColor: '#6B2E0E', shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.06, shadowRadius: 10, elevation: 2,
   },
-  heroTextCol: { flex: 1, paddingRight: 12 },
-  heroPhotoLane: {
-    width: 92, alignSelf: 'stretch', borderRadius: 18,
-    backgroundColor: 'rgba(255,246,238,0.18)',
-    alignItems: 'center', justifyContent: 'center',
+  heroDivider: {
+    height: 1, backgroundColor: COLORS.sandSoft,
+    marginTop: 4, marginBottom: 14,
   },
-  heroEmoji: { fontSize: 44 },
   heroEyebrow: {
-    fontSize: 11, fontFamily: FONTS.bodySemiBold, letterSpacing: 2,
-    color: 'rgba(255,245,236,0.85)', textTransform: 'uppercase', marginBottom: 6,
+    fontSize: 11, fontFamily: FONTS.bodySemiBold, letterSpacing: 2.4,
+    color: '#A77349', textTransform: 'uppercase', marginBottom: 6,
   },
   heroWeekText: {
-    fontFamily: FONTS.headerItalic, fontSize: 32, color: '#FFF6EE',
-    marginBottom: 10, lineHeight: 38,
+    fontFamily: FONTS.headerItalic, fontSize: 44, color: COLORS.bark,
+    lineHeight: 50, marginBottom: 10,
+    letterSpacing: -0.5,
   },
-  heroTagline: { fontSize: 14, color: '#F8E8DD', lineHeight: 20, fontFamily: FONTS.body },
+  heroTagline: {
+    fontSize: 15, color: COLORS.barkSoft, lineHeight: 22, fontFamily: FONTS.body,
+    marginBottom: 16,
+  },
+  progressTrack: {
+    height: 4, borderRadius: 2,
+    backgroundColor: COLORS.sandSoft,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%', backgroundColor: COLORS.coco, borderRadius: 2,
+  },
+  progressLabel: {
+    fontSize: 11, color: COLORS.textLight, fontFamily: FONTS.bodyMedium,
+    marginTop: 6, letterSpacing: 0.4,
+  },
 
-  empty: { alignItems: 'center', paddingVertical: 40 },
+  empty: { position: 'relative', alignItems: 'center', paddingVertical: 56, paddingHorizontal: 20 },
   emptyEmoji: { fontSize: 44, marginBottom: 12 },
-  emptyTitle: { fontSize: 18, fontFamily: FONTS.bodySemiBold, color: COLORS.brownDeep, marginBottom: 6 },
-  emptyBody: { fontSize: 14, color: COLORS.textMid, fontFamily: FONTS.body, textAlign: 'center', lineHeight: 20, paddingHorizontal: 20 },
+  emptyTitle: { fontSize: 18, fontFamily: FONTS.bodySemiBold, color: COLORS.bark, marginBottom: 6 },
+  emptyBody: { fontSize: 14, color: COLORS.barkSoft, fontFamily: FONTS.body, textAlign: 'center', lineHeight: 20 },
 
-  sectionTitle: {
-    fontFamily: FONTS.headerItalic, fontSize: 22,
-    color: COLORS.brownDeep, marginTop: 14, marginBottom: 10,
+  // Segmented control — Manual-style single track with paper-active pill.
+  // Compact: smaller padding, smaller text, smaller count chip, all 3
+  // share one ceramicDeep track so it reads as a single component.
+  segmentRow: {
+    flexDirection: 'row',
+    backgroundColor: COLORS.sandSoft,
+    borderRadius: 999,
+    padding: 3,
+    marginHorizontal: 20, marginBottom: 16,
   },
+  segmentPill: {
+    flex: 1,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    gap: 5,
+    paddingVertical: 7, paddingHorizontal: 6,
+    borderRadius: 999,
+  },
+  segmentPillActive: {
+    backgroundColor: COLORS.paper,
+    shadowColor: '#6B2E0E', shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06, shadowRadius: 2, elevation: 1,
+  },
+  segmentPillText: {
+    fontSize: 11.5, fontFamily: FONTS.bodySemiBold,
+    color: COLORS.barkSoft, letterSpacing: 0.2,
+  },
+  segmentPillTextActive: { color: COLORS.bark },
+  segmentCountChip: {
+    paddingHorizontal: 6, paddingVertical: 1,
+    borderRadius: 999,
+    backgroundColor: 'rgba(255,255,255,0.55)',
+    minWidth: 18, alignItems: 'center',
+  },
+  segmentCountChipActive: { backgroundColor: COLORS.cream },
+  segmentCountText: { fontSize: 10, fontFamily: FONTS.bodySemiBold, color: COLORS.barkSoft },
+  segmentCountTextActive: { color: COLORS.bark },
 
-  insightCard: {
-    backgroundColor: '#FFF', borderRadius: 16, padding: 16, marginBottom: 10,
+  // Vertical stack + cards
+  stack: { paddingHorizontal: 20, gap: 10 },
+  stackCard: {
+    position: 'relative',
+    overflow: 'hidden', // clip decorative marks that hang past corners
+    backgroundColor: COLORS.paper, borderRadius: 10,
+    padding: 18,
+    shadowColor: '#6B2E0E',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05, shadowRadius: 8, elevation: 1,
   },
-  supportCard: {
-    backgroundColor: '#FFF', borderRadius: 16, padding: 16, marginBottom: 10,
-    borderLeftWidth: 3, borderLeftColor: COLORS.olive,
+  // v9: ex side-stripe → full sage hairline so the support-row card still
+  // reads as "this is the calming/recovery beat" against neighboring cards.
+  supportCard: { borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(96,110,70,0.45)' },
+  stackCardTopRow: {
+    flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 12,
   },
-  cardHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  emojiToken: {
+    width: 40, height: 40, borderRadius: 999,
+    backgroundColor: 'rgba(216,117,48,0.10)',
+    alignItems: 'center', justifyContent: 'center',
+  },
+  emojiTokenOlive: { backgroundColor: 'rgba(142,152,66,0.12)' },
+  emojiTokenText: { fontSize: 22 },
   cardCategory: {
-    fontSize: 11, fontFamily: FONTS.bodySemiBold, letterSpacing: 1.4,
-    color: COLORS.rustDark, textTransform: 'uppercase',
+    fontSize: 11, fontFamily: FONTS.bodySemiBold, letterSpacing: 1.6,
+    color: '#A77349', textTransform: 'uppercase', marginBottom: 10,
   },
-  cardEmoji: { fontSize: 18 },
-  cardTitle: { fontSize: 17, fontFamily: FONTS.bodySemiBold, color: COLORS.brownDeep, marginTop: 6 },
-  cardBody: { fontSize: 14, color: COLORS.textMid, lineHeight: 21, marginTop: 6, fontFamily: FONTS.body },
+  stackCardTitle: {
+    fontSize: 19, fontFamily: FONTS.bodySemiBold, color: COLORS.bark,
+    lineHeight: 25, marginBottom: 8,
+  },
+  stackCardBody: {
+    fontSize: 14, color: COLORS.barkSoft, lineHeight: 21,
+    fontFamily: FONTS.body,
+  },
+  readMoreText: {
+    fontSize: 13, color: '#A77349', fontFamily: FONTS.bodySemiBold,
+    marginTop: 10,
+  },
 
   supportCta: {
     marginTop: 12, alignSelf: 'flex-start',
-    backgroundColor: COLORS.olive, borderRadius: 10,
+    backgroundColor: COLORS.sage, borderRadius: 10,
     paddingHorizontal: 14, paddingVertical: 9,
   },
-  supportCtaText: { fontSize: 13, color: '#FFF', fontFamily: FONTS.bodySemiBold },
+  supportCtaText: { fontSize: 13, color: '#FDFBF6', fontFamily: FONTS.bodySemiBold },
 
   crisisFooter: {
     marginTop: 12,
-    backgroundColor: 'rgba(184,92,56,0.08)',
+    backgroundColor: 'rgba(216,117,48,0.08)',
     borderRadius: 10,
     paddingHorizontal: 14, paddingVertical: 11,
-    borderWidth: 1, borderColor: 'rgba(184,92,56,0.2)',
+    borderWidth: 1, borderColor: 'rgba(216,117,48,0.22)',
   },
-  crisisFooterText: { fontSize: 13, color: COLORS.rustDark, fontFamily: FONTS.bodySemiBold, lineHeight: 18 },
+  crisisFooterText: { fontSize: 13, color: '#C07840', fontFamily: FONTS.bodySemiBold, lineHeight: 18 },
 
-  checklistRow: {
-    flexDirection: 'row', alignItems: 'flex-start',
-    backgroundColor: '#FFF', borderRadius: 14,
-    padding: 14, marginBottom: 8,
+  // To-dos grid
+  todosGrid: {
+    flexDirection: 'row', flexWrap: 'wrap',
+    paddingHorizontal: 16, gap: 8,
   },
-  checklistRowEssential: { borderLeftWidth: 3, borderLeftColor: COLORS.rust },
+  todoTile: {
+    position: 'relative', overflow: 'hidden',
+    width: (SCREEN_W - 16 * 2 - 8) / 2,
+    minHeight: 130,
+    backgroundColor: COLORS.paper, borderRadius: 10,
+    padding: 16,
+    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(150,80,50,0.18)',  // v9 rust hairline
+  },
+  todoTileEssential: {
+    borderColor: '#C07840', borderWidth: 1.5,                                    // active essential = cinnamon
+  },
+  todoTileDone: {
+    backgroundColor: COLORS.cream,
+  },
+  todoTileTopRow: {
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start',
+    marginBottom: 8,
+  },
+  todoCategory: {
+    fontSize: 10, fontFamily: FONTS.bodySemiBold, letterSpacing: 1.2,
+    color: '#A77349', textTransform: 'uppercase', flex: 1, marginRight: 6,
+  },
+  essentialPill: {
+    alignSelf: 'flex-start',
+    fontSize: 9, fontFamily: FONTS.bodySemiBold, letterSpacing: 1,
+    color: '#A77349', textTransform: 'uppercase',
+    paddingHorizontal: 6, paddingVertical: 2,
+    borderRadius: 4,
+    backgroundColor: 'rgba(216,117,48,0.10)',
+    marginBottom: 6,
+  },
   checkbox: {
     width: 22, height: 22, borderRadius: 6,
     borderWidth: 2, borderColor: COLORS.textLight,
-    marginRight: 12, marginTop: 2,
     alignItems: 'center', justifyContent: 'center',
   },
-  checkboxChecked: { backgroundColor: COLORS.rust, borderColor: COLORS.rust },
-  checkmark: { color: '#FFF', fontSize: 14, fontFamily: FONTS.bodySemiBold, lineHeight: 16 },
-  checklistTextCol: { flex: 1 },
-  checklistCategory: {
-    fontSize: 10, fontFamily: FONTS.bodySemiBold, letterSpacing: 1.2,
-    color: COLORS.rustDark, textTransform: 'uppercase', marginBottom: 3,
+  // v9 active state — action-deep
+  checkboxChecked: { backgroundColor: '#C07840', borderColor: '#945A41' },
+  checkmark: { color: '#FDFBF6', fontSize: 14, fontFamily: FONTS.bodySemiBold, lineHeight: 16 },
+  todoText: {
+    fontSize: 13, color: COLORS.bark, lineHeight: 19, fontFamily: FONTS.body,
   },
-  essentialDot: { color: COLORS.rust },
-  checklistText: { fontSize: 14, color: COLORS.brownDeep, lineHeight: 20, fontFamily: FONTS.body },
-  checklistTextDone: { color: COLORS.textLight, textDecorationLine: 'line-through' },
+  todoTextDone: { color: COLORS.textLight, textDecorationLine: 'line-through' },
+
+  // Per-segment empty state (rare — full empty handled at top)
+  segEmpty: {
+    paddingVertical: 32, paddingHorizontal: 28,
+    alignItems: 'center',
+  },
+  segEmptyText: {
+    fontSize: 13, color: COLORS.barkSoft, lineHeight: 19, textAlign: 'center',
+    fontFamily: FONTS.body,
+  },
 
   disclaimer: {
-    marginTop: 22, fontSize: 12, color: COLORS.textLight, lineHeight: 18, textAlign: 'center',
+    marginTop: 22, paddingHorizontal: 24,
+    fontSize: 12, color: COLORS.textLight, lineHeight: 18, textAlign: 'center',
     fontFamily: FONTS.bodyMedium,
   },
   crisisLink: { alignSelf: 'center', marginTop: 14, paddingVertical: 8, paddingHorizontal: 12 },
-  crisisLinkText: { fontSize: 13, color: COLORS.rust, fontFamily: FONTS.bodySemiBold },
+  crisisLinkText: { fontSize: 13, color: '#C07840', fontFamily: FONTS.bodySemiBold },
 });

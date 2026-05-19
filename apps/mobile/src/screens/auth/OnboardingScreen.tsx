@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { COLORS, FONTS } from '@utils/constants';
+import { V9PageBackdrop } from '@components/shared/V9PageBackdrop';
 import type { AuthStackParamList } from '@/navigation/AuthStack';
 import { useT } from '@/i18n';
 import { usePreAuthLanguage } from '@store/preAuthLanguage';
@@ -48,6 +49,7 @@ export default function OnboardingScreen({ navigation }: Props) {
 
   return (
     <View style={styles.container}>
+      <V9PageBackdrop />
       {/* Progress dots */}
       <View
         style={styles.progressRow}
@@ -167,8 +169,13 @@ export default function OnboardingScreen({ navigation }: Props) {
   );
 }
 
+// ─── v2 brand (villie · May 2026) ────────────────────────────────────────
+// Page bg v2_cream, headline Playfair roman 700 cocoa + caramel-italic accent
+// (the one italic per slide), body Plus Jakarta in walnut, CTA cinnamon (the
+// one spark), progress dots cinnamon-active, language option uses cinnamon
+// border for the selected affordance.
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.cream },
+  container: { flex: 1, backgroundColor: 'transparent' },
   progressRow: {
     flexDirection: 'row',
     gap: 6,
@@ -179,11 +186,11 @@ const styles = StyleSheet.create({
   dot: {
     height: 4,
     borderRadius: 2,
-    backgroundColor: 'rgba(0,0,0,0.12)',
+    backgroundColor: 'rgba(61,31,14,0.14)',
     flex: 1,
     maxWidth: 60,
   },
-  dotActive: { backgroundColor: COLORS.rust },
+  dotActive: { backgroundColor: COLORS.v2_cinnamon },
 
   slide: {
     width,
@@ -194,59 +201,70 @@ const styles = StyleSheet.create({
     paddingBottom: 24,
   },
   emoji: { fontSize: 72, marginBottom: 24 },
+  // Playfair roman 700 default (the v2 "less italic, more presence" rule)
   title: {
-    fontFamily: FONTS.header,
+    fontFamily: FONTS.v2_display,
     fontSize: 34,
-    color: COLORS.textDark,
+    color: COLORS.v2_cocoa,
     lineHeight: 40,
+    letterSpacing: -0.6,
     textAlign: 'center',
     marginBottom: 12,
   },
-  titleAccent: { fontFamily: FONTS.headerItalic, color: COLORS.rust },
+  // The one per-slide italic flourish — Playfair italic 600, caramel
+  titleAccent: { fontFamily: FONTS.v2_display_italic, color: COLORS.v2_caramel },
   sub: {
     fontSize: 15,
-    color: COLORS.textLight,
+    color: COLORS.v2_walnut,
     lineHeight: 24,
     textAlign: 'center',
     marginBottom: 32,
     maxWidth: 280,
-    fontFamily: FONTS.body,
+    fontFamily: FONTS.v2_body,
   },
 
+  // v9 canonical CTA — action-deep (WCAG AA-safe on paper text)
   btn: {
     width: '100%',
     maxWidth: 280,
-    backgroundColor: COLORS.rust,
-    borderRadius: 16,
-    paddingVertical: 16,
+    backgroundColor: '#C07840',
+    borderRadius: 999,
+    paddingVertical: 15,
     alignItems: 'center',
     marginBottom: 12,
+    shadowColor: '#945A41',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.24,
+    shadowRadius: 10,
+    elevation: 3,
   },
-  btnText: { color: 'white', fontSize: 16, fontFamily: FONTS.bodySemiBold },
+  btnText: { color: COLORS.v2_card, fontSize: 15, fontFamily: FONTS.v2_link, letterSpacing: 0.2 },
+  // Secondary — text-link style, walnut on hairline border
   btnSecondary: {
     width: '100%',
     maxWidth: 280,
-    borderRadius: 16,
-    borderWidth: 1.5,
-    borderColor: 'rgba(0,0,0,0.1)',
-    paddingVertical: 16,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: 'rgba(61,31,14,0.12)',
+    paddingVertical: 14,
     alignItems: 'center',
   },
-  btnSecondaryText: { color: COLORS.textLight, fontSize: 14, fontFamily: FONTS.body },
+  btnSecondaryText: { color: COLORS.v2_walnut, fontSize: 14, fontFamily: FONTS.v2_link },
 
   langRow: { flexDirection: 'row', gap: 12, marginBottom: 32, width: '100%', maxWidth: 280 },
   langOption: {
     flex: 1,
-    backgroundColor: 'white',
-    borderWidth: 2,
-    borderColor: 'rgba(0,0,0,0.1)',
+    backgroundColor: COLORS.v2_card,
+    borderWidth: 1,
+    borderColor: 'rgba(61,31,14,0.12)',
     borderRadius: 14,
     paddingVertical: 20,
     paddingHorizontal: 12,
     alignItems: 'center',
   },
-  langSelected: { borderColor: COLORS.rust, backgroundColor: '#FFF0EB' },
+  // Selected — cinnamon border + parchment fill (the warm "you're here" tone)
+  langSelected: { borderColor: COLORS.v2_cinnamon, borderWidth: 2, backgroundColor: COLORS.v2_parchment },
   langFlag: { fontSize: 32, marginBottom: 8 },
-  langLabel: { fontSize: 14, fontFamily: FONTS.bodySemiBold, color: COLORS.textDark },
-  langSub: { fontSize: 12, color: COLORS.textLight, fontFamily: FONTS.body },
+  langLabel: { fontSize: 14, fontFamily: FONTS.v2_link, color: COLORS.v2_cocoa },
+  langSub: { fontSize: 11, color: COLORS.v2_amber, fontFamily: FONTS.v2_mono, letterSpacing: 1.5 },
 });

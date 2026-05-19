@@ -4,14 +4,16 @@
 // On success we navigate to CheckinResponse to display the AI reply (and crisis
 // resources if flagged). If today already has a check-in, we prefill and let
 // her revise.
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, TextInput,
-  ActivityIndicator, ScrollView, KeyboardAvoidingView, Platform, Alert,
+  ActivityIndicator, ScrollView, KeyboardAvoidingView, Platform, Alert, Animated,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { COLORS, FONTS } from '@utils/constants';
+import { tap, confirm } from '@utils/haptics';
+import { V9PageBackdrop } from '@components/shared/V9PageBackdrop';
 import { homeApi, MOOD_OPTIONS } from '@api/home';
 import { useHomeStore } from '@store/home';
 import { useT } from '@/i18n';
@@ -25,6 +27,23 @@ export default function DailyCheckinScreen({ navigation }: Props) {
   const [mood, setMood] = useState<number | null>(null);
   const [energy, setEnergy] = useState<number | null>(null);
   const [body, setBody] = useState('');
+
+  // Per-chip scale values for the spring bounce on tap.
+  const chipScales = useRef(
+    MOOD_OPTIONS.reduce<Record<number, Animated.Value>>((acc, opt) => {
+      acc[opt.score] = new Animated.Value(1);
+      return acc;
+    }, {})
+  ).current;
+
+  const bounceChip = (score: number) => {
+    const scale = chipScales[score];
+    if (!scale) return;
+    Animated.sequence([
+      Animated.spring(scale, { toValue: 1.12, useNativeDriver: true, friction: 3, tension: 220 }),
+      Animated.spring(scale, { toValue: 1.0,  useNativeDriver: true, friction: 6, tension: 120 }),
+    ]).start();
+  };
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
@@ -49,6 +68,7 @@ export default function DailyCheckinScreen({ navigation }: Props) {
 
   const onSubmit = async () => {
     if (mood == null || submitting) return;
+    confirm();
     setSubmitting(true);
     try {
       const row = await homeApi.submitCheckin({
@@ -71,6 +91,7 @@ export default function DailyCheckinScreen({ navigation }: Props) {
       style={styles.container}
       keyboardVerticalOffset={0}
     >
+      <V9PageBackdrop />
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
@@ -84,7 +105,7 @@ export default function DailyCheckinScreen({ navigation }: Props) {
       </View>
 
       {loading ? (
-        <View style={styles.center}><ActivityIndicator color={COLORS.rust} /></View>
+        <View style={styles.center}><ActivityIndicator color="#C07840" /></View>
       ) : (
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
           <Text style={styles.heading}>{t('checkin.heading')}</Text>
@@ -93,20 +114,22 @@ export default function DailyCheckinScreen({ navigation }: Props) {
           <View style={styles.moodRow}>
             {MOOD_OPTIONS.map((opt) => {
               const moodLabel = t(opt.labelKey);
+              const scale = chipScales[opt.score] ?? new Animated.Value(1);
               return (
-                <TouchableOpacity
-                  key={opt.score}
-                  style={[styles.moodChip, mood === opt.score && styles.moodChipActive]}
-                  onPress={() => setMood(opt.score)}
-                  accessibilityRole="button"
-                  accessibilityLabel={t('checkin.moodA11y', { label: moodLabel })}
-                  accessibilityState={{ selected: mood === opt.score }}
-                >
-                  <Text style={styles.moodEmoji}>{opt.emoji}</Text>
-                  <Text style={[styles.moodLabel, mood === opt.score && styles.moodLabelActive]}>
-                    {moodLabel}
-                  </Text>
-                </TouchableOpacity>
+                <Animated.View key={opt.score} style={{ flex: 1, transform: [{ scale }] }}>
+                  <TouchableOpacity
+                    style={[styles.moodChip, mood === opt.score && styles.moodChipActive]}
+                    onPress={() => { tap(); bounceChip(opt.score); setMood(opt.score); }}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('checkin.moodA11y', { label: moodLabel })}
+                    accessibilityState={{ selected: mood === opt.score }}
+                  >
+                    <Text style={styles.moodEmoji}>{opt.emoji}</Text>
+                    <Text style={[styles.moodLabel, mood === opt.score && styles.moodLabelActive]}>
+                      {moodLabel}
+                    </Text>
+                  </TouchableOpacity>
+                </Animated.View>
               );
             })}
           </View>
@@ -121,7 +144,7 @@ export default function DailyCheckinScreen({ navigation }: Props) {
               <TouchableOpacity
                 key={n}
                 style={[styles.dot, energy === n && styles.dotActive]}
-                onPress={() => setEnergy(energy === n ? null : n)}
+                onPress={() => { tap(); setEnergy(energy === n ? null : n); }}
                 accessibilityRole="radio"
                 accessibilityLabel={t('checkin.energyA11y', { n })}
                 accessibilityState={{ selected: energy === n }}
@@ -155,7 +178,7 @@ export default function DailyCheckinScreen({ navigation }: Props) {
             accessibilityLabel={t('checkin.submitA11y')}
           >
             {submitting ? (
-              <ActivityIndicator color="#FFF" />
+              <ActivityIndicator color="#FDFBF6" />
             ) : (
               <Text style={styles.submitText}>{t('checkin.submitText')}</Text>
             )}
@@ -167,35 +190,36 @@ export default function DailyCheckinScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.cream },
+  container: { flex: 1, backgroundColor: 'transparent' },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingTop: 56, paddingBottom: 12, paddingHorizontal: 16,
-    backgroundColor: '#FFF',
+    backgroundColor: COLORS.paper,
     borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.06)',
   },
-  back: { fontSize: 15, color: COLORS.rust, fontFamily: FONTS.bodySemiBold },
-  title: { fontSize: 17, fontFamily: FONTS.bodySemiBold, color: COLORS.brownDeep },
+  back: { fontSize: 15, color: '#C07840', fontFamily: FONTS.bodySemiBold },
+  title: { fontSize: 17, fontFamily: FONTS.bodySemiBold, color: COLORS.bark },
 
   content: { padding: 20, paddingBottom: 80 },
   // Playfair Display Italic — same family as the "Village" wordmark accent.
-  heading: { fontSize: 26, fontFamily: FONTS.headerItalic, fontStyle: 'italic', color: COLORS.brownDeep },
-  sub: { fontSize: 14, color: COLORS.textMid, marginTop: 4, marginBottom: 18 },
+  heading: { fontSize: 26, fontFamily: FONTS.headerItalic, fontStyle: 'italic', color: COLORS.bark },
+  sub: { fontSize: 14, color: COLORS.barkSoft, marginTop: 4, marginBottom: 18 },
 
   moodRow: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
   moodChip: {
-    flex: 1, minWidth: 58, alignItems: 'center',
+    minWidth: 58, alignItems: 'center', flex: 1,
     paddingVertical: 14, borderRadius: 14,
-    backgroundColor: '#FFF',
-    borderWidth: 1.5, borderColor: 'rgba(0,0,0,0.08)',
+    backgroundColor: COLORS.paper,
+    borderWidth: 1.5, borderColor: 'rgba(150,80,50,0.18)',
   },
-  moodChipActive: { backgroundColor: COLORS.rust, borderColor: COLORS.rust },
+  // v9 active state — action-deep (matches CTAs, toggle active, week chip)
+  moodChipActive: { backgroundColor: '#C07840', borderColor: '#945A41' },
   moodEmoji: { fontSize: 28 },
-  moodLabel: { fontSize: 11, fontFamily: FONTS.bodySemiBold, color: COLORS.textMid, marginTop: 4 },
-  moodLabelActive: { color: '#FFF' },
+  moodLabel: { fontSize: 11, fontFamily: FONTS.bodySemiBold, color: COLORS.barkSoft, marginTop: 4 },
+  moodLabelActive: { color: '#FDFBF6' },
 
-  sectionLabel: { fontSize: 13, fontFamily: FONTS.bodySemiBold, color: COLORS.brownDeep, marginTop: 20, marginBottom: 8 },
+  sectionLabel: { fontSize: 13, fontFamily: FONTS.bodySemiBold, color: COLORS.bark, marginTop: 20, marginBottom: 8 },
   // `flex:1` on each dot + small gap means the row scales to whatever width is
   // available — no horizontal scroll on iPhone SE (320pt) and no awkward
   // emptiness on Pro Max. `aspectRatio:1` keeps them circular as flex stretches
@@ -208,17 +232,17 @@ const styles = StyleSheet.create({
     minHeight: 42,
     borderRadius: 999,
     alignItems: 'center', justifyContent: 'center',
-    backgroundColor: '#FFF',
-    borderWidth: 1.5, borderColor: 'rgba(0,0,0,0.08)',
+    backgroundColor: COLORS.paper,
+    borderWidth: 1.5, borderColor: 'rgba(150,80,50,0.18)',
   },
-  dotActive: { backgroundColor: COLORS.olive, borderColor: COLORS.olive },
-  dotText: { fontSize: 14, fontFamily: FONTS.bodySemiBold, color: COLORS.textMid },
-  dotTextActive: { color: '#FFF' },
+  dotActive: { backgroundColor: COLORS.sage, borderColor: COLORS.sage },
+  dotText: { fontSize: 14, fontFamily: FONTS.bodySemiBold, color: COLORS.barkSoft },
+  dotTextActive: { color: '#FDFBF6' },
 
   input: {
-    backgroundColor: '#FFF', borderRadius: 14, padding: 14,
-    fontSize: 15, color: COLORS.brownDeep, minHeight: 110, textAlignVertical: 'top',
-    borderWidth: 1, borderColor: 'rgba(0,0,0,0.06)',
+    backgroundColor: COLORS.paper, borderRadius: 14, padding: 16,
+    fontSize: 15, color: COLORS.bark, minHeight: 110, textAlignVertical: 'top',
+    borderWidth: 1, borderColor: 'rgba(150,80,50,0.18)',
   },
   counter: { alignSelf: 'flex-end', fontSize: 11, color: COLORS.textLight, marginTop: 4 },
 
@@ -227,12 +251,15 @@ const styles = StyleSheet.create({
     borderRadius: 12, padding: 12,
     borderWidth: 1, borderColor: 'rgba(184,92,56,0.15)',
   },
-  disclaimerText: { fontSize: 12, color: COLORS.textMid, lineHeight: 17 },
+  disclaimerText: { fontSize: 12, color: COLORS.barkSoft, lineHeight: 17 },
 
+  // v9 canonical CTA — action-deep + cocoa shadow + paper text
   submit: {
-    marginTop: 22, backgroundColor: COLORS.yolkLight, borderRadius: 999,
+    marginTop: 22, backgroundColor: '#C07840', borderRadius: 999,
     paddingVertical: 15, alignItems: 'center',
+    shadowColor: '#945A41', shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.24, shadowRadius: 10, elevation: 3,
   },
-  submitDisabled: { opacity: 0.4 },
-  submitText: { color: COLORS.brownDeep, fontSize: 15, fontFamily: FONTS.bodySemiBold, letterSpacing: 0.3 },
+  submitDisabled: { opacity: 0.45 },
+  submitText: { color: '#FDFBF6', fontSize: 15, fontFamily: FONTS.bodySemiBold, letterSpacing: 0.3 },
 });

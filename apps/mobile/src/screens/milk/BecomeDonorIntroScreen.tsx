@@ -8,6 +8,7 @@ import { useAuthStore } from '@store/auth';
 import { useMilkStore } from '@store/milk';
 import { createDonorProfile } from '@api/milk';
 import { COLORS, FONTS } from '@utils/constants';
+import { V9PageBackdrop } from '@components/shared/V9PageBackdrop';
 import {
   YolkCircle, YolkRing, LeafSprig, SparkleMark,
 } from '@components/shared/DecorativeMarks';
@@ -19,11 +20,11 @@ const { width: SCREEN_W } = Dimensions.get('window');
 type Props = NativeStackScreenProps<MilkStackParamList, 'BecomeDonorIntro'>;
 
 type StepMarkKind = 'leafSprig' | 'sparkle' | 'yolkCircle' | 'yolkRing';
-const STEPS: Array<{ mark: StepMarkKind; markTint: string; titleKey: string; bodyKey: string }> = [
-  { mark: 'leafSprig',  markTint: COLORS.olive,     titleKey: 'becomeDonor.step1Title', bodyKey: 'becomeDonor.step1Body' },
-  { mark: 'sparkle',    markTint: COLORS.brownDeep, titleKey: 'becomeDonor.step2Title', bodyKey: 'becomeDonor.step2Body' },
-  { mark: 'yolkCircle', markTint: COLORS.rust,      titleKey: 'becomeDonor.step3Title', bodyKey: 'becomeDonor.step3Body' },
-  { mark: 'yolkRing',   markTint: COLORS.rust,      titleKey: 'becomeDonor.step4Title', bodyKey: 'becomeDonor.step4Body' },
+const STEPS: { mark: StepMarkKind; markTint: string; titleKey: string; bodyKey: string }[] = [
+  { mark: 'leafSprig',  markTint: COLORS.sage,     titleKey: 'becomeDonor.step1Title', bodyKey: 'becomeDonor.step1Body' },
+  { mark: 'sparkle',    markTint: COLORS.bark, titleKey: 'becomeDonor.step2Title', bodyKey: 'becomeDonor.step2Body' },
+  { mark: 'yolkCircle', markTint: COLORS.coco,      titleKey: 'becomeDonor.step3Title', bodyKey: 'becomeDonor.step3Body' },
+  { mark: 'yolkRing',   markTint: COLORS.coco,      titleKey: 'becomeDonor.step4Title', bodyKey: 'becomeDonor.step4Body' },
 ];
 
 function StepMark({ kind, tint }: { kind: StepMarkKind; tint: string }) {
@@ -78,6 +79,7 @@ export default function BecomeDonorIntroScreen({ navigation }: Props) {
 
   return (
     <View style={styles.container}>
+      <V9PageBackdrop />
       {/* Back */}
       <TouchableOpacity
         style={styles.back}
@@ -138,18 +140,19 @@ export default function BecomeDonorIntroScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F5F0E8', paddingHorizontal: 28 },
+  container: { flex: 1, backgroundColor: 'transparent', paddingHorizontal: 28 },
   back: { marginTop: 56, marginBottom: 16 },
-  backText: { fontSize: 15, color: '#9A8070', fontFamily: FONTS.bodyMedium },
+  backText: { fontSize: 15, color: '#C07840', fontFamily: FONTS.bodySemiBold },
   dots: { flexDirection: 'row', gap: 8, marginBottom: 48 },
   dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#E0D5C5' },
-  dotActive: { width: 24, backgroundColor: '#D87530' },
+  dotActive: { width: 24, backgroundColor: COLORS.coco },
   content: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   markWrap: { width: 96, height: 96, marginBottom: 28, overflow: 'hidden' },
-  title: { fontSize: 26, fontFamily: FONTS.bodySemiBold, color: '#2C1810', textAlign: 'center', marginBottom: 16, lineHeight: 33 },
+  // v9 — Playfair Bold roman title (was Plus Jakarta SemiBold)
+  title: { fontSize: 28, fontFamily: FONTS.headerBold, color: '#2C1810', textAlign: 'center', marginBottom: 16, lineHeight: 34, letterSpacing: -0.4 },
   body: { fontSize: 16, color: '#6B5C52', textAlign: 'center', lineHeight: 25, fontFamily: FONTS.body },
   earningsCard: {
-    backgroundColor: '#FFF5F0',
+    backgroundColor: COLORS.pinkSoft,
     borderRadius: 16,
     padding: 20,
     alignItems: 'center',
@@ -157,11 +160,12 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: '#F0D9C8',
   },
-  earningsNum: { fontSize: 36, fontFamily: FONTS.bodySemiBold, color: '#D87530', marginBottom: 4 },
+  // v9 — big numbers use Playfair (brand kit: "Big numbers: Playfair 800")
+  earningsNum: { fontSize: 40, fontFamily: FONTS.headerBold, color: '#A77349', marginBottom: 4, letterSpacing: -0.5 },
   earningsLabel: { fontSize: 13, color: '#9A8070', textAlign: 'center', fontFamily: FONTS.bodyMedium },
   footer: { paddingBottom: 48, gap: 12 },
-  nextBtn: { backgroundColor: '#D87530', borderRadius: 14, paddingVertical: 16, alignItems: 'center' },
-  nextBtnText: { fontSize: 16, fontFamily: FONTS.bodySemiBold, color: '#FFF' },
+  nextBtn: { backgroundColor: '#C07840', borderRadius: 14, paddingVertical: 16, alignItems: 'center' },
+  nextBtnText: { fontSize: 16, fontFamily: FONTS.bodySemiBold, color: '#FDFBF6' },
   prevBtn: { alignItems: 'center', paddingVertical: 8 },
   prevBtnText: { fontSize: 15, color: '#9A8070', fontFamily: FONTS.bodyMedium },
   disabled: { opacity: 0.6 },

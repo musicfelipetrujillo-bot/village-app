@@ -170,8 +170,8 @@ export function PerkListSkeleton() {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: COLORS.white,
-    borderRadius: 14,
+    backgroundColor: COLORS.paper,
+    borderRadius: 10,
     padding: 16,
     flexDirection: 'row',
     alignItems: 'center',
@@ -195,27 +195,27 @@ const styles = StyleSheet.create({
   },
 
   reviewCard: {
-    backgroundColor: COLORS.white,
-    borderRadius: 14,
-    padding: 14,
+    backgroundColor: COLORS.paper,
+    borderRadius: 10,
+    padding: 16,
     marginBottom: 10,
   },
 
   listContainer: { paddingHorizontal: 16, paddingTop: 10 },
 
   gearCard: {
-    flexDirection: 'row', backgroundColor: COLORS.white, borderRadius: 14,
-    padding: 10, gap: 12, marginBottom: 12, alignItems: 'center',
+    flexDirection: 'row', backgroundColor: COLORS.paper, borderRadius: 10,
+    padding: 8, gap: 12, marginBottom: 12, alignItems: 'center',
   },
   gearBody: { flex: 1 },
   gearMetaRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 8 },
 
   eventCard: {
-    backgroundColor: COLORS.white, borderRadius: 14, padding: 10, marginBottom: 12,
+    backgroundColor: COLORS.paper, borderRadius: 10, padding: 8, marginBottom: 12,
   },
 
   perkCard: {
-    flexDirection: 'row', backgroundColor: COLORS.white, borderRadius: 14,
+    flexDirection: 'row', backgroundColor: COLORS.paper, borderRadius: 10,
     padding: 12, gap: 12, marginBottom: 10, alignItems: 'center',
   },
 });

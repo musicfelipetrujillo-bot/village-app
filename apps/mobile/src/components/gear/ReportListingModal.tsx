@@ -114,7 +114,7 @@ export default function ReportListingModal({
         <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
           <Text style={styles.listingTitle} numberOfLines={2}>{listingTitle}</Text>
           <Text style={styles.intro}>
-            Help us keep The Village safe. A moderator reviews every report within
+            Help us keep Villie safe. A moderator reviews every report within
             24 hours. The seller will not be told who reported them.
           </Text>
 
@@ -150,7 +150,7 @@ export default function ReportListingModal({
             maxLength={MAX_DESCRIPTION}
             textAlignVertical="top"
           />
-          <Text style={[styles.counter, remaining < 50 && { color: COLORS.rustDark }]}>
+          <Text style={[styles.counter, remaining < 50 && { color: COLORS.cocoDeep }]}>
             {remaining} characters left
           </Text>
 
@@ -166,7 +166,7 @@ export default function ReportListingModal({
             accessibilityState={{ disabled: !canSubmit }}
           >
             {submitting
-              ? <ActivityIndicator color="#FFF" />
+              ? <ActivityIndicator color="#FDFBF6" />
               : <Text style={styles.ctaLabel}>Submit report</Text>}
           </TouchableOpacity>
         </View>
@@ -181,17 +181,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingHorizontal: 16, paddingTop: 18, paddingBottom: 12,
     borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.06)',
-    backgroundColor: '#FFF',
+    backgroundColor: COLORS.paper,
   },
-  close: { fontSize: 15, color: COLORS.textMid, fontFamily: FONTS.bodySemiBold },
-  title: { fontSize: 16, fontFamily: FONTS.bodySemiBold, color: COLORS.brownDeep },
+  close: { fontSize: 15, color: COLORS.barkSoft, fontFamily: FONTS.bodySemiBold },
+  title: { fontSize: 16, fontFamily: FONTS.bodySemiBold, color: COLORS.bark },
 
   body: { padding: 20, paddingBottom: 40 },
-  listingTitle: { fontSize: 15, color: COLORS.brownDeep, fontFamily: FONTS.bodySemiBold, marginBottom: 8 },
-  intro: { fontSize: 13, color: COLORS.textMid, lineHeight: 19, marginBottom: 20, fontFamily: FONTS.body },
+  listingTitle: { fontSize: 15, color: COLORS.bark, fontFamily: FONTS.bodySemiBold, marginBottom: 8 },
+  intro: { fontSize: 13, color: COLORS.barkSoft, lineHeight: 19, marginBottom: 20, fontFamily: FONTS.body },
 
   sectionLabel: {
-    fontSize: 12, fontFamily: FONTS.bodySemiBold, color: COLORS.brownDeep,
+    fontSize: 12, fontFamily: FONTS.bodySemiBold, color: COLORS.bark,
     letterSpacing: 0.6, textTransform: 'uppercase', marginBottom: 8,
   },
   hint: { fontSize: 12, color: COLORS.textLight, marginBottom: 8, lineHeight: 17, fontFamily: FONTS.body },
@@ -199,18 +199,18 @@ const styles = StyleSheet.create({
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   chip: {
     paddingHorizontal: 12, paddingVertical: 10, borderRadius: 10,
-    backgroundColor: '#FFF',
-    borderWidth: 1.5, borderColor: 'rgba(0,0,0,0.08)',
+    backgroundColor: COLORS.paper,
+    borderWidth: 1.5, borderColor: 'rgba(150,80,50,0.18)',
   },
-  chipActive: { backgroundColor: 'rgba(184,92,56,0.1)', borderColor: COLORS.rust },
-  chipText: { fontSize: 13, color: COLORS.textMid, fontFamily: FONTS.bodyMedium },
-  chipTextActive: { color: COLORS.rustDark, fontFamily: FONTS.bodySemiBold },
+  chipActive: { backgroundColor: 'rgba(184,92,56,0.1)', borderColor: COLORS.coco },
+  chipText: { fontSize: 13, color: COLORS.barkSoft, fontFamily: FONTS.bodyMedium },
+  chipTextActive: { color: COLORS.cocoDeep, fontFamily: FONTS.bodySemiBold },
 
   textarea: {
-    minHeight: 120, backgroundColor: '#FFF',
-    borderRadius: 12, borderWidth: 1.5, borderColor: 'rgba(0,0,0,0.08)',
+    minHeight: 120, backgroundColor: COLORS.paper,
+    borderRadius: 12, borderWidth: 1.5, borderColor: 'rgba(150,80,50,0.18)',
     paddingHorizontal: 14, paddingVertical: 12,
-    fontSize: 15, color: COLORS.brownDeep, lineHeight: 21, fontFamily: FONTS.body,
+    fontSize: 15, color: COLORS.bark, lineHeight: 21, fontFamily: FONTS.body,
   },
   counter: { fontSize: 11, color: COLORS.textLight, textAlign: 'right', marginTop: 6, fontFamily: FONTS.body },
 
@@ -222,9 +222,9 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.cream,
   },
   cta: {
-    backgroundColor: COLORS.yolkLight, paddingVertical: 15, borderRadius: 999,
+    backgroundColor: COLORS.sandSoft, paddingVertical: 15, borderRadius: 999,
     alignItems: 'center', justifyContent: 'center',
   },
   ctaDisabled: { backgroundColor: COLORS.textLight, opacity: 0.6 },
-  ctaLabel: { color: COLORS.brownDeep, fontSize: 15, fontFamily: FONTS.bodySemiBold, letterSpacing: 0.3 },
+  ctaLabel: { color: COLORS.bark, fontSize: 15, fontFamily: FONTS.bodySemiBold, letterSpacing: 0.3 },
 });

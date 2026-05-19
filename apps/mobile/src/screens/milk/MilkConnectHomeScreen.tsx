@@ -3,7 +3,10 @@ import {
   View, Text, StyleSheet, ScrollView,
   TouchableOpacity, ActivityIndicator,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { GlassHighlight } from '@components/shared/GlassHighlight';
 import { KenBurnsImage } from '@components/shared/KenBurnsImage';
+import { WarmGlowBackdrop } from '@components/shared/WarmGlowBackdrop';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useAuthStore } from '@store/auth';
 import { useMilkStore } from '@store/milk';
@@ -22,9 +25,9 @@ const BADGE_LABEL_KEYS: Record<string, string> = {
 
 const BADGE_COLOR: Record<string, string> = {
   none: '#9A8070',
-  basic: '#D87530',
+  basic: COLORS.statusAlert,
   verified: '#6B7C3F',
-  verified_bloodwork: '#2E7D32',
+  verified_bloodwork: COLORS.statusSuccess,
 };
 
 export default function MilkConnectHomeScreen({ navigation }: Props) {
@@ -39,13 +42,15 @@ export default function MilkConnectHomeScreen({ navigation }: Props) {
   if (loading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator color={COLORS.rust} />
+        <ActivityIndicator color="#C07840" />
       </View>
     );
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <View style={styles.wrapper}>
+      <WarmGlowBackdrop hideClusters />
+      <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       {/* Magazine-cover hero — full-bleed photo dominates the top of the
           screen. ActionBar (back + inbox/orders) overlays the top of the
           photo with cream text on the warm scrim. Bottom of the photo
@@ -59,7 +64,7 @@ export default function MilkConnectHomeScreen({ navigation }: Props) {
             generosity" without showing identity. Free commercial.
             Source: https://unsplash.com/photos/tCbTGNwrFNM */}
         <KenBurnsImage
-          source={{ uri: 'https://images.unsplash.com/photo-1552819289-824d37ca69d2?w=1200&h=1400&fit=crop&crop=center&q=85' }}
+          source={require('../../../assets/photos/milk.jpg')}
           style={styles.heroHeaderImage}
         />
         {/* Two-layer soft-frost — warm brownDeep scrim + cream haze
@@ -121,6 +126,15 @@ export default function MilkConnectHomeScreen({ navigation }: Props) {
           single-line slim badge, two minimal actions. */}
       {donorProfile && (
         <View style={styles.dashboardCard}>
+          {/* v9 paper-leaning dashboard wash — softer cream→blush so the
+              card sits on the page rather than competing with it. */}
+          <LinearGradient
+            colors={['#FCF6EF', '#F8EDE0', '#F2DDD0']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={StyleSheet.absoluteFill}
+            pointerEvents="none"
+          />
           <View style={styles.dashboardRow}>
             <View style={styles.dashboardLeft}>
               <Text style={styles.dashboardName}>{donorProfile.display_name}</Text>
@@ -149,7 +163,7 @@ export default function MilkConnectHomeScreen({ navigation }: Props) {
               style={[styles.dashboardBtn, styles.dashboardBtnSecondary]}
               onPress={() => navigation.navigate('DonorListingManager')}
             >
-              <Text style={[styles.dashboardBtnText, { color: COLORS.rust }]}>{t('milk.manageListings')}</Text>
+              <Text style={styles.dashboardBtnText}>{t('milk.manageListings')}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -190,7 +204,11 @@ export default function MilkConnectHomeScreen({ navigation }: Props) {
           <TouchableOpacity
             style={[styles.primaryBtn, { flex: 1 }]}
             onPress={() => navigation.navigate('DonorSearchList')}
+            activeOpacity={0.9}
           >
+            {/* v9 iOS-26 wet-glass top sheen — softens the cinnamon fill so
+                the button reads as a polished pill rather than a flat block. */}
+            <GlassHighlight radius={999} height={14} />
             <Text style={styles.primaryBtnText}>{t('milk.browseNearby')}</Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -241,11 +259,13 @@ export default function MilkConnectHomeScreen({ navigation }: Props) {
       {/* Trust & safety note — italic, quiet. */}
       <Text style={styles.safetyNoteText}>{t('milk.safetyNote')}</Text>
     </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F5F0E8' },
+  wrapper: { flex: 1 },
+  container: { flex: 1, backgroundColor: 'transparent' },
   content: { paddingBottom: 24 },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#F5F0E8' },
 
@@ -266,12 +286,12 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   backToVillage: { paddingVertical: 4, paddingRight: 8 },
-  backToVillageText: { fontSize: 14, color: COLORS.rust, fontFamily: FONTS.bodySemiBold },
+  backToVillageText: { fontSize: 14, color: '#C07840', fontFamily: FONTS.bodySemiBold },
   headerActions: { flexDirection: 'row', gap: 8 },
   headerIconBtn: {
     width: 40, height: 40, borderRadius: 20,
-    backgroundColor: '#FFF',
-    borderWidth: 1, borderColor: 'rgba(0,0,0,0.08)',
+    backgroundColor: COLORS.paper,
+    borderWidth: 1, borderColor: 'rgba(150,80,50,0.18)',
     alignItems: 'center', justifyContent: 'center',
   },
   headerIcon: { fontSize: 18 },
@@ -292,7 +312,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   eyebrowBar: {
-    width: 22, height: 2, backgroundColor: COLORS.rust,
+    width: 22, height: 2, backgroundColor: '#A77349',  // v9 rust-deep
     marginRight: 10, borderRadius: 1,
   },
   // Reference-UI inline numbering: italic Playfair numeral + em-dash +
@@ -303,7 +323,7 @@ const styles = StyleSheet.create({
   eyebrowNum: {
     fontSize: 20, lineHeight: 22,
     fontFamily: FONTS.headerItalic, fontStyle: 'italic',
-    color: COLORS.rust,
+    color: '#C07840',
     marginRight: 10,
     includeFontPadding: false,
     textAlignVertical: 'center',
@@ -311,7 +331,7 @@ const styles = StyleSheet.create({
   eyebrowDash: {
     fontSize: 14, lineHeight: 22,
     fontFamily: FONTS.body,
-    color: COLORS.textMid,
+    color: COLORS.barkSoft,
     marginRight: 10,
     includeFontPadding: false,
     textAlignVertical: 'center',
@@ -319,7 +339,7 @@ const styles = StyleSheet.create({
   eyebrow: {
     fontSize: 11, lineHeight: 22, letterSpacing: 1.6,
     fontFamily: FONTS.bodySemiBold,
-    color: COLORS.rust,
+    color: '#A77349',  // v9 rust-deep
     textTransform: 'uppercase',
     includeFontPadding: false,
     textAlignVertical: 'center',
@@ -327,12 +347,12 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 38, lineHeight: 44,
     fontFamily: FONTS.headerItalic, fontStyle: 'italic',
-    color: COLORS.brownDeep,
+    color: COLORS.bark,
     marginBottom: 4,
   },
   headerSub: {
     fontSize: 14, lineHeight: 20,
-    color: COLORS.textMid, fontFamily: FONTS.body,
+    color: COLORS.barkSoft, fontFamily: FONTS.body,
     maxWidth: 320,
   },
   headerHairline: {
@@ -345,16 +365,17 @@ const styles = StyleSheet.create({
   // + slim inline badge. One rust filled CTA + one rust outline.
   dashboardCard: {
     marginHorizontal: 20, marginTop: 14,
-    backgroundColor: '#FFF',
+    backgroundColor: '#F2E9C4',
+    overflow: 'hidden',
     borderRadius: 18,
     padding: 16,
-    borderWidth: 1, borderColor: 'rgba(0,0,0,0.05)',
+    borderWidth: 1, borderColor: 'rgba(150,80,50,0.18)',
   },
   dashboardRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 },
   dashboardLeft: { flex: 1, paddingRight: 12 },
   dashboardName: {
     fontSize: 22, fontFamily: FONTS.headerItalic, fontStyle: 'italic',
-    color: COLORS.brownDeep, marginBottom: 4,
+    color: COLORS.bark, marginBottom: 4,
   },
   badgeText: {
     fontSize: 12, fontFamily: FONTS.bodySemiBold,
@@ -363,42 +384,42 @@ const styles = StyleSheet.create({
   dashboardStats: { alignItems: 'flex-end' },
   statValue: {
     fontSize: 32, fontFamily: FONTS.headerItalic, fontStyle: 'italic',
-    color: COLORS.rust, lineHeight: 36,
+    color: '#C07840', lineHeight: 36,
   },
   statLabel: { fontSize: 11, color: COLORS.textLight, fontFamily: FONTS.bodyMedium, letterSpacing: 0.5 },
   dashboardActions: { flexDirection: 'row', gap: 10 },
-  // Donor dashboard primary CTA — yolk pill matching the global primary
-  // pattern. Secondary keeps its rust outline so the pair reads as
-  // "filled / outline" not "two filled pills".
+  // v9 paired donor-dashboard buttons — both use the parchment + cinnamon
+  // hairline recipe so they read as siblings (was filled/outline mismatch
+  // where the filled side disappeared into the peach card bg).
   dashboardBtn: {
-    flex: 1, backgroundColor: COLORS.yolkLight, borderRadius: 999,
-    paddingVertical: 12, paddingHorizontal: 16, alignItems: 'center',
+    flex: 1, backgroundColor: '#EAE0C8', borderRadius: 999,
+    paddingVertical: 12, paddingHorizontal: 16,
+    alignItems: 'center', justifyContent: 'center',
+    borderWidth: 1.5, borderColor: '#C07840',
   },
-  dashboardBtnSecondary: {
-    backgroundColor: 'transparent', borderWidth: 1, borderColor: COLORS.rust,
-  },
-  dashboardBtnText: { fontSize: 13, fontFamily: FONTS.bodySemiBold, color: COLORS.brownDeep, letterSpacing: 0.3 },
+  dashboardBtnSecondary: {},  // no-op kept for compatibility w/ inline `[styles.dashboardBtn, styles.dashboardBtnSecondary]` callers
+  dashboardBtnText: { fontSize: 13, fontFamily: FONTS.bodySemiBold, color: '#3D1F0E', letterSpacing: 0.3, textAlign: 'center' },
 
   // AI Match — cream-on-cream warm card with a single rust accent line on
   // the left edge instead of a full dark fill. Quieter, more editorial.
   matchCard: {
     flexDirection: 'row', alignItems: 'center', gap: 12,
     marginHorizontal: 20, marginTop: 10,
-    paddingVertical: 14, paddingHorizontal: 16, borderRadius: 16,
-    backgroundColor: '#FFF',
-    borderWidth: 1, borderColor: 'rgba(0,0,0,0.05)',
+    paddingVertical: 14, paddingHorizontal: 16, borderRadius: 10,
+    backgroundColor: COLORS.paper,
+    borderWidth: 1, borderColor: 'rgba(150,80,50,0.18)',
   },
   matchAccent: {
     width: 4, height: 36, borderRadius: 2,
-    backgroundColor: COLORS.rust,
+    backgroundColor: COLORS.coco,
   },
   matchTextWrap: { flex: 1 },
   matchTitle: {
     fontSize: 17, fontFamily: FONTS.headerItalic, fontStyle: 'italic',
-    color: COLORS.brownDeep,
+    color: COLORS.bark,
   },
-  matchSub: { fontSize: 13, color: COLORS.textMid, marginTop: 2, lineHeight: 18, fontFamily: FONTS.body },
-  matchArrow: { fontSize: 20, color: COLORS.rust, fontFamily: FONTS.bodySemiBold },
+  matchSub: { fontSize: 13, color: COLORS.barkSoft, marginTop: 2, lineHeight: 18, fontFamily: FONTS.body },
+  matchArrow: { fontSize: 20, color: '#A77349', fontFamily: FONTS.bodySemiBold },
 
   // Spacer between editorial bubbles — replaces the hairline divider now
   // that each section is its own paper-bg card. Pure spacing so adjacent
@@ -414,32 +435,30 @@ const styles = StyleSheet.create({
   // bottom. Slight bottom radius softens the transition into the cream
   // content below; top is flush to the screen edge for the magazine feel.
   heroHeader: {
-    height: 420,
+    height: 340,
     position: 'relative',
-    backgroundColor: COLORS.brownDeep,
+    backgroundColor: COLORS.bark,
     overflow: 'hidden',
     marginBottom: 8,
   },
   heroHeaderImage: { width: '100%', height: '100%' },
-  // Three-layer faux gradient scrim — light at top, mid behind action
-  // bar, deep at bottom for masthead text contrast. Substitutes for
-  // expo-linear-gradient (not installed). Cream haze on top desaturates
-  // the photo into watercolor / editorial feel. Magazine-cover read.
+  // Single light scrim — minimal darkening so action-bar text stays legible
+  // against any photo. Cream haze removed so the photo color reads true.
   heroHeaderScrimTop: {
     position: 'absolute', left: 0, right: 0, top: 0, height: '40%',
-    backgroundColor: 'rgba(44,26,14,0.10)',
+    backgroundColor: 'transparent',
   },
   heroHeaderScrimMid: {
-    position: 'absolute', left: 0, right: 0, top: '40%', height: '30%',
-    backgroundColor: 'rgba(44,26,14,0.28)',
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(44,26,14,0.20)',
   },
   heroHeaderScrimBottom: {
     position: 'absolute', left: 0, right: 0, bottom: 0, height: '40%',
-    backgroundColor: 'rgba(44,26,14,0.55)',
+    backgroundColor: 'transparent',
   },
   heroHeaderHaze: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(245,240,232,0.18)',
+    backgroundColor: 'transparent',
   },
   heroActionBar: {
     position: 'absolute',
@@ -451,7 +470,7 @@ const styles = StyleSheet.create({
   },
   heroBackText: {
     fontSize: 14,
-    color: COLORS.cream,
+    color: '#FDFBF6',
     fontFamily: FONTS.bodySemiBold,
   },
   heroActionsRight: { flexDirection: 'row', gap: 8 },
@@ -479,20 +498,20 @@ const styles = StyleSheet.create({
   heroEyebrowText: {
     fontSize: 11, lineHeight: 16, letterSpacing: 1.6,
     fontFamily: FONTS.bodySemiBold,
-    color: COLORS.cream,
+    color: '#FDFBF6',
     textTransform: 'uppercase',
     opacity: 0.92,
   },
   heroTitle: {
     fontSize: 36, lineHeight: 42,
     fontFamily: FONTS.headerItalic, fontStyle: 'italic',
-    color: '#FFF',
+    color: '#FDFBF6',
     marginBottom: 8,
   },
   heroSub: {
     fontSize: 14, lineHeight: 20,
     fontFamily: FONTS.body,
-    color: COLORS.cream,
+    color: '#FDFBF6',
     opacity: 0.9,
     maxWidth: 340,
   },
@@ -513,7 +532,7 @@ const styles = StyleSheet.create({
   heroBannerEyebrow: {
     fontSize: 11, letterSpacing: 1.6,
     fontFamily: FONTS.bodySemiBold,
-    color: COLORS.cream,
+    color: '#FDFBF6',
     textTransform: 'uppercase',
     marginBottom: 6,
     opacity: 0.92,
@@ -521,12 +540,12 @@ const styles = StyleSheet.create({
   heroBannerLead: {
     fontSize: 28, lineHeight: 32,
     fontFamily: FONTS.headerItalic, fontStyle: 'italic',
-    color: '#FFF',
+    color: '#FDFBF6',
     marginBottom: 6,
   },
   heroBannerSub: {
     fontSize: 13, lineHeight: 18, fontFamily: FONTS.body,
-    color: COLORS.cream,
+    color: '#FDFBF6',
     opacity: 0.88,
     maxWidth: 320,
   },
@@ -541,13 +560,13 @@ const styles = StyleSheet.create({
   // bubble.
   section: {
     backgroundColor: COLORS.paper,
-    borderRadius: 18,
+    borderRadius: 10,
     paddingHorizontal: 20, paddingTop: 18, paddingBottom: 16,
     marginHorizontal: 20,
     position: 'relative',
     // Soft elevation — warm shadow tinted to brownDeep instead of pure
     // black so the lift reads "ceramic on linen" rather than UI-stock grey.
-    shadowColor: COLORS.brownDeep,
+    shadowColor: COLORS.bark,
     shadowOpacity: 0.10,
     shadowRadius: 14,
     shadowOffset: { width: 0, height: 6 },
@@ -561,10 +580,10 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 24, lineHeight: 30,
     fontFamily: FONTS.headerBold,
-    color: COLORS.brownDeep, marginBottom: 6,
+    color: COLORS.bark, marginBottom: 6,
   },
   sectionBody: {
-    fontSize: 14, color: COLORS.textMid, lineHeight: 20,
+    fontSize: 14, color: COLORS.barkSoft, lineHeight: 20,
     marginBottom: 12, fontFamily: FONTS.body, maxWidth: 360,
   },
   // Discover-spread row: text column flexes, thumbnail anchors right.
@@ -588,11 +607,11 @@ const styles = StyleSheet.create({
   sectionTitleCenter: {
     fontSize: 24, lineHeight: 30,
     fontFamily: FONTS.headerBold,
-    color: COLORS.brownDeep, marginBottom: 6,
+    color: COLORS.bark, marginBottom: 6,
     textAlign: 'center',
   },
   sectionBodyCenter: {
-    fontSize: 14, color: COLORS.textMid, lineHeight: 20,
+    fontSize: 14, color: COLORS.barkSoft, lineHeight: 20,
     marginBottom: 12, fontFamily: FONTS.body,
     textAlign: 'center', maxWidth: 360,
   },
@@ -613,35 +632,43 @@ const styles = StyleSheet.create({
   // pattern from the manual + home hero. brownDeep text on yolk reads as
   // warm and intentional rather than the rust-on-cream button look that
   // was competing with the rust accent typography.
+  // v9 canonical CTA — cinnamon fill, action-deep tonal shadow, glass sheen
+  // overlay (added via JSX child for iOS-26 wet-glass polish). overflow:hidden
+  // so the sheen clips to the pill shape. Shadow dialed from 0.24 → 0.18 so
+  // the cinnamon block reads as a polished pill, not a flat orange shout.
   primaryBtn: {
-    backgroundColor: COLORS.yolkLight, borderRadius: 999,
-    paddingVertical: 14, paddingHorizontal: 18, alignItems: 'center',
+    backgroundColor: '#C07840', borderRadius: 999,
+    paddingVertical: 12, paddingHorizontal: 18,
+    alignItems: 'center', justifyContent: 'center',
+    shadowColor: '#945A41', shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.18, shadowRadius: 10, elevation: 3,
+    overflow: 'hidden',
   },
-  primaryBtnText: { fontSize: 15, fontFamily: FONTS.bodySemiBold, color: COLORS.brownDeep, letterSpacing: 0.3 },
+  primaryBtnText: { fontSize: 15, fontFamily: FONTS.bodySemiBold, color: '#FDFBF6', letterSpacing: 0.3, textAlign: 'center' },
   // Secondary CTA — outline pill in the same yolk-pill rhythm (radius 999)
   // so the two buttons read as a paired set rather than two different shapes.
   savedBtn: {
     backgroundColor: 'transparent', borderRadius: 999,
     paddingVertical: 14, paddingHorizontal: 22, alignItems: 'center',
-    borderWidth: 1, borderColor: COLORS.rust,
+    borderWidth: 1, borderColor: COLORS.coco,
   },
-  savedBtnText: { fontSize: 15, fontFamily: FONTS.bodySemiBold, color: COLORS.rust, letterSpacing: 0.3 },
+  savedBtnText: { fontSize: 15, fontFamily: FONTS.bodySemiBold, color: '#C07840', letterSpacing: 0.3 },
 
   // Become-a-donor — same editorial structure as the find-a-donor section
   // above; same paper bubble so both sections sit as twin cards on the page.
   becomeDonorCard: {
     backgroundColor: COLORS.paper,
-    borderRadius: 18,
+    borderRadius: 10,
     paddingHorizontal: 20, paddingTop: 18, paddingBottom: 16,
     marginHorizontal: 20,
     position: 'relative',
-    shadowColor: COLORS.brownDeep,
+    shadowColor: COLORS.bark,
     shadowOpacity: 0.10,
     shadowRadius: 14,
     shadowOffset: { width: 0, height: 6 },
     elevation: 4,
   },
-  boldRust: { color: COLORS.rust, fontFamily: FONTS.bodySemiBold },
+  boldRust: { color: '#A77349', fontFamily: FONTS.bodySemiBold },
   stepList: { marginBottom: 14, gap: 10 },
   stepRow2: {
     flexDirection: 'row', alignItems: 'center', gap: 12,
@@ -650,9 +677,9 @@ const styles = StyleSheet.create({
   },
   stepNumInline: {
     fontSize: 18, fontFamily: FONTS.headerItalic, fontStyle: 'italic',
-    color: COLORS.rust, width: 28,
+    color: '#C07840', width: 28,
   },
-  stepLabel: { flex: 1, fontSize: 14, color: COLORS.brownDeep, fontFamily: FONTS.bodyMedium },
+  stepLabel: { flex: 1, fontSize: 14, color: COLORS.bark, fontFamily: FONTS.bodyMedium },
 
   // Safety note — italic body, quieter than a card. Anchored at the bottom.
   safetyNoteText: {

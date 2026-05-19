@@ -7,6 +7,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useMilkStore } from '@store/milk';
 import { getStripeConnectUrl, updateDonorProfile } from '@api/milk';
 import { COLORS, FONTS } from '@utils/constants';
+import { V9PageBackdrop } from '@components/shared/V9PageBackdrop';
 import { useT } from '@/i18n';
 import type { MilkStackParamList } from '@/navigation/MilkNavigator';
 
@@ -72,7 +73,7 @@ export default function StripeOnboardingScreen({ route, navigation }: Props) {
   if (loading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator color={COLORS.rust} size="large" />
+        <ActivityIndicator color="#C07840" size="large" />
         <Text style={styles.loadingText}>{t('stripeOnboarding.loading')}</Text>
       </View>
     );
@@ -82,6 +83,7 @@ export default function StripeOnboardingScreen({ route, navigation }: Props) {
 
   return (
     <View style={styles.container}>
+      <V9PageBackdrop />
       <View style={styles.header}>
         <Text style={styles.headerTitle}>{t('stripeOnboarding.headerTitle')}</Text>
         <Text style={styles.headerSub}>{t('stripeOnboarding.headerSub')}</Text>
@@ -92,7 +94,7 @@ export default function StripeOnboardingScreen({ route, navigation }: Props) {
         startInLoadingState
         renderLoading={() => (
           <View style={styles.webviewLoader}>
-            <ActivityIndicator color={COLORS.rust} />
+            <ActivityIndicator color="#C07840" />
           </View>
         )}
       />
@@ -101,12 +103,12 @@ export default function StripeOnboardingScreen({ route, navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F5F0E8' },
+  container: { flex: 1, backgroundColor: 'transparent' },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#F5F0E8', gap: 16 },
   loadingText: { fontSize: 15, color: '#9A8070', fontFamily: FONTS.bodyMedium },
   header: {
     paddingTop: 56, paddingHorizontal: 20, paddingBottom: 16,
-    backgroundColor: '#FFF', borderBottomWidth: 1, borderBottomColor: '#E8E0D5',
+    backgroundColor: COLORS.paper, borderBottomWidth: 1, borderBottomColor: '#E8E0D5',
   },
   headerTitle: { fontSize: 18, fontFamily: FONTS.bodySemiBold, color: '#2C1810', marginBottom: 4 },
   headerSub: { fontSize: 12, color: '#9A8070', lineHeight: 17, fontFamily: FONTS.body },

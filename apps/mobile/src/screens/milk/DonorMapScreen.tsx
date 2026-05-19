@@ -6,6 +6,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { searchDonorsNear } from '@api/milk';
 import type { DonorSearchResult } from '@api/milk';
 import { COLORS, FONTS } from '@utils/constants';
+import { V9PageBackdrop } from '@components/shared/V9PageBackdrop';
 import { getEffectiveCoordsWithSource } from '@utils/devLocation';
 import { useT } from '@/i18n';
 import type { MilkStackParamList } from '@/navigation/MilkNavigator';
@@ -14,9 +15,9 @@ type Props = NativeStackScreenProps<MilkStackParamList, 'DonorMap'>;
 
 const BADGE_COLOR: Record<string, string> = {
   none: '#9A8070',
-  basic: '#D87530',
+  basic: COLORS.statusAlert,
   verified: '#6B7C3F',
-  verified_bloodwork: '#2E7D32',
+  verified_bloodwork: COLORS.statusSuccess,
 };
 
 // Miami default region
@@ -69,6 +70,7 @@ export default function DonorMapScreen({ navigation }: Props) {
 
   return (
     <View style={styles.container}>
+      <V9PageBackdrop />
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity
@@ -117,7 +119,7 @@ export default function DonorMapScreen({ navigation }: Props) {
       {/* Loading overlay */}
       {loading && (
         <View style={styles.loadingOverlay}>
-          <ActivityIndicator color={COLORS.rust} size="large" />
+          <ActivityIndicator color="#C07840" size="large" />
         </View>
       )}
 
@@ -149,30 +151,30 @@ export default function DonorMapScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F5F0E8' },
+  container: { flex: 1, backgroundColor: 'transparent' },
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingTop: 56, paddingBottom: 12, paddingHorizontal: 16,
-    backgroundColor: '#FDFAF5', zIndex: 10,
+    backgroundColor: '#FDFBF6', zIndex: 10,
     borderBottomWidth: 1, borderBottomColor: '#E8E0D5',
   },
-  backText: { fontSize: 15, color: '#9A8070', fontFamily: FONTS.bodyMedium },
+  backText: { fontSize: 15, color: '#C07840', fontFamily: FONTS.bodySemiBold },
   headerTitle: { fontSize: 17, fontFamily: FONTS.bodySemiBold, color: '#2C1810' },
-  donorCount: { fontSize: 13, color: '#D87530', fontFamily: FONTS.bodySemiBold },
+  donorCount: { fontSize: 13, color: '#A77349', fontFamily: FONTS.bodySemiBold },
   map: { flex: 1 },
   pin: {
     width: 36, height: 36, borderRadius: 18,
     alignItems: 'center', justifyContent: 'center',
-    borderWidth: 2, borderColor: '#FFF',
-    shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 4, elevation: 4,
+    borderWidth: 2, borderColor: '#FDFBF6',
+    shadowColor: '#6B2E0E', shadowOpacity: 0.2, shadowRadius: 4, elevation: 4,
   },
   pinText: { fontSize: 18 },
   callout: {
-    backgroundColor: '#FFF', borderRadius: 12, padding: 12,
-    minWidth: 160, shadowColor: '#000', shadowOpacity: 0.12, shadowRadius: 8,
+    backgroundColor: COLORS.paper, borderRadius: 12, padding: 12,
+    minWidth: 160, shadowColor: '#6B2E0E', shadowOpacity: 0.12, shadowRadius: 8,
   },
   calloutName: { fontSize: 14, fontFamily: FONTS.bodySemiBold, color: '#2C1810', marginBottom: 4 },
-  calloutPrice: { fontSize: 13, color: '#D87530', fontFamily: FONTS.bodyMedium, marginBottom: 4 },
+  calloutPrice: { fontSize: 13, color: '#A77349', fontFamily: FONTS.bodyMedium, marginBottom: 4 },
   calloutTap: { fontSize: 11, color: '#9A8070', fontFamily: FONTS.body },
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,
@@ -181,8 +183,8 @@ const styles = StyleSheet.create({
   },
   legend: {
     position: 'absolute', top: 120, right: 12,
-    backgroundColor: '#FFF', borderRadius: 10, padding: 10, gap: 6,
-    shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 4, elevation: 3,
+    backgroundColor: COLORS.paper, borderRadius: 10, padding: 8, gap: 6,
+    shadowColor: '#6B2E0E', shadowOpacity: 0.1, shadowRadius: 4, elevation: 3,
   },
   legendItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   legendDot: { width: 10, height: 10, borderRadius: 5 },
@@ -197,5 +199,5 @@ const styles = StyleSheet.create({
     backgroundColor: '#2C1810', borderRadius: 12,
     paddingVertical: 14, alignItems: 'center',
   },
-  listViewText: { fontSize: 15, fontFamily: FONTS.bodySemiBold, color: '#FFF' },
+  listViewText: { fontSize: 15, fontFamily: FONTS.bodySemiBold, color: '#FDFBF6' },
 });

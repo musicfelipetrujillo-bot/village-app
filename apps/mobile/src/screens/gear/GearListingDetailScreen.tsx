@@ -6,6 +6,8 @@ import {
 } from 'react-native';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import { COLORS, FONTS } from '@utils/constants';
+import { V9PageBackdrop } from '@components/shared/V9PageBackdrop';
+import { GlassHighlight } from '@components/shared/GlassHighlight';
 import { useT } from '@/i18n';
 import {
   gearApi,
@@ -197,7 +199,7 @@ export default function GearListingDetailScreen() {
   if (loading) {
     return (
       <View style={styles.container}>
-        <ActivityIndicator color={COLORS.rust} style={{ marginTop: 80 }} />
+        <ActivityIndicator color="#C07840" style={{ marginTop: 80 }} />
       </View>
     );
   }
@@ -221,6 +223,7 @@ export default function GearListingDetailScreen() {
 
   return (
     <View style={styles.container}>
+      <V9PageBackdrop />
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} accessibilityLabel={t('gearDetail.backA11y')}>
           <Text style={styles.back}>{t('gearDetail.back')}</Text>
@@ -266,8 +269,14 @@ export default function GearListingDetailScreen() {
           <Text style={styles.price}>
             {formatPrice(listing.price_cents, listing.is_free, listing.currency)}
           </Text>
+          {/* v9 editorial hairline rule — closes the hero copy block */}
+          <View style={styles.heroRule} />
 
+          {/* v9 hero glass sheen — the first lifted card under the image
+              carousel. Sheen gives it the iOS-26 wet-glass top highlight so
+              it reads as the "substance starts here" beat after the photos. */}
           <View style={styles.metaGrid}>
+            <GlassHighlight radius={14} height={16} />
             <MetaRow label={t('gearDetail.metaCondition')} value={conditionLabel(listing.condition)} />
             {listing.brand && <MetaRow label={t('gearDetail.metaBrand')} value={listing.brand} />}
             {listing.model && <MetaRow label={t('gearDetail.metaModel')} value={listing.model} />}
@@ -343,7 +352,7 @@ export default function GearListingDetailScreen() {
           accessibilityRole="button"
         >
           {openingThread ? (
-            <ActivityIndicator color="#FFF" />
+            <ActivityIndicator color="#FDFBF6" />
           ) : (
             <Text style={styles.messageBtnText}>
               {isOwnListing ? t('gearDetail.messageOwn') : t('gearDetail.messageSeller')}
@@ -386,16 +395,16 @@ function MetaRow({ label, value }: { label: string; value: string }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.cream },
+  container: { flex: 1, backgroundColor: 'transparent' },
   notFound: { textAlign: 'center', marginTop: 80, color: COLORS.textLight, fontFamily: FONTS.body },
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingTop: 56, paddingBottom: 12, paddingHorizontal: 16,
-    backgroundColor: '#FFF',
+    backgroundColor: COLORS.paper,
     borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.06)',
   },
-  back: { fontSize: 15, color: COLORS.rust, fontFamily: FONTS.bodySemiBold },
-  saveIcon: { fontSize: 24, color: COLORS.rust },
+  back: { fontSize: 15, color: '#C07840', fontFamily: FONTS.bodySemiBold },
+  saveIcon: { fontSize: 24, color: COLORS.coco },
 
   content: { paddingBottom: 120 },
   carousel: { height: SCREEN_W * 0.75 },
@@ -405,63 +414,77 @@ const styles = StyleSheet.create({
 
   body: { padding: 20 },
   badgeRow: { flexDirection: 'row', gap: 8, alignItems: 'center', marginBottom: 6 },
-  categoryBadge: { fontSize: 10, fontFamily: FONTS.bodySemiBold, letterSpacing: 1, color: COLORS.olive },
+  categoryBadge: { fontSize: 10, fontFamily: FONTS.bodySemiBold, letterSpacing: 1.8, color: '#A77349' },
   statusBadge: {
-    fontSize: 10, fontFamily: FONTS.bodySemiBold, color: COLORS.textMid,
+    fontSize: 10, fontFamily: FONTS.bodySemiBold, color: COLORS.barkSoft,
     backgroundColor: 'rgba(0,0,0,0.06)', borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2,
   },
 
-  title: { fontSize: 24, fontFamily: FONTS.headerItalic, color: COLORS.brownDeep, marginTop: 4, lineHeight: 30 },
-  price: { fontSize: 26, fontFamily: FONTS.bodySemiBold, color: COLORS.rustDark, marginTop: 8 },
+  title: { fontSize: 24, fontFamily: FONTS.headerItalic, color: COLORS.bark, marginTop: 4, lineHeight: 30 },
+  // v9 — big numbers use Playfair (brand kit "Big numbers: Playfair 800")
+  price: { fontSize: 30, fontFamily: FONTS.headerBold, color: '#A77349', marginTop: 8, letterSpacing: -0.4 },
+  heroRule: {
+    height: StyleSheet.hairlineWidth, backgroundColor: 'rgba(61,31,13,0.18)',
+    marginTop: 14, width: 48,
+  },
 
   metaGrid: {
-    backgroundColor: '#FFF', borderRadius: 14, padding: 14, marginTop: 16,
+    backgroundColor: COLORS.paper, borderRadius: 14, padding: 16, marginTop: 16,
+    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(150, 80, 50, 0.18)',
+    shadowColor: '#6B2E0E', shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.18, shadowRadius: 18, elevation: 5,
   },
   metaRow: {
     flexDirection: 'row', justifyContent: 'space-between',
     paddingVertical: 6,
   },
   metaLabel: { fontSize: 13, color: COLORS.textLight, fontFamily: FONTS.bodyMedium },
-  metaValue: { fontSize: 13, color: COLORS.brownDeep, fontFamily: FONTS.bodySemiBold },
+  metaValue: { fontSize: 13, color: COLORS.bark, fontFamily: FONTS.bodySemiBold },
 
   tagsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 14 },
   tag: {
-    fontSize: 11, fontFamily: FONTS.bodySemiBold, color: COLORS.textMid,
-    backgroundColor: '#FFF', borderRadius: 10, paddingHorizontal: 10, paddingVertical: 4,
+    fontSize: 11, fontFamily: FONTS.bodySemiBold, color: COLORS.barkSoft,
+    backgroundColor: COLORS.paper, borderRadius: 10, paddingHorizontal: 10, paddingVertical: 4,
   },
 
   section: {
-    backgroundColor: '#FFF', borderRadius: 14, padding: 14, marginTop: 16,
+    backgroundColor: COLORS.paper, borderRadius: 14, padding: 16, marginTop: 16,
+    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(150, 80, 50, 0.18)',
+    shadowColor: '#6B2E0E', shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.18, shadowRadius: 18, elevation: 5,
   },
   sectionLabel: {
     fontSize: 11, fontFamily: FONTS.bodySemiBold, letterSpacing: 1,
     color: COLORS.textLight, textTransform: 'uppercase', marginBottom: 8,
   },
-  description: { fontSize: 14, color: COLORS.textMid, lineHeight: 21, fontFamily: FONTS.body },
+  description: { fontSize: 14, color: COLORS.barkSoft, lineHeight: 21, fontFamily: FONTS.body },
 
   sellerBlock: {
     flexDirection: 'row', alignItems: 'center', gap: 12,
-    backgroundColor: '#FFF', borderRadius: 14, padding: 14, marginTop: 16,
+    backgroundColor: COLORS.paper, borderRadius: 14, padding: 16, marginTop: 16,
+    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(150, 80, 50, 0.18)',
+    shadowColor: '#6B2E0E', shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.18, shadowRadius: 18, elevation: 5,
   },
   sellerAvatar: { width: 44, height: 44, borderRadius: 22, backgroundColor: COLORS.cream },
   sellerAvatarFallback: { alignItems: 'center', justifyContent: 'center' },
-  sellerAvatarInitial: { fontSize: 18, fontFamily: FONTS.bodySemiBold, color: COLORS.rust },
+  sellerAvatarInitial: { fontSize: 18, fontFamily: FONTS.bodySemiBold, color: COLORS.coco },
   sellerLabel: { fontSize: 11, color: COLORS.textLight, fontFamily: FONTS.bodySemiBold, letterSpacing: 0.8, textTransform: 'uppercase' },
-  sellerName: { fontSize: 15, color: COLORS.brownDeep, fontFamily: FONTS.bodySemiBold, marginTop: 2 },
+  sellerName: { fontSize: 15, color: COLORS.bark, fontFamily: FONTS.bodySemiBold, marginTop: 2 },
 
   mapsBtn: {
-    backgroundColor: '#FFF', borderRadius: 12,
+    backgroundColor: COLORS.paper, borderRadius: 12,
     paddingVertical: 12, alignItems: 'center', marginTop: 12,
-    borderWidth: 1.5, borderColor: 'rgba(0,0,0,0.08)',
+    borderWidth: 1.5, borderColor: 'rgba(150,80,50,0.18)',
   },
-  mapsBtnText: { fontSize: 13, fontFamily: FONTS.bodySemiBold, color: COLORS.rustDark },
+  mapsBtnText: { fontSize: 13, fontFamily: FONTS.bodySemiBold, color: COLORS.cocoDeep },
 
   safetyBlock: {
     backgroundColor: 'rgba(196,163,90,0.12)', borderRadius: 14,
-    padding: 14, marginTop: 16,
+    padding: 16, marginTop: 16,
   },
-  safetyTitle: { fontSize: 12, fontFamily: FONTS.bodySemiBold, color: COLORS.brownDeep, marginBottom: 6, letterSpacing: 0.4 },
-  safetyBody: { fontSize: 12, color: COLORS.textMid, lineHeight: 19, fontFamily: FONTS.body },
+  safetyTitle: { fontSize: 12, fontFamily: FONTS.bodySemiBold, color: COLORS.bark, marginBottom: 6, letterSpacing: 0.4 },
+  safetyBody: { fontSize: 12, color: COLORS.barkSoft, lineHeight: 19, fontFamily: FONTS.body },
 
   stats: { fontSize: 11, color: COLORS.textLight, marginTop: 16, textAlign: 'center', fontFamily: FONTS.body },
 
@@ -473,11 +496,11 @@ const styles = StyleSheet.create({
   // Phase 2a editorial pass — yolk-pill primary CTA, brownDeep text on
   // yolkLight, pill radius matching app-wide primary pattern.
   messageBtn: {
-    backgroundColor: COLORS.yolkLight, borderRadius: 999,
+    backgroundColor: COLORS.sandSoft, borderRadius: 999,
     paddingVertical: 15, alignItems: 'center', justifyContent: 'center',
   },
   messageBtnDisabled: { backgroundColor: COLORS.textLight, opacity: 0.7 },
-  messageBtnText: { color: COLORS.brownDeep, fontSize: 15, fontFamily: FONTS.bodySemiBold, letterSpacing: 0.3 },
+  messageBtnText: { color: COLORS.bark, fontSize: 15, fontFamily: FONTS.bodySemiBold, letterSpacing: 0.3 },
 
   reportLink: {
     marginTop: 20, alignSelf: 'center',

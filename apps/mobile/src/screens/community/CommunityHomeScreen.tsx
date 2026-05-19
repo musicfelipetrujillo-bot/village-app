@@ -22,7 +22,7 @@ import type { CommunityStackParamList } from '@/navigation/CommunityNavigator';
 type Props = NativeStackScreenProps<CommunityStackParamList, 'CommunityHome'>;
 
 const ROOM_COLOR_ACCENT: Record<string, string> = {
-  rust:  '#D87530',
+  rust:  COLORS.coco,
   olive: '#5C6B3A',
   brown: '#4A2E1A',
   cream: '#C4A35A',
@@ -128,7 +128,7 @@ export default function CommunityHomeScreen({ navigation }: Props) {
   if (loading) {
     return (
       <SafeAreaView style={styles.loadingWrap}>
-        <ActivityIndicator color={COLORS.rust} size="large" />
+        <ActivityIndicator color="#C07840" size="large" />
       </SafeAreaView>
     );
   }
@@ -140,7 +140,7 @@ export default function CommunityHomeScreen({ navigation }: Props) {
     <SafeAreaView style={styles.screen} edges={['top']}>
       <ScrollView
         contentContainerStyle={styles.scroll}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.rust} />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.coco} />}
       >
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Community</Text>
@@ -204,7 +204,7 @@ interface RoomCardProps {
 }
 
 function RoomCard({ room, busy, onOpen, onLeave, highlighted }: RoomCardProps) {
-  const accent = ROOM_COLOR_ACCENT[room.color_theme] ?? COLORS.rust;
+  const accent = ROOM_COLOR_ACCENT[room.color_theme] ?? COLORS.coco;
   return (
     <View style={[styles.roomCard, highlighted && { borderColor: accent, borderWidth: 1.5 }]}>
       <View style={styles.roomCardHead}>
@@ -236,7 +236,7 @@ function RoomCard({ room, busy, onOpen, onLeave, highlighted }: RoomCardProps) {
           accessibilityRole="button"
         >
           {busy
-            ? <ActivityIndicator color="#FDFAF5" />
+            ? <ActivityIndicator color="#FDFBF6" />
             : <Text style={styles.openBtnText}>{room.is_member ? 'Open' : 'Join & open'}</Text>
           }
         </TouchableOpacity>
@@ -264,31 +264,31 @@ const styles = StyleSheet.create({
   scroll:       { paddingBottom: 40 },
 
   header:       { paddingHorizontal: 20, paddingTop: 18, paddingBottom: 12 },
-  headerTitle:  { fontSize: 32, color: COLORS.brownDeep, fontFamily: FONTS.bodySemiBold },
-  headerSubtitle: { fontSize: 14, color: COLORS.textMid, marginTop: 4 },
+  headerTitle:  { fontSize: 32, color: COLORS.bark, fontFamily: FONTS.bodySemiBold },
+  headerSubtitle: { fontSize: 14, color: COLORS.barkSoft, marginTop: 4 },
 
   section:      { paddingHorizontal: 16, marginTop: 8 },
   sectionTitle: {
-    fontSize: 12, fontFamily: FONTS.bodySemiBold, color: COLORS.textMid,
+    fontSize: 12, fontFamily: FONTS.bodySemiBold, color: COLORS.barkSoft,
     textTransform: 'uppercase', letterSpacing: 0.8,
     marginBottom: 10, marginTop: 12, paddingHorizontal: 4,
   },
   emptyText:    { color: COLORS.textLight, fontSize: 14, paddingHorizontal: 4, paddingVertical: 10 },
 
   roomCard: {
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.paper,
     borderRadius: 14,
-    padding: 14,
+    padding: 16,
     marginBottom: 10,
     borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.06)',
+    borderColor: 'rgba(150,80,50,0.18)',
   },
   roomCardHead: { flexDirection: 'row', alignItems: 'center' },
   roomEmoji:    { fontSize: 28, marginRight: 10 },
   roomCardHeadText: { flex: 1 },
-  roomName:     { fontSize: 16, fontFamily: FONTS.bodySemiBold, color: COLORS.brownDeep },
+  roomName:     { fontSize: 16, fontFamily: FONTS.bodySemiBold, color: COLORS.bark },
   roomMeta:     { fontSize: 12, color: COLORS.textLight, marginTop: 2 },
-  roomDesc:     { fontSize: 14, color: COLORS.textMid, marginTop: 8, lineHeight: 20 },
+  roomDesc:     { fontSize: 14, color: COLORS.barkSoft, marginTop: 8, lineHeight: 20 },
 
   badge: {
     paddingHorizontal: 8, paddingVertical: 3,
@@ -301,15 +301,15 @@ const styles = StyleSheet.create({
     flex: 1, paddingVertical: 10, borderRadius: 10,
     alignItems: 'center', justifyContent: 'center',
   },
-  openBtnText:  { color: COLORS.white, fontFamily: FONTS.bodySemiBold, fontSize: 14 },
+  openBtnText:  { color: COLORS.paper, fontFamily: FONTS.bodySemiBold, fontSize: 14 },
   leaveBtn: {
     paddingHorizontal: 14, paddingVertical: 10, borderRadius: 10,
     alignItems: 'center', justifyContent: 'center',
-    borderWidth: 1, borderColor: 'rgba(0,0,0,0.12)',
+    borderWidth: 1, borderColor: 'rgba(150,80,50,0.18)',
   },
-  leaveBtnText: { color: COLORS.textMid, fontSize: 14, fontFamily: FONTS.bodyMedium },
+  leaveBtnText: { color: COLORS.barkSoft, fontSize: 14, fontFamily: FONTS.bodyMedium },
 
   footerNote:     { paddingHorizontal: 20, paddingTop: 20 },
   footerNoteText: { fontSize: 12, color: COLORS.textLight, lineHeight: 18 },
-  footerBold:     { fontFamily: FONTS.bodySemiBold, color: COLORS.textMid },
+  footerBold:     { fontFamily: FONTS.bodySemiBold, color: COLORS.barkSoft },
 });
