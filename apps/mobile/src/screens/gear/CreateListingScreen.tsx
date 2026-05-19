@@ -28,10 +28,19 @@ import {
   type GearCategory,
   type GearCondition,
   type CpscRecallSummary,
+  type VisionIdentifyResult,
+  type ProhibitedCategory,
 } from '@api/gear';
 import type { AgeTag } from '@api/events';
 import BarcodeScannerModal from '@components/gear/BarcodeScannerModal';
 import CPSCRecallBlockModal from '@components/gear/CPSCRecallBlockModal';
+import ProhibitedItemBlockModal from '@components/gear/ProhibitedItemBlockModal';
+
+// Per-photo vision-identify cache value. Photos newly added are immediately
+// kicked off in the background as 'pending'; the auto-run finishes silently
+// (or surfaces in `identifyFromPhoto` if the user opens that flow). The cache
+// is the source of truth the submit-time prohibited-item gate reads from.
+type VisionCacheValue = 'pending' | 'failed' | VisionIdentifyResult;
 
 const CATEGORIES: GearCategory[] = [
   'stroller', 'carrier_wrap', 'high_chair', 'bouncer_swing', 'toy',
@@ -68,13 +77,25 @@ export default function CreateListingScreen() {
   // each one is its own atomic boundary.
   const [uploadProgress, setUploadProgress] = useState<{ current: number; total: number } | null>(null);
 
-  // G5 state: scanner + vision + CPSC block.
+  // G5 state: scanner + vision + CPSC block + prohibited block.
   const [scannerOpen, setScannerOpen] = useState(false);
   const [upc, setUpc] = useState<string | null>(null);
   const [lookupBusy, setLookupBusy] = useState(false);
   const [visionBusy, setVisionBusy] = useState(false);
   const [autofillNote, setAutofillNote] = useState<string | null>(null);
   const [recall, setRecall] = useState<{ productName: string; recall: CpscRecallSummary | null } | null>(null);
+  // Per-photo vision results, keyed by local URI. Populated automatically
+  // when a photo is added (background) and read by the submit-time gate.
+  // Also used by `identifyFromPhoto` to avoid re-running a check on the
+  // same image the auto-run already covered.
+  const [visionByUri, setVisionByUri] = useState<Record<string, VisionCacheValue>>({});
+  // Hard-block modal state. Set when a photo identifies as a prohibited
+  // category at confidence ≥ 0.6 (server-side threshold applied in the
+  // edge fn — if the field is set at all, we trust it).
+  const [prohibitedBlock, setProhibitedBlock] = useState<{
+    category: ProhibitedCategory;
+    identifiedName: string | null;
+  } | null>(null);
 
   const yearRequired = category ? requiresYearManufactured(category, subcategory) : false;
 
@@ -99,6 +120,55 @@ export default function CreateListingScreen() {
     }
   };
 
+  // Shared base64 + vision-identify helper. Returns the result; the caller
+  // decides what to do with it. Throws on error so the caller can fail-open
+  // or surface the error to the user as appropriate.
+  const runVisionOnPhoto = async (uri: string): Promise<VisionIdentifyResult> => {
+    const res = await fetch(uri);
+    const blob = await res.blob();
+    const base64 = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const result = typeof reader.result === 'string' ? reader.result : '';
+        const comma = result.indexOf(',');
+        resolve(comma >= 0 ? result.slice(comma + 1) : result);
+      };
+      reader.onerror = () => reject(reader.error ?? new Error('read failed'));
+      reader.readAsDataURL(blob);
+    });
+    const mediaType: 'image/jpeg' | 'image/png' | 'image/webp' =
+      uri.toLowerCase().endsWith('.png') ? 'image/png'
+      : uri.toLowerCase().endsWith('.webp') ? 'image/webp'
+      : 'image/jpeg';
+    return gearApi.visionIdentify({ image_base64: base64, image_media_type: mediaType });
+  };
+
+  // Background auto-fire: kicks off vision-identify on a newly added photo
+  // and writes the verdict to the cache. Silent — no autofill side effects
+  // (those happen only when the user explicitly opens "Identify from photo").
+  // The cache feeds the submit-time prohibited-item gate.
+  const kickOffBackgroundVision = (uri: string) => {
+    setVisionByUri((prev) => ({ ...prev, [uri]: 'pending' }));
+    runVisionOnPhoto(uri)
+      .then((r) => {
+        setVisionByUri((prev) => ({ ...prev, [uri]: r }));
+        // Telemetry: when the prohibited gate catches something at the photo-add
+        // moment (before submit), log it. Some sellers will close the modal
+        // and walk away; some will retry with a different category — both
+        // outcomes are interesting for compliance reporting.
+        if (r.prohibited_category) {
+          logGearEvent('gear_vision_prohibited_identified', {
+            prohibited_category: r.prohibited_category,
+            confidence: r.confidence,
+            identified_name: r.name || null,
+          }).catch(() => {});
+        }
+      })
+      .catch(() => {
+        setVisionByUri((prev) => ({ ...prev, [uri]: 'failed' }));
+      });
+  };
+
   const pickImage = async () => {
     if (images.length >= MAX_IMAGES) {
       Alert.alert(t('gearCreate.errLimitTitle'), t('gearCreate.errLimitBody', { max: MAX_IMAGES }));
@@ -116,7 +186,10 @@ export default function CreateListingScreen() {
       selectionLimit: MAX_IMAGES - images.length,
     });
     if (result.canceled) return;
-    setImages((prev) => [...prev, ...result.assets.map((a) => a.uri)].slice(0, MAX_IMAGES));
+    const newUris = result.assets.map((a) => a.uri);
+    setImages((prev) => [...prev, ...newUris].slice(0, MAX_IMAGES));
+    // Fire background vision on every newly added photo. Don't block the UI.
+    newUris.forEach((uri) => kickOffBackgroundVision(uri));
   };
 
   // ── G5: Barcode + UPC lookup ────────────────────────────────────────────────
@@ -154,6 +227,8 @@ export default function CreateListingScreen() {
   };
 
   // ── G5: AI Vision identify (uses first selected photo) ──────────────────────
+  // Reads the cached result populated by kickOffBackgroundVision when the
+  // photo was added. If the cache is missing or stale ('failed'), fires fresh.
   const identifyFromPhoto = async () => {
     if (images.length === 0) {
       Alert.alert(t('gearCreate.addPhotoFirstTitle'), t('gearCreate.addPhotoFirstBody'));
@@ -163,38 +238,37 @@ export default function CreateListingScreen() {
     setAutofillNote(null);
     try {
       const uri = images[0];
-      // Convert the local URI to base64 so the Edge Fn can send it to Claude
-      // without requiring us to upload to Storage first.
-      const res = await fetch(uri);
-      const blob = await res.blob();
-      const base64 = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          const result = typeof reader.result === 'string' ? reader.result : '';
-          // result looks like "data:image/jpeg;base64,<...>"
-          const comma = result.indexOf(',');
-          resolve(comma >= 0 ? result.slice(comma + 1) : result);
-        };
-        reader.onerror = () => reject(reader.error ?? new Error('read failed'));
-        reader.readAsDataURL(blob);
-      });
-
-      // Detect media type from the data URL we just built. Default jpeg.
-      const mediaType: 'image/jpeg' | 'image/png' | 'image/webp' =
-        uri.toLowerCase().endsWith('.png') ? 'image/png'
-        : uri.toLowerCase().endsWith('.webp') ? 'image/webp'
-        : 'image/jpeg';
-
-      const r = await gearApi.visionIdentify({
-        image_base64: base64,
-        image_media_type: mediaType,
-      });
+      const cached = visionByUri[uri];
+      let r: VisionIdentifyResult;
+      if (cached && cached !== 'pending' && cached !== 'failed') {
+        r = cached;
+      } else {
+        // Either never started, failed, or still in-flight — fire fresh.
+        // For the autofill path we don't want to wait on a pending background
+        // call (could be slow), so we just re-run.
+        r = await runVisionOnPhoto(uri);
+        setVisionByUri((prev) => ({ ...prev, [uri]: r }));
+      }
 
       logGearEvent('gear_vision_identified', {
         confidence: r.confidence,
         has_name: !!r.name,
         category_hint: r.category_hint ?? null,
+        prohibited_category: r.prohibited_category ?? null,
       }).catch(() => {});
+
+      // If the photo is a prohibited item, the autofill flow is meaningless —
+      // surface the hard-block modal here too so the user sees the same
+      // outcome whether they hit "Identify" or just hit submit.
+      if (r.prohibited_category) {
+        setProhibitedBlock({ category: r.prohibited_category, identifiedName: r.name || null });
+        logGearEvent('gear_prohibited_block_shown', {
+          prohibited_category: r.prohibited_category,
+          source: 'identify_button',
+        }).catch(() => {});
+        return;
+      }
+
       if (r.confidence <= 0 || !r.name) {
         setAutofillNote(t('gearCreate.noteVisionFailedItem'));
       } else {
@@ -268,7 +342,63 @@ export default function CreateListingScreen() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not signed in');
 
-      // ── G5 gate: CPSC recall check BEFORE we upload photos or insert anything.
+      // ── G5 gate #1: Prohibited-item check on EVERY uploaded photo.
+      // Runs before the CPSC check + before any storage upload + before
+      // the row insert. Reads the per-photo cache populated when each
+      // photo was added; awaits any 'pending' background calls (8s ceiling
+      // per photo) and re-runs anything in 'failed' state. If any photo
+      // identifies as a prohibited_category (server-side already gated
+      // by confidence ≥ 0.6), hard-block via ProhibitedItemBlockModal.
+      //
+      // Fail-open posture: if a photo's vision call genuinely cannot
+      // complete (network outage, Anthropic API down), we log the gap
+      // to analytics for compliance audit and let the submission proceed.
+      // The nightly compliance sweep + the post-listing reactive moderator
+      // queue catch what slips through. Same posture as the CPSC fail-open
+      // immediately below.
+      for (const uri of images) {
+        let v = visionByUri[uri];
+        if (v === 'pending') {
+          // Race the in-flight background call against an 8s timeout.
+          v = await new Promise<VisionCacheValue>((resolve) => {
+            const start = Date.now();
+            const poll = () => {
+              const current = visionByUri[uri];
+              if (current && current !== 'pending') { resolve(current); return; }
+              if (Date.now() - start > 8000) { resolve('failed'); return; }
+              setTimeout(poll, 250);
+            };
+            poll();
+          });
+        }
+        if (v === 'failed' || v === undefined) {
+          // Re-run inline. If THIS fails too, fail open and log.
+          try {
+            v = await runVisionOnPhoto(uri);
+            setVisionByUri((prev) => ({ ...prev, [uri]: v as VisionIdentifyResult }));
+          } catch {
+            logGearEvent('gear_vision_check_failed', {
+              uri_hash: String(uri.length), // don't log the URI itself
+              stage: 'submit_gate',
+            }).catch(() => {});
+            continue;
+          }
+        }
+        if (v && typeof v === 'object' && v.prohibited_category) {
+          setProhibitedBlock({
+            category: v.prohibited_category,
+            identifiedName: v.name || null,
+          });
+          logGearEvent('gear_prohibited_block_shown', {
+            prohibited_category: v.prohibited_category,
+            source: 'submit_gate',
+          }).catch(() => {});
+          setSubmitting(false);
+          return;
+        }
+      }
+
+      // ── G5 gate #2: CPSC recall check BEFORE we upload photos or insert anything.
       // Fail-open only on status='unknown' (API down) — per the Edge Fn contract
       // we still allow posting in that case but the listing won't get the badge.
       // status='recalled' is a hard block.
@@ -705,6 +835,12 @@ export default function CreateListingScreen() {
         productName={recall?.productName ?? title}
         recall={recall?.recall ?? null}
         onClose={() => setRecall(null)}
+      />
+      <ProhibitedItemBlockModal
+        visible={prohibitedBlock !== null}
+        prohibitedCategory={prohibitedBlock?.category ?? null}
+        identifiedName={prohibitedBlock?.identifiedName ?? null}
+        onClose={() => setProhibitedBlock(null)}
       />
     </View>
   );

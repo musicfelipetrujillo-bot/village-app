@@ -41,15 +41,32 @@ const ALLOWED_CATEGORIES = [
   'nursery_furniture',
 ];
 
+// Prohibited categories are the inverse of ALLOWED_CATEGORIES — items we will
+// never accept on the marketplace regardless of how they're tagged. Mirrors
+// the in-app PROHIBITED_CATEGORIES list and the policy section of the Gear
+// Marketplace Addendum. If the model identifies one of these from the photo,
+// the calling client is expected to hard-block the upload (see
+// ProhibitedItemBlockModal). The model returns the matched key here so the
+// modal can display the right rationale.
+const PROHIBITED_CATEGORIES = [
+  'car_seat',
+  'breast_pump',
+  'sleep_positioner',
+  'inclined_sleeper',
+  'helmet',
+] as const;
+type ProhibitedCategory = typeof PROHIBITED_CATEGORIES[number];
+
 const SYSTEM_PROMPT = `You identify used baby gear from a photo for resale on a curated marketplace.
 
-ALLOWED CATEGORIES (you MUST return one of these, or null if the item is clearly not baby gear):
+ALLOWED CATEGORIES (you MUST return one of these for category_hint, or null if the item is not baby gear or is prohibited):
 ${ALLOWED_CATEGORIES.join(', ')}
 
-PROHIBITED CATEGORIES (if the item matches one of these, return null for category_hint AND set name to describe why):
-- car_seat  (excluded for safety/expiration liability)
+PROHIBITED CATEGORIES (if the item matches one of these, you MUST set category_hint=null AND set prohibited_category to the matching key below):
+- car_seat (excluded for safety/expiration liability)
 - breast_pump (FDA single-user medical device)
-- sleep_positioner / inclined_sleeper (linked to infant deaths)
+- sleep_positioner (linked to infant deaths)
+- inclined_sleeper (banned under federal Safe Sleep Standard)
 - helmet (invisible impact damage)
 
 For condition, use these labels only: new | like_new | good | fair.
@@ -66,10 +83,16 @@ Output STRICT JSON only. No prose, no markdown, no code fences. Shape:
   "subcategory_hint": "<string or null>",
   "condition_hint": "<new|like_new|good|fair or null>",
   "confidence": <0.0-1.0 float>,
+  "prohibited_category": "<one of: car_seat|breast_pump|sleep_positioner|inclined_sleeper|helmet, OR null>",
   "reasoning": "<1 short sentence>"
 }
 
-If the photo is blurry, empty, or not identifiable, return name="", confidence=0 and nulls for the rest.`;
+Rules for prohibited_category:
+- ONLY set it if you are confident (≥0.6) the photo shows a prohibited item.
+- When set, category_hint MUST be null.
+- When NOT set, return null. Do not guess.
+
+If the photo is blurry, empty, or not identifiable, return name="", confidence=0, prohibited_category=null, and nulls for the rest.`;
 
 interface Body {
   image_base64?: string;
@@ -84,6 +107,7 @@ interface IdentifyResult {
   subcategory_hint: string | null;
   condition_hint: 'new' | 'like_new' | 'good' | 'fair' | null;
   confidence: number;
+  prohibited_category: ProhibitedCategory | null;
   reasoning: string;
 }
 
@@ -94,13 +118,20 @@ function coerce(raw: unknown): IdentifyResult {
   const cond = typeof r.condition_hint === 'string' && ['new','like_new','good','fair'].includes(r.condition_hint)
     ? r.condition_hint as IdentifyResult['condition_hint'] : null;
   const conf = typeof r.confidence === 'number' ? Math.max(0, Math.min(1, r.confidence)) : 0;
+  // Validate prohibited_category strictly against the enum. If category_hint
+  // ALSO came back set (the model violated the "if prohibited, category_hint
+  // must be null" rule), discard category_hint — the prohibited flag wins.
+  const prohibited = typeof r.prohibited_category === 'string'
+    && (PROHIBITED_CATEGORIES as readonly string[]).includes(r.prohibited_category)
+    ? r.prohibited_category as ProhibitedCategory : null;
   return {
     name: typeof r.name === 'string' ? r.name : '',
     brand: typeof r.brand === 'string' && r.brand.length > 0 ? r.brand : null,
-    category_hint: cat,
+    category_hint: prohibited ? null : cat,
     subcategory_hint: typeof r.subcategory_hint === 'string' && r.subcategory_hint.length > 0 ? r.subcategory_hint : null,
     condition_hint: cond,
     confidence: conf,
+    prohibited_category: prohibited,
     reasoning: typeof r.reasoning === 'string' ? r.reasoning : '',
   };
 }

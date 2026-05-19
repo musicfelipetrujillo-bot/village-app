@@ -335,6 +335,19 @@ export interface VisionIdentifyInput {
   image_url?: string;
 }
 
+// Prohibited categories — items we never accept on the marketplace. Mirrors
+// the PROHIBITED_CATEGORIES list in supabase/functions/gear-vision-identify
+// and the policy section of the Gear Marketplace Addendum. The vision model
+// returns one of these keys when it identifies a prohibited item; the client
+// uses the key to render the right rationale in ProhibitedItemBlockModal and
+// to hard-block the listing submission.
+export type ProhibitedCategory =
+  | 'car_seat'
+  | 'breast_pump'
+  | 'sleep_positioner'
+  | 'inclined_sleeper'
+  | 'helmet';
+
 export interface VisionIdentifyResult {
   name: string;
   brand: string | null;
@@ -342,6 +355,7 @@ export interface VisionIdentifyResult {
   subcategory_hint: string | null;
   condition_hint: GearCondition | null;
   confidence: number;
+  prohibited_category: ProhibitedCategory | null;
   reasoning: string;
 }
 
