@@ -84,6 +84,13 @@
           "calendarPermission": "Add events you RSVP to your calendar."
         }
       ],
+      "expo-apple-authentication",
+      [
+        "@react-native-google-signin/google-signin",
+        {
+          "iosUrlScheme": "REPLACE_WITH_GOOGLE_IOS_REVERSED_CLIENT_ID"
+        }
+      ],
       "@sentry/react-native",
       [
         "@stripe/stripe-react-native",

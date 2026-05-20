@@ -1881,6 +1881,17 @@
     "errSignInFailedFallback": "Verifica tus datos de acceso.",
     "passwordA11y": "Contraseña"
   },
+  "oauth": {
+    "divider": "o",
+    "googleSignIn": "Continuar con Google",
+    "googleSignUp": "Crear cuenta con Google",
+    "appleSignIn": "Continuar con Apple",
+    "appleSignUp": "Crear cuenta con Apple",
+    "busy": "Iniciando sesión…",
+    "errTitle": "Error al iniciar sesión",
+    "errGenericGoogle": "El inicio de sesión con Google no se completó. Vuelve a intentarlo o usa tu correo.",
+    "errGenericApple": "El inicio de sesión con Apple no se completó. Vuelve a intentarlo o usa tu correo."
+  },
   "signUp": {
     "title": "Vamos a configurarte",
     "sub": "Unos datos y listo.",

@@ -10,6 +10,7 @@ import { confirm } from '@utils/haptics';
 import { authService } from '@/lib/auth';
 import type { AuthStackParamList } from '@/navigation/AuthStack';
 import { useT } from '@/i18n';
+import OAuthButtons from '@components/auth/OAuthButtons';
 
 const WORDMARK = require('../../../assets/brand/villie-wordmark-v2.png');
 
@@ -209,6 +210,12 @@ export default function SignUpScreen({ navigation, route }: Props) {
               <Text style={styles.btnText}>{t('signUp.cta')}</Text>
             )}
           </TouchableOpacity>
+
+          {/* OAuth providers (Google + Apple). Returns null when the feature
+              flag EXPO_PUBLIC_OAUTH_PROVIDERS_ENABLED is off, so this is a
+              no-op until the dashboard prerequisites are set up — see
+              docs/AUTH_PROVIDER_SETUP.md. */}
+          <OAuthButtons variant="sign_up" />
 
           <Text style={styles.legal}>
             {t('signUp.legal')}

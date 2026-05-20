@@ -32,9 +32,18 @@ import { usePreAuthLanguage } from '@store/preAuthLanguage';
 import { supabase } from '@/lib/supabase';
 import { ErrorBoundary } from '@components/shared/ErrorBoundary';
 import { seedWebDevStores } from '@/lib/webDevSeed';
+import { configureGoogleSignIn, OAUTH_PROVIDERS_ENABLED } from '@/lib/oauth';
 
 // Seed mock data immediately so HomeScreen has data before first render.
 seedWebDevStores();
+
+// Configure Google Sign-In SDK once at module load. No-op when the OAuth
+// provider feature flag is off OR when the web client ID env var is unset
+// (defensive — the helper handles both cases internally). Apple has no
+// equivalent configure step.
+if (OAUTH_PROVIDERS_ENABLED) {
+  configureGoogleSignIn();
+}
 
 // Keep splash up while we hydrate fonts — prevents the editorial Playfair
 // from flashing as system serif during the swap.

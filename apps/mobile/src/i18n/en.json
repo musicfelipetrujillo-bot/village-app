@@ -1881,6 +1881,17 @@
     "errSignInFailedFallback": "Please check your credentials.",
     "passwordA11y": "Password"
   },
+  "oauth": {
+    "divider": "or",
+    "googleSignIn": "Continue with Google",
+    "googleSignUp": "Sign up with Google",
+    "appleSignIn": "Continue with Apple",
+    "appleSignUp": "Sign up with Apple",
+    "busy": "Signing in…",
+    "errTitle": "Sign-in failed",
+    "errGenericGoogle": "Google sign-in didn't complete. Try again or use email.",
+    "errGenericApple": "Apple sign-in didn't complete. Try again or use email."
+  },
   "signUp": {
     "title": "Let's set you up",
     "sub": "A few details and you're in.",
