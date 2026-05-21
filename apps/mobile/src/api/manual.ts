@@ -216,11 +216,23 @@ export async function logManualShare(
   }
 }
 
-// Public-facing share URL for a Manual video. Query-string shape (not path)
-// so we can serve from any static host (the marketing site is GitHub Pages
-// with no rewrite rules) without per-video HTML files. The /m/ page reads
-// ?v= client-side and fetches metadata via the anon-callable RPC
-// get_manual_video_share_meta.
+// Public-facing share URL for a Manual video.
+//
+// Points at the manual-og Supabase edge function (not villieapp.com/m/
+// directly) so social-media crawlers — Twitter, FB, Slack, Discord,
+// iMessage — get per-video OG previews (real thumbnail + title) instead
+// of the generic wordmark the static marketing page would serve.
+//
+// What the edge function does:
+//   - Crawler User-Agent → returns server-rendered HTML with per-video
+//     og:title / og:description / og:image
+//   - Real user → 302-redirects to villieapp.com/m/?v=<id> (the static
+//     interactive landing page), so the user-facing experience is
+//     unchanged. UTM params are preserved across the redirect.
+//
+// The villieapp.com landing page is still the canonical user destination;
+// the edge function URL is invisible to users (visible only in the
+// initial share-text payload and then to crawlers).
 export function manualVideoShareUrl(videoId: string): string {
-  return `https://villieapp.com/m/?v=${videoId}`;
+  return `https://albyndcruwopulazvpjs.supabase.co/functions/v1/manual-og?v=${videoId}`;
 }
