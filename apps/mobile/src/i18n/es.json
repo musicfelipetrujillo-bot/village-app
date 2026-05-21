@@ -84,6 +84,19 @@
     "emptyBody": "Toca el corazón en cualquier video para guardarlo. Tus guardados son privados — solo tú los ves.",
     "emptyCta": "Explorar el manual"
   },
+  "savedDashboard": {
+    "title": "Guardados",
+    "audMom": "PARA MAMÁ",
+    "audBaby": "PARA EL BEBÉ",
+    "sectionVideos": "Del manual",
+    "sectionSpecialists": "Especialistas",
+    "sectionDonors": "Donantes de leche",
+    "sectionGear": "Artículos",
+    "seeAll": "Ver todo",
+    "emptyTitle": "Aún no guardas nada",
+    "emptyBody": "Cuando tocas el corazón en un video, un especialista, un perfil de donante o un artículo, aparece aquí. Tus guardados son privados — solo tú los ves.",
+    "footerHint": "Los guardados son privados. Solo tú los ves."
+  },
   "village": {
     "eyebrow": "TU VILLAGE",
     "title": "Se necesita una aldea.",
@@ -1105,6 +1118,7 @@
     "stagePostpartum06": "Posparto · 0–6 meses",
     "stagePostpartum612": "Posparto · 6–12 meses",
     "stagePostpartum1yr": "Posparto · 1 año+",
+    "myStuffSaved": "Guardados",
     "myStuffSavedManual": "Videos guardados",
     "myStuffSavedSpecialists": "Especialistas guardados",
     "myStuffMyEvents": "Mis eventos",

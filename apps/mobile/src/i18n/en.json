@@ -84,6 +84,19 @@
     "emptyBody": "Tap the heart on any video to save it for later. Saved videos are private — only you see them.",
     "emptyCta": "Browse the manual"
   },
+  "savedDashboard": {
+    "title": "Saved",
+    "audMom": "FOR MOM",
+    "audBaby": "FOR BABY",
+    "sectionVideos": "From the manual",
+    "sectionSpecialists": "Specialists",
+    "sectionDonors": "Milk donors",
+    "sectionGear": "Gear",
+    "seeAll": "See all",
+    "emptyTitle": "Nothing saved yet",
+    "emptyBody": "When you tap the heart on a video, a specialist, a donor profile, or a gear listing, it lands here. Saved items are private — only you see them.",
+    "footerHint": "Saved items are private. Only you see them."
+  },
   "village": {
     "eyebrow": "YOUR VILLAGE",
     "title": "It takes a village.",
@@ -1105,6 +1118,7 @@
     "stagePostpartum06": "Postpartum \u00b7 0\u20136 mo",
     "stagePostpartum612": "Postpartum \u00b7 6\u201312 mo",
     "stagePostpartum1yr": "Postpartum \u00b7 1 yr+",
+    "myStuffSaved": "Saved",
     "myStuffSavedManual": "Saved videos",
     "myStuffSavedSpecialists": "Saved specialists",
     "myStuffMyEvents": "My events",

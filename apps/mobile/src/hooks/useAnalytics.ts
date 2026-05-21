@@ -44,6 +44,10 @@ export type AnalyticsEvent =
   | 'manual_video_saved'
   | 'manual_video_unsaved'
   | 'manual_video_shared'
+  // Unified Saved hub (migration 068). Sentry breadcrumbs only — these
+  // are discoverability signals, not compliance trail.
+  | 'saved_dashboard_opened'
+  | 'saved_section_seeall_tapped'
   | 'milk_purchase_payment_success'
   | 'milk_purchase_confirmed'
   | 'milk_dispute_opened'

@@ -9,6 +9,7 @@ import NotificationPreferencesScreen from '@screens/me/NotificationPreferencesSc
 import ChangePasswordScreen from '@screens/me/ChangePasswordScreen';
 import ChangeEmailScreen from '@screens/me/ChangeEmailScreen';
 import DeleteAccountScreen from '@screens/me/DeleteAccountScreen';
+import SavedDashboardScreen from '@screens/me/SavedDashboardScreen';
 
 export type MeStackParamList = {
   MeRoot: undefined;
@@ -18,6 +19,7 @@ export type MeStackParamList = {
   ChangePassword: undefined;
   ChangeEmail: undefined;
   DeleteAccount: undefined;
+  SavedDashboard: undefined;
 };
 
 const Stack = createNativeStackNavigator<MeStackParamList>();
@@ -54,6 +56,11 @@ export function MeNavigator() {
       <Stack.Screen
         name="DeleteAccount"
         component={DeleteAccountScreen}
+        options={{ animation: 'slide_from_right' }}
+      />
+      <Stack.Screen
+        name="SavedDashboard"
+        component={SavedDashboardScreen}
         options={{ animation: 'slide_from_right' }}
       />
     </Stack.Navigator>

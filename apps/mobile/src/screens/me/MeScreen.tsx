@@ -154,19 +154,17 @@ type MyStuffLink = {
 // Deep-links into destinations that already exist in each tab's stack.
 // If a tab isn't currently focused, getParent().navigate(tab, { screen })
 // mounts its navigator on the right route.
+// Unified Saved dashboard row — handled separately because it's in-tab nav
+// (Me → SavedDashboard), not cross-tab. The dashboard itself surfaces all
+// four saves types so the individual SavedManual / Favorites / SavedDonors
+// / SavedGear rows were removed from MY_STUFF to declutter (each is still
+// reachable via the "See all →" link inside the dashboard).
 const MY_STUFF: MyStuffLink[] = [
-  // Saved Manual videos (shipped 2026-05-21 with migration 065). Top of
-  // the list because The Manual is the highest-traffic surface in the app
-  // and "where do I find what I saved?" is the question users ask first.
-  { labelKey: 'me.myStuffSavedManual',      icon: '♥', tab: 'Manual',  screen: 'SavedManual' },
-  { labelKey: 'me.myStuffSavedSpecialists', icon: '🩺', tab: 'Experts', screen: 'Favorites' },
   { labelKey: 'me.myStuffMyEvents',         icon: '📅', tab: 'Home',    screen: 'MyRsvps' },
   { labelKey: 'me.myStuffMyPerks',          icon: '🎁', tab: 'Home',    screen: 'MyClaims' },
   { labelKey: 'me.myStuffMilkInbox',        icon: '💬', tab: 'Milk',    screen: 'MilkMessageThreads' },
   { labelKey: 'me.myStuffMilkOrders',       icon: '📦', tab: 'Milk',    screen: 'MilkOrders' },
-  { labelKey: 'me.myStuffSavedDonors',      icon: '⭐', tab: 'Milk',    screen: 'SavedDonors' },
   { labelKey: 'me.myStuffMyGear',           icon: '🛒', tab: 'Gear',    screen: 'MyListings' },
-  { labelKey: 'me.myStuffSavedGear',        icon: '💾', tab: 'Gear',    screen: 'SavedGear' },
   { labelKey: 'me.myStuffGearInbox',        icon: '💬', tab: 'Gear',    screen: 'GearMessageThreads' },
 ];
 
@@ -548,8 +546,22 @@ export default function MeScreen() {
           )}
         </Section>
 
-        {/* My stuff — cross-tab deep-links */}
+        {/* My stuff — cross-tab deep-links + Saved dashboard. Saved dash
+            sits at the top because it's the unified hub for all four
+            saved-content types (videos / specialists / donors / gear). */}
         <Section title={t('me.myStuff')}>
+          <TouchableOpacity
+            style={s.row}
+            onPress={() => navigation.navigate('SavedDashboard')}
+            accessibilityRole="button"
+            accessibilityLabel={t('me.myStuffOpenA11y', { label: t('me.myStuffSaved') })}
+          >
+            <Text style={s.rowIcon}>♥</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={s.rowLabel}>{t('me.myStuffSaved')}</Text>
+            </View>
+            <Text style={s.rowChevron}>›</Text>
+          </TouchableOpacity>
           {MY_STUFF.map((link, idx) => {
             const label = t(link.labelKey);
             return (
