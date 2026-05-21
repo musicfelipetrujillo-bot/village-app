@@ -9,7 +9,9 @@
     "ios": "expo run:ios",
     "build": "expo export",
     "type-check": "tsc --noEmit",
-    "lint": "eslint src --ext .ts,.tsx"
+    "lint": "eslint src --ext .ts,.tsx",
+    "ios:patch": "bash scripts/post-prebuild-patch.sh",
+    "ios:patch:verify": "bash scripts/post-prebuild-patch.sh --verify"
   },
   "dependencies": {
     "@expo-google-fonts/caprasimo": "^0.4.0",
