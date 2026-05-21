@@ -31,7 +31,10 @@ export type NotifPrefKey =
   | 'milk_hub'
   | 'articles'
   | 'ai'
-  | 'promotions';
+  | 'promotions'
+  // Weekly Sunday newsletter (migration 067). Default OFF per CAN-SPAM;
+  // users opt in via NotificationPreferencesScreen.
+  | 'newsletter';
 
 // Shape must mirror `supabase/functions/_shared/quiet-hours.ts::QuietHours`
 // and the JSONB default in migration 033. Timezone is an IANA string — set
@@ -62,6 +65,7 @@ export const DEFAULT_NOTIF_PREFS: NotifPrefs = {
   articles: true,
   ai: true,
   promotions: false,
+  newsletter: false,
   quiet_hours: DEFAULT_QUIET_HOURS,
 };
 

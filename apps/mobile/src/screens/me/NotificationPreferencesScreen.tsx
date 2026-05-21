@@ -50,6 +50,15 @@ const ROWS: ToggleRow[] = [
     descKey: 'notifPrefs.rowPromotionsDesc',
     noteKey: 'notifPrefs.rowPromotionsNote',
   },
+  {
+    // Weekly Sunday newsletter — opt-in per CAN-SPAM. Lives at the bottom
+    // of the list with a soft note so it doesn't read as a transactional
+    // toggle (it's marketing, even if the content is editorial).
+    key: 'newsletter',
+    titleKey: 'notifPrefs.rowNewsletterTitle',
+    descKey: 'notifPrefs.rowNewsletterDesc',
+    noteKey: 'notifPrefs.rowNewsletterNote',
+  },
 ];
 
 // Device-local IANA tz. `Intl.DateTimeFormat().resolvedOptions().timeZone` is
