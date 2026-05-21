@@ -34,7 +34,50 @@ export interface ManualVideo {
   sort_order: number;
   is_watched: boolean;
   watched_seconds: number;
+  is_saved: boolean;
 }
+
+// SavedManualScreen reuses the same card UI as the per-category browse, but
+// the row joins manual_video_saves so we also know audience+category (the
+// browse RPC only returns rows inside one bucket already, so it doesn't need
+// these) plus saved_at for sort/empty-state copy.
+export interface SavedManualVideo {
+  id: string;
+  audience: ManualAudience;
+  category: string;
+  title: string;
+  description: string;
+  duration_seconds: number;
+  mux_playback_id: string;
+  thumbnail_url: string;
+  poster_url: string | null;
+  has_captions_en: boolean;
+  has_captions_es: boolean;
+  week_relevance: number | null;
+  age_min_weeks: number | null;
+  age_max_weeks: number | null;
+  is_watched: boolean;
+  watched_seconds: number;
+  saved_at: string;
+}
+
+// Allowlist of share destinations. iOS doesn't tell us which app the user
+// picks from the native share sheet — those land as 'ios_share_sheet'. The
+// named channels exist for future deep-link share intents (a "Share to
+// Instagram" button that uses Instagram's URL scheme directly) where we
+// CAN attribute precisely. Keep the union in sync with the CHECK constraint
+// on manual_video_shares.channel.
+export type ManualShareChannel =
+  | 'ios_share_sheet'
+  | 'android_share_sheet'
+  | 'copy_link'
+  | 'instagram'
+  | 'twitter'
+  | 'facebook'
+  | 'sms'
+  | 'email'
+  | 'whatsapp'
+  | 'other';
 
 export interface ManualVideoTile {
   // Compact card for the "this week" row on Manual home — no description,
@@ -131,4 +174,52 @@ export async function markVideoWatched(
     p_seconds:  Math.max(0, Math.floor(seconds)),
   });
   if (error) throw error;
+}
+
+// Saves / Favorites (migration 065).
+//
+// Returns the new saved state. Mobile flips the heart on the returned value
+// (true = now saved, false = now unsaved) so we don't need a refetch.
+export async function toggleManualSave(videoId: string): Promise<boolean> {
+  const { data, error } = await supabase.rpc('toggle_manual_save', {
+    p_video_id: videoId,
+  });
+  if (error) throw error;
+  return Boolean(data);
+}
+
+export async function listMySavedManual(
+  locale: 'en' | 'es' = 'en',
+): Promise<SavedManualVideo[]> {
+  const { data, error } = await supabase.rpc('list_my_saved_manual', {
+    p_locale: locale,
+  });
+  if (error) throw error;
+  return (data ?? []) as SavedManualVideo[];
+}
+
+// Share log. Fire-and-forget on the client — a swallowed error never blocks
+// the share itself. Migration 065 enforces the channel allowlist; calling
+// with a bad string surfaces as a CHECK violation, not silently no-ops.
+export async function logManualShare(
+  videoId: string,
+  channel: ManualShareChannel,
+): Promise<void> {
+  const { error } = await supabase.rpc('log_manual_share', {
+    p_video_id: videoId,
+    p_channel:  channel,
+  });
+  if (error) {
+    // Don't bubble — this is analytics; a failure shouldn't block the user.
+    // Sentry breadcrumb is still fired by the calling screen via useAnalytics.
+    console.warn('log_manual_share failed', error.message);
+  }
+}
+
+// Public-facing share URL for a Manual video. The landing page doesn't exist
+// yet (post-MVP), but we pin the URL shape now so the share text + DB tokens
+// can use it consistently. When the page ships, parsing the path is enough
+// to recover the video_id for inbound attribution.
+export function manualVideoShareUrl(videoId: string): string {
+  return `https://villieapp.com/manual/v/${videoId}`;
 }

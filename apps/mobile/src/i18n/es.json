@@ -62,7 +62,27 @@
     "momTips": "Tips",
     "momTipsBlurb": "\"Esto me salvó\" — pequeñas victorias de mamás reales.",
     "emptyVideosTitle": "Videos en camino",
-    "emptyVideosBody": "Estamos grabando cada uno para que sea útil de verdad — no relleno. Cada semana suben más."
+    "emptyVideosBody": "Estamos grabando cada uno para que sea útil de verdad — no relleno. Cada semana suben más.",
+    "savedLink": "Guardados",
+    "savedLinkA11y": "Abrir tus videos guardados",
+    "save": "Guardar",
+    "saved": "Guardado",
+    "saveA11y": "Guardar este video",
+    "unsaveA11y": "Quitar de guardados",
+    "share": "Compartir",
+    "shareA11y": "Compartir este video",
+    "shareMessage": "{title} — un video de 2 minutos para mamás cansadas, de villie.\n{url}",
+    "shareErrorTitle": "No se pudo compartir",
+    "shareErrorBody": "Inténtalo en un momento."
+  },
+  "savedManual": {
+    "title": "Videos guardados",
+    "watched": "Visto",
+    "audMom": "PARA MAMÁ",
+    "audBaby": "PARA EL BEBÉ",
+    "emptyTitle": "Aún no guardas nada",
+    "emptyBody": "Toca el corazón en cualquier video para guardarlo. Tus guardados son privados — solo tú los ves.",
+    "emptyCta": "Explorar el manual"
   },
   "village": {
     "eyebrow": "TU VILLAGE",

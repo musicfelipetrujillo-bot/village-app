@@ -8,6 +8,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import ManualHomeScreen from '@screens/manual/ManualHomeScreen';
 import ManualCategoryScreen from '@screens/manual/ManualCategoryScreen';
 import ManualVideoScreen from '@screens/manual/ManualVideoScreen';
+import SavedManualScreen from '@screens/manual/SavedManualScreen';
 import WeeklyJourneyScreen from '@screens/home/WeeklyJourneyScreen';
 import MilestoneDetailScreen from '@screens/home/MilestoneDetailScreen';
 import MilestoneTimelineScreen from '@screens/home/MilestoneTimelineScreen';
@@ -20,6 +21,7 @@ export function ManualNavigator() {
       <Stack.Screen name="ManualHome" component={ManualHomeScreen} />
       <Stack.Screen name="ManualCategory" component={ManualCategoryScreen} />
       <Stack.Screen name="ManualVideo" component={ManualVideoScreen} />
+      <Stack.Screen name="SavedManual" component={SavedManualScreen} />
       <Stack.Screen name="WeeklyJourney" component={WeeklyJourneyScreen} />
       <Stack.Screen name="MilestoneDetail" component={MilestoneDetailScreen} />
       <Stack.Screen name="MilestoneTimeline" component={MilestoneTimelineScreen} />

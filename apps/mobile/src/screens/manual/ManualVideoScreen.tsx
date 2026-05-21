@@ -19,17 +19,22 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, ScrollView,
+  Share, Alert,
 } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import { COLORS, FONTS } from '@utils/constants';
 import { useT } from '@/i18n';
 import { useUserStore } from '@store/user';
+import { useAnalytics } from '@hooks/useAnalytics';
 import {
   getManualVideo,
   markVideoWatched,
   muxPlayerUrl,
   formatDuration,
+  toggleManualSave,
+  logManualShare,
+  manualVideoShareUrl,
   type ManualVideo,
   type ManualAudience,
 } from '@/api/manual';
@@ -50,6 +55,15 @@ export default function ManualVideoScreen() {
   // ES toggle defaults to user's preferred language when an ES caption track exists.
   const [captionLang, setCaptionLang] = useState<'en' | 'es' | 'off'>('off');
 
+  // Save state — kicks off optimistic so the heart flips immediately; on
+  // RPC failure we revert and surface a quiet inline error (no Alert; the
+  // user already sees the heart un-flip, which is the real feedback).
+  const [saved, setSaved] = useState(false);
+  const [saveBusy, setSaveBusy] = useState(false);
+  const [shareBusy, setShareBusy] = useState(false);
+
+  const { trackEvent } = useAnalytics();
+
   // Approximate watch position via screen-time. WebView doesn't expose the
   // <video> currentTime without injectedJavaScript posting back, so we use
   // wall-clock seconds since mount as the running max. Good enough for the
@@ -68,6 +82,7 @@ export default function ManualVideoScreen() {
         const v = await getManualVideo(audience, category, videoId, lang);
         if (cancelled) return;
         setVideo(v);
+        setSaved(v?.is_saved ?? false);
         screenMountedAtRef.current = Date.now();
         // Default captions to user's locale when present, else EN, else off.
         if (v?.has_captions_es && lang === 'es') setCaptionLang('es');
@@ -119,6 +134,68 @@ export default function ManualVideoScreen() {
     poster: video.poster_url,
   }) : null;
 
+  // ── Save handler ──
+  // Optimistic: flip locally first, call RPC, revert on error. The RPC
+  // returns the new server-side state so an out-of-order tap can't leave
+  // the local heart out of sync.
+  const onTapSave = async () => {
+    if (!video || saveBusy) return;
+    setSaveBusy(true);
+    const prev = saved;
+    setSaved(!prev);
+    try {
+      const next = await toggleManualSave(video.id);
+      setSaved(next);
+      trackEvent(next ? 'manual_video_saved' : 'manual_video_unsaved', {
+        video_id: video.id,
+      });
+    } catch (e: any) {
+      setSaved(prev);
+      // Quiet — heart un-flip is sufficient feedback. No Alert here.
+      console.warn('toggle save failed', e?.message);
+    } finally {
+      setSaveBusy(false);
+    }
+  };
+
+  // ── Share handler ──
+  // Uses RN's built-in Share API (no native deps required). iOS surfaces the
+  // system share sheet; we log 'ios_share_sheet' on success without knowing
+  // exactly which app the user picked (Apple doesn't disclose that). The
+  // landing-page URL is currently a stub (post-MVP), but the share text
+  // includes the title + caption so the link itself can do work right now.
+  const onTapShare = async () => {
+    if (!video || shareBusy) return;
+    setShareBusy(true);
+    const url = manualVideoShareUrl(video.id);
+    const title = video.title;
+    const message = t('manual.shareMessage')
+      .replace('{title}', title)
+      .replace('{url}', url);
+    try {
+      const result = await Share.share({
+        title,
+        message,
+        url, // iOS uses this when available; Android falls back to message
+      });
+      // Only log when the share actually went through. dismissedAction means
+      // the user closed the sheet without picking anything.
+      if (result.action === Share.sharedAction) {
+        // Best-effort fire-and-forget; await catches any throws but the
+        // call itself swallows network errors inside.
+        await logManualShare(video.id, 'ios_share_sheet');
+        trackEvent('manual_video_shared', {
+          video_id: video.id,
+          channel: 'ios_share_sheet',
+        });
+      }
+    } catch (e: any) {
+      Alert.alert(t('manual.shareErrorTitle'), e?.message ?? t('manual.shareErrorBody'));
+    } finally {
+      setShareBusy(false);
+    }
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -158,6 +235,41 @@ export default function ManualVideoScreen() {
             <Text style={styles.title}>{video.title}</Text>
             <Text style={styles.duration}>{formatDuration(video.duration_seconds)}</Text>
             <Text style={styles.description}>{video.description}</Text>
+
+            {/* Save + Share row. Heart toggles save state, Share opens the
+                iOS share sheet and logs the share with channel
+                'ios_share_sheet' on success. */}
+            <View style={styles.actionRow}>
+              <TouchableOpacity
+                onPress={onTapSave}
+                disabled={saveBusy}
+                style={[styles.actionPill, saved && styles.actionPillActive]}
+                accessibilityRole="button"
+                accessibilityLabel={
+                  saved ? t('manual.unsaveA11y') : t('manual.saveA11y')
+                }
+                accessibilityState={{ selected: saved, busy: saveBusy }}
+              >
+                <Text style={[styles.actionIcon, saved && styles.actionIconActive]}>
+                  {saved ? '♥' : '♡'}
+                </Text>
+                <Text style={[styles.actionLabel, saved && styles.actionLabelActive]}>
+                  {saved ? t('manual.saved') : t('manual.save')}
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={onTapShare}
+                disabled={shareBusy}
+                style={styles.actionPill}
+                accessibilityRole="button"
+                accessibilityLabel={t('manual.shareA11y')}
+                accessibilityState={{ busy: shareBusy }}
+              >
+                <Text style={styles.actionIcon}>↗</Text>
+                <Text style={styles.actionLabel}>{t('manual.share')}</Text>
+              </TouchableOpacity>
+            </View>
 
             {/* Captions toggle — only renders when at least one track exists. */}
             {(video.has_captions_en || video.has_captions_es) && (
@@ -252,6 +364,32 @@ const styles = StyleSheet.create({
     fontSize: 14, fontFamily: FONTS.body, color: COLORS.barkSoft,
     lineHeight: 20, marginBottom: 24,
   },
+
+  // Save / Share row sits between description and captions. Two roomy pills
+  // side-by-side, the heart pill flips to filled-cinnamon when saved so the
+  // affordance is obvious without animations.
+  actionRow: {
+    flexDirection: 'row', gap: 12, marginBottom: 24,
+  },
+  actionPill: {
+    flexDirection: 'row', alignItems: 'center', gap: 8,
+    paddingHorizontal: 16, paddingVertical: 10,
+    borderRadius: 999,
+    borderWidth: 1, borderColor: COLORS.sandSoft,
+    backgroundColor: COLORS.paper,
+  },
+  actionPillActive: {
+    backgroundColor: '#C07840', borderColor: '#C07840',
+  },
+  actionIcon: {
+    fontSize: 16, color: COLORS.bark,
+  },
+  actionIconActive: { color: COLORS.paper },
+  actionLabel: {
+    fontSize: 13, fontFamily: FONTS.bodySemiBold, color: COLORS.bark,
+    letterSpacing: 0.2,
+  },
+  actionLabelActive: { color: COLORS.paper },
 
   captionsBlock: { marginBottom: 24 },
   captionsLabel: {

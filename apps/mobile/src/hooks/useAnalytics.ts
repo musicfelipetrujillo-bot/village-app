@@ -38,6 +38,12 @@ export type AnalyticsEvent =
   | 'milk_disclosure_accepted'
   | 'milk_safe_handoff_shown'
   | 'milk_safe_handoff_accepted'
+  // Manual saves + share — added with migration 065. Saves are private; the
+  // share log answers "which content actually travels" and is part of the
+  // content-curation feedback loop, not a compliance trail.
+  | 'manual_video_saved'
+  | 'manual_video_unsaved'
+  | 'manual_video_shared'
   | 'milk_purchase_payment_success'
   | 'milk_purchase_confirmed'
   | 'milk_dispute_opened'

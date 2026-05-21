@@ -288,6 +288,19 @@ export default function ManualHomeScreen() {
           </Text>
           <Text style={styles.subtitle}>{t('manual.subtitle')}</Text>
           <View style={styles.headerRule} />
+
+          {/* Saved-content shortcut. Sits in the top-right corner of the
+              editorial header so the eyebrow + title typography stays clean.
+              Routes to SavedManualScreen (migration 065). */}
+          <TouchableOpacity
+            style={styles.savedLink}
+            onPress={() => navigation.navigate('SavedManual' as never)}
+            accessibilityRole="button"
+            accessibilityLabel={t('manual.savedLinkA11y')}
+          >
+            <Text style={styles.savedLinkIcon}>♥</Text>
+            <Text style={styles.savedLinkText}>{t('manual.savedLink')}</Text>
+          </TouchableOpacity>
         </View>
 
         {/* "This week to watch" — up to 4 curated short videos for the user's
@@ -484,6 +497,21 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(61,31,13,0.18)',
     marginTop: 14,
     width: 48,
+  },
+  // Saved shortcut pinned to top-right of the header. Discreet enough to not
+  // compete with the editorial title but tappable on a one-handed reach.
+  savedLink: {
+    position: 'absolute', top: 20, right: 16,
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    paddingHorizontal: 12, paddingVertical: 6,
+    borderRadius: 999,
+    backgroundColor: 'rgba(255,255,255,0.7)',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(61,31,13,0.18)',
+  },
+  savedLinkIcon: { fontSize: 12, color: '#C07840' },
+  savedLinkText: {
+    fontSize: 11, color: COLORS.bark, fontFamily: FONTS.bodySemiBold, letterSpacing: 0.3,
   },
 
   // "This week to watch" — horizontal-scroll row of up to 4 curated thumbs.

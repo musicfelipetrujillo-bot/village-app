@@ -62,7 +62,27 @@
     "momTips": "Tips",
     "momTipsBlurb": "\"This saved me\" — small wins from real moms.",
     "emptyVideosTitle": "Videos coming soon",
-    "emptyVideosBody": "We're filming each one so it's actually useful — not filler. New drops weekly."
+    "emptyVideosBody": "We're filming each one so it's actually useful — not filler. New drops weekly.",
+    "savedLink": "Saved",
+    "savedLinkA11y": "Open your saved videos",
+    "save": "Save",
+    "saved": "Saved",
+    "saveA11y": "Save this video",
+    "unsaveA11y": "Remove from saved",
+    "share": "Share",
+    "shareA11y": "Share this video",
+    "shareMessage": "{title} — a 2-minute video for tired parents from villie.\n{url}",
+    "shareErrorTitle": "Couldn't share",
+    "shareErrorBody": "Please try again in a moment."
+  },
+  "savedManual": {
+    "title": "Saved videos",
+    "watched": "Watched",
+    "audMom": "FOR MOM",
+    "audBaby": "FOR BABY",
+    "emptyTitle": "Nothing saved yet",
+    "emptyBody": "Tap the heart on any video to save it for later. Saved videos are private — only you see them.",
+    "emptyCta": "Browse the manual"
   },
   "village": {
     "eyebrow": "YOUR VILLAGE",
