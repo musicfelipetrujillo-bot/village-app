@@ -2,3 +2,5 @@ packages:
   - "apps/*"
   - "packages/*"
   - "supabase/functions/*"
+patchedDependencies:
+  '@sentry/react-native': patches/@sentry__react-native.patch

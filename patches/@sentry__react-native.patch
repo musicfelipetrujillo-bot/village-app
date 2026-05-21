@@ -1,0 +1,13 @@
+diff --git a/scripts/sentry-xcode.sh b/scripts/sentry-xcode.sh
+index d8d473477332703c0a86461abafb505015e8040b..ffd67d8a4666987548be17502225f25d835345c0 100755
+--- a/scripts/sentry-xcode.sh
++++ b/scripts/sentry-xcode.sh	
+@@ -62,7 +62,7 @@ if [ "$SENTRY_DISABLE_AUTO_UPLOAD" != true ]; then
+   set -x -e # re-enable
+ else
+   echo "SENTRY_DISABLE_AUTO_UPLOAD=true, skipping sourcemaps upload"
+-  /bin/sh -c "$REACT_NATIVE_XCODE"
++  /bin/sh "$REACT_NATIVE_XCODE"
+ fi
+ 
+ [ -z "$SENTRY_COLLECT_MODULES" ] && SENTRY_RN_PACKAGE_PATH=$("$LOCAL_NODE_BINARY" --print "require('path').dirname(require.resolve('@sentry/react-native/package.json'))")
