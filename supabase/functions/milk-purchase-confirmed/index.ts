@@ -5,6 +5,16 @@
 // 4. Sends Twilio SMS to recipient (donor address + phone)
 // POST /functions/v1/milk-purchase-confirmed
 // Body: { transaction_id }
+//
+// ──────────────────────────────────────────────────────────────────────
+// ⚠️  DEPRECATED — 2026-05-21
+// ──────────────────────────────────────────────────────────────────────
+// Companion to milk-purchase-intent. V2 Milk Hub is now CASH-ONLY
+// (see memory/project_milk_cash_only.md). The mobile Stripe purchase
+// flow is gated OFF behind EXPO_PUBLIC_MILK_STRIPE_ENABLED — no
+// production code path reaches this function. Don't edit without
+// reversing the cash-only decision first.
+// ──────────────────────────────────────────────────────────────────────
 
 import Stripe from 'npm:stripe';
 import { createClient } from 'npm:@supabase/supabase-js';

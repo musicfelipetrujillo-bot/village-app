@@ -1,5 +1,21 @@
 // V2 M3 — MilkPurchaseScreen
 // Quantity + fulfillment + Stripe PaymentSheet → milk-purchase-intent → confirm.
+//
+// ──────────────────────────────────────────────────────────────────────
+// ⚠️  DEPRECATED — 2026-05-21
+// ──────────────────────────────────────────────────────────────────────
+// V2 Milk Hub is now CASH-ONLY (see memory/project_milk_cash_only.md).
+// Navigation to this screen is gated behind EXPO_PUBLIC_MILK_STRIPE_ENABLED
+// in DonorProfileScreen — in production builds the flag is OFF so this
+// screen is unreachable. The Stripe purchase flow stays in tree so the
+// code path can be re-enabled if/when the money-transmitter posture
+// changes (would require a FinCEN/Florida counsel review per
+// docs/source/Village_Risk_and_Compliance.md).
+//
+// Active path for cash arrangements: DonorProfileScreen "Message" button
+// → SafeMilkHandoffModal → getOrCreateThread → MilkMessageDetailScreen.
+// No on-platform payment.
+// ──────────────────────────────────────────────────────────────────────
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,

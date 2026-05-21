@@ -3,6 +3,22 @@
 // Inserts a PENDING milk_transactions row that gets updated by milk-purchase-confirmed.
 // POST /functions/v1/milk-purchase-intent
 // Body: { donor_profile_id, listing_id, oz, fulfillment_method, recipient_address?, recipient_notes? }
+//
+// ──────────────────────────────────────────────────────────────────────
+// ⚠️  DEPRECATED — 2026-05-21
+// ──────────────────────────────────────────────────────────────────────
+// V2 Milk Hub is now CASH-ONLY (see memory/project_milk_cash_only.md).
+// The mobile Stripe purchase flow is gated OFF behind the feature flag
+// EXPO_PUBLIC_MILK_STRIPE_ENABLED; no production code path reaches this
+// function. Keeping the code in tree (not deleting) so the path can be
+// re-enabled if/when the Stripe-money-transmitter posture changes.
+//
+// If you're here because you're touching this fn: don't. Either
+// (a) the cash-only decision is being reversed and you should remove
+// this banner with an actual product decision recorded, or (b) you
+// should be editing the cash-handoff flow in DonorProfileScreen +
+// SafeMilkHandoffModal instead.
+// ──────────────────────────────────────────────────────────────────────
 
 import Stripe from 'npm:stripe';
 import { createClient } from 'npm:@supabase/supabase-js';
