@@ -147,7 +147,7 @@ type MyStuffLink = {
   labelKey: string;
   hint?: string;
   icon: string;
-  tab: 'Home' | 'Milk' | 'Experts' | 'Gear';
+  tab: 'Home' | 'Milk' | 'Experts' | 'Gear' | 'Manual';
   screen: string;
 };
 
@@ -155,6 +155,10 @@ type MyStuffLink = {
 // If a tab isn't currently focused, getParent().navigate(tab, { screen })
 // mounts its navigator on the right route.
 const MY_STUFF: MyStuffLink[] = [
+  // Saved Manual videos (shipped 2026-05-21 with migration 065). Top of
+  // the list because The Manual is the highest-traffic surface in the app
+  // and "where do I find what I saved?" is the question users ask first.
+  { labelKey: 'me.myStuffSavedManual',      icon: '♥', tab: 'Manual',  screen: 'SavedManual' },
   { labelKey: 'me.myStuffSavedSpecialists', icon: '🩺', tab: 'Experts', screen: 'Favorites' },
   { labelKey: 'me.myStuffMyEvents',         icon: '📅', tab: 'Home',    screen: 'MyRsvps' },
   { labelKey: 'me.myStuffMyPerks',          icon: '🎁', tab: 'Home',    screen: 'MyClaims' },
