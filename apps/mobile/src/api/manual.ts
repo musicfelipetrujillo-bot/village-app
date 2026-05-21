@@ -216,10 +216,11 @@ export async function logManualShare(
   }
 }
 
-// Public-facing share URL for a Manual video. The landing page doesn't exist
-// yet (post-MVP), but we pin the URL shape now so the share text + DB tokens
-// can use it consistently. When the page ships, parsing the path is enough
-// to recover the video_id for inbound attribution.
+// Public-facing share URL for a Manual video. Query-string shape (not path)
+// so we can serve from any static host (the marketing site is GitHub Pages
+// with no rewrite rules) without per-video HTML files. The /m/ page reads
+// ?v= client-side and fetches metadata via the anon-callable RPC
+// get_manual_video_share_meta.
 export function manualVideoShareUrl(videoId: string): string {
-  return `https://villieapp.com/manual/v/${videoId}`;
+  return `https://villieapp.com/m/?v=${videoId}`;
 }
