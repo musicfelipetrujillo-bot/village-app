@@ -34,6 +34,36 @@ import { ErrorBoundary } from '@components/shared/ErrorBoundary';
 import { seedWebDevStores } from '@/lib/webDevSeed';
 import { configureGoogleSignIn, OAUTH_PROVIDERS_ENABLED } from '@/lib/oauth';
 
+// ─── Required EXPO_PUBLIC env var validation ─────────────────────────
+// Fail loud at boot if the build is missing any var the app can't run
+// without. We've been bitten twice by silent fallbacks (an undefined
+// Supabase URL becoming `undefined.supabase.co`, and an empty Sentry
+// DSN producing zero error reports for two weeks). Sentry/OneSignal/
+// OAuth env vars are NOT required at boot — they degrade gracefully —
+// so they're not on the strict list.
+(function validateRequiredEnv() {
+  const required = [
+    'EXPO_PUBLIC_SUPABASE_URL',
+    'EXPO_PUBLIC_SUPABASE_ANON_KEY',
+    'EXPO_PUBLIC_API_BASE_URL',
+    'EXPO_PUBLIC_APP_ENV',
+  ] as const;
+  const missing = required.filter((k) => !process.env[k]);
+  if (missing.length === 0) return;
+  const msg = `villie: missing required env vars: ${missing.join(', ')}. Check apps/mobile/.env or your EAS profile.`;
+  if (__DEV__) {
+    // Surface in the Metro logs + the dev redbox. Don't throw in
+    // production builds — better a degraded app than a white-screen
+    // crash with no diagnostic.
+    console.error(msg);
+    throw new Error(msg);
+  } else {
+    // Production: warn loudly to logs + Sentry breadcrumb so the
+    // incident is at least traceable. The app still attempts to boot.
+    console.warn(msg);
+  }
+})();
+
 // Seed mock data immediately so HomeScreen has data before first render.
 seedWebDevStores();
 

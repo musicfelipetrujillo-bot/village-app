@@ -1,7 +1,20 @@
 import * as Sentry from '@sentry/react-native';
+import Constants from 'expo-constants';
 
 const SENTRY_DSN = process.env.EXPO_PUBLIC_SENTRY_DSN ?? '';
 const IS_PROD = process.env.EXPO_PUBLIC_APP_ENV === 'production';
+
+// Sentry release identifier — groups errors by build so a "spike in
+// crashes" can be traced back to a specific commit/version. Builds:
+//   app.json version + commit SHA (when EXPO_PUBLIC_GIT_SHA is set by
+//   the build script) OR the Expo runtimeVersion as a fallback.
+// Format mirrors Sentry's convention: `<app>@<version>+<sha>`.
+function resolveRelease(): string | undefined {
+  const expoVersion = Constants.expoConfig?.version ?? '0.0.0';
+  const sha = process.env.EXPO_PUBLIC_GIT_SHA?.slice(0, 7);
+  if (sha) return `villie@${expoVersion}+${sha}`;
+  return `villie@${expoVersion}`;
+}
 
 export function initSentry() {
   if (!SENTRY_DSN) return;
@@ -9,6 +22,7 @@ export function initSentry() {
   Sentry.init({
     dsn: SENTRY_DSN,
     environment: IS_PROD ? 'production' : 'development',
+    release: resolveRelease(),
     // Only send errors in production — avoid noise from dev
     enabled: IS_PROD,
     // Capture 20% of transactions for performance monitoring

@@ -408,18 +408,84 @@ Deno.serve(async (req) => {
     });
   }
 
-  // Optional override for ad-hoc testing: { period_start: 'YYYY-MM-DD' }.
+  // Body params accepted (all optional):
+  //   period_start: 'YYYY-MM-DD'   override the Sunday-anchor (cron testing)
+  //   test_only: true              do NOT record_newsletter_sent (so a
+  //                                test send doesn't block Sunday's real
+  //                                send to the same user); good for
+  //                                previewing the email before going live
+  //   test_recipient: 'a@b.com'    override the entire recipient list
+  //                                with one address (resolved against
+  //                                an existing user so personalization
+  //                                + the get_newsletter_content_for_user
+  //                                RPC still works as if it were that user)
   const reqBody = await req.json().catch(() => ({} as Record<string, unknown>));
   const periodStart = typeof reqBody.period_start === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(reqBody.period_start)
     ? reqBody.period_start
     : sundayOfThisWeekUTC();
+  const testOnly = reqBody.test_only === true;
+  const testRecipientEmail = typeof reqBody.test_recipient === 'string' && reqBody.test_recipient.includes('@')
+    ? reqBody.test_recipient.toLowerCase()
+    : null;
 
   const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
     auth: { persistSession: false },
   });
 
-  const { data: recipients, error: recipientsErr } = await supabase
-    .rpc('list_newsletter_recipients', { p_period_start: periodStart });
+  let recipients: Recipient[] | null = null;
+  let recipientsErr: { message: string } | null = null;
+
+  if (testRecipientEmail) {
+    // Test-fire path: look up the user by email + synthesize a one-row
+    // recipient list. Skips the list_newsletter_recipients filtering
+    // (notif_prefs.newsletter=true / not-already-sent-this-week) — the
+    // whole point of test_recipient is to override those gates so you
+    // can preview to your own account without opting in.
+    const { data: au, error: auErr } = await supabase
+      .from('auth.users' as never)
+      .select('id, email')
+      .eq('email', testRecipientEmail)
+      .maybeSingle()
+      .returns<{ id: string; email: string }>();
+    if (auErr || !au) {
+      // Fall back to a direct schema query — `auth.users` isn't always
+      // exposed via PostgREST. The admin API is the supported path.
+      const { data: adminList } = await supabase.auth.admin.listUsers();
+      const found = adminList?.users?.find((u) => (u.email ?? '').toLowerCase() === testRecipientEmail);
+      if (!found) {
+        return new Response(JSON.stringify({ error: `no user with email ${testRecipientEmail}` }), {
+          status: 404, headers: { ...CORS, 'Content-Type': 'application/json' },
+        });
+      }
+      // Hydrate the public profile fields the buildEmail call expects.
+      const { data: pub } = await supabase
+        .from('users')
+        .select('id, full_name, preferred_language, pregnancy_stage, zip_code')
+        .eq('id', found.id)
+        .maybeSingle();
+      const { data: baby } = await supabase
+        .from('baby_profiles_with_week')
+        .select('current_week_number, baby_name')
+        .eq('user_id', found.id)
+        .maybeSingle();
+      recipients = [{
+        user_id: found.id,
+        email: found.email!,
+        full_name: pub?.full_name ?? null,
+        preferred_language: (pub?.preferred_language ?? 'en') as 'en' | 'es',
+        pregnancy_stage: pub?.pregnancy_stage ?? null,
+        current_week: baby?.current_week_number ?? null,
+        baby_first_name: baby?.baby_name ?? null,
+        zip_code: pub?.zip_code ?? null,
+      }];
+    }
+  } else {
+    const { data, error } = await supabase
+      .rpc('list_newsletter_recipients', { p_period_start: periodStart });
+    recipients = data as Recipient[];
+    recipientsErr = error;
+  }
+
   if (recipientsErr) {
     return new Response(JSON.stringify({ error: recipientsErr.message }), {
       status: 500, headers: { ...CORS, 'Content-Type': 'application/json' },
@@ -446,12 +512,17 @@ Deno.serve(async (req) => {
       const { subject, html, text } = buildEmail({ recipient: r, content });
       const sendResult = await sendViaResend({ to: r.email, subject, html, text });
       if ('error' in sendResult) throw new Error(sendResult.error);
-      await supabase.rpc('record_newsletter_sent', {
-        p_user_id: r.user_id,
-        p_period_start: periodStart,
-        p_resend_id: sendResult.id,
-        p_context: { top_video_id: content.top_video?.id ?? null, saved_count: content.saved_count ?? 0 },
-      });
+      // Skip the ledger insert in test mode so a preview send doesn't
+      // block Sunday's real send to the same user (UNIQUE
+      // (user_id, period_start) on newsletter_sends).
+      if (!testOnly) {
+        await supabase.rpc('record_newsletter_sent', {
+          p_user_id: r.user_id,
+          p_period_start: periodStart,
+          p_resend_id: sendResult.id,
+          p_context: { top_video_id: content.top_video?.id ?? null, saved_count: content.saved_count ?? 0 },
+        });
+      }
       results.sent += 1;
     } catch (e) {
       results.failed += 1;

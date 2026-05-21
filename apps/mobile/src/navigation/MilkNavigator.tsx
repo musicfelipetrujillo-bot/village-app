@@ -1,3 +1,25 @@
+// MilkNavigator — V2 Milk Hub routes.
+//
+// ⚠️ As of 2026-05-21 the Milk Hub is CASH-ONLY (see
+// memory/project_milk_cash_only.md). The following routes are
+// registered but UNREACHABLE in production — no navigate() call targets
+// them while EXPO_PUBLIC_MILK_STRIPE_ENABLED is OFF (the default). They
+// stay in the param list so re-enabling Stripe is a one-line flag flip,
+// not a re-import dance:
+//   - StripeOnboarding              (donor Stripe Connect setup)
+//   - MilkMatch                     (AI match → purchase intent)
+//   - MilkPurchase                  (Stripe PaymentSheet — see deprecation
+//                                    banner inside MilkPurchaseScreen.tsx)
+//   - MilkOrderConfirm              (post-payment confirmation)
+//   - MilkOrders                    (no orders without transactions)
+//   - MilkReviewSubmit              (reviews are tied to transactions)
+//   - MilkDisputeOpen / MilkShippingLabel  (dispute/Shippo flows tied
+//                                           to transactions)
+//
+// Active routes in cash-only world: MilkHome, BecomeDonorIntro,
+// DonorQuestionnaire, TrustBadgeBuilder, CreateListing, DonorSearchList,
+// DonorMap, DonorProfile, SavedDonors, MilkMessageThreads,
+// MilkMessageDetail.
 import React from 'react';
 import { View } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';

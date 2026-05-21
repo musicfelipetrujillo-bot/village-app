@@ -41,6 +41,7 @@ export type AnalyticsEvent =
   // Manual saves + share — added with migration 065. Saves are private; the
   // share log answers "which content actually travels" and is part of the
   // content-curation feedback loop, not a compliance trail.
+  | 'manual_video_viewed'
   | 'manual_video_saved'
   | 'manual_video_unsaved'
   | 'manual_video_shared'

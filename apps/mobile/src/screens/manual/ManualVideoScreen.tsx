@@ -84,6 +84,19 @@ export default function ManualVideoScreen() {
         setVideo(v);
         setSaved(v?.is_saved ?? false);
         screenMountedAtRef.current = Date.now();
+        // View event — fires on screen-load (not actual <video> play). Pairs
+        // with manual_video_saved + manual_video_shared so the "of X who saw
+        // this, Y saved, Z shared" funnel is computable.
+        if (v) {
+          // audience + category come from route params (the ManualVideo
+          // shape returned by list_manual_videos doesn't include the
+          // bucket discriminators).
+          trackEvent('manual_video_viewed', {
+            video_id: v.id,
+            audience,
+            category,
+          });
+        }
         // Default captions to user's locale when present, else EN, else off.
         if (v?.has_captions_es && lang === 'es') setCaptionLang('es');
         else if (v?.has_captions_en) setCaptionLang('en');
