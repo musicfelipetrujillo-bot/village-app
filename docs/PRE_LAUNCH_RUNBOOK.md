@@ -190,7 +190,7 @@ These are not code, but must exist in prod for features to work:
 
 | Item | Where | Notes |
 |---|---|---|
-| `expo.ios.bundleIdentifier` | app.json | `com.thevillage.app` (TBD) — must match App Store Connect |
+| `expo.ios.bundleIdentifier` | app.json | `com.villieapp.mobile` (TBD) — must match App Store Connect |
 | `expo.android.package` | app.json | Same reverse-DNS |
 | OneSignal plugin config | app.json `plugins` array | App ID + mode |
 | Sentry plugin config | app.json `plugins` array | Upload source maps on build |

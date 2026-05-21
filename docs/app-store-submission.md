@@ -17,7 +17,7 @@ never breezy/marketing).
 | **Subtitle** (30 char max) | Postpartum care, in one place |
 | **Primary Category** | Health & Fitness |
 | **Secondary Category** | Medical |
-| **Bundle ID** | `com.thevillage.app` |
+| **Bundle ID** | `com.villieapp.mobile` |
 | **SKU** | `village-mobile-001` |
 
 ### Promotional Text (170 char — editable without resubmission)

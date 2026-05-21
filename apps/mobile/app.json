@@ -15,7 +15,7 @@
     "ios": {
       "supportsTablet": false,
       "icon": "./assets/icon.png",
-      "bundleIdentifier": "com.thevillage.app",
+      "bundleIdentifier": "com.villieapp.mobile",
       "buildNumber": "1",
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "villie uses your location to find nearby donors, specialists, and events.",
@@ -32,7 +32,7 @@
       }
     },
     "android": {
-      "package": "com.thevillage.app",
+      "package": "com.villieapp.mobile",
       "versionCode": 1,
       "adaptiveIcon": {
         "foregroundImage": "./assets/icon.png",
@@ -88,14 +88,14 @@
       [
         "@react-native-google-signin/google-signin",
         {
-          "iosUrlScheme": "REPLACE_WITH_GOOGLE_IOS_REVERSED_CLIENT_ID"
+          "iosUrlScheme": "com.googleusercontent.apps.595113218342-hh6m9dpe7go27mpri9hqlb9udvi88kb2"
         }
       ],
       "@sentry/react-native",
       [
         "@stripe/stripe-react-native",
         {
-          "merchantIdentifier": "merchant.com.thevillage.app"
+          "merchantIdentifier": "merchant.com.villieapp.mobile"
         }
       ],
       "expo-font",
@@ -114,10 +114,10 @@
               "appExtensions": [
                 {
                   "targetName": "OneSignalNotificationServiceExtension",
-                  "bundleIdentifier": "com.thevillage.app.OneSignalNotificationServiceExtension",
+                  "bundleIdentifier": "com.villieapp.mobile.OneSignalNotificationServiceExtension",
                   "entitlements": {
                     "com.apple.security.application-groups": [
-                      "group.com.thevillage.app.onesignal"
+                      "group.com.villieapp.mobile.onesignal"
                     ]
                   }
                 }
