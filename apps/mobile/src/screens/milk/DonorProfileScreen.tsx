@@ -10,13 +10,21 @@ import {
   getDonorProfile, getDonorReviews, getDonorActiveListing,
   getDietFlags, getTrustBadge, saveDonor, unsaveDonor, isSaved,
   callTrustNarrative, callDonorQA, getOrCreateThread,
+  recordLegalAcceptance,
 } from '@api/milk';
 import type { DonorPublicProfile, MilkReview, MilkListing, MilkTrustBadge , DietFlagKey } from '@api/milk';
 import { COLORS, FONTS } from '@utils/constants';
 import { V9PageBackdrop } from '@components/shared/V9PageBackdrop';
 import { GlassHighlight } from '@components/shared/GlassHighlight';
+import SafeMilkHandoffModal from '@components/milk/SafeMilkHandoffModal';
 import { useT } from '@/i18n';
+import { useAnalytics } from '@hooks/useAnalytics';
 import type { MilkStackParamList } from '@/navigation/MilkNavigator';
+
+// Cash-only MVP (2026-05-21): Stripe PaymentSheet path is OFF by default.
+// Same posture as V4 Gear — donor/recipient coordinate cash or P2P at handoff.
+// Set EXPO_PUBLIC_MILK_STRIPE_ENABLED=1 to re-enable the legacy M3 purchase flow.
+const MILK_STRIPE_ENABLED = process.env.EXPO_PUBLIC_MILK_STRIPE_ENABLED === '1';
 
 type T = ReturnType<typeof useT>;
 
@@ -56,6 +64,7 @@ export default function DonorProfileScreen({ route, navigation }: Props) {
   const user = useAuthStore((s) => s.user);
   const lang = useUserStore((s) => s.profile?.preferred_language ?? 'en');
   const t = useT();
+  const { trackEvent } = useAnalytics();
 
   const [profile, setProfile] = useState<DonorPublicProfile | null>(null);
   const [badge, setBadge] = useState<MilkTrustBadge | null>(null);
@@ -65,6 +74,13 @@ export default function DonorProfileScreen({ route, navigation }: Props) {
   const [narrative, setNarrative] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(true);
+
+  // Cash-only handoff gate (2026-05-21). Shown on first Message tap so the
+  // recipient reads the cold-chain + payment-method warnings before reaching
+  // out. Acceptance is persisted via recordLegalAcceptance + fires the
+  // `milk_safe_handoff_accepted` analytics event.
+  const [handoffModalVisible, setHandoffModalVisible] = useState(false);
+  const [handoffSubmitting, setHandoffSubmitting] = useState(false);
 
   // AI Q&A state
   const [qaModalVisible, setQaModalVisible] = useState(false);
@@ -370,33 +386,69 @@ export default function DonorProfileScreen({ route, navigation }: Props) {
         <View style={{ height: 100 }} />
       </Animated.ScrollView>
 
-      {/* ── Sticky Action Bar ── */}
+      {/* ── Sticky Action Bar ──
+          Cash-only MVP: only the Message button is shown by default. The
+          Stripe-bound Purchase button is gated behind EXPO_PUBLIC_MILK_STRIPE_ENABLED
+          and reserved for the legacy / future-rebuild path.
+          The Message button shows SafeMilkHandoffModal before opening chat. */}
       <View style={styles.actionBar}>
         <TouchableOpacity
-          style={styles.messageBtn}
-          onPress={async () => {
+          style={MILK_STRIPE_ENABLED ? styles.messageBtn : styles.messageBtnSolo}
+          onPress={() => {
             if (!user) return;
-            try {
-              const thread = await getOrCreateThread(donorProfileId, user.id, listing?.id);
-              navigation.navigate('MilkMessageDetail', {
-                threadId: thread.id,
-                donorProfileId,
-                otherDisplayName: profile?.display_name,
-              });
-            } catch (e: any) {
-              Alert.alert(t('donorProfile.openChatErrorTitle'), e.message ?? t('donorProfile.openChatErrorBody'));
-            }
+            trackEvent('milk_safe_handoff_shown', { donor_profile_id: donorProfileId });
+            setHandoffModalVisible(true);
           }}
         >
-          <Text style={styles.messageBtnText}>{t('donorProfile.messageBtn')}</Text>
+          <Text style={MILK_STRIPE_ENABLED ? styles.messageBtnText : styles.messageBtnSoloText}>
+            {t('donorProfile.messageBtn')}
+          </Text>
         </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.purchaseBtn}
-          onPress={() => navigation.navigate('MilkPurchase', { donorProfileId, listingId: listing?.id ?? '' })}
-        >
-          <Text style={styles.purchaseBtnText}>{t('donorProfile.purchaseBtn')}</Text>
-        </TouchableOpacity>
+        {MILK_STRIPE_ENABLED && (
+          <TouchableOpacity
+            style={styles.purchaseBtn}
+            onPress={() => navigation.navigate('MilkPurchase', { donorProfileId, listingId: listing?.id ?? '' })}
+          >
+            <Text style={styles.purchaseBtnText}>{t('donorProfile.purchaseBtn')}</Text>
+          </TouchableOpacity>
+        )}
       </View>
+
+      {/* Cash-only handoff guide — must be accepted before chat opens */}
+      <SafeMilkHandoffModal
+        visible={handoffModalVisible}
+        onClose={() => setHandoffModalVisible(false)}
+        submitting={handoffSubmitting}
+        onAccepted={async () => {
+          if (!user || handoffSubmitting) return;
+          setHandoffSubmitting(true);
+          try {
+            // Best-effort persistence — chat must still open if the legal
+            // write fails, so we don't block on it. Mirrors gear flow.
+            try {
+              await recordLegalAcceptance(user.id, 'milk_safe_handoff_v1', {
+                donor_profile_id: donorProfileId,
+                listing_id: listing?.id ?? null,
+              });
+            } catch {
+              /* swallow — analytics still fires below */
+            }
+            trackEvent('milk_safe_handoff_accepted', { donor_profile_id: donorProfileId });
+            const thread = await getOrCreateThread(donorProfileId, user.id, listing?.id);
+            setHandoffModalVisible(false);
+            navigation.navigate('MilkMessageDetail', {
+              threadId: thread.id,
+              donorProfileId,
+              otherDisplayName: profile?.display_name,
+            });
+          } catch (e: any) {
+            setHandoffModalVisible(false);
+            Alert.alert(t('donorProfile.openChatErrorTitle'), e.message ?? t('donorProfile.openChatErrorBody'));
+          } finally {
+            setHandoffSubmitting(false);
+          }
+        }}
+      />
 
       {/* ── AI Q&A Floating Button ── */}
       <TouchableOpacity
@@ -582,6 +634,15 @@ const styles = StyleSheet.create({
     borderRadius: 999, paddingVertical: 14, alignItems: 'center',
   },
   messageBtnText: { fontSize: 15, color: '#C07840', fontFamily: FONTS.bodySemiBold },
+  // Solo variant — cash-only MVP renders ONLY the message button (no
+  // Stripe-bound Purchase next to it), so the message button takes the full
+  // bar width as the primary CTA. Filled cinnamon to match the primary CTA
+  // weight that the Purchase button used to carry.
+  messageBtnSolo: {
+    flex: 1, backgroundColor: COLORS.sandSoft, borderRadius: 999,
+    paddingVertical: 14, alignItems: 'center',
+  },
+  messageBtnSoloText: { fontSize: 15, color: COLORS.bark, fontFamily: FONTS.bodySemiBold },
   purchaseBtn: { flex: 2, backgroundColor: COLORS.sandSoft, borderRadius: 999, paddingVertical: 14, alignItems: 'center' },
   purchaseBtnText: { fontSize: 15, color: COLORS.bark, fontFamily: FONTS.bodySemiBold },
 

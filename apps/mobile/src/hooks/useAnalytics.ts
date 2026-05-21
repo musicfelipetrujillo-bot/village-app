@@ -36,6 +36,8 @@ export type AnalyticsEvent =
   | 'milk_purchase_start'
   | 'milk_disclosure_shown'
   | 'milk_disclosure_accepted'
+  | 'milk_safe_handoff_shown'
+  | 'milk_safe_handoff_accepted'
   | 'milk_purchase_payment_success'
   | 'milk_purchase_confirmed'
   | 'milk_dispute_opened'
@@ -67,6 +69,8 @@ export type AnalyticsEvent =
 const SERVER_PERSIST_EVENTS: ReadonlySet<AnalyticsEvent> = new Set<AnalyticsEvent>([
   'milk_disclosure_shown',
   'milk_disclosure_accepted',
+  'milk_safe_handoff_shown',
+  'milk_safe_handoff_accepted',
   'milk_purchase_confirmed',
   'milk_dispute_opened',
   'milk_shipping_label_purchased',

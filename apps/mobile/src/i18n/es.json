@@ -1943,5 +1943,27 @@
     "errMissingEmail": "Ingresa tu correo",
     "errFailedTitle": "No pudimos enviar el enlace",
     "errFailedFallback": "Inténtalo en un momento."
+  },
+  "milkSafeHandoff": {
+    "eyebrow": "Antes de contactar a una donante",
+    "closeA11y": "Cerrar la guía de entrega segura",
+    "headline": "Cómo coordinar la recogida de leche",
+    "subhead": "Villie conecta a donantes y receptoras. No analizamos la leche, no procesamos pagos y no participamos en la entrega. Por favor lee esto antes de escribir. Desplázate hasta el final para continuar.",
+    "s1Title": "Encuéntrense en un lugar público acordado",
+    "s1Body": "Elijan un lugar público bien iluminado — el estacionamiento de un supermercado, una cafetería u otro punto donde ambas se sientan seguras. Si ofreces tu casa, pídele a alguien que te acompañe o comparte tu ubicación en vivo con una amiga durante la entrega.",
+    "s2Title": "Lleva una hielera con bloques de hielo",
+    "s2Body": "La leche donada debe mantenerse congelada durante el traslado. Lleva una hielera pequeña con dos o tres bloques de hielo congelados. Pasa la leche directamente del congelador de la donante a tu hielera, y de ahí a tu propio congelador dentro de los tiempos que recomienda el CDC para un manejo seguro.",
+    "s3Title": "Revisa la leche antes de recibirla",
+    "s3Body": "Verifica que cada bolsa o biberón esté sellado, completamente congelado y etiquetado con la fecha de extracción. Asegúrate de que el empaque esté limpio y entero — sin bolsas rotas, sin cristales de hielo que indiquen descongelación, sin color ni olor extraños. Si algo no se ve bien, retírate. Puedes rechazar la entrega sin compromiso.",
+    "s4Title": "Efectivo o pago entre personas en la entrega",
+    "s4Body": "Villie no procesa pagos. Paga en efectivo o por una app entre personas (Venmo / Zelle / Apple Cash) al momento de la recogida. Nunca envíes dinero por adelantado, nunca compartas datos de cuenta bancaria, número de seguro social ni tarjeta con una donante, y nunca aceptes un precio que se sienta forzado.",
+    "s5Title": "Confía en tu instinto",
+    "s5Body": "Si una donante te presiona, se niega a verse en público, cambia su historia, no te deja revisar la leche o insiste en un método de pago inusual — retírate. Ningún arreglo vale más que tu seguridad o la de tu bebé.",
+    "s6Title": "Si algo sale mal",
+    "s6Body": "• Sal del encuentro de inmediato y llama al 911 si te sientes en peligro.\n• Si tu bebé muestra señales de enfermedad después de una toma, detén la alimentación y comunícate con tu pediatra de inmediato.\n• Toca \"Reportar\" desde el perfil de la donante — revisamos los reportes dentro de 24 horas.\n• Villie es una plataforma, no una parte de la transacción. Cooperamos con las autoridades ante solicitudes válidas.",
+    "scrollCue": "Llegaste al final. Toca \"Entendido\" para escribirle a la donante.",
+    "ctaA11y": "Entendido, escribir a la donante",
+    "ctaReady": "Entendido — escribir a la donante",
+    "ctaScroll": "Desplázate hasta el final"
   }
 }

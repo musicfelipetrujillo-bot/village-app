@@ -856,12 +856,17 @@ export async function getShippingLabel(transactionId: string): Promise<MilkShipp
 export type LegalDocKey =
   | 'milk_purchase_disclaimer_v1'
   | 'donor_agreement_v1'
-  | 'shipping_disclosure_v1';
+  | 'shipping_disclosure_v1'
+  // 2026-05-21 — cash-only handoff guide (mirror of gear safe-meeting).
+  // Captured per-recipient on first donor-message tap, scope: pickup safety
+  // + cold-chain + cash/P2P-only + not-a-party-to-the-transaction.
+  | 'milk_safe_handoff_v1';
 
 export const LEGAL_DOC_VERSION: Record<LegalDocKey, string> = {
   milk_purchase_disclaimer_v1: '1.0.0',
   donor_agreement_v1: '1.0.0',
   shipping_disclosure_v1: '1.0.0',
+  milk_safe_handoff_v1: '1.0.0',
 };
 
 export async function hasAcceptedLegal(userId: string, key: LegalDocKey): Promise<boolean> {

@@ -1943,5 +1943,27 @@
     "errMissingEmail": "Please enter your email",
     "errFailedTitle": "Couldn't send reset",
     "errFailedFallback": "Please try again in a moment."
+  },
+  "milkSafeHandoff": {
+    "eyebrow": "Before you contact a donor",
+    "closeA11y": "Close safe handoff guide",
+    "headline": "Arranging a milk pickup",
+    "subhead": "Villie connects donors and recipients. We do not test milk, process payments, or take part in the handoff. Please read before you reach out. Scroll to the bottom to continue.",
+    "s1Title": "Meet in a public, agreed-upon place",
+    "s1Body": "Choose a well-lit public location — a grocery-store parking lot, a coffee shop, or another spot you both feel safe in. If you offer your home, bring someone with you or share your live location with a friend during the handoff.",
+    "s2Title": "Bring a cooler with frozen packs",
+    "s2Body": "Donor milk should stay frozen during transport. Bring a small cooler with two or three frozen ice packs. Move the milk straight from the donor's freezer to your cooler, and into your own freezer within the time the CDC recommends for safe handling.",
+    "s3Title": "Inspect the milk before you take it",
+    "s3Body": "Check that each bag or bottle is sealed, frozen solid, and labeled with the pump date. Look for clear, intact packaging — no torn bags, no thawed-and-refrozen ice crystals, no off color or smell. If anything looks wrong, walk away. You can decline at the meeting with no obligation.",
+    "s4Title": "Cash or peer-to-peer at the handoff",
+    "s4Body": "Villie does not process payments. Settle in cash, or via a peer app (Venmo / Zelle / Apple Cash) at the time of pickup. Never wire money in advance, never share bank-account, SSN, or card details with a donor, and never agree to a price that feels coercive.",
+    "s5Title": "Trust your gut",
+    "s5Body": "If a donor pressures you, won't meet in public, changes the story, refuses to let you inspect the milk, or insists on an unusual payment method — walk away. No arrangement is worth your or your baby's safety.",
+    "s6Title": "If something goes wrong",
+    "s6Body": "• Leave the meeting immediately and call 911 if you feel unsafe.\n• If your baby shows signs of illness after a feeding, stop and contact your pediatrician right away.\n• Tap \"Report\" from the donor's profile — we review flagged donors within 24 hours.\n• Villie is a platform, not a party to the transaction. We cooperate with law enforcement on valid requests.",
+    "scrollCue": "You've reached the end. Tap \"I understand\" to message the donor.",
+    "ctaA11y": "I understand, message the donor",
+    "ctaReady": "I understand — message the donor",
+    "ctaScroll": "Scroll to the bottom"
   }
 }
