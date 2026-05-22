@@ -50,6 +50,11 @@ export type AnalyticsEvent =
   // are discoverability signals, not compliance trail.
   | 'saved_dashboard_opened'
   | 'saved_section_seeall_tapped'
+  // V3 C3 anonymous mode (migration 069). Sentry breadcrumbs only —
+  // pseudonymity is the goal so we explicitly DON'T persist aliases
+  // to server analytics tables.
+  | 'anonymous_mode_toggled'
+  | 'anonymous_alias_regenerated'
   | 'milk_purchase_payment_success'
   | 'milk_purchase_confirmed'
   | 'milk_dispute_opened'

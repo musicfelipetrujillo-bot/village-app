@@ -80,6 +80,11 @@ interface UserProfile {
   zip_code: string | null;
   search_radius_miles: number;
   notif_prefs: NotifPrefs;
+  // V3 C3 — per-user opt-in for anonymous community mode (migration 069).
+  // When true, every new room join auto-generates an anonymous identity.
+  // The Connect tab is hidden by product decision; this flag is foundation
+  // work that activates when Community ships.
+  anonymous_mode_default: boolean;
   // Internal flag — TRUE for users authorized to approve/reject AI-generated
   // weekly-journey content via the Clinical Review dashboard. Server-side the
   // `is_clinical_reviewer()` SECURITY DEFINER helper (migration 043) reads
@@ -117,7 +122,7 @@ export const useUserStore = create<UserState>((set) => ({
     if (!auth.user) return;
     const { data, error } = await supabase
       .from('users')
-      .select('id, full_name, avatar_url, pregnancy_stage, due_date, preferred_language, insurance_provider, zip_code, search_radius_miles, notif_prefs, is_clinical_reviewer, is_event_reviewer')
+      .select('id, full_name, avatar_url, pregnancy_stage, due_date, preferred_language, insurance_provider, zip_code, search_radius_miles, notif_prefs, anonymous_mode_default, is_clinical_reviewer, is_event_reviewer')
       .eq('id', auth.user.id)
       .maybeSingle();
     if (error || !data) return;

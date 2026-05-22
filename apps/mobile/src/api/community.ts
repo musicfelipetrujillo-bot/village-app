@@ -475,3 +475,75 @@ export async function getLatestWeeklySummary(roomId: string): Promise<RoomWeekly
   if (error) throw error;
   return data as RoomWeeklySummary | null;
 }
+
+
+// ───────────────────────────────────────────────────────────────────
+// V3 C3 — Anonymous mode (migration 069)
+// ───────────────────────────────────────────────────────────────────
+
+export interface AnonIdentity {
+  id?: string;
+  room_id: string;
+  user_id?: string;
+  anon_alias: string;
+  anon_avatar_seed: string;
+  created_at?: string;
+}
+
+export interface AnonIdentityListRow {
+  room_id: string;
+  room_name: string;
+  room_slug: string;
+  anon_alias: string;
+  anon_avatar_seed: string;
+  created_at: string;
+}
+
+export interface AnonAliasResult {
+  alias: string;
+  avatar_seed: string;
+  persisted: boolean;
+}
+
+/**
+ * Generate (and optionally persist) an anonymous alias for this user.
+ * Preview mode: pass no room_id (or { preview:true }) — returns a
+ * candidate alias without persisting. Useful for the onboarding screen.
+ * Persist mode: pass room_id — generates + upserts via upsert_anon_identity.
+ */
+export async function generateAnonAlias(
+  opts: { roomId?: string; preview?: boolean; regenerate?: boolean } = {},
+): Promise<AnonAliasResult> {
+  const body: Record<string, unknown> = {};
+  if (opts.preview === true || !opts.roomId) body.preview = true;
+  if (opts.roomId)    body.room_id = opts.roomId;
+  if (opts.regenerate) body.regenerate = true;
+
+  const { data, error } = await supabase.functions.invoke('room-alias-generate', { body });
+  if (error) throw error;
+  return data as AnonAliasResult;
+}
+
+/** Fetch the user's existing anon identity in a specific room (null if none). */
+export async function getMyAnonIdentity(roomId: string): Promise<AnonIdentity | null> {
+  const { data, error } = await supabase.rpc('get_my_anon_identity', { p_room_id: roomId });
+  if (error) throw error;
+  return (data as AnonIdentity | null) ?? null;
+}
+
+/** Returns the user's aliases across all rooms (joined with room metadata). */
+export async function listMyAnonIdentities(): Promise<AnonIdentityListRow[]> {
+  const { data, error } = await supabase.rpc('list_my_anon_identities');
+  if (error) throw error;
+  return (data ?? []) as AnonIdentityListRow[];
+}
+
+/**
+ * Per-user global opt-in. When true, newly joined rooms auto-generate
+ * an anonymous identity for this user on first send.
+ */
+export async function setAnonymousModeDefault(enabled: boolean): Promise<boolean> {
+  const { data, error } = await supabase.rpc('set_anonymous_mode_default', { p_enabled: enabled });
+  if (error) throw error;
+  return Boolean(data);
+}

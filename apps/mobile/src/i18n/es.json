@@ -346,6 +346,24 @@
     "tileHelpDesc": "Ayuda paso a paso y recursos de crisis",
     "tileA11y": "{{title}}: {{description}}"
   },
+  "anonMode": {
+    "title": "Modo anónimo",
+    "lead": "Cuando entres a un grupo de Comunidad, puedes aparecer con un seudónimo cálido en lugar de tu nombre real. Privacidad por defecto — actívalo aquí y generaremos un seudónimo nuevo cada vez que entres a un grupo.",
+    "toggleTitle": "Usar el modo anónimo por defecto",
+    "toggleDesc": "Los grupos nuevos te asignan automáticamente un seudónimo. Los grupos donde ya participas mantienen el nombre con el que entraste.",
+    "previewLabel": "ASÍ PODRÍA VERSE TU SEUDÓNIMO",
+    "previewHint": "Esto es solo una vista previa — no se guarda. Toca generar para ver otro.",
+    "previewError": "No pudimos generar una vista previa. Inténtalo en un momento.",
+    "regenerate": "Generar otro",
+    "regenerateA11y": "Generar un nuevo seudónimo de muestra",
+    "howItWorksLabel": "CÓMO FUNCIONA",
+    "how1": "Cada seudónimo es único dentro de su grupo. Dos personas no comparten alias en la misma conversación.",
+    "how2": "No conectamos tu seudónimo con datos que te identifiquen. Las moderadoras ven identidades reales solo al responder a una alerta de seguridad (crisis 988, reporte de abuso).",
+    "how3": "Tienes un seudónimo distinto en cada grupo — tus alias no se conectan entre grupos.",
+    "how4": "Puedes generar un seudónimo nuevo en cualquier grupo desde la configuración de ese grupo.",
+    "yoursLabel": "TUS SEUDÓNIMOS",
+    "footerHint": "El modo anónimo es trabajo de base — los grupos de Comunidad aún no están abiertos. Cuando se activen, tu configuración aquí ya estará lista."
+  },
   "notifPrefs": {
     "topTitle": "Notificaciones",
     "topBack": "Atrás",

@@ -346,6 +346,24 @@
     "tileHelpDesc": "How-to help + crisis resources",
     "tileA11y": "{{title}}: {{description}}"
   },
+  "anonMode": {
+    "title": "Anonymous mode",
+    "lead": "When you join a Community room, you can show up under a warm, anonymous handle instead of your real name. Privacy by default — opt in below, then we'll generate a fresh handle every time you join a new room.",
+    "toggleTitle": "Use anonymous mode by default",
+    "toggleDesc": "Newly joined rooms auto-generate an anonymous handle for you. Rooms you're already in keep whatever name you've been using.",
+    "previewLabel": "WHAT YOUR HANDLE COULD LOOK LIKE",
+    "previewHint": "This is just a preview — not saved. Tap regenerate to see another.",
+    "previewError": "Couldn't generate a preview. Try again in a moment.",
+    "regenerate": "Regenerate",
+    "regenerateA11y": "Generate a new sample handle",
+    "howItWorksLabel": "HOW IT WORKS",
+    "how1": "Each handle is unique within its room. No two people share an alias in the same conversation.",
+    "how2": "We don't track your handle to anything that identifies you. Moderators see real identities only when responding to a safety flag (988 crisis, abuse report).",
+    "how3": "You get a different handle in every room — your aliases don't connect across rooms.",
+    "how4": "You can regenerate your handle in any room from that room's settings.",
+    "yoursLabel": "YOUR HANDLES",
+    "footerHint": "Anonymous mode is foundation work — Community rooms aren't open to users yet. When they ship, your settings here will already be in place."
+  },
   "notifPrefs": {
     "topTitle": "Notifications",
     "topBack": "Back",
