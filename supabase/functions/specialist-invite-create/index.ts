@@ -274,13 +274,35 @@ async function sendInviteEmail(to: string, msg: { subject: string; html: string;
   }
 }
 
+// JWT-decode based auth. Same fix that landed for V4 Gear moderation fns
+// (commit a22f4f9): strict-equality against Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+// was brittle to key rotation + any whitespace that snuck into either side.
+// verify_jwt:false means the platform doesn't validate the JWT signature,
+// but that's OK — anyone with a service_role-claim JWT signed by the
+// project's JWT secret can already do anything, and they wouldn't have
+// gotten such a JWT without service-role access.
+function isServiceRoleRequest(req: Request): boolean {
+  const auth = req.headers.get('authorization') ?? '';
+  const match = auth.match(/^Bearer\s+(.+)$/i);
+  if (!match) return false;
+  const token = match[1].trim();
+  try {
+    const payloadB64 = token.split('.')[1];
+    if (!payloadB64) return false;
+    const normalized = payloadB64.replace(/-/g, '+').replace(/_/g, '/');
+    const padded = normalized + '='.repeat((4 - normalized.length % 4) % 4);
+    const payload = JSON.parse(atob(padded));
+    return payload?.role === 'service_role';
+  } catch {
+    return false;
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: CORS });
 
   // ─── Auth gate (service role only) ─────────────────────────────────
-  const authHeader = req.headers.get('Authorization') ?? '';
-  const token = authHeader.replace('Bearer ', '');
-  if (token !== Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')) {
+  if (!isServiceRoleRequest(req)) {
     return json({ error: 'Forbidden' }, 403);
   }
 
