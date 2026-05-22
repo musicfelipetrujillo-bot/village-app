@@ -123,6 +123,15 @@ export default function ManualVideoScreen() {
       if (clamped >= ninety && !completionWrittenRef.current) {
         completionWrittenRef.current = true;
         markVideoWatched(video.id, video.duration_seconds).catch(() => {});
+        // Completion event — fires exactly once per session when watch
+        // progress crosses 90%. Pairs with manual_video_viewed (every
+        // mount) + manual_video_saved + manual_video_shared so the
+        // view → save → share → finish funnel is computable.
+        trackEvent('manual_video_completed', {
+          video_id: video.id,
+          audience,
+          category,
+        });
       } else {
         markVideoWatched(video.id, clamped).catch(() => {});
       }

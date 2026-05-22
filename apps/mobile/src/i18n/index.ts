@@ -62,8 +62,39 @@ function interpolate(s: string, params?: Record<string, string | number>): strin
  */
 export function t(key: string, lang: Lang = 'en', params?: Record<string, string | number>): string {
   const hit = lookup(DICTS[lang], key) ?? lookup(DICTS.en, key);
-  if (hit === null) return key;
+  if (hit === null) {
+    // Translation miss — fires a Sentry breadcrumb so we catch
+    // gaps in production. Returns the raw key so the screen still
+    // shows something readable to the user.
+    reportMissingKey(key, lang);
+    return key;
+  }
   return interpolate(hit, params);
+}
+
+// Reporting is per-key/per-session deduped — a missing key on a heavily
+// rendered screen would otherwise flood Sentry with identical
+// breadcrumbs. The Set is cleared by app restart, which is the right
+// granularity (each cold launch tells us about every gap once).
+const reportedKeys = new Set<string>();
+function reportMissingKey(key: string, lang: Lang): void {
+  if (reportedKeys.has(`${lang}:${key}`)) return;
+  reportedKeys.add(`${lang}:${key}`);
+  // Lazy require so this module stays Sentry-agnostic if Sentry isn't
+  // initialized (initSentry no-ops without a DSN). Wrapped in try so a
+  // missing Sentry can never break a translation lookup.
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const { Sentry } = require('@/lib/sentry');
+    Sentry.addBreadcrumb({
+      category: 'i18n',
+      level: 'warning',
+      message: `missing translation: ${key} (${lang})`,
+      data: { key, lang },
+    });
+  } catch {
+    // ignore — translation must always succeed
+  }
 }
 
 /**

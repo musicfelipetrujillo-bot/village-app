@@ -17,6 +17,7 @@
       "icon": "./assets/icon.png",
       "bundleIdentifier": "com.villieapp.mobile",
       "buildNumber": "1",
+      "associatedDomains": ["applinks:villieapp.com", "applinks:www.villieapp.com"],
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "villie uses your location to find nearby donors, specialists, and events.",
         "NSLocationAlwaysUsageDescription": "villie uses your location to find nearby donors, specialists, and events.",
@@ -38,6 +39,19 @@
         "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#F4ECD8"
       },
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            { "scheme": "https", "host": "villieapp.com", "pathPrefix": "/m/" },
+            { "scheme": "https", "host": "villieapp.com", "pathPrefix": "/manual/v/" },
+            { "scheme": "https", "host": "www.villieapp.com", "pathPrefix": "/m/" },
+            { "scheme": "https", "host": "www.villieapp.com", "pathPrefix": "/manual/v/" }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ],
       "permissions": [
         "android.permission.ACCESS_FINE_LOCATION",
         "android.permission.ACCESS_COARSE_LOCATION",
