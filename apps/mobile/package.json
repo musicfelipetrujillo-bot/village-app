@@ -11,7 +11,8 @@
     "type-check": "tsc --noEmit",
     "lint": "eslint src --ext .ts,.tsx",
     "ios:patch": "bash scripts/post-prebuild-patch.sh",
-    "ios:patch:verify": "bash scripts/post-prebuild-patch.sh --verify"
+    "ios:patch:verify": "bash scripts/post-prebuild-patch.sh --verify",
+    "specialist:invite": "node scripts/specialist-invite.mjs"
   },
   "dependencies": {
     "@expo-google-fonts/caprasimo": "^0.4.0",
