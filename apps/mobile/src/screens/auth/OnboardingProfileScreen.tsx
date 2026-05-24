@@ -77,7 +77,16 @@ export default function OnboardingProfileScreen({ navigation, route }: Props) {
   };
 
   const handleFinish = async () => {
-    if (!user) return;
+    if (!user) {
+      // Defensive: this screen should never render without a session, but
+      // if it does (e.g. SignUpScreen navigated despite email-confirm being
+      // required), surface the issue instead of silently swallowing the
+      // tap. Previously this `return` ate every tap on "Enter villie" /
+      // "Skip for now" with no visible feedback.
+      Alert.alert(t('onboarding.notSignedInTitle'), t('onboarding.notSignedInBody'));
+      navigation.navigate('Login', { language: route.params?.language ?? 'en' });
+      return;
+    }
     setLoading(true);
     try {
       await authService.updateProfile(user.id, {

@@ -78,7 +78,21 @@ export default function SignUpScreen({ navigation, route }: Props) {
     }
     setLoading(true);
     try {
-      await authService.signUp(email.trim(), password, fullName.trim());
+      const result = await authService.signUp(email.trim(), password, fullName.trim());
+      // If Supabase has email-confirmation required (default for hosted
+      // projects), signUp returns `{user, session: null}` — the account
+      // is created but no session is issued until the user clicks the
+      // verification link. Navigating to OnboardingProfile in that case
+      // is a trap: that screen needs `user` from useAuthStore which is
+      // derived from session, and every action there silently no-ops.
+      // Surface the confirmation requirement explicitly instead.
+      if (!result?.session) {
+        Alert.alert(
+          t('signUp.confirmRequiredTitle'),
+          t('signUp.confirmRequiredBody', { email: email.trim() }),
+        );
+        return;
+      }
       navigation.navigate('OnboardingProfile', { language: route.params?.language ?? 'en' });
     } catch (err: any) {
       Alert.alert(t('signUp.errSignUpFailedTitle'), err.message ?? t('signUp.errSignUpFailedFallback'));

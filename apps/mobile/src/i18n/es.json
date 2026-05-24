@@ -1223,6 +1223,8 @@
     "disclaimer": "Estas notas son educativas, no consejo médico. Para algo urgente, llama a tu proveedor — o al 911."
   },
   "onboarding": {
+    "notSignedInTitle": "No has iniciado sesión",
+    "notSignedInBody": "Tu sesión caducó o no se inició. Por favor inicia sesión para continuar.",
     "stepLabel": "Paso {{n}} de {{total}}",
     "stagePrompt": "¿Dónde estás en tu camino?",
     "stageTtc": "Buscando embarazo",
@@ -1978,7 +1980,9 @@
     "errInvalidEmailBody": "Eso no parece un correo electrónico válido.",
     "errPasswordShort": "La contraseña debe tener al menos 8 caracteres",
     "errSignUpFailedTitle": "Error al crear cuenta",
-    "errSignUpFailedFallback": "Inténtalo de nuevo."
+    "errSignUpFailedFallback": "Inténtalo de nuevo.",
+    "confirmRequiredTitle": "Revisa tu bandeja de entrada",
+    "confirmRequiredBody": "Enviamos un enlace de confirmación a {{email}}. Tócalo para terminar de crear tu cuenta y luego vuelve a iniciar sesión."
   },
   "forgotPassword": {
     "title": "Restablecer contraseña",

@@ -1223,6 +1223,8 @@
     "disclaimer": "These notes are educational, not medical advice. For anything urgent, call your provider — or 911."
   },
   "onboarding": {
+    "notSignedInTitle": "Not signed in",
+    "notSignedInBody": "Your session expired or never started. Please sign in to continue.",
     "stepLabel": "Step {{n}} of {{total}}",
     "stagePrompt": "Where are you in your journey?",
     "stageTtc": "Trying to conceive",
@@ -1978,7 +1980,9 @@
     "errInvalidEmailBody": "That doesn't look like a valid email address.",
     "errPasswordShort": "Password must be at least 8 characters",
     "errSignUpFailedTitle": "Sign up failed",
-    "errSignUpFailedFallback": "Please try again."
+    "errSignUpFailedFallback": "Please try again.",
+    "confirmRequiredTitle": "Check your inbox",
+    "confirmRequiredBody": "We sent a confirmation link to {{email}}. Tap it to finish creating your account, then come back and sign in."
   },
   "forgotPassword": {
     "title": "Reset password",
