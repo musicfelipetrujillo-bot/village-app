@@ -7,6 +7,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { GlassHighlight } from '@components/shared/GlassHighlight';
 import { KenBurnsImage } from '@components/shared/KenBurnsImage';
 import { WarmGlowBackdrop } from '@components/shared/WarmGlowBackdrop';
+import { V3Card } from '@components/shared/V3Card';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useAuthStore } from '@store/auth';
 import { useMilkStore } from '@store/milk';
@@ -190,7 +191,7 @@ export default function MilkConnectHomeScreen({ navigation }: Props) {
 
       {/* Find a donor — centered editorial card, no thumb. The hero banner
           above the title carries the imagery for the whole page. */}
-      <View style={styles.section}>
+      <V3Card style={styles.section} contentStyle={styles.sectionContent}>
         <View style={styles.sectionTextCenter}>
           <View style={styles.eyebrowChipCenter}>
             <Text style={styles.eyebrowNum}>01</Text>
@@ -218,14 +219,14 @@ export default function MilkConnectHomeScreen({ navigation }: Props) {
             <Text style={styles.savedBtnText}>{t('milk.saved')}</Text>
           </TouchableOpacity>
         </View>
-      </View>
+      </V3Card>
 
       {/* Become a donor — quiet typed numbered list, no rust circles.
           Inline "02 — LABEL" eyebrow matches section 01 (reference-UI
           editorial pattern: italic numeral + em-dash + small caps). */}
       {!donorProfile && <View style={styles.sectionDivider} />}
       {!donorProfile && (
-        <View style={styles.becomeDonorCard}>
+        <V3Card style={styles.becomeDonorCard} contentStyle={styles.sectionContent}>
           <View style={styles.sectionTextCenter}>
             <View style={styles.eyebrowChipCenter}>
               <Text style={styles.eyebrowNum}>02</Text>
@@ -253,7 +254,7 @@ export default function MilkConnectHomeScreen({ navigation }: Props) {
           >
             <Text style={styles.primaryBtnText}>{t('milk.getStarted')}</Text>
           </TouchableOpacity>
-        </View>
+        </V3Card>
       )}
 
       {/* Trust & safety note — italic, quiet. */}
@@ -558,19 +559,16 @@ const styles = StyleSheet.create({
   // card scale in editorial-system.md.
   // `position: relative` so abstract decorative marks anchor inside the
   // bubble.
+  // Outer V3Card style — margins only. V3Card provides the paper bg,
+  // hairline rust border, cocoa floating shadow, top inner glow, and
+  // iOS-26 wet-glass sheen so we no longer hand-roll the recipe here.
   section: {
-    backgroundColor: COLORS.paper,
-    borderRadius: 10,
-    paddingHorizontal: 20, paddingTop: 18, paddingBottom: 16,
     marginHorizontal: 20,
+  },
+  // Inner content padding (passed to V3Card via `contentStyle`).
+  sectionContent: {
+    paddingHorizontal: 20, paddingTop: 18, paddingBottom: 16,
     position: 'relative',
-    // Soft elevation — warm shadow tinted to brownDeep instead of pure
-    // black so the lift reads "ceramic on linen" rather than UI-stock grey.
-    shadowColor: COLORS.bark,
-    shadowOpacity: 0.10,
-    shadowRadius: 20,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 4,
   },
 
   // Bold serif (Playfair 700) — non-italic. Per editorial-system.md, section
@@ -654,19 +652,11 @@ const styles = StyleSheet.create({
   },
   savedBtnText: { fontSize: 15, fontFamily: FONTS.bodySemiBold, color: '#C07840', letterSpacing: 0.3 },
 
-  // Become-a-donor — same editorial structure as the find-a-donor section
-  // above; same paper bubble so both sections sit as twin cards on the page.
+  // Become-a-donor — same editorial structure as find-a-donor; V3Card
+  // wraps it so it gets the identical immersive recipe (paper bg +
+  // hairline rust border + cocoa shadow + glass sheen + inner glow).
   becomeDonorCard: {
-    backgroundColor: COLORS.paper,
-    borderRadius: 10,
-    paddingHorizontal: 20, paddingTop: 18, paddingBottom: 16,
     marginHorizontal: 20,
-    position: 'relative',
-    shadowColor: COLORS.bark,
-    shadowOpacity: 0.10,
-    shadowRadius: 20,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 4,
   },
   boldRust: { color: '#A77349', fontFamily: FONTS.bodySemiBold },
   stepList: { marginBottom: 14, gap: 10 },
