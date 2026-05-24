@@ -85,6 +85,28 @@ function sundayOfThisWeekUTC(d = new Date()): string {
   return sunday.toISOString().slice(0, 10); // YYYY-MM-DD
 }
 
+// Deterministic v4-shaped UUID derived from an email string. Used as a
+// stand-in user_id when an unregistered email is in test_recipient — so
+// downstream calls that expect a UUID don't blow up. The DB will return
+// empty results for these (which is the right behavior: no personalization
+// for someone we don't know).
+function emailToFakeUuid(email: string): string {
+  let h1 = 0x811c9dc5, h2 = 0xdeadbeef;
+  for (let i = 0; i < email.length; i++) {
+    const c = email.charCodeAt(i);
+    h1 = Math.imul(h1 ^ c, 0x01000193) >>> 0;
+    h2 = Math.imul(h2 ^ c, 0x85ebca77) >>> 0;
+  }
+  // `>>> 0` on each XOR — JS `^` returns a signed int32, so a flipped high
+  // bit yields negative numbers that `.toString(16)` prefixes with "-",
+  // producing a malformed UUID. The unsigned shift coerces back to uint32.
+  const hex = (n: number) => (n >>> 0).toString(16).padStart(8, '0');
+  const a = hex(h1), b = hex(h2), c = hex(h1 ^ 0x9e3779b9), d = hex(h2 ^ 0x9e3779b9);
+  // RFC 4122 v4 shape: xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx where y is 8|9|a|b
+  // Final group needs 12 hex chars: c.slice(4) (4) + d (8) = 12.
+  return `${a}-${b.slice(0, 4)}-4${b.slice(4, 7)}-8${c.slice(1, 4)}-${c.slice(4)}${d}`;
+}
+
 interface Recipient {
   user_id: string;
   email: string;
@@ -105,6 +127,21 @@ interface ContentSnapshot {
     title: string; description: string;
     duration_seconds: number; thumbnail_url: string | null;
   } | null;
+  // v2 (migration 070): up to 3 more stage-matched videos beyond top_video.
+  // Spread across categories — one per category — for the "pack" feel.
+  more_videos: Array<{
+    id: string; audience: string; category: string;
+    title: string;
+    duration_seconds: number; thumbnail_url: string | null;
+  }>;
+  // v2 (migration 070): the user's current-week milestone with AI
+  // summary as the article body. null when the user has no week
+  // (TTC / no baby profile / week > 52).
+  milestone_article: {
+    week_number: number; category: string;
+    title: string; hero_emoji: string | null;
+    body: string;
+  } | null;
   saved_count: number;
   saved_top_3: Array<{
     id: string; title: string;
@@ -123,6 +160,10 @@ const COPY = {
     topVideoEyebrow: 'TODAY\'S TIP · 2 MINUTES',
     topVideoLead: 'Watch this if you have a minute today:',
     topVideoCta: 'Watch in villie',
+    moreTipsHeader: 'More tips for your week',
+    moreTipsLead: 'A small pack — pick whichever catches your eye:',
+    milestoneEyebrow: (w: number) => `WEEK ${w} · THIS WEEK\'S ARTICLE`,
+    milestoneLead: 'Five minutes of reading. What\'s changing this week:',
     savedHeader: (n: number) => n === 1 ? '1 video still on your list' : `${n} videos still on your list`,
     savedLead: 'You saved these for later — here are the most recent:',
     savedCta: 'See all saved',
@@ -143,6 +184,10 @@ const COPY = {
     topVideoEyebrow: 'EL CONSEJO DE HOY · 2 MINUTOS',
     topVideoLead: 'Mira esto si tienes un minuto hoy:',
     topVideoCta: 'Ver en villie',
+    moreTipsHeader: 'Más consejos para tu semana',
+    moreTipsLead: 'Un pack pequeño — elige el que te llame la atención:',
+    milestoneEyebrow: (w: number) => `SEMANA ${w} · EL ARTÍCULO DE ESTA SEMANA`,
+    milestoneLead: 'Cinco minutos de lectura. Lo que está cambiando esta semana:',
     savedHeader: (n: number) => n === 1 ? '1 video aún en tu lista' : `${n} videos aún en tu lista`,
     savedLead: 'Guardaste estos para después — los más recientes:',
     savedCta: 'Ver todos los guardados',
@@ -243,6 +288,55 @@ function buildEmail(args: {
       </td></tr>
     </table>` : '';
 
+  // ── More tips block — small "pack" of additional stage-matched videos.
+  //     Skipped entirely when more_videos is empty (e.g., we picked
+  //     literally every approved video already). Inline thumb rows so
+  //     the section reads as a curated list, not a duplicate hero.
+  const moreVideos = content.more_videos ?? [];
+  const moreTipsBlock = moreVideos.length > 0 ? `
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin: 0 0 28px; padding: 22px; background: ${paper}; border: 1px solid ${border}; border-radius: 14px;">
+      <tr><td>
+        <p style="margin: 0 0 6px; font: 700 18px/1.25 'Playfair Display', Georgia, serif; color: ${cocoa};">${c.moreTipsHeader}</p>
+        <p style="margin: 0 0 16px; font: 400 13px/1.6 'Plus Jakarta Sans', Arial, sans-serif; color: ${walnut};">${c.moreTipsLead}</p>
+        ${moreVideos.map((mv) => {
+          const mvUrl = `https://villieapp.com/m/?v=${mv.id}&${baseUtm}&utm_content=more_tip_${esc(mv.id).slice(0, 8)}`;
+          return `
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin: 0 0 12px;">
+            <tr>
+              <td valign="middle" width="92" style="padding-right: 12px;">
+                <a href="${mvUrl}" style="display: block;">
+                  ${mv.thumbnail_url ? `<img src="${esc(mv.thumbnail_url)}" alt="${esc(mv.title)}" width="92" height="56" style="display: block; width: 92px; height: 56px; object-fit: cover; border-radius: 8px; background: #1a1a1a;" />` : `<span style="display: block; width: 92px; height: 56px; background: ${cream}; border-radius: 8px;"></span>`}
+                </a>
+              </td>
+              <td valign="middle">
+                <a href="${mvUrl}" style="text-decoration: none; color: ${cocoa};">
+                  <p style="margin: 0 0 3px; font: 600 14px/1.3 'Plus Jakarta Sans', Arial, sans-serif; color: ${cocoa};">${esc(mv.title)}</p>
+                  <p style="margin: 0; font: 500 11px/1.4 'JetBrains Mono', monospace; color: ${amber}; letter-spacing: 0.1em;">${esc(String(mv.audience).toUpperCase())} · ${esc(String(mv.category).toUpperCase())} · ${fmtDuration(mv.duration_seconds)}</p>
+                </a>
+              </td>
+            </tr>
+          </table>`;
+        }).join('')}
+      </td></tr>
+    </table>` : '';
+
+  // ── Milestone "article" block — pulls milestone_library.ai_summary_cache
+  //     (or static description) for the user's current week. Reads as a
+  //     short editorial article. Skipped when no current_week or no
+  //     milestone row for that week.
+  const article = content.milestone_article;
+  const articleBlock = article ? `
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin: 0 0 28px;">
+      <tr><td>
+        <p style="margin: 0 0 6px; font: 600 11px/1.4 'JetBrains Mono', monospace; color: ${amber}; letter-spacing: 0.22em; text-transform: uppercase;">${c.milestoneEyebrow(article.week_number)}</p>
+        <p style="margin: 0 0 12px; font: 400 14px/1.55 'Plus Jakarta Sans', Arial, sans-serif; color: ${walnut};">${c.milestoneLead}</p>
+        <h2 style="margin: 0 0 12px; font: 700 22px/1.25 'Playfair Display', Georgia, serif; color: ${cocoa};">${article.hero_emoji ? esc(article.hero_emoji) + ' ' : ''}${esc(article.title)}</h2>
+        <div style="font: 400 15px/1.7 'Plus Jakarta Sans', Arial, sans-serif; color: ${cocoa};">
+          ${esc(article.body).split('\n\n').map((p) => `<p style="margin: 0 0 14px;">${p.replace(/\n/g, '<br/>')}</p>`).join('')}
+        </div>
+      </td></tr>
+    </table>` : '';
+
   const savedBlock = content.saved_count > 0 ? `
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin: 0 0 28px; padding: 22px; background: ${paper}; border: 1px solid ${border}; border-radius: 14px;">
       <tr><td>
@@ -293,6 +387,12 @@ function buildEmail(args: {
         <!-- Top video -->
         <tr><td>${topVideoBlock}</td></tr>
 
+        <!-- This week's milestone article -->
+        <tr><td>${articleBlock}</td></tr>
+
+        <!-- More tips for your week -->
+        <tr><td>${moreTipsBlock}</td></tr>
+
         <!-- Saved reminder -->
         <tr><td>${savedBlock}</td></tr>
 
@@ -335,6 +435,23 @@ function buildEmail(args: {
     textLines.push(`${v.title} (${fmtDuration(v.duration_seconds)})`);
     textLines.push(v.description);
     textLines.push(`Watch: ${videoUrl}`);
+    textLines.push('');
+  }
+  if (article) {
+    textLines.push(c.milestoneEyebrow(article.week_number));
+    textLines.push(c.milestoneLead);
+    textLines.push('');
+    textLines.push(`${article.hero_emoji ?? ''} ${article.title}`.trim());
+    textLines.push('');
+    textLines.push(article.body);
+    textLines.push('');
+  }
+  if (moreVideos.length > 0) {
+    textLines.push(c.moreTipsHeader);
+    textLines.push(c.moreTipsLead);
+    moreVideos.forEach((mv) => {
+      textLines.push(`  · ${mv.title} (${fmtDuration(mv.duration_seconds)}) — ${mv.audience} / ${mv.category}`);
+    });
     textLines.push('');
   }
   if (content.saved_count > 0) {
@@ -414,19 +531,32 @@ Deno.serve(async (req) => {
   //                                test send doesn't block Sunday's real
   //                                send to the same user); good for
   //                                previewing the email before going live
-  //   test_recipient: 'a@b.com'    override the entire recipient list
-  //                                with one address (resolved against
-  //                                an existing user so personalization
-  //                                + the get_newsletter_content_for_user
-  //                                RPC still works as if it were that user)
+  //   test_recipient: <email>      override the entire recipient list.
+  //                                Accepts a string, a comma-separated
+  //                                string, or a JSON array. Unregistered
+  //                                emails fall back to a synthetic profile
+  //                                (en locale, no week/baby) so we can
+  //                                preview to anyone — registered villie
+  //                                users get personalized content.
   const reqBody = await req.json().catch(() => ({} as Record<string, unknown>));
   const periodStart = typeof reqBody.period_start === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(reqBody.period_start)
     ? reqBody.period_start
     : sundayOfThisWeekUTC();
   const testOnly = reqBody.test_only === true;
-  const testRecipientEmail = typeof reqBody.test_recipient === 'string' && reqBody.test_recipient.includes('@')
-    ? reqBody.test_recipient.toLowerCase()
-    : null;
+
+  // ── Parse test_recipient (string | comma-separated | array) ──
+  const testRecipientEmails: string[] = (() => {
+    const raw = reqBody.test_recipient;
+    let candidates: string[] = [];
+    if (Array.isArray(raw)) {
+      candidates = raw.filter((x): x is string => typeof x === 'string');
+    } else if (typeof raw === 'string') {
+      candidates = raw.split(',');
+    }
+    return candidates
+      .map((s) => s.trim().toLowerCase())
+      .filter((s) => s.length > 0 && s.includes('@'));
+  })();
 
   const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
     auth: { persistSession: false },
@@ -435,46 +565,58 @@ Deno.serve(async (req) => {
   let recipients: Recipient[] | null = null;
   let recipientsErr: { message: string } | null = null;
 
-  if (testRecipientEmail) {
-    // Test-fire path: look up the user by email + synthesize a one-row
-    // recipient list. Skips the list_newsletter_recipients filtering
-    // (notif_prefs.newsletter=true / not-already-sent-this-week) — the
-    // whole point of test_recipient is to override those gates so you
-    // can preview to your own account without opting in.
+  if (testRecipientEmails.length > 0) {
+    // Test-fire path: resolve each email to a Recipient. Registered
+    // villie users get personalization (full_name, week, baby_first_name);
+    // unregistered emails get a synthetic en-locale profile so the
+    // send still completes — useful for previewing to a partner /
+    // teammate who hasn't signed up.
     //
     // public.users mirrors auth.users.email via the on_auth_user_created
-    // trigger (migration 044), so a single query here is enough; we don't
-    // need the auth.admin.listUsers() dance.
-    const { data: pub, error: pubErr } = await supabase
-      .from('users')
-      .select('id, full_name, preferred_language, pregnancy_stage, zip_code')
-      .ilike('email', testRecipientEmail)
-      .maybeSingle();
-    if (pubErr) {
-      return new Response(JSON.stringify({ error: `lookup failed: ${pubErr.message}` }), {
-        status: 500, headers: { ...CORS, 'Content-Type': 'application/json' },
-      });
+    // trigger (migration 044).
+    const resolved: Recipient[] = [];
+    for (const email of testRecipientEmails) {
+      const { data: pub } = await supabase
+        .from('users')
+        .select('id, full_name, preferred_language, pregnancy_stage, zip_code')
+        .ilike('email', email)
+        .maybeSingle();
+
+      if (pub) {
+        const { data: baby } = await supabase
+          .from('baby_profiles_with_week')
+          .select('current_week_number, baby_name')
+          .eq('user_id', pub.id)
+          .maybeSingle();
+        resolved.push({
+          user_id: pub.id,
+          email,
+          full_name: pub.full_name ?? null,
+          preferred_language: (pub.preferred_language ?? 'en') as 'en' | 'es',
+          pregnancy_stage: pub.pregnancy_stage ?? null,
+          current_week: baby?.current_week_number ?? null,
+          baby_first_name: baby?.baby_name ?? null,
+          zip_code: pub.zip_code ?? null,
+        });
+      } else {
+        // Unregistered email — synthesize a minimal recipient. user_id
+        // is a v4 deterministic-from-email UUID so get_newsletter_content_for_user
+        // doesn't blow up on null, but it won't find any data for it
+        // either (so top_video falls through to global ranking, no
+        // milestone, no saved videos). Email still goes out.
+        resolved.push({
+          user_id: emailToFakeUuid(email),
+          email,
+          full_name: null,
+          preferred_language: 'en',
+          pregnancy_stage: null,
+          current_week: null,
+          baby_first_name: null,
+          zip_code: null,
+        });
+      }
     }
-    if (!pub) {
-      return new Response(JSON.stringify({ error: `no user with email ${testRecipientEmail}` }), {
-        status: 404, headers: { ...CORS, 'Content-Type': 'application/json' },
-      });
-    }
-    const { data: baby } = await supabase
-      .from('baby_profiles_with_week')
-      .select('current_week_number, baby_name')
-      .eq('user_id', pub.id)
-      .maybeSingle();
-    recipients = [{
-      user_id: pub.id,
-      email: testRecipientEmail,
-      full_name: pub.full_name ?? null,
-      preferred_language: (pub.preferred_language ?? 'en') as 'en' | 'es',
-      pregnancy_stage: pub.pregnancy_stage ?? null,
-      current_week: baby?.current_week_number ?? null,
-      baby_first_name: baby?.baby_name ?? null,
-      zip_code: pub.zip_code ?? null,
-    }];
+    recipients = resolved;
   } else {
     const { data, error } = await supabase
       .rpc('list_newsletter_recipients', { p_period_start: periodStart });
