@@ -229,12 +229,12 @@ const styles = StyleSheet.create({
 
   // ── Headline block ────────────────────────────────────────────────────
   headline: {
-    fontFamily: FONTS.v2_display, fontSize: 44, lineHeight: 44,
+    fontFamily: FONTS.v3_display, fontSize: 44, lineHeight: 44,
     color: T.cocoa, letterSpacing: -1.76,
     marginTop: 14,
   },
   headlineItalic: {
-    fontFamily: FONTS.v2_display_italic, color: T.salmon,
+    fontFamily: FONTS.v3_display_italic, color: T.salmon,
   },
   deck: {
     fontFamily: FONTS.v2_body, fontSize: 14, lineHeight: 20,
@@ -266,7 +266,7 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   tileTitle: {
-    fontFamily: FONTS.v2_display, fontSize: 24, lineHeight: 24,
+    fontFamily: FONTS.v3_display, fontSize: 24, lineHeight: 24,
     color: T.cocoa, letterSpacing: -0.67,
   },
   tileSub: {
@@ -309,7 +309,7 @@ const styles = StyleSheet.create({
     color: T.walnut, letterSpacing: 1.5, fontWeight: '500',
   },
   calDayNum: {
-    fontFamily: FONTS.v2_display, fontSize: 18,
+    fontFamily: FONTS.v3_display, fontSize: 18,
     color: T.cocoa, letterSpacing: -0.36, lineHeight: 18,
   },
   calName: {

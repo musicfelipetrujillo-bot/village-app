@@ -25,6 +25,9 @@ importers:
       '@expo-google-fonts/caprasimo':
         specifier: ^0.4.0
         version: 0.4.0
+      '@expo-google-fonts/fraunces':
+        specifier: ^0.4.1
+        version: 0.4.1
       '@expo-google-fonts/jetbrains-mono':
         specifier: ^0.4.1
         version: 0.4.1
@@ -776,6 +779,9 @@ packages:
 
   '@expo-google-fonts/caprasimo@0.4.0':
     resolution: {integrity: sha512-rqD2czxcU20yT49A9h+QJUYCrcHD50Pp5USynATJxms3Knxx/83LgjnjwbvH567lg1O85FsGpLG7U6BprwTsnw==}
+
+  '@expo-google-fonts/fraunces@0.4.1':
+    resolution: {integrity: sha512-gYc9P92ObyWvz1rWPOeWSvVKyBFIuA8hgOdhvo4DSiPBaWLbFA6v8uLIEIBwW+0oWTlXbBzjeBReHQI2H7UNjQ==}
 
   '@expo-google-fonts/jetbrains-mono@0.4.1':
     resolution: {integrity: sha512-CslACrtMOcRwoWXCO7OMEI+9w3fukWSoBtvNz46OqPoogEuuoY0tkDY1O8sFumk8t0pC6Cx0Xr95O0TOQhpkug==}
@@ -5570,6 +5576,8 @@ snapshots:
       levn: 0.4.1
 
   '@expo-google-fonts/caprasimo@0.4.0': {}
+
+  '@expo-google-fonts/fraunces@0.4.1': {}
 
   '@expo-google-fonts/jetbrains-mono@0.4.1': {}
 

@@ -397,11 +397,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 22,
   },
   bigTitle: {
-    fontFamily: FONTS.v2_display, fontSize: 30, lineHeight: 31,
+    fontFamily: FONTS.v3_display, fontSize: 30, lineHeight: 31,
     color: T.cocoa, letterSpacing: -0.9, marginTop: 6,
   },
   bigTitleItalic: {
-    fontFamily: FONTS.v2_display_italic, color: T.salmon,
+    fontFamily: FONTS.v3_display_italic, color: T.salmon,
   },
 
   // Progress
@@ -513,12 +513,12 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.18, shadowRadius: 18, elevation: 3,
   },
   bandHeadline: {
-    fontFamily: FONTS.v2_display, fontSize: 42, lineHeight: 42,
+    fontFamily: FONTS.v3_display, fontSize: 42, lineHeight: 42,
     color: T.cocoa, letterSpacing: -1.6,
     marginTop: 12, marginBottom: 6,
   },
   bandHeadlineDot: {
-    fontFamily: FONTS.v2_display_italic, color: T.cinnamon,
+    fontFamily: FONTS.v3_display_italic, color: T.cinnamon,
   },
   bandSub: {
     fontFamily: FONTS.v2_body, fontSize: 14, lineHeight: 20,

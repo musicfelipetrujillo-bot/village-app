@@ -26,6 +26,13 @@ import {
   JetBrainsMono_400Regular,
   JetBrainsMono_500Medium,
 } from '@expo-google-fonts/jetbrains-mono';
+// ─── Brand Kit v3 (villie · May 24, 2026) ─── canonical italic accent
+// Fraunces SemiBold Italic — the "wonky moment" font per the design
+// handoff. Used as one-per-screen italic flourish on key nouns
+// (greeting names, manual., here., etc.). v3 preview screens
+// (HomeScreenV3 / VillageHomeScreenV3 / ManualScrollV3) reach for this
+// via FONTS.v3_display_italic.
+import { Fraunces_600SemiBold_Italic } from '@expo-google-fonts/fraunces';
 import { RootNavigator } from '@/navigation/RootNavigator';
 import { useAuthStore } from '@store/auth';
 import { usePreAuthLanguage } from '@store/preAuthLanguage';
@@ -100,6 +107,8 @@ export default function App() {
     // JetBrains Mono — v2 eyebrows / metadata / dates
     JetBrainsMono_400Regular,
     JetBrainsMono_500Medium,
+    // Fraunces — v3 italic accent ("wonky moment") on v3 preview screens
+    Fraunces_600SemiBold_Italic,
   });
 
   useEffect(() => {

@@ -454,13 +454,13 @@ const styles = StyleSheet.create({
 
   // ── Greeting block ────────────────────────────────────────────────────
   greeting: {
-    fontFamily: FONTS.v2_display,    // Playfair 700 (display flip to Plus Jakarta deferred to Phase 3)
+    fontFamily: FONTS.v3_display,    // Plus Jakarta Sans 700 — brand kit grotesk display
     fontSize: 40, lineHeight: 41,
     color: T.cocoa, letterSpacing: -1.4,
     marginTop: 14,
   },
   greetingItalic: {
-    fontFamily: FONTS.v2_display_italic,
+    fontFamily: FONTS.v3_display_italic,
     color: T.salmon,                  // v3 italic accent — was rust-deep in v9, salmon in v3
   },
   babyMonoLine: {
@@ -532,12 +532,12 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   heroTitle: {
-    fontFamily: FONTS.v2_display, fontSize: 22, lineHeight: 23,
+    fontFamily: FONTS.v3_display, fontSize: 22, lineHeight: 23,
     color: T.cocoa, letterSpacing: -0.55,
     flexShrink: 1,
   },
   heroTitleItalic: {
-    fontFamily: FONTS.v2_display_italic, color: T.cinnamon,
+    fontFamily: FONTS.v3_display_italic, color: T.cinnamon,
   },
   heroMeta: {
     fontFamily: FONTS.v2_mono, fontSize: 9.5,

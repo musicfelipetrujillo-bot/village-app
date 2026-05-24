@@ -187,6 +187,22 @@ export const FONTS = {
   v2_bold:           'PlusJakartaSans_700Bold',           // emphasis
   v2_mono:           'JetBrainsMono_500Medium',           // eyebrows + metadata
   v2_mono_light:     'JetBrainsMono_400Regular',          // long mono blocks (rare)
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // Brand Kit v3 (villie · May 24, 2026) — grotesk + Fraunces "wonky moment"
+  //
+  // The v3 design handoff (2026-05-24) shifts display typography from
+  // Playfair (editorial serif) to Plus Jakarta Sans (grotesk modern),
+  // with Fraunces SemiBold Italic for the per-screen italic accent
+  // ("manual.", "here.", "Feli." — the "wonky moment").
+  //
+  // Currently scoped to v3 preview screens only (HomeScreenV3 /
+  // VillageHomeScreenV3 / ManualScrollV3). The Playfair-based v2_display*
+  // tokens above stay live on the production screens until the wider
+  // typography sweep ships (separate commit, ~50 mastheads).
+  // ═══════════════════════════════════════════════════════════════════════
+  v3_display:        'PlusJakartaSans_700Bold',      // display heads — grotesk modern
+  v3_display_italic: 'Fraunces_600SemiBold_Italic',  // italic accent — "wonky moment"
 } as const;
 
 export const NAV_HEIGHT = 72;
