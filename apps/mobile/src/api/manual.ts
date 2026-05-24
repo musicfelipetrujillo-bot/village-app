@@ -137,6 +137,50 @@ export async function listManualVideos(
   return (data ?? []) as ManualVideo[];
 }
 
+// ── Manual pieces (Phase 4.5, migration 072) ──────────────────────────────
+//
+// Article / illustration / checklist content for the ManualScrollV3 inline
+// piece stream. Video pieces stay in `manual_videos` (Mux-specific
+// metadata) — the mobile screen merges the two at render time, with video
+// always first per the handoff cadence.
+//
+// LIFECYCLE: the manual_pieces table ships empty in migration 072.
+// `ManualScrollV3` keeps a hand-authored PIECES_BY_CHAPTER constant as
+// the fallback when listManualPieces returns []. As clinical-advisor
+// authoring lands, INSERT migrations populate buckets and the fallback
+// gracefully gets superseded — bucket-by-bucket rollout, no flag day.
+
+export type ManualPieceKind = 'article' | 'illustration' | 'checklist';
+
+export interface ManualPiece {
+  id:         string;
+  kind:       ManualPieceKind;
+  num:        string;
+  title:      string;
+  dur:        string | null;     // article only
+  excerpt:    string | null;     // article only
+  caption:    string | null;     // illustration only
+  steps:      string[] | null;   // checklist only
+  sort_order: number;
+}
+
+export async function listManualPieces(
+  audience: ManualAudience,
+  category: string,
+  locale: 'en' | 'es' = 'en',
+): Promise<ManualPiece[]> {
+  const { data, error } = await supabase.rpc('list_manual_pieces', {
+    p_audience: audience,
+    p_category: category,
+    p_locale:   locale,
+  });
+  if (error) {
+    console.warn('listManualPieces failed', error.message);
+    return [];   // bucket-missing / RLS-fail → fall back to hand-authored
+  }
+  return (data ?? []) as ManualPiece[];
+}
+
 export async function listThisWeekManual(
   week: number,
   locale: 'en' | 'es' = 'en',

@@ -29,8 +29,8 @@ import {
   Dimensions, findNodeHandle, UIManager, Share, Alert,
 } from 'react-native';
 import {
-  listManualVideos, formatDuration,
-  type ManualVideo, type ManualAudience,
+  listManualVideos, listManualPieces, formatDuration,
+  type ManualVideo, type ManualAudience, type ManualPiece,
 } from '@/api/manual';
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Path } from 'react-native-svg';
@@ -457,18 +457,22 @@ export default function ManualScrollV3() {
   // fallback for buckets that haven't been seeded yet). Errors are
   // logged but never block render — the placeholder takes over.
   const [chapterVideos, setChapterVideos] = useState<ManualVideo[]>([]);
+  const [chapterPieces, setChapterPieces] = useState<ManualPiece[]>([]);
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      try {
-        const list = await listManualVideos(
-          who as ManualAudience, chapter.cat, lang,
-        );
-        if (!cancelled) setChapterVideos(list);
-      } catch (e) {
-        console.warn('ManualScrollV3 listManualVideos failed', e);
-        if (!cancelled) setChapterVideos([]);
-      }
+      // Parallel fetch — videos + non-video pieces both keyed off
+      // (audience, category). Non-video bucket may be empty until
+      // clinical-advisor authoring lands; PIECES_BY_CHAPTER fallback
+      // takes over per chapter in that case (see piece render branch).
+      const [videos, pieces] = await Promise.all([
+        listManualVideos(who as ManualAudience, chapter.cat, lang)
+          .catch((e) => { console.warn('ManualScrollV3 listManualVideos failed', e); return [] as ManualVideo[]; }),
+        listManualPieces(who as ManualAudience, chapter.cat, lang),
+      ]);
+      if (cancelled) return;
+      setChapterVideos(videos);
+      setChapterPieces(pieces);
     })();
     return () => { cancelled = true; };
   }, [who, chapter.cat, lang]);
@@ -665,7 +669,42 @@ export default function ManualScrollV3() {
             read experience (full Mux player + article body) until 4.3
             wires individual piece detail screens. */}
         <View style={styles.streamWrap}>
-          {(PIECES_BY_CHAPTER[chapter.ch] ?? []).map((p, i) => {
+          {/* Phase 4.5 — prefer DB-authored pieces when the bucket has
+              any rows; fall back to the hand-authored PIECES_BY_CHAPTER
+              otherwise. Bucket-by-bucket rollout: as clinical-advisor
+              authoring lands, the DB rows automatically take over.
+              We map ManualPiece → Piece so the existing render branches
+              stay unchanged. The video kind always comes from
+              PIECES_BY_CHAPTER (videos live in manual_videos, not
+              manual_pieces) — it gets prepended below so the canonical
+              "watch → read → see → do" cadence is preserved. */}
+          {(() => {
+            const fallback = PIECES_BY_CHAPTER[chapter.ch] ?? [];
+            const videoPiece = fallback.find((p) => p.kind === 'video');
+            const fallbackNonVideo = fallback.filter((p) => p.kind !== 'video');
+            const dbNonVideo: Piece[] = chapterPieces
+              .filter((p) => p.kind === 'article' || p.kind === 'illustration' || p.kind === 'checklist')
+              .map((p): Piece => {
+                if (p.kind === 'article') {
+                  return {
+                    kind: 'article', num: p.num, title: p.title,
+                    dur: p.dur ?? '3 min read', excerpt: p.excerpt ?? '',
+                  };
+                }
+                if (p.kind === 'illustration') {
+                  return {
+                    kind: 'illustration', num: p.num, title: p.title,
+                    caption: p.caption ?? '',
+                  };
+                }
+                return {
+                  kind: 'checklist', num: p.num, title: p.title,
+                  steps: p.steps ?? [],
+                };
+              });
+            const nonVideo = dbNonVideo.length > 0 ? dbNonVideo : fallbackNonVideo;
+            return [videoPiece, ...nonVideo].filter((x): x is Piece => Boolean(x));
+          })().map((p, i) => {
             if (p.kind === 'video') {
               // Phase 4.3 — prefer the real first video in this chapter's
               // Mux bucket. Hand-authored copy survives as the fallback so
