@@ -441,44 +441,40 @@ Deno.serve(async (req) => {
     // (notif_prefs.newsletter=true / not-already-sent-this-week) — the
     // whole point of test_recipient is to override those gates so you
     // can preview to your own account without opting in.
-    const { data: au, error: auErr } = await supabase
-      .from('auth.users' as never)
-      .select('id, email')
-      .eq('email', testRecipientEmail)
-      .maybeSingle()
-      .returns<{ id: string; email: string }>();
-    if (auErr || !au) {
-      // Fall back to a direct schema query — `auth.users` isn't always
-      // exposed via PostgREST. The admin API is the supported path.
-      const { data: adminList } = await supabase.auth.admin.listUsers();
-      const found = adminList?.users?.find((u) => (u.email ?? '').toLowerCase() === testRecipientEmail);
-      if (!found) {
-        return new Response(JSON.stringify({ error: `no user with email ${testRecipientEmail}` }), {
-          status: 404, headers: { ...CORS, 'Content-Type': 'application/json' },
-        });
-      }
-      // Hydrate the public profile fields the buildEmail call expects.
-      const { data: pub } = await supabase
-        .from('users')
-        .select('id, full_name, preferred_language, pregnancy_stage, zip_code')
-        .eq('id', found.id)
-        .maybeSingle();
-      const { data: baby } = await supabase
-        .from('baby_profiles_with_week')
-        .select('current_week_number, baby_name')
-        .eq('user_id', found.id)
-        .maybeSingle();
-      recipients = [{
-        user_id: found.id,
-        email: found.email!,
-        full_name: pub?.full_name ?? null,
-        preferred_language: (pub?.preferred_language ?? 'en') as 'en' | 'es',
-        pregnancy_stage: pub?.pregnancy_stage ?? null,
-        current_week: baby?.current_week_number ?? null,
-        baby_first_name: baby?.baby_name ?? null,
-        zip_code: pub?.zip_code ?? null,
-      }];
+    //
+    // public.users mirrors auth.users.email via the on_auth_user_created
+    // trigger (migration 044), so a single query here is enough; we don't
+    // need the auth.admin.listUsers() dance.
+    const { data: pub, error: pubErr } = await supabase
+      .from('users')
+      .select('id, full_name, preferred_language, pregnancy_stage, zip_code')
+      .ilike('email', testRecipientEmail)
+      .maybeSingle();
+    if (pubErr) {
+      return new Response(JSON.stringify({ error: `lookup failed: ${pubErr.message}` }), {
+        status: 500, headers: { ...CORS, 'Content-Type': 'application/json' },
+      });
     }
+    if (!pub) {
+      return new Response(JSON.stringify({ error: `no user with email ${testRecipientEmail}` }), {
+        status: 404, headers: { ...CORS, 'Content-Type': 'application/json' },
+      });
+    }
+    const { data: baby } = await supabase
+      .from('baby_profiles_with_week')
+      .select('current_week_number, baby_name')
+      .eq('user_id', pub.id)
+      .maybeSingle();
+    recipients = [{
+      user_id: pub.id,
+      email: testRecipientEmail,
+      full_name: pub.full_name ?? null,
+      preferred_language: (pub.preferred_language ?? 'en') as 'en' | 'es',
+      pregnancy_stage: pub.pregnancy_stage ?? null,
+      current_week: baby?.current_week_number ?? null,
+      baby_first_name: baby?.baby_name ?? null,
+      zip_code: pub.zip_code ?? null,
+    }];
   } else {
     const { data, error } = await supabase
       .rpc('list_newsletter_recipients', { p_period_start: periodStart });
