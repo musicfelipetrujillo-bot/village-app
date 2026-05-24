@@ -555,6 +555,8 @@ Design handoff dropped at `/Users/gp/Downloads/design_handoff_villie/` with new 
   // apps/mobile/src/navigation/ManualNavigator.tsx
   import ManualHomeScreen from '@screens/manual/ManualScrollV3';
   ```
+- [x] **Phase 4.4 — Piece detail overlay 2026-05-24** — New `ManualPieceOverlay.tsx` (sheet-style Modal) handles article / illustration / checklist taps from `ManualScrollV3`. Sticky top bar (close + chapter/num/dur eyebrow + bookmark) per handoff `manual-flow.jsx` 581-680, then a scrolling body that branches on `piece.kind`: article gets the full excerpt + pull-quote V3Card, illustration gets caption + 5-row chapter-tinted progress bars + amber footnote, checklist gets local-state toggleable rows. Video pieces continue to nav to `ManualVideo` (full Mux player + watch-tracking is heavier than a Modal should host). Closing returns the user to the exact same scroll position. Commit `d83918c`.
+- [x] **Phase 4.3 — Mux thumbs wired into Manual piece-stream video card 2026-05-24** — `ManualScrollV3` now calls `listManualVideos(audience, category, lang)` on every chapter switch and uses the first video's `thumbnail_url` + `title` + `formatDuration(duration_seconds)` as the hero of the video piece. Tap routes to `ManualVideo` with the real `video.id` (so the existing Mux player + watch tracking + saves work). Empty buckets keep the hand-authored placeholder + chapter-tinted backdrop. "Watched" / "Visto" byline when the user has crossed 90% completion. Commit `3f8c5f7`.
 - [x] **Phase 4.2 — Manual piece-stream rebuild 2026-05-24** — `streamPlaceholder` retired in favor of an inline 4-piece stream per chapter on `ManualScrollV3.tsx`. Each chapter (10 total: baby Sleep/Feed/Grow/Care/Wins + mom Feel/Heal/Nourish/Rest/Tips) renders 1 video + 1 article + 1 illustration + 1 checklist with hand-authored copy. Video uses chapter-tinted hero placeholder + 56px play overlay + duration pill (Mux thumb wiring is the 4.3 follow-up); article uses top-hairline section + READ eyebrow + cinnamon Continue CTA; illustration uses V3Card with 5 age-row progress bars tinted to sibling-chapter colors + current row highlighted in selected chapter's hue; checklist uses V3Card with per-piece local `useState` so toggles don't leak between pieces (parchment bg + amber strikethrough when checked). All four reuse the canonical `V3Card` so the immersive recipe (paper bg + hairline rust border + cocoa shadow + GlassHighlight sheen) stays consistent with the chapter band above. Commit `c9f5468`.
 - [x] **VillageHomeScreenV3.tsx staged 2026-05-24** — pixel-faithful port of `VillageC`. Editorial "Your backup is _here._" masthead + 2×2 equal-weight colored tile grid (Milk Connect / Specialists / Baby Gear / Villie Plans, each its own brand hue) + small "On the calendar" preview list. Calendar data is static handoff; wiring to live `useEventsStore` is Phase 4.3. Preview swap:
   ```tsx
@@ -562,6 +564,17 @@ Design handoff dropped at `/Users/gp/Downloads/design_handoff_villie/` with new 
   import VillageHomeScreen from '@screens/village/VillageHomeScreenV3';
   ```
 - [x] **AppTabBar customizable slots — wired 2026-05-24.** `useCustomMiddleTabs` hook persists the user's pick across the two middle slots; `AppNavigator` reads it. 3 locked (Home / Manual / Profile), 2 user-pickable from {Village, Inbox, Experts, Milk, Gear}. Defaults to `['Village', 'Inbox']` so current behavior is preserved until the user changes it. Settings UI to pick the pair is OUT of scope per handoff — the hook exposes the read+write API for a future settings screen to drive. Test other pairs by calling `setTabs(['Milk', 'Gear'])` from anywhere (e.g. Profile screen dev pane). All 5 pillars stay registered as Tab.Screen so existing cross-tab deep-links keep working regardless of which two are surfaced.
+
+---
+
+## Done — Phase D-2 (Inbox v3 editorial rebuild) 2026-05-24
+
+- [x] **InboxHomeScreen** — last big hub without v3 lean editorial treatment. Rebuilt to match HomeScreenV3 / ManualScrollV3 / VillageHomeScreenV3:
+  - `WarmGlowBackdrop` atmospheric layer (paper wash + bees) instead of the bespoke golden gradient + single animated bee
+  - Editorial masthead: eyebrow + Plus Jakarta display title + salmon italic period accent + italic body subtitle + 48px hairline rule
+  - V3Card-lifted thread rows replace the emoji-avatar tile pattern. Each row leads with a chapter-style colored kind chip (milk → blush, gear → caramel), big Playfair title, 2-line preview body, amber mono timestamp top-right, cinnamon unread dot top-right.
+  - Empty state collapsed into a single V3Card with eyebrow + Playfair italic title + body + cinnamon CTA — no emoji crutch
+  - Data loading + nav forwarding preserved verbatim (listMyMilkThreads + listMyGearThreads + per-vertical thread-detail routing); all `inbox.*` i18n keys preserved. Commit `3e84b9f`.
 
 ---
 
