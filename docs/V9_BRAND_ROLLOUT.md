@@ -368,7 +368,7 @@ User asked for a deeper audit of "inconsistencies, redundancies, and loose ends.
 
 ### Loose ends inventoried (not fixed — track in this section)
 - 1 `TODO:` in `hooks/useAnalytics.ts:140` ("Replace with your analytics provider in production") — fine as-is until shipping; production already has Sentry breadcrumbs.
-- Back-button arrow character drift: `←` (most common), `‹` (some screens), arrow embedded in i18n string vs JSX inline. Functional but visually inconsistent. Future polish: unify on `←` arrow + put it inline in JSX, never in i18n string.
+- ~~Back-button arrow character drift: `←` vs `‹`~~ Glyph half resolved 2026-05-24 (4 `‹` screens swapped to `←`). The deeper "move arrow out of i18n strings" half deferred — needs per-screen JSX audit since some screens add `← ` prefix in JSX and others rely on `"back": "← Back"` baked into the i18n string.
 - Per-screen `back` i18n keys (`donorProfile.back`, `gearDetail.back`, etc.) when `common.back` exists. Redundant but harmless. Future: collapse to `common.back` across all screens.
 - ~~Stale i18n keys: `pwTitle`, `emTitle`, `delTitle` retained for fallback but unused after the editorial-masthead pattern landed.~~ Pruned 2026-05-24 from EN + ES.
 - Shadow opacity drift: 10+ distinct opacity values across cards. v9 canonical = 0.18 (card lift), 0.24 (CTA). Future sweep: normalize the outliers (0.05, 0.06, 0.10, 0.20, 0.30, 0.42).
