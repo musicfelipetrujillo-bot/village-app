@@ -39,6 +39,10 @@ import {
   MenuButton, MenuPanel, MenuGroup, MenuItem, MENU_ICONS,
 } from '@components/shared/HamburgerMenu';
 
+// villie-bee.png — meticulous v9 mascot, brought forward to v3 for the
+// "lived-in" feel. Used as small atmospheric perches on key cards.
+const VILLIE_BEE = require('../../../assets/brand/villie-bee.png');
+
 // ─── Tokens ────────────────────────────────────────────────────────────
 const T = {
   paper:     COLORS.v2_paper,
@@ -256,6 +260,15 @@ export default function ManualScrollV3() {
             style={[StyleSheet.absoluteFillObject, { borderRadius: 10 }]}
             pointerEvents="none"
           />
+          {/* v9 bee — perched bottom-right for personality */}
+          <View pointerEvents="none" style={styles.weekBannerBee}>
+            <Image
+              source={VILLIE_BEE}
+              resizeMode="contain"
+              accessible={false}
+              style={{ width: '100%', height: '100%' }}
+            />
+          </View>
           <View style={styles.weekBannerInner}>
             <View style={styles.weekBannerIconChip}>
               <Svg width={13} height={13} viewBox="0 0 24 24">
@@ -503,6 +516,12 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(61,31,14,0.12)', borderRadius: 2, overflow: 'hidden',
   },
   weekBannerFill: { height: '100%', backgroundColor: T.moss },
+  weekBannerBee: {
+    position: 'absolute', bottom: 6, right: 10,
+    width: 30, height: 30,
+    opacity: 0.78,
+    transform: [{ rotate: '-12deg' }],
+  },
 
   // Colored chapter band — full-width
   chapterBand: {

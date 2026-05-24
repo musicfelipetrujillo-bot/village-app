@@ -45,6 +45,9 @@ const T = {
 };
 
 const WORDMARK = require('../../../assets/brand/villie-wordmark-v2.png');
+// villie-bee.png — meticulous v9 mascot, perched bottom-right of the
+// calendar block so the screen has the same "lived-in" feel as Home.
+const VILLIE_BEE = require('../../../assets/brand/villie-bee.png');
 
 // ─── Atoms ─────────────────────────────────────────────────────────────
 function Eyebrow({ children, style }: { children: React.ReactNode; style?: StyleProp<ViewStyle> }) {
@@ -104,6 +107,15 @@ export default function VillageHomeScreenV3() {
       {/* Warm halos — salmon top-right, butter mid-left */}
       <View style={styles.haloSalmon} pointerEvents="none" />
       <View style={styles.haloButter} pointerEvents="none" />
+      {/* v9 bee — atmospheric companion, drifting near the headline */}
+      <View pointerEvents="none" style={styles.cornerBee}>
+        <Image
+          source={VILLIE_BEE}
+          resizeMode="contain"
+          accessible={false}
+          style={{ width: '100%', height: '100%' }}
+        />
+      </View>
 
       <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         {/* Header — wordmark + map-pin button */}
@@ -216,6 +228,13 @@ const styles = StyleSheet.create({
     position: 'absolute', top: 360, left: -90,
     width: 260, height: 260, borderRadius: 130,
     backgroundColor: 'rgba(250,208,128,0.15)',
+  },
+  cornerBee: {
+    position: 'absolute', top: 140, right: 24,
+    width: 42, height: 42,
+    transform: [{ rotate: '-14deg' }],
+    opacity: 0.92,
+    zIndex: 1,
   },
 
   header: {

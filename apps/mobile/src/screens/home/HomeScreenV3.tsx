@@ -26,18 +26,24 @@
 // from the handoff — wiring it to live milestone_library data is
 // Phase 4.1 (after the layout itself is approved).
 
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
-  View, Text, StyleSheet, TouchableOpacity, ScrollView, Image,
+  View, Text, StyleSheet, TouchableOpacity, Image, Animated,
   StyleProp, ViewStyle,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import Svg, { Path, Ellipse, Circle } from 'react-native-svg';
+import Svg, { Path } from 'react-native-svg';
 import { useNavigation } from '@react-navigation/native';
 import { COLORS, FONTS } from '@utils/constants';
 import { useUserStore } from '@store/user';
 import { useHomeStore } from '@store/home';
 import { useT } from '@/i18n';
+
+// villie-bee.png — the meticulously-designed bee mascot from the v9 brand
+// work. Carries the app's personality. Used as the breathing "How are you
+// feeling?" affordance on the daily check-in, plus as small drifting
+// companions in the greeting block and atmospheric corners.
+const VILLIE_BEE = require('../../../assets/brand/villie-bee.png');
 
 // ─── Tokens (v3 brand kit) ─────────────────────────────────────────────
 // All values pulled from constants.ts v2_* — verified pixel-identical to
@@ -131,20 +137,51 @@ function Eyebrow({ children, style }: { children: React.ReactNode; style?: Style
   );
 }
 
-// SVG bee — drawn inline per handoff (kept as SVG for crisp scaling).
-function Bee({ size = 28 }: { size?: number }) {
+// Breathing bee — v9 mascot for the daily check-in pill. Inhales (1.0 →
+// 1.08) and exhales back over 2.6s on loop. The bee IS the affordance:
+// "she's here, waiting." Native driver, runs on the UI thread so it
+// never stutters even while the user scrolls. Ported verbatim from
+// production HomeScreen.tsx (CheckinStrip).
+function BreathingBee({ size = 36, style }: { size?: number; style?: any }) {
+  const breathScale = useRef(new Animated.Value(1)).current;
+  useEffect(() => {
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(breathScale, { toValue: 1.08, duration: 1300, useNativeDriver: true }),
+        Animated.timing(breathScale, { toValue: 1.0,  duration: 1300, useNativeDriver: true }),
+      ]),
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [breathScale]);
   return (
-    <Svg width={size} height={size * 0.9} viewBox="0 0 28 26">
-      <Path d="M11 7 Q9 2 7 3" stroke={T.cocoa} strokeWidth={1.3} fill="none" strokeLinecap="round" />
-      <Path d="M16 7 Q18 2 20 3" stroke={T.cocoa} strokeWidth={1.3} fill="none" strokeLinecap="round" />
-      <Circle cx={7} cy={3} r={1} fill={T.cocoa} />
-      <Circle cx={20} cy={3} r={1} fill={T.cocoa} />
-      <Ellipse cx={8} cy={11} rx={4} ry={3} fill={T.paper} stroke={T.cocoa} strokeWidth={0.9} transform="rotate(-20 8 11)" />
-      <Ellipse cx={20} cy={11} rx={4} ry={3} fill={T.paper} stroke={T.cocoa} strokeWidth={0.9} transform="rotate(20 20 11)" />
-      <Ellipse cx={14} cy={16} rx={6.5} ry={6} fill={T.butter} stroke={T.cocoa} strokeWidth={1} />
-      <Path d="M10 14 Q14 12 18 14" stroke={T.cocoa} strokeWidth={1.1} fill="none" strokeLinecap="round" />
-      <Path d="M9 18 Q14 20 19 18" stroke={T.cocoa} strokeWidth={1.1} fill="none" strokeLinecap="round" />
-    </Svg>
+    <Animated.Image
+      source={VILLIE_BEE}
+      resizeMode="contain"
+      accessible={false}
+      style={[
+        { width: size, height: size },
+        style,
+        { transform: [{ scale: breathScale }] },
+      ]}
+    />
+  );
+}
+
+// Small static bee — used as a corner accent / atmospheric decoration.
+function CornerBee({ size = 26, rotate = 0, style }: {
+  size?: number; rotate?: number; style?: any;
+}) {
+  return (
+    <Image
+      source={VILLIE_BEE}
+      resizeMode="contain"
+      accessible={false}
+      style={[
+        { width: size, height: size, transform: [{ rotate: `${rotate}deg` }] },
+        style,
+      ]}
+    />
   );
 }
 
@@ -234,6 +271,8 @@ function ManualHeroCard({ babyName, weekNumber, onPress }: {
         />
         {/* Marigold halo top-right */}
         <View style={styles.heroHalo} pointerEvents="none" />
+        {/* Bee perched bottom-right — brand playfulness */}
+        <CornerBee size={32} rotate={-14} style={styles.heroCornerBee} />
 
         <View style={styles.heroTitleRow}>
           <Text style={styles.heroTitle}>
@@ -357,16 +396,32 @@ export default function HomeScreenV3() {
   const heroBabyName = babyName ?? 'Your';
   const heroWeek = weekNumber ?? 1;
 
+  // Scroll-tied drift for the two greeting companion bees. They start in
+  // their natural positions and shift right as the user scrolls the page
+  // down, fading away like they're flying off. Same parallax recipe as
+  // the v9 production HomeScreen.
+  const scrollY = useRef(new Animated.Value(0)).current;
+  const greetingBeeX = scrollY.interpolate({
+    inputRange: [0, 300],
+    outputRange: [0, 60],
+    extrapolate: 'clamp',
+  });
+
   return (
     <View style={styles.container}>
       {/* Atmospheric warm radial washes (butter + salmon) — depth without imagery. */}
       <View style={[styles.atmosphereWash, styles.atmosphereButter]} pointerEvents="none" />
       <View style={[styles.atmosphereWash, styles.atmosphereSalmon]} pointerEvents="none" />
 
-      <ScrollView
+      <Animated.ScrollView
         style={{ flex: 1 }}
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+          { useNativeDriver: true },
+        )}
+        scrollEventThrottle={16}
       >
         <HomeHeader unread={0} onBellPress={goBell} />
         <HomeGreeting
@@ -397,7 +452,8 @@ export default function HomeScreenV3() {
               {lang === 'es' ? '¿Cómo te sientes esta noche?' : 'How are you feeling tonight?'}
             </Text>
           </View>
-          <Bee size={28} />
+          {/* v9 breathing bee — IS the affordance. "She's here, waiting." */}
+          <BreathingBee size={42} />
         </TouchableOpacity>
 
         <ManualHeroCard
@@ -407,7 +463,33 @@ export default function HomeScreenV3() {
         />
 
         <VillageStrip onPillar={goVillagePillar} onAll={goVillageAll} />
-      </ScrollView>
+      </Animated.ScrollView>
+
+      {/* Two greeting companion bees — drift right on scroll, parallax
+          behind everything else. Wrapped in pointerEvents="none" Views
+          (RN spec moved pointerEvents off Image). */}
+      <View pointerEvents="none" style={styles.greetingBeeSmall1}>
+        <Animated.Image
+          source={VILLIE_BEE}
+          resizeMode="contain"
+          accessible={false}
+          style={{
+            width: '100%', height: '100%',
+            transform: [{ translateX: greetingBeeX }, { rotate: '10deg' }],
+          }}
+        />
+      </View>
+      <View pointerEvents="none" style={styles.greetingBeeSmall2}>
+        <Animated.Image
+          source={VILLIE_BEE}
+          resizeMode="contain"
+          accessible={false}
+          style={{
+            width: '100%', height: '100%',
+            transform: [{ translateX: greetingBeeX }, { rotate: '-18deg' }],
+          }}
+        />
+      </View>
     </View>
   );
 }
@@ -431,6 +513,25 @@ const styles = StyleSheet.create({
   atmosphereSalmon: {
     top: 200, left: -100, width: 280, height: 280, borderRadius: 140,
     backgroundColor: 'rgba(237,168,160,0.15)',
+  },
+
+  // ── Bees — atmospheric drift in greeting block, perched corner bees ──
+  // Positioned absolutely (relative to the page container) so they don't
+  // push layout. translateX drift comes from scrollY interpolation.
+  greetingBeeSmall1: {
+    position: 'absolute', top: 168, right: 24,
+    width: 36, height: 36,
+    zIndex: 1,
+  },
+  greetingBeeSmall2: {
+    position: 'absolute', top: 132, right: 60,
+    width: 28, height: 28,
+    opacity: 0.85,
+    zIndex: 1,
+  },
+  heroCornerBee: {
+    position: 'absolute', bottom: 10, right: 10,
+    opacity: 0.92,
   },
 
   // ── Header ────────────────────────────────────────────────────────────
