@@ -23,11 +23,15 @@
 // The hamburger menu in the header was already shipped in Phase 2
 // (HamburgerMenu component) — we reuse it here too.
 
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, Image,
   Dimensions, findNodeHandle, UIManager, Share, Alert,
 } from 'react-native';
+import {
+  listManualVideos, formatDuration,
+  type ManualVideo, type ManualAudience,
+} from '@/api/manual';
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Path } from 'react-native-svg';
 import { useNavigation } from '@react-navigation/native';
@@ -444,6 +448,37 @@ export default function ManualScrollV3() {
     } catch { /* user cancelled */ }
   };
 
+  // ─── Phase 4.3 — Real Mux videos for the current chapter ─────────────
+  // Pulls the per-chapter video bucket so the 'video' piece below can
+  // swap its chapter-tinted placeholder for a real thumbnail + title +
+  // duration. Re-fetches whenever (audience, category, lang) changes.
+  // Empty list → renders the hand-authored placeholder copy (graceful
+  // fallback for buckets that haven't been seeded yet). Errors are
+  // logged but never block render — the placeholder takes over.
+  const [chapterVideos, setChapterVideos] = useState<ManualVideo[]>([]);
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const list = await listManualVideos(
+          who as ManualAudience, chapter.cat, lang,
+        );
+        if (!cancelled) setChapterVideos(list);
+      } catch (e) {
+        console.warn('ManualScrollV3 listManualVideos failed', e);
+        if (!cancelled) setChapterVideos([]);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [who, chapter.cat, lang]);
+  const firstVideo: ManualVideo | undefined = chapterVideos[0];
+
+  const openVideo = (video: ManualVideo) => {
+    navigation.navigate('ManualVideo' as never, {
+      audience: who, category: chapter.cat, videoId: video.id,
+    } as never);
+  };
+
   // Atmospheric backdrop — bees + warm gradient via shared component.
   const scrollY = useRef(new Animated.Value(0)).current;
   const [triggerAnim, setTriggerAnim] = useState(0);
@@ -623,14 +658,42 @@ export default function ManualScrollV3() {
         <View style={styles.streamWrap}>
           {(PIECES_BY_CHAPTER[chapter.ch] ?? []).map((p, i) => {
             if (p.kind === 'video') {
+              // Phase 4.3 — prefer the real first video in this chapter's
+              // Mux bucket. Hand-authored copy survives as the fallback so
+              // unseeded chapters still render a complete card.
+              const real = firstVideo;
+              const heroTitle = real?.title ?? p.title;
+              const heroDur = real
+                ? formatDuration(real.duration_seconds)
+                : p.dur;
+              const heroByline = real
+                ? (real.is_watched
+                    ? (lang === 'es' ? 'Visto' : 'Watched')
+                    : p.expert)
+                : p.expert;
+              const onPress = real
+                ? () => openVideo(real)
+                : openSelectedChapter;
               return (
                 <View key={`${chapter.ch}-${i}`} style={styles.pieceVideoWrap}>
                   <PieceLabel kind="video" num={p.num} />
-                  <V3Card pressable={openSelectedChapter} contentStyle={{ overflow: 'hidden' }}>
-                    {/* Hero — colored placeholder fill until Mux thumbs land */}
-                    <View style={[styles.pieceVideoHero, { backgroundColor: chapter.bg }]}>
+                  <V3Card pressable={onPress} contentStyle={{ overflow: 'hidden' }}>
+                    {/* Hero — real Mux thumb if present, else chapter tint */}
+                    <View style={[
+                      styles.pieceVideoHero,
+                      { backgroundColor: chapter.bg },
+                    ]}>
+                      {real?.thumbnail_url ? (
+                        <Image
+                          source={{ uri: real.thumbnail_url }}
+                          style={StyleSheet.absoluteFillObject as any}
+                          resizeMode="cover"
+                        />
+                      ) : null}
+                      {/* Top→bottom wash: lightens top, darkens bottom for
+                          legibility of the play button + duration pill */}
                       <LinearGradient
-                        colors={['rgba(253,251,246,0.32)', 'rgba(61,31,14,0.18)']}
+                        colors={['rgba(253,251,246,0.28)', 'rgba(61,31,14,0.32)']}
                         start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }}
                         style={StyleSheet.absoluteFillObject}
                         pointerEvents="none"
@@ -641,12 +704,12 @@ export default function ManualScrollV3() {
                         </Svg>
                       </View>
                       <View style={styles.pieceVideoDur}>
-                        <Text style={styles.pieceVideoDurText}>{p.dur}</Text>
+                        <Text style={styles.pieceVideoDurText}>{heroDur}</Text>
                       </View>
                     </View>
                     <View style={styles.pieceVideoBody}>
-                      <Text style={styles.pieceVideoTitle}>{p.title}</Text>
-                      <Text style={styles.pieceVideoExpert}>{p.expert}</Text>
+                      <Text style={styles.pieceVideoTitle}>{heroTitle}</Text>
+                      <Text style={styles.pieceVideoExpert}>{heroByline}</Text>
                     </View>
                   </V3Card>
                 </View>
