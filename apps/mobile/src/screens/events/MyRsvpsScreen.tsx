@@ -155,7 +155,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.paper, borderRadius: 14, padding: 16, marginBottom: 10,
     borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(150, 80, 50, 0.18)',
     shadowColor: '#6B2E0E', shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.18, shadowRadius: 18, elevation: 5,
+    shadowOpacity: 0.22, shadowRadius: 22, elevation: 5,
   },
   cardHeaderRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   cardBadge: { fontSize: 10, fontFamily: FONTS.bodySemiBold, letterSpacing: 1, color: '#A77349', textTransform: 'uppercase' },

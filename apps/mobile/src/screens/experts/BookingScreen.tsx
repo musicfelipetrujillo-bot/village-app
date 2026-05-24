@@ -388,8 +388,8 @@ const styles = StyleSheet.create({
     // v9 paper lift — cocoa drop matching every other v9 surface
     shadowColor: '#6B2E0E',
     shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.14,
-    shadowRadius: 14,
+    shadowOpacity: 0.18,
+    shadowRadius: 20,
     elevation: 3,
   },
   serviceCardActive: { borderColor: COLORS.coco, backgroundColor: '#FEF5F1' },

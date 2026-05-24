@@ -150,9 +150,9 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: 'rgba(150,80,50,0.18)',
     shadowColor: '#6B2E0E',
-    shadowOpacity: 0.18,
+    shadowOpacity: 0.22,
     shadowOffset: { width: 0, height: 8 },
-    shadowRadius: 18,
+    shadowRadius: 22,
     elevation: 3,
   },
 

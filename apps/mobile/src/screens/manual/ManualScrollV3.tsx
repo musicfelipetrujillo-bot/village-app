@@ -521,7 +521,7 @@ const styles = StyleSheet.create({
     padding: 12, paddingHorizontal: 14,
     overflow: 'hidden',
     shadowColor: T.walnut, shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.18, shadowRadius: 14, elevation: 2,
+    shadowOpacity: 0.22, shadowRadius: 20, elevation: 2,
   },
   weekBannerInner: {
     flexDirection: 'row', alignItems: 'center', gap: 12,

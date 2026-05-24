@@ -224,7 +224,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'flex-start',
     padding: 16, marginBottom: 10, borderRadius: 12,
     borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(150,80,50,0.18)', backgroundColor: COLORS.paper,
-    shadowColor: '#6B2E0E', shadowOpacity: 0.14, shadowOffset: { width: 0, height: 6 }, shadowRadius: 14, elevation: 2,
+    shadowColor: '#6B2E0E', shadowOpacity: 0.18, shadowOffset: { width: 0, height: 6 }, shadowRadius: 20, elevation: 2,
   },
   optionActive: { borderColor: '#C07840', backgroundColor: 'rgba(192,120,64,0.06)', shadowOpacity: 0.22 },
   radio: {

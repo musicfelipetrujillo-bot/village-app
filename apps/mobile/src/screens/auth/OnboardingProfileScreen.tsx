@@ -84,7 +84,7 @@ export default function OnboardingProfileScreen({ navigation, route }: Props) {
       // tap. Previously this `return` ate every tap on "Enter villie" /
       // "Skip for now" with no visible feedback.
       Alert.alert(t('onboarding.notSignedInTitle'), t('onboarding.notSignedInBody'));
-      navigation.navigate('Login', { language: route.params?.language ?? 'en' });
+      navigation.navigate('Login' as never);
       return;
     }
     setLoading(true);
@@ -319,9 +319,9 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: 'rgba(150,80,50,0.18)',
     shadowColor: '#6B2E0E',
-    shadowOpacity: 0.14,            // gentler than card-grid (0.18) — chips, not heroes
+    shadowOpacity: 0.18,            // gentler than card-grid (0.18) — chips, not heroes
     shadowOffset: { width: 0, height: 6 },
-    shadowRadius: 14,
+    shadowRadius: 20,
     elevation: 2,
   },
   // Active state — cinnamon hairline (not 2px), warm parchment fill.

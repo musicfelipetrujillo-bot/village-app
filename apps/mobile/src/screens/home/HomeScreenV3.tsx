@@ -563,7 +563,7 @@ const styles = StyleSheet.create({
     shadowColor: T.walnut,
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.22,
-    shadowRadius: 14,
+    shadowRadius: 20,
     elevation: 2,
   },
   pillarIconChip: {

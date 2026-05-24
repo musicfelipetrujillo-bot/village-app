@@ -159,7 +159,7 @@ const styles = StyleSheet.create({
     shadowColor: COLORS.bark,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.08,
-    shadowRadius: 14,
+    shadowRadius: 20,
     elevation: 2,
   },
 

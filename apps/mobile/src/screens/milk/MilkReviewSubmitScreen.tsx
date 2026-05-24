@@ -141,7 +141,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.paper, borderRadius: 12, padding: 16,
     fontSize: 15, color: '#2C1810', textAlignVertical: 'top',
     borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(150,80,50,0.18)',
-    shadowColor: '#6B2E0E', shadowOpacity: 0.14, shadowOffset: { width: 0, height: 6 }, shadowRadius: 14, elevation: 2,
+    shadowColor: '#6B2E0E', shadowOpacity: 0.18, shadowOffset: { width: 0, height: 6 }, shadowRadius: 20, elevation: 2,
   },
   counter: { alignSelf: 'flex-end', fontSize: 11, color: '#9A8070', marginTop: 6 },
 

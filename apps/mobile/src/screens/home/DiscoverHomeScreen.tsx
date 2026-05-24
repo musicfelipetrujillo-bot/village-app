@@ -122,7 +122,7 @@ const styles = StyleSheet.create({
     minHeight: 130,
     borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(150, 80, 50, 0.18)',
     shadowColor: '#6B2E0E', shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.14, shadowRadius: 14, elevation: 3,
+    shadowOpacity: 0.18, shadowRadius: 20, elevation: 3,
   },
   tileIcon: { fontSize: 32, marginBottom: 8 },
   tileTitle: { fontSize: 15, fontFamily: FONTS.bodySemiBold, color: COLORS.bark },

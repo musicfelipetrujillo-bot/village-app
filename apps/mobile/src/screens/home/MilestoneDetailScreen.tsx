@@ -171,7 +171,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row', flexWrap: 'wrap',
     shadowColor: COLORS.coco,
     shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.18, shadowRadius: 12, elevation: 4,
+    shadowOpacity: 0.22, shadowRadius: 12, elevation: 4,
   },
   heroTextCol: { flex: 1, paddingRight: 12 },
   heroPhotoLane: {
@@ -204,7 +204,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.paper, borderRadius: 16, padding: 16, marginBottom: 10,
     borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(150, 80, 50, 0.18)',
     shadowColor: '#6B2E0E', shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.18, shadowRadius: 18, elevation: 5,
+    shadowOpacity: 0.22, shadowRadius: 22, elevation: 5,
   },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   cardCategory: {

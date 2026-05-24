@@ -129,7 +129,7 @@ const styles = StyleSheet.create({
     shadowColor: '#6B2E0E',
     shadowOpacity: 0.22,
     shadowOffset: { width: 0, height: 10 },
-    shadowRadius: 18,
+    shadowRadius: 22,
     elevation: 6,
     overflow: 'visible',                                 // bee can overflow
   },

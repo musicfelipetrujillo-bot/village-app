@@ -590,7 +590,7 @@ const styles = StyleSheet.create({
     borderColor: '#C07840',                      // cinnamon
     shadowColor: '#6B2E0E',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.18,
+    shadowOpacity: 0.22,
     shadowRadius: 10,
     elevation: 2,
   },
@@ -622,8 +622,8 @@ const styles = StyleSheet.create({
     // v9 paper lift — cocoa drop matching other v9 cards
     shadowColor: '#6B2E0E',
     shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.14,
-    shadowRadius: 14,
+    shadowOpacity: 0.18,
+    shadowRadius: 20,
     elevation: 3,
   },
   // Left-edge spine — family-tinted (terracotta/moss/amber/slate/cinnamon)

@@ -933,7 +933,7 @@ const s = StyleSheet.create({
     shadowColor: '#6B2E0E',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.20,
-    shadowRadius: 18,
+    shadowRadius: 22,
     elevation: 5,
     position: 'relative',
   },
@@ -1124,8 +1124,8 @@ const s = StyleSheet.create({
     // v9 lift — same cocoa drop recipe as Home cards
     shadowColor: '#6B2E0E',
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.18,
-    shadowRadius: 18,
+    shadowOpacity: 0.22,
+    shadowRadius: 22,
     elevation: 5,
   },
   row: {

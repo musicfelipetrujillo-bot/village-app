@@ -226,8 +226,8 @@ const s = StyleSheet.create({
     borderColor: 'rgba(154, 74, 43, 0.30)',  // rust-deep at 30%
     shadowColor: '#6B2E0E',
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.18,
-    shadowRadius: 18,
+    shadowOpacity: 0.22,
+    shadowRadius: 22,
     elevation: 5,
   },
   // v9: side-stripe was a v9 absolute ban — rewritten as a full sand-tinted

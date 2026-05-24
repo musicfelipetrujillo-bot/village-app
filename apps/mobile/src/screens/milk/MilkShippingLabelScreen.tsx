@@ -319,7 +319,7 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: COLORS.paper, borderRadius: 12, padding: 16, marginTop: 16, marginBottom: 16,
     borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(150,80,50,0.18)',
-    shadowColor: '#6B2E0E', shadowOpacity: 0.18, shadowOffset: { width: 0, height: 8 }, shadowRadius: 18, elevation: 3,
+    shadowColor: '#6B2E0E', shadowOpacity: 0.22, shadowOffset: { width: 0, height: 8 }, shadowRadius: 22, elevation: 3,
   },
   cardRow: { fontSize: 14, color: COLORS.bark, marginBottom: 6 },
   cardKey: { color: COLORS.barkSoft, fontFamily: FONTS.bodyMedium },

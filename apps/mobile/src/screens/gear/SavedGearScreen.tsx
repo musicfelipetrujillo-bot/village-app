@@ -154,7 +154,7 @@ const styles = StyleSheet.create({
     padding: 8, gap: 12, marginBottom: 12, alignItems: 'center',
     borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(150, 80, 50, 0.18)',
     shadowColor: '#6B2E0E', shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.14, shadowRadius: 14, elevation: 3,
+    shadowOpacity: 0.18, shadowRadius: 20, elevation: 3,
   },
   thumb: { width: 72, height: 72, borderRadius: 10, backgroundColor: COLORS.cream },
   thumbFallback: { alignItems: 'center', justifyContent: 'center' },

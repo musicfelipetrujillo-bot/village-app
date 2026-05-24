@@ -384,7 +384,7 @@ const styles = StyleSheet.create({
     // v9 paper lift
     borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(150, 80, 50, 0.18)',
     shadowColor: '#6B2E0E', shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.18, shadowRadius: 18, elevation: 5,
+    shadowOpacity: 0.22, shadowRadius: 22, elevation: 5,
   },
   cardTitle: { fontSize: 15, fontFamily: FONTS.bodySemiBold, color: '#2C1810', marginBottom: 4 },
   cardHelp: { fontSize: 12, color: '#9A8070', marginBottom: 14 },

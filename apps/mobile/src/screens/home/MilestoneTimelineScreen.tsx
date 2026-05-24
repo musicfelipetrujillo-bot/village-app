@@ -160,7 +160,7 @@ const styles = StyleSheet.create({
     minHeight: 160,
     shadowColor: COLORS.coco,
     shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.18, shadowRadius: 12, elevation: 4,
+    shadowOpacity: 0.22, shadowRadius: 12, elevation: 4,
   },
   heroTextCol: { flex: 1, paddingRight: 12, justifyContent: 'center' },
   heroPhotoLane: {

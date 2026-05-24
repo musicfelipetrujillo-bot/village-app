@@ -184,7 +184,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.pinkSoft, borderRadius: 18, padding: 18, marginBottom: 18,
     borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(154, 74, 43, 0.35)',
     shadowColor: '#6B2E0E', shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.18, shadowRadius: 18, elevation: 5,
+    shadowOpacity: 0.22, shadowRadius: 22, elevation: 5,
   },
   crisisEyebrow: {
     fontSize: 11, fontFamily: FONTS.bodySemiBold, letterSpacing: 1.5,
@@ -209,7 +209,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.paper, borderRadius: 18, padding: 18, marginBottom: 14,
     borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(150, 80, 50, 0.18)',
     shadowColor: '#6B2E0E', shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.18, shadowRadius: 18, elevation: 5,
+    shadowOpacity: 0.22, shadowRadius: 22, elevation: 5,
   },
   replyEyebrow: {
     fontSize: 11, fontFamily: FONTS.bodySemiBold, letterSpacing: 1.5,

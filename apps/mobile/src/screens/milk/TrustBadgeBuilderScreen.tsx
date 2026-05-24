@@ -282,7 +282,7 @@ const styles = StyleSheet.create({
   badgeCard: {
     backgroundColor: COLORS.paper, borderRadius: 14, padding: 20,
     borderWidth: StyleSheet.hairlineWidth, marginBottom: 20,
-    shadowColor: '#6B2E0E', shadowOpacity: 0.18, shadowOffset: { width: 0, height: 8 }, shadowRadius: 18, elevation: 3,
+    shadowColor: '#6B2E0E', shadowOpacity: 0.22, shadowOffset: { width: 0, height: 8 }, shadowRadius: 22, elevation: 3,
   },
   badgePill: {
     alignSelf: 'flex-start', paddingHorizontal: 12, paddingVertical: 5,
@@ -295,7 +295,7 @@ const styles = StyleSheet.create({
   checklistCard: {
     backgroundColor: COLORS.paper, borderRadius: 14, padding: 16, marginBottom: 24, gap: 12,
     borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(150,80,50,0.18)',
-    shadowColor: '#6B2E0E', shadowOpacity: 0.14, shadowOffset: { width: 0, height: 6 }, shadowRadius: 14, elevation: 2,
+    shadowColor: '#6B2E0E', shadowOpacity: 0.18, shadowOffset: { width: 0, height: 6 }, shadowRadius: 20, elevation: 2,
   },
   checkRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   checkIcon: { fontSize: 18, color: '#C5B8AE', width: 24, textAlign: 'center' },

@@ -167,7 +167,7 @@ const styles = StyleSheet.create({
     width: '100%', backgroundColor: COLORS.paper, borderRadius: 14, padding: 16, marginBottom: 16,
     borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(150, 80, 50, 0.18)',
     shadowColor: '#6B2E0E', shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.18, shadowRadius: 18, elevation: 5,
+    shadowOpacity: 0.22, shadowRadius: 22, elevation: 5,
   },
   row: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 8 },
   key: { fontSize: 13, color: '#9A8070' },

@@ -188,7 +188,7 @@ const styles = StyleSheet.create({
     marginTop: 20, backgroundColor: COLORS.paper, borderRadius: 12, padding: 14,
     borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(150, 80, 50, 0.18)',
     shadowColor: '#6B2E0E', shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.18, shadowRadius: 18, elevation: 5,
+    shadowOpacity: 0.22, shadowRadius: 22, elevation: 5,
   },
   metaRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 6 },
   metaLabel: { fontSize: 12, fontFamily: FONTS.bodySemiBold, color: COLORS.textLight, textTransform: 'uppercase', letterSpacing: 0.5 },

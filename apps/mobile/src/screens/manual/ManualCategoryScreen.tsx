@@ -727,7 +727,7 @@ const cardShadow = {
   shadowColor: V9.coco,
   shadowOpacity: 0.28,
   shadowOffset: { width: 0, height: 8 },
-  shadowRadius: 18,
+  shadowRadius: 22,
   elevation: 4,
 };
 const weekCardShadow = {
@@ -741,7 +741,7 @@ const sageCardShadow = {
   shadowColor: V9.sageDeep,
   shadowOpacity: 0.30,
   shadowOffset: { width: 0, height: 8 },
-  shadowRadius: 18,
+  shadowRadius: 22,
   elevation: 4,
 };
 const arrowShadow = {
@@ -777,7 +777,7 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: 'rgba(173, 121, 91, 0.32)', // visible coco hairline (was invisible white)
     shadowColor: V9.coco,
-    shadowOpacity: 0.14,
+    shadowOpacity: 0.18,
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 6,
     elevation: 2,

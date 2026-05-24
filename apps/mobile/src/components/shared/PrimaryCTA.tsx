@@ -91,7 +91,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     shadowColor: '#945A41',                  // action-deep tonal shadow
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.18,                     // dialed from 0.24 — polished, not aggressive
+    shadowOpacity: 0.22,                     // dialed from 0.24 — polished, not aggressive
     shadowRadius: 10,
     elevation: 3,
     overflow: 'hidden',                      // so the sheen clips to the pill

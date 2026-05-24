@@ -280,7 +280,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.paper, borderRadius: 14, padding: 16,
     borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(150, 80, 50, 0.18)',
     shadowColor: '#6B2E0E', shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.18, shadowRadius: 18, elevation: 5,
+    shadowOpacity: 0.22, shadowRadius: 22, elevation: 5,
   },
   label: { fontSize: 13, fontFamily: FONTS.bodySemiBold, color: '#2C1810', marginBottom: 10 },
   pillRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },

@@ -241,7 +241,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.paper, borderRadius: 14, padding: 16, marginTop: 14,
     borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(150, 80, 50, 0.18)',
     shadowColor: '#6B2E0E', shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.18, shadowRadius: 18, elevation: 5,
+    shadowOpacity: 0.22, shadowRadius: 22, elevation: 5,
   },
   sectionLabel: { fontSize: 11, fontFamily: FONTS.bodySemiBold, letterSpacing: 1, color: COLORS.textLight, textTransform: 'uppercase' },
   sectionValue: { fontSize: 15, fontFamily: FONTS.bodySemiBold, color: COLORS.bark, marginTop: 4 },
