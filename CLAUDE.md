@@ -23,6 +23,10 @@ See `docs/MASTER_PLAN.md` — contains all DB schemas, API routes, screens, AI s
 ## UI Reference
 See `/Users/gp/Desktop/The Village/the-village-app-v2.html` — open in browser. This is the source of truth for all UI, colors, navigation, and copy. **v2 is canonical — supersedes any prior prototype.**
 
+## Operations runbook (read first for any setup / smoke-test / "where do I drop this key" question)
+
+**`docs/OPS_RUNBOOK.md`** is the single source of truth for: account inventory, every required env var per environment (mobile .env + Supabase Edge Function Secrets + GitHub Actions + EAS), per-feature smoke test recipes, rotation calendar (Apple JWT expires ~2026-11-16!), native iOS build cycle, and the "where do I drop X?" lookup. **Update it whenever you add a new env var or smoke test** — that's how it stays usable.
+
 ## Source Documents (planning & specs)
 **Canonical product intent lives in `docs/source/` as plain markdown (extracted from the original PDFs). Read these directly with the Read tool — MUST be consulted before any major planning, scoping, or implementation decision.** CLAUDE.md summarizes but does not replace them. If a doc conflicts with code, flag it — don't silently pick one.
 
