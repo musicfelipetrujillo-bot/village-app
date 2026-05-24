@@ -38,11 +38,14 @@ import { COLORS, FONTS } from '@utils/constants';
 import { useUserStore } from '@store/user';
 import { useHomeStore } from '@store/home';
 import { useT } from '@/i18n';
+import { WarmGlowBackdrop } from '@components/shared/WarmGlowBackdrop';
+import { useFocusEffect } from '@react-navigation/native';
 
 // villie-bee.png — the meticulously-designed bee mascot from the v9 brand
-// work. Carries the app's personality. Used as the breathing "How are you
-// feeling?" affordance on the daily check-in, plus as small drifting
-// companions in the greeting block and atmospheric corners.
+// work. Used here as the breathing "How are you feeling?" affordance on the
+// daily check-in pill + as a corner accent on the manual hero card. The
+// atmospheric background bees (drifting swarm + fly-in stagger) come from
+// the shared WarmGlowBackdrop component, not from this file.
 const VILLIE_BEE = require('../../../assets/brand/villie-bee.png');
 
 // ─── Tokens (v3 brand kit) ─────────────────────────────────────────────
@@ -271,8 +274,6 @@ function ManualHeroCard({ babyName, weekNumber, onPress }: {
         />
         {/* Marigold halo top-right */}
         <View style={styles.heroHalo} pointerEvents="none" />
-        {/* Bee perched bottom-right — brand playfulness */}
-        <CornerBee size={32} rotate={-14} style={styles.heroCornerBee} />
 
         <View style={styles.heroTitleRow}>
           <Text style={styles.heroTitle}>
@@ -396,22 +397,23 @@ export default function HomeScreenV3() {
   const heroBabyName = babyName ?? 'Your';
   const heroWeek = weekNumber ?? 1;
 
-  // Scroll-tied drift for the two greeting companion bees. They start in
-  // their natural positions and shift right as the user scrolls the page
-  // down, fading away like they're flying off. Same parallax recipe as
-  // the v9 production HomeScreen.
+  // Atmospheric backdrop — bees + warm gradient. scrollY drives the
+  // parallax drift, triggerAnim drives the fly-in stagger on focus.
   const scrollY = useRef(new Animated.Value(0)).current;
-  const greetingBeeX = scrollY.interpolate({
-    inputRange: [0, 300],
-    outputRange: [0, 60],
-    extrapolate: 'clamp',
-  });
+  const [triggerAnim, setTriggerAnim] = React.useState(0);
+  useFocusEffect(
+    React.useCallback(() => {
+      setTriggerAnim((n) => n + 1);
+      return () => {};
+    }, []),
+  );
 
   return (
     <View style={styles.container}>
-      {/* Atmospheric warm radial washes (butter + salmon) — depth without imagery. */}
-      <View style={[styles.atmosphereWash, styles.atmosphereButter]} pointerEvents="none" />
-      <View style={[styles.atmosphereWash, styles.atmosphereSalmon]} pointerEvents="none" />
+      {/* WarmGlowBackdrop — U-shape gradient + 12 atmospheric bees scattered
+          through the page with fly-in stagger on focus + parallax drift on
+          scroll. Replaces the hand-rolled radial washes. */}
+      <WarmGlowBackdrop scrollY={scrollY} triggerAnim={triggerAnim} />
 
       <Animated.ScrollView
         style={{ flex: 1 }}
@@ -465,31 +467,6 @@ export default function HomeScreenV3() {
         <VillageStrip onPillar={goVillagePillar} onAll={goVillageAll} />
       </Animated.ScrollView>
 
-      {/* Two greeting companion bees — drift right on scroll, parallax
-          behind everything else. Wrapped in pointerEvents="none" Views
-          (RN spec moved pointerEvents off Image). */}
-      <View pointerEvents="none" style={styles.greetingBeeSmall1}>
-        <Animated.Image
-          source={VILLIE_BEE}
-          resizeMode="contain"
-          accessible={false}
-          style={{
-            width: '100%', height: '100%',
-            transform: [{ translateX: greetingBeeX }, { rotate: '10deg' }],
-          }}
-        />
-      </View>
-      <View pointerEvents="none" style={styles.greetingBeeSmall2}>
-        <Animated.Image
-          source={VILLIE_BEE}
-          resizeMode="contain"
-          accessible={false}
-          style={{
-            width: '100%', height: '100%',
-            transform: [{ translateX: greetingBeeX }, { rotate: '-18deg' }],
-          }}
-        />
-      </View>
     </View>
   );
 }
@@ -498,41 +475,6 @@ export default function HomeScreenV3() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: T.paper, overflow: 'hidden' },
   scroll: { paddingTop: 56, paddingHorizontal: 22, paddingBottom: 96 },
-
-  // Atmospheric radial washes — butter top-right, salmon mid-left.
-  // Approximation: RN doesn't do CSS radial gradients natively, so we
-  // use a circular View with an alpha-fading LinearGradient inside.
-  // Visually close enough to the web reference for this preview.
-  atmosphereWash: {
-    position: 'absolute', width: 360, height: 360, borderRadius: 180,
-  },
-  atmosphereButter: {
-    top: -80, right: -120,
-    backgroundColor: 'rgba(250,208,128,0.20)',
-  },
-  atmosphereSalmon: {
-    top: 200, left: -100, width: 280, height: 280, borderRadius: 140,
-    backgroundColor: 'rgba(237,168,160,0.15)',
-  },
-
-  // ── Bees — atmospheric drift in greeting block, perched corner bees ──
-  // Positioned absolutely (relative to the page container) so they don't
-  // push layout. translateX drift comes from scrollY interpolation.
-  greetingBeeSmall1: {
-    position: 'absolute', top: 168, right: 24,
-    width: 36, height: 36,
-    zIndex: 1,
-  },
-  greetingBeeSmall2: {
-    position: 'absolute', top: 132, right: 60,
-    width: 28, height: 28,
-    opacity: 0.85,
-    zIndex: 1,
-  },
-  heroCornerBee: {
-    position: 'absolute', bottom: 10, right: 10,
-    opacity: 0.92,
-  },
 
   // ── Header ────────────────────────────────────────────────────────────
   header: {

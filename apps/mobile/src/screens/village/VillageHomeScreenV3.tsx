@@ -17,16 +17,17 @@
 // the handoff verbatim. Calendar list is static handoff data; wiring it
 // to the live events store is a follow-up after layout approval.
 
-import React from 'react';
+import React, { useRef, useState } from 'react';
 import {
-  View, Text, StyleSheet, TouchableOpacity, ScrollView, Image,
+  View, Text, StyleSheet, TouchableOpacity, Image, Animated,
   StyleProp, ViewStyle,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Path, Circle } from 'react-native-svg';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { COLORS, FONTS } from '@utils/constants';
 import { useUserStore } from '@store/user';
+import { WarmGlowBackdrop } from '@components/shared/WarmGlowBackdrop';
 
 // ─── Tokens (v3 brand kit) ─────────────────────────────────────────────
 const T = {
@@ -102,27 +103,28 @@ export default function VillageHomeScreenV3() {
     navigation.getParent()?.navigate(route as never);
   };
 
+  const scrollY = useRef(new Animated.Value(0)).current;
+  const [triggerAnim, setTriggerAnim] = useState(0);
+  useFocusEffect(
+    React.useCallback(() => {
+      setTriggerAnim((n) => n + 1);
+      return () => {};
+    }, []),
+  );
+
   return (
     <View style={styles.container}>
-      {/* Warm halos — salmon top-right, butter mid-left */}
-      <View style={styles.haloSalmon} pointerEvents="none" />
-      <View style={styles.haloButter} pointerEvents="none" />
-      <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        {/* Atmosphere bees — drift through the page background as the
-            user scrolls. Inside the ScrollView so they move with content.
-            Varied sizes / rotations / opacities so they read as a swarm. */}
-        <View pointerEvents="none" style={styles.atmosphereBee1}>
-          <Image source={VILLIE_BEE} resizeMode="contain" style={{ width: '100%', height: '100%' }} accessible={false} />
-        </View>
-        <View pointerEvents="none" style={styles.atmosphereBee2}>
-          <Image source={VILLIE_BEE} resizeMode="contain" style={{ width: '100%', height: '100%' }} accessible={false} />
-        </View>
-        <View pointerEvents="none" style={styles.atmosphereBee3}>
-          <Image source={VILLIE_BEE} resizeMode="contain" style={{ width: '100%', height: '100%' }} accessible={false} />
-        </View>
-        <View pointerEvents="none" style={styles.atmosphereBee4}>
-          <Image source={VILLIE_BEE} resizeMode="contain" style={{ width: '100%', height: '100%' }} accessible={false} />
-        </View>
+      <WarmGlowBackdrop scrollY={scrollY} triggerAnim={triggerAnim} />
+      <Animated.ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={styles.scroll}
+        showsVerticalScrollIndicator={false}
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+          { useNativeDriver: true },
+        )}
+        scrollEventThrottle={16}
+      >
         {/* Header — wordmark + map-pin button */}
         <View style={styles.header}>
           <Image source={WORDMARK} style={styles.wordmark} resizeMode="contain" accessibilityLabel="villie" />
@@ -214,7 +216,7 @@ export default function VillageHomeScreenV3() {
             );
           })}
         </View>
-      </ScrollView>
+      </Animated.ScrollView>
     </View>
   );
 }

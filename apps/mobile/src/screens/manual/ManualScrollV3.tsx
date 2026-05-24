@@ -25,7 +25,7 @@
 
 import React, { useRef, useState } from 'react';
 import {
-  View, Text, StyleSheet, TouchableOpacity, ScrollView, Image,
+  View, Text, StyleSheet, TouchableOpacity, Image,
   Dimensions, findNodeHandle, UIManager, Share, Alert,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -38,10 +38,9 @@ import { useHomeStore } from '@store/home';
 import {
   MenuButton, MenuPanel, MenuGroup, MenuItem, MENU_ICONS,
 } from '@components/shared/HamburgerMenu';
-
-// villie-bee.png — meticulous v9 mascot, brought forward to v3 for the
-// "lived-in" feel. Used as small atmospheric perches on key cards.
-const VILLIE_BEE = require('../../../assets/brand/villie-bee.png');
+import { WarmGlowBackdrop } from '@components/shared/WarmGlowBackdrop';
+import { useFocusEffect } from '@react-navigation/native';
+import { Animated } from 'react-native';
 
 // ─── Tokens ────────────────────────────────────────────────────────────
 const T = {
@@ -177,27 +176,29 @@ export default function ManualScrollV3() {
     } catch { /* user cancelled */ }
   };
 
+  // Atmospheric backdrop — bees + warm gradient via shared component.
+  const scrollY = useRef(new Animated.Value(0)).current;
+  const [triggerAnim, setTriggerAnim] = useState(0);
+  useFocusEffect(
+    React.useCallback(() => {
+      setTriggerAnim((n) => n + 1);
+      return () => {};
+    }, []),
+  );
+
   return (
     <View style={styles.container}>
-      <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        {/* Marigold halo behind the title block */}
-        <View style={styles.marigoldHalo} pointerEvents="none" />
-
-        {/* Atmosphere bees — drift through the page background as the
-            user scrolls. Low opacity, varied rotations + sizes, inside
-            the ScrollView so they move with content not pinned to viewport. */}
-        <View pointerEvents="none" style={styles.atmosphereBee1}>
-          <Image source={VILLIE_BEE} resizeMode="contain" style={{ width: '100%', height: '100%' }} accessible={false} />
-        </View>
-        <View pointerEvents="none" style={styles.atmosphereBee2}>
-          <Image source={VILLIE_BEE} resizeMode="contain" style={{ width: '100%', height: '100%' }} accessible={false} />
-        </View>
-        <View pointerEvents="none" style={styles.atmosphereBee3}>
-          <Image source={VILLIE_BEE} resizeMode="contain" style={{ width: '100%', height: '100%' }} accessible={false} />
-        </View>
-        <View pointerEvents="none" style={styles.atmosphereBee4}>
-          <Image source={VILLIE_BEE} resizeMode="contain" style={{ width: '100%', height: '100%' }} accessible={false} />
-        </View>
+      <WarmGlowBackdrop scrollY={scrollY} triggerAnim={triggerAnim} />
+      <Animated.ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={styles.scroll}
+        showsVerticalScrollIndicator={false}
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+          { useNativeDriver: true },
+        )}
+        scrollEventThrottle={16}
+      >
 
         {/* Header — eyebrow + title + hamburger */}
         <View style={styles.headerRow}>
@@ -335,7 +336,7 @@ export default function ManualScrollV3() {
               : 'Chapter pieces live on the detail screen — tap above to enter.'}
           </Text>
         </View>
-      </ScrollView>
+      </Animated.ScrollView>
 
       {/* Hamburger menu */}
       <MenuPanel
@@ -404,7 +405,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: T.paper },
   scroll: { paddingTop: 56, paddingBottom: 96 },
 
-  marigoldHalo: {
+  marigoldHaloUnused: {
     position: 'absolute', top: 30, right: -110,
     width: 320, height: 320, borderRadius: 160,
     backgroundColor: 'rgba(242,193,48,0.15)',
