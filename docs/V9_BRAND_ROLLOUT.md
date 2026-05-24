@@ -550,11 +550,12 @@ Design handoff dropped at `/Users/gp/Downloads/design_handoff_villie/` with new 
   import HomeScreen from '@screens/home/HomeScreenV3';
   ```
   Then reload Metro. Revert by undoing the import swap. Approval gates: visual fidelity, decision on whether to keep the cut surfaces (WelcomeCard, Help, Explore, weekly journey checklist) or merge them in.
-- [x] **ManualScrollV3.tsx staged 2026-05-24** — top chrome port (header + mom/baby toggle + chapter chips + sage week-progress card + colored chapter band) per handoff `manual-flow.jsx` lines 145-324. Hamburger menu reused from Phase 2. Tapping the colored band passes through to the existing ManualCategoryScreen for the read experience. Full piece-stream rebuild (video / article / illustration / checklist / callout) deferred to Phase 4.2. Preview swap:
+- [x] **ManualScrollV3.tsx staged 2026-05-24** — top chrome port (header + mom/baby toggle + chapter chips + sage week-progress card + colored chapter band) per handoff `manual-flow.jsx` lines 145-324. Hamburger menu reused from Phase 2. Tapping the colored band passes through to the existing ManualCategoryScreen for the read experience. Preview swap:
   ```tsx
   // apps/mobile/src/navigation/ManualNavigator.tsx
   import ManualHomeScreen from '@screens/manual/ManualScrollV3';
   ```
+- [x] **Phase 4.2 — Manual piece-stream rebuild 2026-05-24** — `streamPlaceholder` retired in favor of an inline 4-piece stream per chapter on `ManualScrollV3.tsx`. Each chapter (10 total: baby Sleep/Feed/Grow/Care/Wins + mom Feel/Heal/Nourish/Rest/Tips) renders 1 video + 1 article + 1 illustration + 1 checklist with hand-authored copy. Video uses chapter-tinted hero placeholder + 56px play overlay + duration pill (Mux thumb wiring is the 4.3 follow-up); article uses top-hairline section + READ eyebrow + cinnamon Continue CTA; illustration uses V3Card with 5 age-row progress bars tinted to sibling-chapter colors + current row highlighted in selected chapter's hue; checklist uses V3Card with per-piece local `useState` so toggles don't leak between pieces (parchment bg + amber strikethrough when checked). All four reuse the canonical `V3Card` so the immersive recipe (paper bg + hairline rust border + cocoa shadow + GlassHighlight sheen) stays consistent with the chapter band above. Commit `c9f5468`.
 - [x] **VillageHomeScreenV3.tsx staged 2026-05-24** — pixel-faithful port of `VillageC`. Editorial "Your backup is _here._" masthead + 2×2 equal-weight colored tile grid (Milk Connect / Specialists / Baby Gear / Villie Plans, each its own brand hue) + small "On the calendar" preview list. Calendar data is static handoff; wiring to live `useEventsStore` is Phase 4.3. Preview swap:
   ```tsx
   // apps/mobile/src/navigation/VillageNavigator.tsx
