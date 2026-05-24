@@ -38,6 +38,7 @@ import { COLORS, FONTS } from '@utils/constants';
 import { useUserStore } from '@store/user';
 import { useHomeStore } from '@store/home';
 import { useT } from '@/i18n';
+import { homeApi, type Milestone, type MilestoneCategory } from '@api/home';
 import { WarmGlowBackdrop } from '@components/shared/WarmGlowBackdrop';
 import { DailyCheckinStrip } from '@components/shared/DailyCheckinStrip';
 import { GlassHighlight } from '@components/shared/GlassHighlight';
@@ -210,17 +211,53 @@ function HomeGreeting({ firstName, babyName, weekNumber, monthsOld, dateLabel }:
 }
 
 // ─── This week's manual hero card ──────────────────────────────────────
-const THIS_WEEK_TOC = [
-  { num: '01', ch: 'Sleep', sub: 'Separation anxiety wakings',       dur: '4′' },
-  { num: '02', ch: 'Feed',  sub: 'Cluster feeding isn\'t low supply', dur: '3′' },
-  { num: '03', ch: 'Grow',  sub: 'Pulling up week',                   dur: '5′' },
-  { num: '04', ch: 'Care',  sub: 'Teething, or just fussy?',          dur: '4′' },
-  { num: '05', ch: 'Wins',  sub: 'Burp at the switch',                dur: '2′' },
-];
+// Handoff design uses 5 chapter names (Sleep/Feed/Grow/Care/Wins);
+// milestone_library in the DB uses 7 different category names
+// (motor/social/communication/sleep/feeding/sensory/cognitive). This
+// mapping bridges the two so the TOC can pull live per-week copy.
+// Lossy by design — see Phase 4.4 commit notes. Re-seed milestone_library
+// in the handoff vocabulary to retire this map.
+const CHAPTER_TO_CATEGORY: Record<string, MilestoneCategory> = {
+  Sleep: 'sleep',
+  Feed:  'feeding',
+  Grow:  'motor',         // physical growth / pulling up / sitting / crawling
+  Care:  'sensory',       // textures / soothing / what baby's noticing
+  Wins:  'social',        // smiling / stranger awareness / first tiny milestones
+};
 
-function ManualHeroCard({ babyName, weekNumber, onPress }: {
+// Static placeholder copy — used when milestone_library has no row for
+// the mapped category for the current week. Keeps the screen alive on
+// cold start and on weeks the library hasn't been seeded for.
+const TOC_PLACEHOLDERS: Record<string, string> = {
+  Sleep: 'Separation anxiety wakings',
+  Feed:  "Cluster feeding isn't low supply",
+  Grow:  'Pulling up week',
+  Care:  'Teething, or just fussy?',
+  Wins:  'Burp at the switch',
+};
+
+const TOC_DURATIONS: Record<string, string> = {
+  Sleep: '4′', Feed: '3′', Grow: '5′', Care: '4′', Wins: '2′',
+};
+
+const TOC_CHAPTER_ORDER = ['Sleep', 'Feed', 'Grow', 'Care', 'Wins'] as const;
+
+// Derive a short row sub from a Milestone — prefer title (curated short
+// phrase) over description (full paragraph). Fall back to placeholder
+// when no milestone row matched for this week's category.
+function tocSubFor(chapter: string, milestones: Milestone[]): string {
+  const cat = CHAPTER_TO_CATEGORY[chapter];
+  const hit = milestones.find((m) => m.category === cat);
+  if (hit?.title) return hit.title;
+  return TOC_PLACEHOLDERS[chapter] ?? '';
+}
+
+function ManualHeroCard({ babyName, weekNumber, milestones, onPress }: {
   babyName: string;
   weekNumber: number;
+  /** Live milestones for the current week, mapped to TOC rows via
+   *  CHAPTER_TO_CATEGORY. Empty array falls back to TOC_PLACEHOLDERS. */
+  milestones: Milestone[];
   onPress: () => void;
 }) {
   // Hero bg = blush per handoff palette (first slot of the kit's default
@@ -256,22 +293,25 @@ function ManualHeroCard({ babyName, weekNumber, onPress }: {
         </View>
 
         <View style={styles.heroToc}>
-          {THIS_WEEK_TOC.map((row, i) => {
-            const cc = CHAPTERS[row.ch.toLowerCase()];
-            const isLast = i === THIS_WEEK_TOC.length - 1;
+          {TOC_CHAPTER_ORDER.map((chapter, i) => {
+            const cc = CHAPTERS[chapter.toLowerCase()];
+            const isLast = i === TOC_CHAPTER_ORDER.length - 1;
+            const num = String(i + 1).padStart(2, '0');
+            const sub = tocSubFor(chapter, milestones);
+            const dur = TOC_DURATIONS[chapter] ?? '';
             return (
               <View
-                key={row.ch}
+                key={chapter}
                 style={[
                   styles.tocRow,
                   { borderBottomWidth: isLast ? 0 : StyleSheet.hairlineWidth },
                 ]}
               >
-                <Text style={styles.tocNum}>{row.num}</Text>
+                <Text style={styles.tocNum}>{num}</Text>
                 <View style={[styles.tocStripe, { backgroundColor: cc.bg }]} />
-                <Text style={styles.tocChapter} numberOfLines={1}>{row.ch}</Text>
-                <Text style={styles.tocSub} numberOfLines={1}>{row.sub}</Text>
-                <Text style={styles.tocDur}>{row.dur}</Text>
+                <Text style={styles.tocChapter} numberOfLines={1}>{chapter}</Text>
+                <Text style={styles.tocSub} numberOfLines={1}>{sub}</Text>
+                <Text style={styles.tocDur}>{dur}</Text>
               </View>
             );
           })}
@@ -374,11 +414,22 @@ export default function HomeScreenV3() {
   // parallax drift, triggerAnim drives the fly-in stagger on focus.
   const scrollY = useRef(new Animated.Value(0)).current;
   const [triggerAnim, setTriggerAnim] = React.useState(0);
+
+  // Live week milestones for the Manual hero card TOC. Falls back to
+  // the static TOC_PLACEHOLDERS in tocSubFor when none returned.
+  const [weekMilestones, setWeekMilestones] = React.useState<Milestone[]>([]);
   useFocusEffect(
     React.useCallback(() => {
       setTriggerAnim((n) => n + 1);
+      // Only fetch when we have a real week — pre-baby state stays on
+      // placeholder copy. Fire-and-forget; tocSubFor handles empty array.
+      if (weekNumber && weekNumber >= 1 && weekNumber <= 52) {
+        homeApi.getMilestonesForWeek(weekNumber)
+          .then(setWeekMilestones)
+          .catch(() => setWeekMilestones([]));
+      }
       return () => {};
-    }, []),
+    }, [weekNumber]),
   );
 
   return (
@@ -421,6 +472,7 @@ export default function HomeScreenV3() {
         <ManualHeroCard
           babyName={heroBabyName}
           weekNumber={heroWeek}
+          milestones={weekMilestones}
           onPress={goManual}
         />
 
