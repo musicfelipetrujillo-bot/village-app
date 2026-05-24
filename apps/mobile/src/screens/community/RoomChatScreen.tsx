@@ -290,7 +290,7 @@ export default function RoomChatScreen({ navigation, route }: Props) {
           accessibilityLabel="Back"
           accessibilityRole="button"
         >
-          <Text style={styles.back}>‹ Back</Text>
+          <Text style={styles.back}>← Back</Text>
         </TouchableOpacity>
         <View style={styles.headerTitleWrap}>
           <Text style={styles.headerTitle} numberOfLines={1}>

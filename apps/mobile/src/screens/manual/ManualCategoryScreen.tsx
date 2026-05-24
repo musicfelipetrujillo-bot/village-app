@@ -305,7 +305,7 @@ export default function ManualCategoryScreen() {
       {/* Top nav — Back + small audience tag (MOM / BABY) */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} accessibilityRole="button" accessibilityLabel={t('common.back')}>
-          <Text style={styles.back}>‹ {t('common.back')}</Text>
+          <Text style={styles.back}>← {t('common.back')}</Text>
         </TouchableOpacity>
         {/* Liquid-glass pill — VISIBLE body on cream bg. iOS 26 pills
             still read as distinct shapes, not invisible films. Higher

@@ -157,7 +157,7 @@ export default function NotificationPreferencesScreen({ navigation }: Props) {
           accessibilityRole="button"
           accessibilityLabel={t('notifPrefs.topBack')}
         >
-          <Text style={s.topLink}>‹ {t('notifPrefs.topBack')}</Text>
+          <Text style={s.topLink}>← {t('notifPrefs.topBack')}</Text>
         </TouchableOpacity>
         <Text style={s.topTitle}>{t('notifPrefs.topTitle')}</Text>
         <View style={s.topSpacer}>

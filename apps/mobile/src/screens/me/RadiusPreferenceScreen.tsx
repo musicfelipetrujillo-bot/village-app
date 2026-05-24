@@ -65,7 +65,7 @@ export default function RadiusPreferenceScreen({ navigation }: Props) {
           accessibilityRole="button"
           accessibilityLabel={t('radius.topBack')}
         >
-          <Text style={s.topLink}>‹ {t('radius.topBack')}</Text>
+          <Text style={s.topLink}>← {t('radius.topBack')}</Text>
         </TouchableOpacity>
         <Text style={s.topTitle}>{t('radius.topTitle')}</Text>
         <View style={s.topSpacer}>
