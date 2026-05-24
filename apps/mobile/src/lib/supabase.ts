@@ -1,5 +1,6 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import * as SecureStore from 'expo-secure-store';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { Database as GeneratedDatabase } from 'shared/src/types/supabase';
 
 // API DRIFT MIGRATION (in progress)
@@ -29,10 +30,50 @@ type Database = any;
 const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!;
 
+// Auth storage adapter — SecureStore (iOS Keychain) by default, falls back
+// to AsyncStorage on the first Keychain failure. This handles:
+//   1. iOS Simulator dev builds: when xcodebuild runs with
+//      CODE_SIGNING_ALLOWED=NO (no Apple Dev cert on machine), the app's
+//      `application-identifier` entitlement isn't set, so every Keychain
+//      call throws "A required entitlement isn't present." Sim dev only —
+//      Release builds going through TestFlight / App Store are signed
+//      properly and use Keychain.
+//   2. Any other transient Keychain glitch (locked Keychain, restored
+//      backup mid-launch, etc.) — falls back gracefully rather than
+//      hanging the auth bootstrap.
+//
+// Logs the fallback once per process so it's visible in sim logs but
+// doesn't spam.
+let secureStoreUnavailable = false;
+async function trySecure<T>(op: () => Promise<T>, fallback: () => Promise<T>): Promise<T> {
+  if (secureStoreUnavailable) return fallback();
+  try {
+    return await op();
+  } catch (err) {
+    if (!secureStoreUnavailable) {
+      secureStoreUnavailable = true;
+      // eslint-disable-next-line no-console
+      console.warn(
+        '[supabase] Keychain unavailable — falling back to AsyncStorage. ' +
+          'Expected on unsigned simulator builds; Release builds via ' +
+          'TestFlight/App Store sign properly and use Keychain. Error:',
+        (err as Error)?.message ?? String(err),
+      );
+    }
+    return fallback();
+  }
+}
+
 const ExpoSecureStoreAdapter = {
-  getItem: (key: string) => SecureStore.getItemAsync(key),
-  setItem: (key: string, value: string) => SecureStore.setItemAsync(key, value),
-  removeItem: (key: string) => SecureStore.deleteItemAsync(key),
+  getItem: (key: string) =>
+    trySecure(() => SecureStore.getItemAsync(key), () => AsyncStorage.getItem(key)),
+  setItem: (key: string, value: string) =>
+    trySecure(
+      () => SecureStore.setItemAsync(key, value),
+      () => AsyncStorage.setItem(key, value),
+    ),
+  removeItem: (key: string) =>
+    trySecure(() => SecureStore.deleteItemAsync(key), () => AsyncStorage.removeItem(key)),
 };
 
 export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {

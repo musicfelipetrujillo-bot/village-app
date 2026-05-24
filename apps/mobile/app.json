@@ -17,6 +17,11 @@
       "icon": "./assets/icon.png",
       "bundleIdentifier": "com.villieapp.mobile",
       "buildNumber": "1",
+      "entitlements": {
+        "keychain-access-groups": [
+          "$(AppIdentifierPrefix)com.villieapp.mobile"
+        ]
+      },
       "associatedDomains": ["applinks:villieapp.com", "applinks:www.villieapp.com"],
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "villie uses your location to find nearby donors, specialists, and events.",
