@@ -98,8 +98,8 @@ const styles = StyleSheet.create({
     shadowColor: '#6B2E0E',
     shadowOpacity: 0.22,
     shadowOffset: { width: 0, height: 8 },
-    shadowRadius: 16,
-    elevation: 4,
+    shadowRadius: 22,                          // matches Phase C sweep
+    elevation: 5,
   },
   shadowDeep: {
     shadowColor: '#3D1F0E',

@@ -41,6 +41,7 @@ import {
 } from '@utils/constants';
 import type { MeStackParamList } from '@/navigation/MeNavigator';
 import { useT } from '@/i18n';
+import { V3Card } from '@components/shared/V3Card';
 
 const _BEE_N = 60;
 const _BEE_INPUT = Array.from({ length: _BEE_N + 1 }, (_, i) => i / _BEE_N);
@@ -901,6 +902,13 @@ function Section({
   // letter-spaced eyebrow, mirroring HomeScreen's sectionEyebrow +
   // sectionAccentBar so Me reads as part of the same magazine spread
   // rather than a settings sheet.
+  //
+  // V3Card wraps every section's content so each card gets the full
+  // v3 immersive recipe (paper bg + hairline rust border + cocoa
+  // floating shadow + top inner warm glow + iOS-26 wet-glass sheen).
+  // Previously this used a plain <View style={s.card}> which had the
+  // border + shadow but no inner glow / sheen — looked flat compared
+  // to v3 surfaces on Home/Manual/Village.
   return (
     <View style={s.section}>
       <View style={s.sectionHeadingRow}>
@@ -908,7 +916,7 @@ function Section({
         <Text style={s.sectionEyebrow}>{title}</Text>
       </View>
       {subtitle ? <Text style={s.sectionSubtitle}>{subtitle}</Text> : null}
-      <View style={s.card}>{children}</View>
+      <V3Card>{children}</V3Card>
     </View>
   );
 }
