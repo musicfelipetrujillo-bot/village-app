@@ -532,7 +532,7 @@ These are tracked here so they don't get lost between sessions, but they're sepa
 - [ ] Pre-launch: final `RESEND_API_KEY` rotation from terminal
 - [ ] Decide canonical URL direction (apex vs www) and align Vercel + Supabase config
 - [ ] eBay API: waiting on Developers account approval (~1 day from 2026-05-15). Once approved → add App ID + Cert ID to Supabase Secrets, build `gear-price-suggest` Edge Function.
-- [ ] Supabase security migrations 051–054 — written on disk, not yet applied to hosted (see `CLAUDE.md` V4 Open Gates → "Migrations 051–053 — security advisor sweep" for details).
+- [x] Supabase security migrations 051–054 — applied to hosted (verified via `supabase migration list --linked` 2026-05-24).
 
 ---
 

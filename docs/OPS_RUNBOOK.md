@@ -146,13 +146,33 @@ ORDER BY period_start DESC;
 
 ### 3.3 · Resend webhook (engagement tracking)
 
+**Status (2026-05-24):** Wired end-to-end. Endpoint `https://albyndcruwopulazvpjs.supabase.co/functions/v1/resend-webhook` is enabled in the Resend dashboard, subscribed to all 11 email events, signing secret loaded in Supabase Edge Function Secrets.
+
 **Prereq:** `RESEND_WEBHOOK_SECRET` in Supabase Edge Function Secrets.
+
+**Quick verification** (no dashboard needed — anyone can run):
+```bash
+curl -sS -o /tmp/probe.json -w "HTTP=%{http_code}\n" -X POST \
+  "https://albyndcruwopulazvpjs.supabase.co/functions/v1/resend-webhook" \
+  -H "Content-Type: application/json" \
+  -d '{"type":"email.opened","data":{}}'
+# Expect: HTTP=401, body {"error":"invalid signature"}
+# A 401 here proves the secret is loaded — real Resend events come signed.
+```
+
+**Real-traffic verification:** Open one of the test newsletters, then:
+```sql
+SELECT period_start, opened_at, first_click_at, click_count
+FROM newsletter_sends
+WHERE recipient_email = 'musicfelipetrujillo@gmail.com'
+ORDER BY created_at DESC LIMIT 5;
+```
 
 In the Resend dashboard:
 1. Webhooks → endpoint → **Send test event**
 2. Expect **200 OK** in the response panel
 
-**If 401 Forbidden:** `RESEND_WEBHOOK_SECRET` env var isn't set OR doesn't match the dashboard signing secret.
+**If 401 Forbidden** from a *real* Resend event (vs. our intentional probe above): `RESEND_WEBHOOK_SECRET` env var isn't set OR doesn't match the dashboard signing secret. Rotate via Resend → Webhooks → Rotate signing secret, then re-set in Supabase.
 
 ---
 
