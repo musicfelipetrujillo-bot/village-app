@@ -161,6 +161,10 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.10, shadowRadius: 8, elevation: 2,
   },
   buttonDisabled: { opacity: 0.6 },
+  // EXEMPT — Google's brand guidelines mandate a white background + neutral
+  // ring for the "G" mark when it appears in third-party UI. Don't swap to
+  // paper #FDFBF6 or rust hairline — that breaks Google branding compliance.
+  // v9-audit.mjs has an inline exemption for these two lines.
   googleMark: {
     width: 22, height: 22, borderRadius: 11,
     backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center',

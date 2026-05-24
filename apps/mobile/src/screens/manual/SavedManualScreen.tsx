@@ -168,7 +168,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row', gap: 12, padding: 12,
     backgroundColor: COLORS.paper,
     borderRadius: 14, marginBottom: 12,
-    borderWidth: 1, borderColor: 'rgba(0,0,0,0.05)',
+    borderWidth: 1, borderColor: 'rgba(150,80,50,0.18)',
   },
   thumbWrap: {
     position: 'relative',

@@ -243,7 +243,7 @@ const styles = StyleSheet.create({
     padding: 18, marginBottom: 24,
     backgroundColor: COLORS.paper,
     borderRadius: 14,
-    borderWidth: 1, borderColor: 'rgba(0,0,0,0.05)',
+    borderWidth: 1, borderColor: 'rgba(150,80,50,0.18)',
   },
   toggleTitle: {
     fontSize: 15, fontFamily: FONTS.bodySemiBold, color: COLORS.bark,
@@ -264,7 +264,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.paper,
     borderRadius: 14,
     alignItems: 'center',
-    borderWidth: 1, borderColor: 'rgba(0,0,0,0.05)',
+    borderWidth: 1, borderColor: 'rgba(150,80,50,0.18)',
   },
   previewAlias: {
     fontSize: 24, fontFamily: FONTS.headerBold, color: '#C07840',
@@ -288,7 +288,7 @@ const styles = StyleSheet.create({
     padding: 18, marginBottom: 24,
     backgroundColor: COLORS.paper,
     borderRadius: 14,
-    borderWidth: 1, borderColor: 'rgba(0,0,0,0.05)',
+    borderWidth: 1, borderColor: 'rgba(150,80,50,0.18)',
   },
   howItem: {
     fontSize: 13, fontFamily: FONTS.body, color: COLORS.bark,
@@ -302,7 +302,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12, paddingHorizontal: 16,
     backgroundColor: COLORS.paper,
     borderRadius: 10, marginBottom: 8,
-    borderWidth: 1, borderColor: 'rgba(0,0,0,0.05)',
+    borderWidth: 1, borderColor: 'rgba(150,80,50,0.18)',
   },
   identityAlias: { fontSize: 14, fontFamily: FONTS.bodySemiBold, color: '#C07840' },
   identityRoom: { fontSize: 12, fontFamily: FONTS.body, color: COLORS.barkSoft },

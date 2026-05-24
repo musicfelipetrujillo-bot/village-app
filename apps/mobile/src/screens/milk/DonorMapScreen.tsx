@@ -166,7 +166,7 @@ const styles = StyleSheet.create({
     width: 36, height: 36, borderRadius: 18,
     alignItems: 'center', justifyContent: 'center',
     borderWidth: 2, borderColor: '#FDFBF6',
-    shadowColor: '#6B2E0E', shadowOpacity: 0.2, shadowRadius: 4, elevation: 4,
+    shadowColor: '#6B2E0E', shadowOpacity: 0.20, shadowRadius: 4, elevation: 4,
   },
   pinText: { fontSize: 18 },
   callout: {
@@ -184,7 +184,7 @@ const styles = StyleSheet.create({
   legend: {
     position: 'absolute', top: 120, right: 12,
     backgroundColor: COLORS.paper, borderRadius: 10, padding: 8, gap: 6,
-    shadowColor: '#6B2E0E', shadowOpacity: 0.1, shadowRadius: 4, elevation: 3,
+    shadowColor: '#6B2E0E', shadowOpacity: 0.10, shadowRadius: 4, elevation: 3,
   },
   legendItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   legendDot: { width: 10, height: 10, borderRadius: 5 },

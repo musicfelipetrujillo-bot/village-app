@@ -43,7 +43,16 @@ const FILE_EXEMPT_PURE_COLORS = [
   /BarcodeScannerModal\.tsx$/,
   /ManualVideoScreen\.tsx$/,
   /ManualTileArt\.tsx$/,      // SVG mask stops + raster fills (math, not visible)
-  /WarmGlowBackdrop\.tsx$/,   // root layer of a gradient backdrop
+  /WarmGlowBackdrop\.tsx$/,
+  /OAuthButtons\.tsx$/,       // Google "G" mark requires white bg + neutral
+                              // ring per Google brand guidelines — see
+                              // OAuthButtons.tsx googleMark comment.
+];
+
+// Files exempt from generic-card-border drift (Google brand mark again —
+// the gray ring around the G is part of Google's identity spec).
+const FILE_EXEMPT_GENERIC_BORDER = [
+  /OAuthButtons\.tsx$/,
 ];
 
 // ── Checks ─────────────────────────────────────────────────────────────
@@ -178,6 +187,7 @@ const CHECKS = [
     label: 'Card with generic rgba(0,0,0,X) border (should be rust hairline)',
     re: /borderColor:\s*['"]rgba\(0\s*,\s*0\s*,\s*0\s*,\s*0?\.[0-9]+\)['"]/,
     hint: 'Card hairlines should be rust-tinted: borderColor: \'rgba(150,80,50,0.18)\'.',
+    skipIfFileMatches: FILE_EXEMPT_GENERIC_BORDER,
   },
 
   // ── NIT ────────────────────────────────────────────────────────────

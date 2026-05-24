@@ -317,7 +317,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     padding: 14,
     marginBottom: 14,
-    borderWidth: 1, borderColor: 'rgba(0,0,0,0.05)',
+    borderWidth: 1, borderColor: 'rgba(150,80,50,0.18)',
   },
   sectionHead: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
