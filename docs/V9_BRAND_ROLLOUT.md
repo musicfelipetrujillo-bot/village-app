@@ -550,9 +550,17 @@ Design handoff dropped at `/Users/gp/Downloads/design_handoff_villie/` with new 
   import HomeScreen from '@screens/home/HomeScreenV3';
   ```
   Then reload Metro. Revert by undoing the import swap. Approval gates: visual fidelity, decision on whether to keep the cut surfaces (WelcomeCard, Help, Explore, weekly journey checklist) or merge them in.
-- [ ] Manual Home redesign — pending.
-- [ ] Village redesign — pending.
-- [ ] AppTabBar customizable slots (3 locked + 2 user-pickable) — pending.
+- [x] **ManualScrollV3.tsx staged 2026-05-24** — top chrome port (header + mom/baby toggle + chapter chips + sage week-progress card + colored chapter band) per handoff `manual-flow.jsx` lines 145-324. Hamburger menu reused from Phase 2. Tapping the colored band passes through to the existing ManualCategoryScreen for the read experience. Full piece-stream rebuild (video / article / illustration / checklist / callout) deferred to Phase 4.2. Preview swap:
+  ```tsx
+  // apps/mobile/src/navigation/ManualNavigator.tsx
+  import ManualHomeScreen from '@screens/manual/ManualScrollV3';
+  ```
+- [x] **VillageHomeScreenV3.tsx staged 2026-05-24** — pixel-faithful port of `VillageC`. Editorial "Your backup is _here._" masthead + 2×2 equal-weight colored tile grid (Milk Connect / Specialists / Baby Gear / Villie Plans, each its own brand hue) + small "On the calendar" preview list. Calendar data is static handoff; wiring to live `useEventsStore` is Phase 4.3. Preview swap:
+  ```tsx
+  // apps/mobile/src/navigation/VillageNavigator.tsx
+  import VillageHomeScreen from '@screens/village/VillageHomeScreenV3';
+  ```
+- [x] **AppTabBar customizable slots — wired 2026-05-24.** `useCustomMiddleTabs` hook persists the user's pick across the two middle slots; `AppNavigator` reads it. 3 locked (Home / Manual / Profile), 2 user-pickable from {Village, Inbox, Experts, Milk, Gear}. Defaults to `['Village', 'Inbox']` so current behavior is preserved until the user changes it. Settings UI to pick the pair is OUT of scope per handoff — the hook exposes the read+write API for a future settings screen to drive. Test other pairs by calling `setTabs(['Milk', 'Gear'])` from anywhere (e.g. Profile screen dev pane). All 5 pillars stay registered as Tab.Screen so existing cross-tab deep-links keep working regardless of which two are surfaced.
 
 ---
 
