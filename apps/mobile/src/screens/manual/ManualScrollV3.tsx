@@ -45,6 +45,7 @@ import {
 import { WarmGlowBackdrop } from '@components/shared/WarmGlowBackdrop';
 import { GlassHighlight } from '@components/shared/GlassHighlight';
 import { V3Card } from '@components/shared/V3Card';
+import { ManualPieceOverlay, type OverlayPiece } from '@screens/manual/ManualPieceOverlay';
 import { useFocusEffect } from '@react-navigation/native';
 import { Animated } from 'react-native';
 
@@ -479,6 +480,14 @@ export default function ManualScrollV3() {
     } as never);
   };
 
+  // Piece detail overlay — article / illustration / checklist open in
+  // a sheet-style Modal that lets the user close back to the same
+  // scroll position. Video stays on its own nav screen (full Mux
+  // player + watch-tracking is heavier than what a Modal should host).
+  const [overlayPiece, setOverlayPiece] = useState<OverlayPiece | null>(null);
+  const openPieceOverlay = (p: OverlayPiece) => setOverlayPiece(p);
+  const closePieceOverlay = () => setOverlayPiece(null);
+
   // Atmospheric backdrop — bees + warm gradient via shared component.
   const scrollY = useRef(new Animated.Value(0)).current;
   const [triggerAnim, setTriggerAnim] = useState(0);
@@ -719,7 +728,7 @@ export default function ManualScrollV3() {
               return (
                 <TouchableOpacity
                   key={`${chapter.ch}-${i}`}
-                  onPress={openSelectedChapter}
+                  onPress={() => openPieceOverlay(p)}
                   activeOpacity={0.85}
                   style={styles.pieceSection}
                 >
@@ -741,7 +750,12 @@ export default function ManualScrollV3() {
                 { age: '12+ mo',  range: '4–5 hr',     pct: 1.0,  color: CHAPTER_BG_BY_NAME.Tips },
               ];
               return (
-                <View key={`${chapter.ch}-${i}`} style={styles.pieceSection}>
+                <TouchableOpacity
+                  key={`${chapter.ch}-${i}`}
+                  onPress={() => openPieceOverlay(p)}
+                  activeOpacity={0.85}
+                  style={styles.pieceSection}
+                >
                   <PieceLabel kind="illustration" num={p.num} />
                   <Text style={styles.pieceArticleTitleSmall}>{p.title}</Text>
                   <V3Card contentStyle={styles.illustrationCardInner}>
@@ -770,18 +784,23 @@ export default function ManualScrollV3() {
                     ))}
                   </V3Card>
                   <Text style={styles.illustrationCaption}>{p.caption}</Text>
-                </View>
+                </TouchableOpacity>
               );
             }
             if (p.kind === 'checklist') {
               return (
-                <View key={`${chapter.ch}-${i}`} style={styles.pieceSection}>
+                <TouchableOpacity
+                  key={`${chapter.ch}-${i}`}
+                  onPress={() => openPieceOverlay(p)}
+                  activeOpacity={0.85}
+                  style={styles.pieceSection}
+                >
                   <ChecklistPiece
                     piece={p}
                     accentBg={chapter.bg}
                     accentFg={chapter.fg}
                   />
-                </View>
+                </TouchableOpacity>
               );
             }
             return null;
@@ -847,6 +866,15 @@ export default function ManualScrollV3() {
           />
         </MenuGroup>
       </MenuPanel>
+
+      {/* Piece detail overlay — article / illustration / checklist */}
+      <ManualPieceOverlay
+        visible={overlayPiece !== null}
+        onClose={closePieceOverlay}
+        piece={overlayPiece}
+        chapter={chapter}
+        durFallback={lang === 'es' ? '2 min de lectura' : '2 min read'}
+      />
     </View>
   );
 }
