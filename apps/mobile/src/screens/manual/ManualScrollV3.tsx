@@ -40,6 +40,7 @@ import {
 } from '@components/shared/HamburgerMenu';
 import { WarmGlowBackdrop } from '@components/shared/WarmGlowBackdrop';
 import { GlassHighlight } from '@components/shared/GlassHighlight';
+import { V3Card } from '@components/shared/V3Card';
 import { useFocusEffect } from '@react-navigation/native';
 import { Animated } from 'react-native';
 
@@ -99,6 +100,268 @@ const CHAPTER_INTRO: Record<string, string> = {
   Rest:  'Sleep when you can. Other people can do the rest.',
   Tips:  'The small wins moms wish they knew week one.',
 };
+
+// ─── Piece stream types + content ──────────────────────────────────────
+// Phase 4.2 — replaces the streamPlaceholder block with a full inline
+// stream of 4 mixed pieces per chapter. Static content per chapter
+// (verbatim where possible from the handoff SLEEP_PIECES + chapter
+// vibes) so each chapter scrolls to its own bottom without a detail
+// screen detour. Wire to milestone_library + Mux video assets in 4.3.
+
+type PieceVideo = {
+  kind: 'video'; num: string; title: string; expert: string; dur: string;
+};
+type PieceArticle = {
+  kind: 'article'; num: string; title: string; dur: string; excerpt: string;
+};
+type PieceIllustration = {
+  kind: 'illustration'; num: string; title: string; caption: string;
+};
+type PieceChecklist = {
+  kind: 'checklist'; num: string; title: string; steps: string[];
+};
+type Piece = PieceVideo | PieceArticle | PieceIllustration | PieceChecklist;
+
+// Lookup of chapter band color by chapter name — used by the
+// illustration progress bars so the "current" row tints with the
+// selected chapter, while other rows pull from sibling chapter colors
+// (matches handoff lines 393-398 cross-chapter palette).
+const CHAPTER_BG_BY_NAME: Record<string, string> = {
+  Sleep: T.caramel, Feed: T.butter, Grow: T.blush, Care: '#F2C0C8', Wins: T.marigold,
+  Feel: T.blush, Heal: '#DAE0BC', Nourish: T.butter, Rest: T.parchment, Tips: T.marigold,
+};
+
+const PIECES_BY_CHAPTER: Record<string, Piece[]> = {
+  // ── BABY ────────────────────────────────────────────────────────────
+  Sleep: [
+    { kind: 'video', num: '01', title: 'Why your 6-month-old is suddenly waking.',
+      expert: 'Dr. A. Rodriguez · IBCLC', dur: '1:55' },
+    { kind: 'article', num: '02', title: 'Separation anxiety wakings.', dur: '4 min read',
+      excerpt: 'What looks like regression at six months is, almost always, exactly what’s supposed to happen — three big leaps landing in the same week.' },
+    { kind: 'illustration', num: '03', title: 'Wake windows by age.',
+      caption: 'Your baby is in 2–3 hour windows. Watch for rubbing eyes and the 30-min "I’m done" face.' },
+    { kind: 'checklist', num: '04', title: 'Tonight’s plan.',
+      steps: [
+        'Bath, lotion, lights low by 6:45.',
+        'Same book, same song, same chair.',
+        'Down drowsy at 7:00 — not asleep.',
+        'First wake-up: hand on chest, 2 min before you pick up.',
+      ] },
+  ],
+  Feed: [
+    { kind: 'video', num: '01', title: 'Cluster feeding isn’t low supply.',
+      expert: 'Mara K. · IBCLC', dur: '2:10' },
+    { kind: 'article', num: '02', title: 'The 4-month feeding plateau.', dur: '3 min read',
+      excerpt: 'Around four months, intake plateaus while distractibility doubles. Less time on the breast doesn’t mean less milk — it means more efficient transfer.' },
+    { kind: 'illustration', num: '03', title: 'Ounces per feed by age.',
+      caption: 'Most six-month-olds take 6–8 oz, four to five times a day. Your rhythm will look slightly different. That’s fine.' },
+    { kind: 'checklist', num: '04', title: 'First solids starter list.',
+      steps: [
+        'Avocado, mashed soft.',
+        'Banana, ripe and warm.',
+        'Sweet potato, baked through.',
+        'Iron-fortified oat cereal, thinned.',
+      ] },
+  ],
+  Grow: [
+    { kind: 'video', num: '01', title: 'The week before pulling up.',
+      expert: 'Dr. L. Ngo · PT', dur: '1:42' },
+    { kind: 'article', num: '02', title: 'Babbling into first words.', dur: '4 min read',
+      excerpt: 'The same syllable, over and over — ba ba ba — isn’t random. It’s the practice ground for the first real word, usually three to six weeks away.' },
+    { kind: 'illustration', num: '03', title: 'Motor milestones by week.',
+      caption: 'Rolling, sitting, crawling, pulling — they overlap. Your baby is on their own ladder.' },
+    { kind: 'checklist', num: '04', title: 'Set the floor up for the next leap.',
+      steps: [
+        'Two-foot-square floor mat in the main room.',
+        'One object just out of reach.',
+        'Couch corner padded for new pullers-up.',
+        'Outlet covers in three rooms, today.',
+      ] },
+  ],
+  Care: [
+    { kind: 'video', num: '01', title: 'Teething or just fussy?',
+      expert: 'Dr. P. Hayes · Pediatrics', dur: '2:30' },
+    { kind: 'article', num: '02', title: 'Fevers: when to call.', dur: '3 min read',
+      excerpt: '100.4°F under three months is an ER call. Over six months, it’s the behavior — not the number — that tells you whether to wait or page the nurse line.' },
+    { kind: 'illustration', num: '03', title: 'Common rashes, by look.',
+      caption: 'Heat rash, eczema, baby acne, and one to watch — petechiae. Tap any row to compare.' },
+    { kind: 'checklist', num: '04', title: 'The medicine drawer.',
+      steps: [
+        'Infant Tylenol, dated.',
+        'Saline drops + nasal aspirator.',
+        'Pedialyte sachets, two.',
+        'Thermometer, batteries checked.',
+      ] },
+  ],
+  Wins: [
+    { kind: 'video', num: '01', title: 'The burp at the switch.',
+      expert: 'Annie R. · doula', dur: '1:18' },
+    { kind: 'article', num: '02', title: 'Small things week one.', dur: '2 min read',
+      excerpt: 'The half-second she focused on your face. The way his foot tucked into your palm. These count. Write them down before you forget.' },
+    { kind: 'illustration', num: '03', title: 'Wins, mapped by week.',
+      caption: 'Most parents log six to eight tiny wins in week 26 — usually around sleep and feed transitions.' },
+    { kind: 'checklist', num: '04', title: 'Today’s three.',
+      steps: [
+        'One thing she did that was new.',
+        'One thing you did that worked.',
+        'One thing someone else noticed.',
+      ] },
+  ],
+  // ── MOM ─────────────────────────────────────────────────────────────
+  Feel: [
+    { kind: 'video', num: '01', title: 'The postpartum brain isn’t broken.',
+      expert: 'Dr. S. Patel · perinatal psych', dur: '2:45' },
+    { kind: 'article', num: '02', title: 'When the village goes quiet.', dur: '6 min read',
+      excerpt: 'Month four is when the texts thin out. The baby is "easy" by now, the casseroles stopped, and yet — this is often the heaviest stretch.' },
+    { kind: 'illustration', num: '03', title: 'Mood, mapped postpartum.',
+      caption: 'The dip at week 16 is normal. The dip that doesn’t lift by week 20 is the one to flag.' },
+    { kind: 'checklist', num: '04', title: 'Today’s small mercies.',
+      steps: [
+        'One window opened for five minutes.',
+        'One text sent to the friend you’ve been meaning to.',
+        'One thing eaten warm.',
+        'One ten-minute walk, even with the stroller.',
+      ] },
+  ],
+  Heal: [
+    { kind: 'video', num: '01', title: 'Pelvic floor at six months.',
+      expert: 'Dr. J. Okafor · PT-DPT', dur: '3:05' },
+    { kind: 'article', num: '02', title: 'The scar you forgot about.', dur: '4 min read',
+      excerpt: 'C-section scars keep maturing for a full year. Tightness at month six is normal; numbness that’s shrinking is the body re-mapping itself.' },
+    { kind: 'illustration', num: '03', title: 'Healing curve, week by week.',
+      caption: 'Bleeding stops by week 6. Strength comes back by month 4. The full mat-leave body returns somewhere between months 9 and 14.' },
+    { kind: 'checklist', num: '04', title: 'This week’s body checks.',
+      steps: [
+        'Notice any leaking when you sneeze.',
+        'Check the c-section scar — pink is fine, red is not.',
+        'Stretch the hip flexors, two minutes.',
+        'Drink a full glass of water before coffee.',
+      ] },
+  ],
+  Nourish: [
+    { kind: 'video', num: '01', title: 'Eating to keep up.',
+      expert: 'Maya L. · RD, IBCLC', dur: '2:20' },
+    { kind: 'article', num: '02', title: 'Why the third coffee isn’t the answer.', dur: '3 min read',
+      excerpt: 'Postpartum thirst rivals pregnancy thirst. A glass of water before each feed beats a third espresso by 4 p.m. — every time.' },
+    { kind: 'illustration', num: '03', title: 'Plate, postpartum.',
+      caption: 'Half plate veg, a fist of protein, a thumb of fat, a cupped hand of slow carbs. Repeat at every meal you can.' },
+    { kind: 'checklist', num: '04', title: 'Today’s easy four.',
+      steps: [
+        'A glass of water before the first feed.',
+        'A protein at breakfast.',
+        'A handful of nuts within arm’s reach.',
+        'A warm dinner, even if it’s leftovers.',
+      ] },
+  ],
+  Rest: [
+    { kind: 'video', num: '01', title: 'Stealing ten minutes.',
+      expert: 'Tara P. · sleep coach', dur: '1:35' },
+    { kind: 'article', num: '02', title: '4 a.m. is not "tomorrow."', dur: '3 min read',
+      excerpt: 'The reason you feel ruined at 4 a.m. isn’t the wake-up. It’s that your brain coded the night as one long block instead of two shorter ones.' },
+    { kind: 'illustration', num: '03', title: 'Sleep debt, by week.',
+      caption: 'Two short naps before noon clear more debt than a single afternoon block. Map the windows you actually have.' },
+    { kind: 'checklist', num: '04', title: 'Build a 90-minute window.',
+      steps: [
+        'Phone in the next room.',
+        'Eye mask within reach.',
+        'Door closed, sign on the handle.',
+        'No to-do list before you lie down.',
+      ] },
+  ],
+  Tips: [
+    { kind: 'video', num: '01', title: 'Hand-offs that actually work.',
+      expert: 'Annie R. · doula', dur: '2:00' },
+    { kind: 'article', num: '02', title: 'The small mercies notebook.', dur: '2 min read',
+      excerpt: 'Three lines a day, written before bed. By month six you’ll have a map of what worked, what didn’t, and what only you ever noticed.' },
+    { kind: 'illustration', num: '03', title: 'Where the time actually goes.',
+      caption: 'Real moms log roughly 11 hours of direct baby care in a 24-hour day. The other 13 is the part nobody warns you about.' },
+    { kind: 'checklist', num: '04', title: 'The hand-off list.',
+      steps: [
+        'Diapers, top shelf changing table.',
+        'Bottles in fridge, dated.',
+        'Sleep song queued.',
+        'Pediatrician number on the fridge.',
+      ] },
+  ],
+};
+
+// Eyebrow meta for each piece kind (handoff lines 129-143).
+const PIECE_LABEL_META: Record<Piece['kind'], string> = {
+  video:        'Watch · short film',
+  article:      'Read',
+  illustration: 'See',
+  checklist:    'Do',
+};
+
+function PieceLabel({ kind, num }: { kind: Piece['kind']; num: string }) {
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
+      <Text style={{
+        fontFamily: FONTS.v2_mono, fontSize: 10, color: T.amber,
+        letterSpacing: 2.2, textTransform: 'uppercase', fontWeight: '600',
+      }}>
+        {num} · {PIECE_LABEL_META[kind]}
+      </Text>
+    </View>
+  );
+}
+
+// Toggleable checklist row (kept in its own component so each piece
+// gets isolated useState — toggling row 2 of one chapter doesn’t
+// flip rows in another chapter or another piece on this page).
+function ChecklistPiece({ piece, accentBg, accentFg }: {
+  piece: PieceChecklist; accentBg: string; accentFg: string;
+}) {
+  const [checked, setChecked] = useState<boolean[]>(
+    () => piece.steps.map((_, i) => i === 0),
+  );
+  const toggle = (i: number) =>
+    setChecked((prev) => prev.map((v, j) => (j === i ? !v : v)));
+
+  return (
+    <View>
+      <PieceLabel kind="checklist" num={piece.num} />
+      <Text style={styles.pieceArticleTitleSmall}>{piece.title}</Text>
+      <V3Card contentStyle={{ overflow: 'hidden' }}>
+        {piece.steps.map((step, j) => {
+          const done = checked[j];
+          return (
+            <TouchableOpacity
+              key={j}
+              onPress={() => toggle(j)}
+              activeOpacity={0.85}
+              style={[
+                styles.checklistRow,
+                j === 0 ? null : styles.checklistRowDivider,
+                done ? { backgroundColor: T.parchment } : null,
+              ]}
+            >
+              <View style={[
+                styles.checkbox,
+                done
+                  ? { backgroundColor: accentBg, borderColor: accentBg }
+                  : { borderColor: T.rule },
+              ]}>
+                {done ? (
+                  <Svg width={11} height={11} viewBox="0 0 24 24">
+                    <Path d="M5 13l4 4L19 7" stroke={accentFg} strokeWidth={3}
+                      fill="none" strokeLinecap="round" strokeLinejoin="round" />
+                  </Svg>
+                ) : null}
+              </View>
+              <Text style={[
+                styles.checklistStep,
+                done ? styles.checklistStepDone : null,
+              ]}>
+                {step}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </V3Card>
+    </View>
+  );
+}
 
 // ─── Atoms ─────────────────────────────────────────────────────────────
 function Eyebrow({ children, color = T.walnut }: { children: React.ReactNode; color?: string }) {
@@ -350,16 +613,116 @@ export default function ManualScrollV3() {
           </TouchableOpacity>
         </View>
 
-        {/* Piece-stream placeholder — Phase 4.2 will replace this with the
-            full video / article / illustration / checklist stream. For
-            now, tapping the colored band above opens the existing
-            ManualCategoryScreen which has the production read experience. */}
-        <View style={styles.streamPlaceholder}>
-          <Text style={styles.streamPlaceholderText}>
-            {lang === 'es'
-              ? 'Las piezas del capítulo viven en la pantalla detallada — toca arriba para entrar.'
-              : 'Chapter pieces live on the detail screen — tap above to enter.'}
-          </Text>
+        {/* ─── PIECE STREAM (Phase 4.2) ───────────────────────────────
+            4 mixed pieces per chapter — video, article, illustration,
+            checklist — rendered inline so the chapter scrolls to its
+            own end without a detail-screen detour. Tap a video or
+            article to open ManualCategoryScreen for the production
+            read experience (full Mux player + article body) until 4.3
+            wires individual piece detail screens. */}
+        <View style={styles.streamWrap}>
+          {(PIECES_BY_CHAPTER[chapter.ch] ?? []).map((p, i) => {
+            if (p.kind === 'video') {
+              return (
+                <View key={`${chapter.ch}-${i}`} style={styles.pieceVideoWrap}>
+                  <PieceLabel kind="video" num={p.num} />
+                  <V3Card pressable={openSelectedChapter} contentStyle={{ overflow: 'hidden' }}>
+                    {/* Hero — colored placeholder fill until Mux thumbs land */}
+                    <View style={[styles.pieceVideoHero, { backgroundColor: chapter.bg }]}>
+                      <LinearGradient
+                        colors={['rgba(253,251,246,0.32)', 'rgba(61,31,14,0.18)']}
+                        start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }}
+                        style={StyleSheet.absoluteFillObject}
+                        pointerEvents="none"
+                      />
+                      <View style={styles.pieceVideoPlay}>
+                        <Svg width={22} height={22} viewBox="0 0 24 24">
+                          <Path d="M7 4 L21 12 L7 20 Z" fill={T.cocoa} />
+                        </Svg>
+                      </View>
+                      <View style={styles.pieceVideoDur}>
+                        <Text style={styles.pieceVideoDurText}>{p.dur}</Text>
+                      </View>
+                    </View>
+                    <View style={styles.pieceVideoBody}>
+                      <Text style={styles.pieceVideoTitle}>{p.title}</Text>
+                      <Text style={styles.pieceVideoExpert}>{p.expert}</Text>
+                    </View>
+                  </V3Card>
+                </View>
+              );
+            }
+            if (p.kind === 'article') {
+              return (
+                <TouchableOpacity
+                  key={`${chapter.ch}-${i}`}
+                  onPress={openSelectedChapter}
+                  activeOpacity={0.85}
+                  style={styles.pieceSection}
+                >
+                  <PieceLabel kind="article" num={p.num} />
+                  <Text style={styles.pieceArticleTitle}>{p.title}</Text>
+                  <Text style={styles.pieceArticleExcerpt}>{p.excerpt}</Text>
+                  <Text style={styles.pieceArticleCta}>
+                    {lang === 'es' ? `Continuar · ${p.dur} →` : `Continue · ${p.dur} →`}
+                  </Text>
+                </TouchableOpacity>
+              );
+            }
+            if (p.kind === 'illustration') {
+              const rows: { age: string; range: string; pct: number; color: string; current?: boolean }[] = [
+                { age: '0–3 mo',  range: '60–90 min',  pct: 0.30, color: CHAPTER_BG_BY_NAME.Feed },
+                { age: '3–6 mo',  range: '90–120 min', pct: 0.42, color: CHAPTER_BG_BY_NAME.Feel },
+                { age: '6–9 mo',  range: '2–3 hr',     pct: 0.62, color: chapter.bg, current: true },
+                { age: '9–12 mo', range: '3–4 hr',     pct: 0.78, color: CHAPTER_BG_BY_NAME.Heal },
+                { age: '12+ mo',  range: '4–5 hr',     pct: 1.0,  color: CHAPTER_BG_BY_NAME.Tips },
+              ];
+              return (
+                <View key={`${chapter.ch}-${i}`} style={styles.pieceSection}>
+                  <PieceLabel kind="illustration" num={p.num} />
+                  <Text style={styles.pieceArticleTitleSmall}>{p.title}</Text>
+                  <V3Card contentStyle={styles.illustrationCardInner}>
+                    {rows.map((r, j) => (
+                      <View
+                        key={r.age}
+                        style={[
+                          styles.illustrationRow,
+                          j < rows.length - 1 ? styles.illustrationRowDivider : null,
+                        ]}
+                      >
+                        <Text style={[
+                          styles.illustrationAge,
+                          r.current ? styles.illustrationAgeCurrent : null,
+                        ]}>{r.age}</Text>
+                        <View style={styles.illustrationTrack}>
+                          <View style={[styles.illustrationFill, {
+                            width: `${r.pct * 100}%`, backgroundColor: r.color,
+                          }]} />
+                        </View>
+                        <Text style={[
+                          styles.illustrationRange,
+                          r.current ? styles.illustrationRangeCurrent : null,
+                        ]}>{r.range}</Text>
+                      </View>
+                    ))}
+                  </V3Card>
+                  <Text style={styles.illustrationCaption}>{p.caption}</Text>
+                </View>
+              );
+            }
+            if (p.kind === 'checklist') {
+              return (
+                <View key={`${chapter.ch}-${i}`} style={styles.pieceSection}>
+                  <ChecklistPiece
+                    piece={p}
+                    accentBg={chapter.bg}
+                    accentFg={chapter.fg}
+                  />
+                </View>
+              );
+            }
+            return null;
+          })}
         </View>
       </Animated.ScrollView>
 
@@ -615,18 +978,137 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.v2_link, fontSize: 12, color: T.paper, letterSpacing: 0.4,
   },
 
-  // Stream placeholder — gap bumped from 24 → 32 to compensate for the
-  // chapter band's deep shadow that extends ~14px below it. Keeps the
-  // visual rhythm consistent with the 18px gap pattern used elsewhere.
-  streamPlaceholder: {
-    marginTop: 32, marginHorizontal: 22,
-    padding: 20, borderRadius: 10,
-    backgroundColor: T.card,
-    borderWidth: StyleSheet.hairlineWidth, borderColor: T.rule,
-    alignItems: 'center',
+  // ─── Piece stream (Phase 4.2) ────────────────────────────────────
+  // Outer wrap — slight breathing room after the chapter band's deep
+  // shadow, then per-piece marginTop handles inter-piece rhythm.
+  streamWrap: {
+    paddingHorizontal: 22, paddingTop: 8, paddingBottom: 28,
   },
-  streamPlaceholderText: {
-    fontFamily: FONTS.v2_body, fontSize: 12.5, color: T.walnut,
-    textAlign: 'center', lineHeight: 18,
+
+  // Sections (article / illustration / checklist) share top hairline +
+  // generous 26px lead, mirroring the editorial cadence in the handoff
+  // (lines 363, 385, 418).
+  pieceSection: {
+    paddingTop: 26, marginTop: 18,
+    borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: T.rule,
+  },
+
+  // Video piece — no top divider, sits closer to the chapter band so it
+  // reads as "what's on the table for this chapter."
+  pieceVideoWrap: { paddingTop: 18 },
+  pieceVideoHero: {
+    width: '100%', aspectRatio: 16 / 10,
+    alignItems: 'center', justifyContent: 'center',
+    position: 'relative',
+  },
+  pieceVideoPlay: {
+    width: 56, height: 56, borderRadius: 28,
+    backgroundColor: 'rgba(253,251,246,0.96)',
+    alignItems: 'center', justifyContent: 'center',
+    shadowColor: '#000', shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.22, shadowRadius: 22, elevation: 6,
+  },
+  pieceVideoDur: {
+    position: 'absolute', bottom: 10, right: 10,
+    paddingVertical: 4, paddingHorizontal: 9, borderRadius: 4,
+    backgroundColor: 'rgba(61,31,14,0.72)',
+  },
+  pieceVideoDurText: {
+    fontFamily: FONTS.v2_mono, fontSize: 10, fontWeight: '600',
+    color: T.paper, letterSpacing: 1.2,
+  },
+  pieceVideoBody: { paddingHorizontal: 16, paddingTop: 14, paddingBottom: 16 },
+  pieceVideoTitle: {
+    fontFamily: FONTS.v3_display, fontSize: 20, lineHeight: 23,
+    color: T.cocoa, letterSpacing: -0.5,
+  },
+  pieceVideoExpert: {
+    marginTop: 6,
+    fontFamily: FONTS.v2_body, fontSize: 12, color: T.walnut,
+  },
+
+  // Article piece
+  pieceArticleTitle: {
+    fontFamily: FONTS.v3_display, fontSize: 26, lineHeight: 28,
+    color: T.cocoa, letterSpacing: -0.72,
+  },
+  pieceArticleExcerpt: {
+    marginTop: 10, marginBottom: 14,
+    fontFamily: FONTS.v2_body, fontSize: 14.5, lineHeight: 22,
+    color: T.cocoa,
+  },
+  pieceArticleCta: {
+    fontFamily: FONTS.v2_mono, fontSize: 11,
+    color: T.cinnamon, letterSpacing: 2.2,
+    textTransform: 'uppercase', fontWeight: '700',
+  },
+
+  // Smaller display title used by illustration + checklist sections.
+  pieceArticleTitleSmall: {
+    fontFamily: FONTS.v3_display, fontSize: 22, lineHeight: 24,
+    color: T.cocoa, letterSpacing: -0.48, marginBottom: 14,
+  },
+
+  // Illustration piece
+  illustrationCardInner: {
+    paddingVertical: 8, paddingHorizontal: 16,
+  },
+  illustrationRow: {
+    flexDirection: 'row', alignItems: 'center', gap: 10,
+    paddingVertical: 8,
+  },
+  illustrationRowDivider: {
+    borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: T.rule,
+  },
+  illustrationAge: {
+    width: 56,
+    fontFamily: FONTS.v2_body, fontSize: 11.5,
+    fontWeight: '500', color: T.walnut,
+  },
+  illustrationAgeCurrent: {
+    fontWeight: '700', color: T.cocoa,
+  },
+  illustrationTrack: {
+    flex: 1, height: 11, borderRadius: 2,
+    backgroundColor: T.parchment, overflow: 'hidden',
+  },
+  illustrationFill: { height: '100%' },
+  illustrationRange: {
+    width: 64, textAlign: 'right',
+    fontFamily: FONTS.v2_mono, fontSize: 10,
+    color: T.walnut, fontWeight: '500',
+    letterSpacing: 0.4,
+  },
+  illustrationRangeCurrent: {
+    color: T.cocoa, fontWeight: '700',
+  },
+  illustrationCaption: {
+    marginTop: 10, marginHorizontal: 4,
+    fontFamily: FONTS.v2_body, fontSize: 12, lineHeight: 17,
+    color: T.amber,
+  },
+
+  // Checklist piece
+  checklistRow: {
+    flexDirection: 'row', alignItems: 'center', gap: 12,
+    paddingVertical: 12, paddingHorizontal: 14,
+  },
+  checklistRowDivider: {
+    borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: T.rule,
+  },
+  checkbox: {
+    width: 20, height: 20, borderRadius: 4,
+    borderWidth: 1.5,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  checklistStep: {
+    flex: 1,
+    fontFamily: FONTS.v2_body, fontSize: 13.5,
+    color: T.cocoa, lineHeight: 18,
+  },
+  checklistStepDone: {
+    color: T.walnut,
+    textDecorationLine: 'line-through',
+    textDecorationColor: T.amber,
   },
 });
