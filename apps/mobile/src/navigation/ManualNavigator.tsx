@@ -5,7 +5,10 @@
 // and from cross-tab deep-links.
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import ManualHomeScreen from '@screens/manual/ManualHomeScreen';
+// v3 brand kit preview (2026-05-24) — was '@screens/manual/ManualHomeScreen' (v9).
+// Revert by uncommenting the v9 line + commenting the v3 line.
+// import ManualHomeScreen from '@screens/manual/ManualHomeScreen';
+import ManualHomeScreen from '@screens/manual/ManualScrollV3';
 import ManualCategoryScreen from '@screens/manual/ManualCategoryScreen';
 import ManualVideoScreen from '@screens/manual/ManualVideoScreen';
 import SavedManualScreen from '@screens/manual/SavedManualScreen';

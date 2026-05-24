@@ -5,7 +5,10 @@
 // lived under HomeNavigator.
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import VillageHomeScreen from '@screens/village/VillageHomeScreen';
+// v3 brand kit preview (2026-05-24) — was '@screens/village/VillageHomeScreen' (v9).
+// Revert by uncommenting the v9 line + commenting the v3 line.
+// import VillageHomeScreen from '@screens/village/VillageHomeScreen';
+import VillageHomeScreen from '@screens/village/VillageHomeScreenV3';
 import EventsListScreen from '@screens/events/EventsListScreen';
 import EventDetailScreen from '@screens/events/EventDetailScreen';
 import RsvpConfirmScreen from '@screens/events/RsvpConfirmScreen';
