@@ -157,9 +157,14 @@ export const FONTS = {
   // (the v2 "flourish" weight). header (Playfair 400 roman) stays — it's
   // rarely used; new code should reach for v2_display (Playfair 700) instead.
   // ═══════════════════════════════════════════════════════════════════════
+  // ▲ ROUTED 2026-05-24 — v3 brand kit grotesk display.
+  // Same Plus Jakarta Sans + Fraunces values as the v2_display* tokens
+  // below. Flips every screen that uses FONTS.headerBold / headerItalic
+  // (51 files) to v3 typography without per-file sweeps. The Playfair
+  // 400 Regular on `header` stays — it's used in <2 places.
   header:       'PlayfairDisplay_400Regular',
-  headerBold:   'PlayfairDisplay_700Bold',
-  headerItalic: 'PlayfairDisplay_600SemiBold_Italic',  // ▲ ROUTED → v2 flourish weight
+  headerBold:   'PlusJakartaSans_700Bold',                 // ▲ was Playfair 700
+  headerItalic: 'Fraunces_600SemiBold_Italic',             // ▲ was Playfair italic 600
   // ▼ Body family rerouted to Plus Jakarta Sans (v2 canonical body)
   body:         'PlusJakartaSans_400Regular',   // ▲ was Inter_400Regular
   bodyMedium:   'PlusJakartaSans_500Medium',    // ▲ was Inter_500Medium
@@ -177,9 +182,14 @@ export const FONTS = {
   //   _link / _bold
   //   v2_mono             → JetBrains Mono — eyebrows, dates, metadata, tracking 0.26em
   // ═══════════════════════════════════════════════════════════════════════
-  v2_display:        'PlayfairDisplay_700Bold',           // roman 700 default
-  v2_display_italic: 'PlayfairDisplay_600SemiBold_Italic',// italic 600 flourish
-  v2_display_big:    'PlayfairDisplay_800ExtraBold',      // big numbers
+  // ▲ ROUTED 2026-05-24 — v3 brand kit grotesk display family.
+  // Was Playfair (editorial serif), now Plus Jakarta Sans Bold for
+  // display + Fraunces SemiBold Italic for the per-screen italic
+  // flourish. Every screen referencing v2_display* automatically picks
+  // up the v3 treatment without per-file edits.
+  v2_display:        'PlusJakartaSans_700Bold',           // ▲ was Playfair 700
+  v2_display_italic: 'Fraunces_600SemiBold_Italic',       // ▲ was Playfair italic
+  v2_display_big:    'PlusJakartaSans_700Bold',           // ▲ was Playfair 800 (no 800 grotesk loaded; 700 reads big enough at large sizes)
   v2_wordmark:       'Caprasimo_400Regular',              // inline wordmark fallback only
   v2_body:           'PlusJakartaSans_400Regular',        // body text
   v2_label:          'PlusJakartaSans_500Medium',         // form labels
