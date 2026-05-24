@@ -39,6 +39,7 @@ import {
   MenuButton, MenuPanel, MenuGroup, MenuItem, MENU_ICONS,
 } from '@components/shared/HamburgerMenu';
 import { WarmGlowBackdrop } from '@components/shared/WarmGlowBackdrop';
+import { GlassHighlight } from '@components/shared/GlassHighlight';
 import { useFocusEffect } from '@react-navigation/native';
 import { Animated } from 'react-native';
 
@@ -321,8 +322,10 @@ export default function ManualScrollV3() {
             style={StyleSheet.absoluteFillObject}
             pointerEvents="none"
           />
-          {/* Hairline top ridge — adds a "lifted edge" highlight */}
-          <View pointerEvents="none" style={styles.chapterBandTopRidge} />
+          {/* iOS-26 wet-glass sheen — same recipe as the daily check-in
+              card so the band reads with the same immersive depth, not
+              flat color slab. */}
+          <GlassHighlight radius={0} height={14} />
           {/* Bottom inner shadow — subtle inset so the lower edge has weight */}
           <LinearGradient
             colors={['rgba(61,31,14,0)', 'rgba(61,31,14,0.12)']}
@@ -589,13 +592,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 22, paddingTop: 24, paddingBottom: 22,
     overflow: 'hidden',
   },
-  // Hairline lifted edge — 1px paper hairline across the top of the band
-  // so the colored surface has a visible "thickness" against the page bg.
-  chapterBandTopRidge: {
-    position: 'absolute', top: 0, left: 0, right: 0,
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: 'rgba(253,251,246,0.7)',
-  },
   bandHeadline: {
     fontFamily: FONTS.v3_display, fontSize: 42, lineHeight: 42,
     color: T.cocoa, letterSpacing: -1.6,
@@ -617,9 +613,11 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.v2_link, fontSize: 12, color: T.paper, letterSpacing: 0.4,
   },
 
-  // Stream placeholder
+  // Stream placeholder — gap bumped from 24 → 32 to compensate for the
+  // chapter band's deep shadow that extends ~14px below it. Keeps the
+  // visual rhythm consistent with the 18px gap pattern used elsewhere.
   streamPlaceholder: {
-    marginTop: 24, marginHorizontal: 22,
+    marginTop: 32, marginHorizontal: 22,
     padding: 20, borderRadius: 10,
     backgroundColor: T.card,
     borderWidth: StyleSheet.hairlineWidth, borderColor: T.rule,
