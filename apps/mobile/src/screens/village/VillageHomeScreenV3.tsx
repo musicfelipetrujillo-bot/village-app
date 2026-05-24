@@ -27,6 +27,7 @@ import Svg, { Path, Circle } from 'react-native-svg';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { COLORS, FONTS } from '@utils/constants';
 import { useUserStore } from '@store/user';
+import { useEventsStore } from '@store/events';
 import { WarmGlowBackdrop } from '@components/shared/WarmGlowBackdrop';
 
 // ─── Tokens (v3 brand kit) ─────────────────────────────────────────────
@@ -80,12 +81,40 @@ const VERTICALS: Vertical[] = [
   { num: '04', title: 'Villie Plans', sub: 'Classes, circles, real coffee.',stat: '5 this week',   bg: T.parchment, route: 'Village' },
 ];
 
-// Calendar — static handoff data. Wire to useEventsStore in follow-up.
-const UPCOMING_PLANS = [
+// Calendar fallback — static handoff data, used only when the live
+// events store returns nothing (cold start / empty feed). Once
+// useEventsStore.fetchUpcoming resolves with real events, the live
+// rows replace these placeholders via formatPlanRow below.
+const PLACEHOLDER_PLANS = [
   { day: 'TUE', date: '19', time: '9:00 AM',  name: 'Postpartum yoga',        loc: 'Prospect Park · 1.2mi',      going: 12 },
   { day: 'THU', date: '21', time: '10:30 AM', name: 'Sensory play, 0–9m',     loc: 'Park Slope library · 0.6mi', going: 8 },
   { day: 'SAT', date: '23', time: '10:00 AM', name: 'Stroller walk + coffee', loc: '7th & Smith · 0.9mi',        going: 24 },
 ];
+
+// Format a live EventCard into the calendar row shape used by the
+// render block. Keeps the visual treatment identical between live +
+// placeholder data so the screen never flickers structurally.
+function formatPlanRow(e: { starts_at: string; title: string; venue_name: string | null; city: string | null; distance_km: number | null; going_count: number; timezone?: string }, lang: 'en' | 'es') {
+  const d = new Date(e.starts_at);
+  const dayNames = lang === 'es'
+    ? ['DOM','LUN','MAR','MIÉ','JUE','VIE','SÁB']
+    : ['SUN','MON','TUE','WED','THU','FRI','SAT'];
+  const hour12 = d.getHours() % 12 || 12;
+  const ampm = d.getHours() < 12 ? 'AM' : 'PM';
+  const time = `${hour12}:${String(d.getMinutes()).padStart(2, '0')} ${ampm}`;
+  const distance = e.distance_km != null
+    ? ` · ${(e.distance_km * 0.621371).toFixed(1)}mi`
+    : '';
+  const loc = `${e.venue_name ?? e.city ?? 'TBD'}${distance}`;
+  return {
+    day: dayNames[d.getDay()],
+    date: String(d.getDate()),
+    time,
+    name: e.title,
+    loc,
+    going: e.going_count,
+  };
+}
 
 // ─── Screen ────────────────────────────────────────────────────────────
 export default function VillageHomeScreenV3() {
@@ -105,12 +134,28 @@ export default function VillageHomeScreenV3() {
 
   const scrollY = useRef(new Animated.Value(0)).current;
   const [triggerAnim, setTriggerAnim] = useState(0);
+
+  // Live events feed — fetches on focus, falls back to PLACEHOLDER_PLANS
+  // when the store is empty (cold start, no events in radius, or error).
+  const upcomingEvents = useEventsStore((s) => s.upcoming);
+  const fetchUpcoming = useEventsStore((s) => s.fetchUpcoming);
   useFocusEffect(
     React.useCallback(() => {
       setTriggerAnim((n) => n + 1);
+      // Fire-and-forget refresh — store handles its own loading state +
+      // error logging. Cap to 3 so we don't overflow the small preview
+      // list on the page.
+      fetchUpcoming().catch(() => {});
       return () => {};
-    }, []),
+    }, [fetchUpcoming]),
   );
+
+  // Format the live events into row shape; fall back to handoff placeholders
+  // when the store hasn't returned anything yet (or there are no upcoming
+  // events near the user).
+  const planRows = upcomingEvents.length > 0
+    ? upcomingEvents.slice(0, 3).map((e) => formatPlanRow(e, lang))
+    : PLACEHOLDER_PLANS;
 
   return (
     <View style={styles.container}>
@@ -194,8 +239,8 @@ export default function VillageHomeScreenV3() {
               </Text>
             </TouchableOpacity>
           </View>
-          {UPCOMING_PLANS.map((e, i) => {
-            const isLast = i === UPCOMING_PLANS.length - 1;
+          {planRows.map((e, i) => {
+            const isLast = i === planRows.length - 1;
             return (
               <View
                 key={e.date}
