@@ -7,20 +7,24 @@
 // the v3 port was missing details. Single source of truth from now on.
 //
 // Recipe (don't drift from this without product call):
-//   - Cocoa-tinted floating shadow → reads as a ticket lifted off the page
-//   - Dashed cinnamon-tinted border → "this is asking you something"
-//   - Opaque cream bg (rgba(254,252,248,0.92))
+//   - PROPER CARD treatment — solid paper bg, hairline rust border, no
+//     dashed lines. The dashed-stripe ticket version was an earlier
+//     iteration we moved away from in favor of a richer card surface.
+//   - Stronger cocoa-tinted floating shadow → reads as a card lifted
+//     well above the page, not a thin pill
+//   - Soft top-edge highlight gradient for depth → inner page-light feel
 //   - iOS-26 wet-glass top sheen via GlassHighlight
 //   - Pending state: villie-bee.png 52×52 in a 56×56 slot with negative
-//     margins so the bee overflows the pill. Breathing scale 1.0 → 1.08
+//     margins so the bee overflows the card. Breathing scale 1.0 → 1.08
 //     on a 2.6s loop (native driver). Cocoa drop shadow on the bee itself
-//     so she hovers above the strip — "she's here, waiting."
+//     so she hovers above the card — "she's here, waiting."
 //   - Answered state: mood emoji in a 24×24 cinnamon disc
 
 import React, { useEffect, useRef } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, Animated,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { COLORS, FONTS } from '@utils/constants';
 import { useT } from '@/i18n';
 import { GlassHighlight } from './GlassHighlight';
@@ -63,11 +67,19 @@ export function DailyCheckinStrip({ state, previewMood, onPress }: DailyCheckinS
     <TouchableOpacity
       style={styles.strip}
       onPress={onPress}
-      activeOpacity={0.85}
+      activeOpacity={0.9}
       accessibilityRole="button"
       accessibilityLabel={prompt}
     >
-      <GlassHighlight radius={12} height={10} />
+      {/* Inner top-edge warm highlight — gives the card a subtle "lit
+          from above" feel before the glass sheen lands on top of it. */}
+      <LinearGradient
+        pointerEvents="none"
+        colors={['rgba(253,251,246,0.85)', 'rgba(253,251,246,0)']}
+        start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }}
+        style={styles.innerGlow}
+      />
+      <GlassHighlight radius={14} height={12} />
       <View style={{ flex: 1, minWidth: 0 }}>
         <Text style={styles.eyebrow}>{eyebrow}</Text>
         <Text style={styles.prompt} numberOfLines={1}>{prompt}</Text>
@@ -95,26 +107,41 @@ export function DailyCheckinStrip({ state, previewMood, onPress }: DailyCheckinS
 }
 
 const styles = StyleSheet.create({
+  // Card surface — solid paper, no dashed lines. v9 card recipe canon:
+  // hairline rust border (rgba(150,80,50,0.18)) + cocoa-tinted floating
+  // shadow for the "lifted off the page" depth Felipe wants.
   strip: {
-    backgroundColor: 'rgba(254,252,248,0.92)',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(176,115,85,0.36)',
-    borderStyle: 'dashed',
-    paddingTop: 8,
-    paddingBottom: 8,
-    paddingLeft: 12,
+    backgroundColor: COLORS.v2_card,                      // #FEFAF6 paper-warm
+    borderRadius: 14,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(150,80,50,0.18)',
+    paddingTop: 12,
+    paddingBottom: 12,
+    paddingLeft: 14,
     paddingRight: 10,
     marginBottom: 12,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: 10,
+    // Richer floating shadow — was 0.18/14r/elev 4. Bump to 0.22/18r/
+    // elev 6 + tighter contact shadow via the inset glow above.
     shadowColor: '#6B2E0E',
-    shadowOpacity: 0.18,
-    shadowOffset: { width: 0, height: 6 },
-    shadowRadius: 14,
-    elevation: 4,
+    shadowOpacity: 0.22,
+    shadowOffset: { width: 0, height: 10 },
+    shadowRadius: 18,
+    elevation: 6,
+    overflow: 'visible',                                 // bee can overflow
+  },
+  // Inner top-edge highlight — soft paper gradient fills the upper half,
+  // gives the card a subtle "page light hitting it" depth. Sits BEHIND
+  // the GlassHighlight wet sheen on top.
+  innerGlow: {
+    position: 'absolute',
+    top: 0, left: 0, right: 0,
+    height: '60%',
+    borderTopLeftRadius: 14,
+    borderTopRightRadius: 14,
   },
   eyebrow: {
     fontFamily: FONTS.bodySemiBold,
