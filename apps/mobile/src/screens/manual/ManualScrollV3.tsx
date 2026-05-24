@@ -50,6 +50,7 @@ const T = {
   card:      COLORS.v2_card,
   butter:    COLORS.v2_butter,
   marigold:  COLORS.v2_marigold,
+  caramel:   COLORS.v2_caramel,   // warm "milk before bed" — used for baby/sleep chapter
   cinnamon:  COLORS.v2_cinnamon,
   blush:     COLORS.v2_blush,
   salmon:    COLORS.v2_salmon,
@@ -65,7 +66,10 @@ const T = {
 type ChapterMeta = { ch: string; cat: string; bg: string; fg: string };
 
 const BABY_CHAPTERS: ChapterMeta[] = [
-  { ch: 'Sleep', cat: 'sleep', bg: '#DAE0BC', fg: T.cocoa },
+  // Sleep — was sage-olive #DAE0BC, swapped to warm caramel per Felipe's
+  // call ("don't really love those greens on the baby's manual"). Reads
+  // as "warm milk before bed" — calming + on-brand vs olive.
+  { ch: 'Sleep', cat: 'sleep', bg: T.caramel, fg: T.cocoa },
   { ch: 'Feed',  cat: 'feed',  bg: T.butter,  fg: T.cocoa },
   { ch: 'Grow',  cat: 'grow',  bg: T.blush,   fg: T.cocoa },
   { ch: 'Care',  cat: 'care',  bg: '#F2C0C8', fg: T.cocoa },
@@ -299,15 +303,30 @@ export default function ManualScrollV3() {
           </View>
         </View>
 
-        {/* COLORED CHAPTER BAND — full-width identity surface */}
-        <TouchableOpacity
-          activeOpacity={0.92}
-          onPress={openSelectedChapter}
-          style={[styles.chapterBand, { backgroundColor: chapter.bg }]}
-        >
+        {/* COLORED CHAPTER BAND — full-width identity surface with depth.
+            Three-layer lift recipe (Felipe: "more depth, looks paper thin"):
+            1. Inner top highlight gradient — light from above
+            2. Cocoa-tinted floating shadow — band hovers off the page
+            3. Hairline cocoa edge at top + bottom — band has thickness */}
+        <View style={styles.chapterBandShadowWrap} pointerEvents="box-none">
+          <TouchableOpacity
+            activeOpacity={0.92}
+            onPress={openSelectedChapter}
+            style={[styles.chapterBand, { backgroundColor: chapter.bg }]}
+          >
+          {/* Top warm-paper highlight — "light hitting it from above" */}
           <LinearGradient
-            colors={['rgba(253,251,246,0.22)', 'rgba(253,251,246,0)']}
-            start={{ x: 0, y: 0 }} end={{ x: 0, y: 0.42 }}
+            colors={['rgba(253,251,246,0.38)', 'rgba(253,251,246,0)']}
+            start={{ x: 0, y: 0 }} end={{ x: 0, y: 0.55 }}
+            style={StyleSheet.absoluteFillObject}
+            pointerEvents="none"
+          />
+          {/* Hairline top ridge — adds a "lifted edge" highlight */}
+          <View pointerEvents="none" style={styles.chapterBandTopRidge} />
+          {/* Bottom inner shadow — subtle inset so the lower edge has weight */}
+          <LinearGradient
+            colors={['rgba(61,31,14,0)', 'rgba(61,31,14,0.12)']}
+            start={{ x: 0, y: 0.7 }} end={{ x: 0, y: 1 }}
             style={StyleSheet.absoluteFillObject}
             pointerEvents="none"
           />
@@ -323,7 +342,8 @@ export default function ManualScrollV3() {
               {lang === 'es' ? 'Abrir capítulo' : 'Open chapter'} →
             </Text>
           </View>
-        </TouchableOpacity>
+          </TouchableOpacity>
+        </View>
 
         {/* Piece-stream placeholder — Phase 4.2 will replace this with the
             full video / article / illustration / checklist stream. For
@@ -553,13 +573,28 @@ const styles = StyleSheet.create({
     opacity: 0.18,
   },
 
-  // Colored chapter band — full-width
-  chapterBand: {
+  // Wrapper holds the deep shadow that lifts the band off the page.
+  // Separate from the band itself so overflow:hidden on the band can
+  // clip the inner gradients without clipping the shadow.
+  chapterBandShadowWrap: {
     marginTop: 18,
-    paddingHorizontal: 22, paddingTop: 22, paddingBottom: 20,
+    shadowColor: '#3D1F0E',                 // cocoa shadow (deeper than walnut)
+    shadowOffset: { width: 0, height: 14 },
+    shadowOpacity: 0.32,
+    shadowRadius: 26,
+    elevation: 10,
+  },
+  // Colored chapter band — full-width identity surface
+  chapterBand: {
+    paddingHorizontal: 22, paddingTop: 24, paddingBottom: 22,
     overflow: 'hidden',
-    shadowColor: T.walnut, shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.18, shadowRadius: 18, elevation: 3,
+  },
+  // Hairline lifted edge — 1px paper hairline across the top of the band
+  // so the colored surface has a visible "thickness" against the page bg.
+  chapterBandTopRidge: {
+    position: 'absolute', top: 0, left: 0, right: 0,
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: 'rgba(253,251,246,0.7)',
   },
   bandHeadline: {
     fontFamily: FONTS.v3_display, fontSize: 42, lineHeight: 42,

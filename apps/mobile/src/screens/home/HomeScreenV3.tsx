@@ -79,10 +79,10 @@ const WORDMARK = require('../../../assets/brand/villie-wordmark-v2.png');
 // hero card is "Feli's manual" (baby side). Mom chapters apply when
 // the user is in a pre-baby stage — not surfaced in this preview.
 const CHAPTERS: Record<string, { bg: string; fg: string }> = {
-  sleep: { bg: '#DAE0BC', fg: T.cocoa }, // sage-olive
-  feed:  { bg: T.butter,  fg: T.cocoa }, // butter
-  grow:  { bg: T.blush,   fg: T.cocoa }, // blush pink
-  care:  { bg: '#F2C0C8', fg: T.cocoa }, // rose pink
+  sleep: { bg: T.caramel,  fg: T.cocoa }, // warm caramel — "milk before bed" (was sage-olive)
+  feed:  { bg: T.butter,   fg: T.cocoa }, // butter
+  grow:  { bg: T.blush,    fg: T.cocoa }, // blush pink
+  care:  { bg: '#F2C0C8',  fg: T.cocoa }, // rose pink
   wins:  { bg: T.marigold, fg: T.cocoa }, // marigold
 };
 
