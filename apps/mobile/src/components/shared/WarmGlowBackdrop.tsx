@@ -9,7 +9,13 @@ import { COLORS } from '@utils/constants';
 
 const BEE = require('../../../assets/brand/villie-bee.png');
 
-// Each bee's static layout + target opacity
+// Each bee's static layout + target opacity.
+//
+// 18 bees distributed across the page in 5 vertical bands (top / upper-mid /
+// mid / lower-mid / bottom), each band with a left + center + right anchor.
+// Goal: feel like a swarm that's *throughout the page*, not just clustered
+// at the top edges. Background-quiet (opacity 9-22%) but visually busy —
+// the "background but crowdy" balance Felipe asked for.
 const BEES: {
   top?: number; bottom?: number;
   left?: number; right?: number;
@@ -17,22 +23,28 @@ const BEES: {
   opacity: number;
   rotate: string;
 }[] = [
-  // ── Masthead — top-right buddy pair ──
-  { top: 112, right: 58,  width: 24, height: 22, opacity: 0.26, rotate: '-16deg' },
-  { top: 136, right: 86,  width: 15, height: 13, opacity: 0.16, rotate: '10deg'  },
-  // ── Far left anchor ──
-  { top: 152, left: 10,   width: 28, height: 25, opacity: 0.30, rotate: '-10deg' },
-  { top: 212, left: 38,   width: 17, height: 15, opacity: 0.20, rotate: '8deg'   },
-  // ── Right, lower masthead ──
-  { top: 228, right: 24,  width: 22, height: 20, opacity: 0.22, rotate: '20deg'  },
-  // ── Mid page — sparse, drifting ──
-  { top: 395, left: 48,   width: 26, height: 23, opacity: 0.16, rotate: '-22deg' },
-  { top: 500, right: 52,  width: 20, height: 18, opacity: 0.14, rotate: '14deg'  },
-  { top: 610, left: 150,  width: 16, height: 14, opacity: 0.13, rotate: '-8deg'  },
-  // ── Lower page ──
-  { top: 700, right: 22,  width: 28, height: 25, opacity: 0.13, rotate: '-18deg' },
-  { top: 800, left: 30,   width: 18, height: 16, opacity: 0.11, rotate: '30deg'  },
-  { top: 890, left: 105,  width: 22, height: 20, opacity: 0.11, rotate: '-14deg' },
+  // ── Band 1 · Top (0-220) ── header + masthead area
+  { top: 90,  right: 50,  width: 24, height: 22, opacity: 0.22, rotate: '-16deg' },
+  { top: 150, left: 130,  width: 18, height: 16, opacity: 0.16, rotate: '10deg'  },  // center
+  { top: 210, right: 30,  width: 22, height: 20, opacity: 0.20, rotate: '20deg'  },
+  // ── Band 2 · Upper-mid (220-440) ── greeting / first card
+  { top: 260, left: 18,   width: 28, height: 25, opacity: 0.22, rotate: '-10deg' },
+  { top: 330, left: 165,  width: 16, height: 14, opacity: 0.14, rotate: '8deg'   },  // center
+  { top: 370, right: 60,  width: 20, height: 18, opacity: 0.16, rotate: '-22deg' },
+  { top: 420, left: 80,   width: 24, height: 22, opacity: 0.13, rotate: '14deg'  },
+  // ── Band 3 · Mid (450-680) ── primary content
+  { top: 480, left: 25,   width: 18, height: 16, opacity: 0.16, rotate: '-8deg'  },
+  { top: 530, right: 40,  width: 26, height: 23, opacity: 0.20, rotate: '18deg'  },
+  { top: 580, left: 140,  width: 14, height: 13, opacity: 0.12, rotate: '-20deg' },  // center
+  { top: 640, right: 80,  width: 22, height: 20, opacity: 0.14, rotate: '4deg'   },
+  // ── Band 4 · Lower-mid (680-900) ── secondary content
+  { top: 700, left: 50,   width: 28, height: 25, opacity: 0.16, rotate: '-18deg' },
+  { top: 760, right: 22,  width: 18, height: 16, opacity: 0.15, rotate: '30deg'  },
+  { top: 830, left: 110,  width: 22, height: 20, opacity: 0.13, rotate: '-14deg' },  // center
+  { top: 870, right: 130, width: 16, height: 14, opacity: 0.11, rotate: '8deg'   },  // center-right
+  // ── Band 5 · Bottom (900+) ── footer/long-scroll territory
+  { top: 940,  left: 30,  width: 20, height: 18, opacity: 0.13, rotate: '24deg'  },
+  { top: 1010, right: 60, width: 24, height: 22, opacity: 0.11, rotate: '-12deg' },
   { bottom: 62, right: 48, width: 18, height: 16, opacity: 0.09, rotate: '8deg'  },
 ];
 
