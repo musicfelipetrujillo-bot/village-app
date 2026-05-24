@@ -322,10 +322,14 @@ function ManualHeroCard({ babyName, weekNumber, milestones, onPress }: {
 }
 
 // ─── Village 2×2 pillar grid ───────────────────────────────────────────
+// `route` is the TAB name (not the inner stack screen), since the pillar
+// tap calls navigation.getParent().navigate(route) to cross-tab. Tab
+// names per AppNavigator.tsx: Home, Manual, Village, Inbox, Experts,
+// Milk, Gear, Profile. Same fix as commit f662bd7 in VillageHomeV3.
 const VILLAGE_PILLARS = [
-  { label: 'Milk Connect', sub: 'Peer donors',   bg: T.blush,     icon: 'milk',        iconColor: T.cinnamon, route: 'MilkConnect' },
+  { label: 'Milk Connect', sub: 'Peer donors',   bg: T.blush,     icon: 'milk',        iconColor: T.cinnamon, route: 'Milk' },
   { label: 'Specialists',  sub: 'Verified',      bg: T.sage,      icon: 'specialists', iconColor: T.moss,     route: 'Experts' },
-  { label: 'Baby Gear',    sub: 'Hand-me-downs', bg: T.butter,    icon: 'gear',        iconColor: T.walnut,   route: 'GearHome' },
+  { label: 'Baby Gear',    sub: 'Hand-me-downs', bg: T.butter,    icon: 'gear',        iconColor: T.walnut,   route: 'Gear' },
   { label: 'Villie Plans', sub: 'Tue · 9am',     bg: T.parchment, icon: 'plans',       iconColor: T.cinnamon, route: 'Village' },
 ] as const;
 
