@@ -74,10 +74,14 @@ type Vertical = {
   route: string;
 };
 
+// `route` is the TAB name (not the inner stack screen), since goVertical
+// uses navigation.getParent().navigate(route) to cross-tab. Tab names
+// per AppNavigator.tsx: Home, Manual, Village, Inbox, Experts, Milk,
+// Gear, Profile. Cross-tab targets must match those exactly.
 const VERTICALS: Vertical[] = [
-  { num: '01', title: 'Milk Connect', sub: 'Peer milk, screened moms.',     stat: '8 near you',    bg: T.blush,     route: 'MilkConnect' },
+  { num: '01', title: 'Milk Connect', sub: 'Peer milk, screened moms.',     stat: '8 near you',    bg: T.blush,     route: 'Milk' },
   { num: '02', title: 'Specialists',  sub: 'OB, doula, lactation, sleep.',  stat: '12 verified',   bg: T.sage,      route: 'Experts' },
-  { num: '03', title: 'Baby Gear',    sub: 'Hand-me-downs from real moms.', stat: '37 listed',     bg: T.butter,    route: 'GearHome' },
+  { num: '03', title: 'Baby Gear',    sub: 'Hand-me-downs from real moms.', stat: '37 listed',     bg: T.butter,    route: 'Gear' },
   { num: '04', title: 'Villie Plans', sub: 'Classes, circles, real coffee.',stat: '5 this week',   bg: T.parchment, route: 'Village' },
 ];
 
