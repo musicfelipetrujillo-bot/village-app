@@ -18,6 +18,7 @@
 import React from 'react';
 import { View, StyleSheet, ViewStyle } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { AtmosphericBees } from './AtmosphericBees';
 
 // 7-stop U-shape: subtle warm tint top → paper-white middle → subtle warm
 // tint bottom. Edges desaturated 2026-05-16 because the previous saturated
@@ -34,11 +35,15 @@ const V9_PAGE_LOCATIONS = [0, 0.12, 0.25, 0.75, 0.88, 0.95, 1] as const;
 type Props = {
   /** Render the iOS-26 wet-glass top sheen + hairline. Default false. */
   glassHighlight?: boolean;
+  /** Render the 18 atmospheric bees scattered across the page bg.
+   *  Default true (v3 brand kit — bees are part of every page's
+   *  atmosphere). Opt out per-screen by passing `bees={false}`. */
+  bees?: boolean;
   /** Optional style override (rarely needed). */
   style?: ViewStyle | ViewStyle[];
 };
 
-export function V9PageBackdrop({ glassHighlight = false, style }: Props) {
+export function V9PageBackdrop({ glassHighlight = false, bees = true, style }: Props) {
   return (
     <View pointerEvents="none" style={[StyleSheet.absoluteFill, style]}>
       <LinearGradient
@@ -47,6 +52,7 @@ export function V9PageBackdrop({ glassHighlight = false, style }: Props) {
         style={StyleSheet.absoluteFill}
         pointerEvents="none"
       />
+      {bees ? <AtmosphericBees /> : null}
       {glassHighlight ? (
         <>
           <LinearGradient
