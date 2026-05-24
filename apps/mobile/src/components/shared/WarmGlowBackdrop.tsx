@@ -1,8 +1,16 @@
-// Warm-glow backdrop — gradient + bee marks that animate left→right on mount.
-// Each bee drifts from translateX -24 → 0, staggered 55ms apart, so the
-// first-entry experience feels like a swarm flying gently across the screen.
-// After settling, bees rest at their natural positions.
-import React, { useEffect, useRef } from 'react';
+// Warm-glow backdrop — gradient + bee marks scattered across the page.
+//
+// Per Felipe's 2026-05-24 call: bees are PURE STATIC ATMOSPHERE — no
+// fly-in animation on focus, no parallax drift on scroll. Atmosphere
+// should feel like it's *always there*, not something that animates.
+// Motion was making the eye track them as UI; static reads as
+// background.
+//
+// The `scrollY` and `triggerAnim` props are kept on the signature
+// (no-ops now) so the 7 screens that already pass them don't error.
+// Future re-enabling of motion would only need to flip the static
+// flag below.
+import React from 'react';
 import { View, Image, StyleSheet, ViewStyle, Animated } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { COLORS } from '@utils/constants';
@@ -51,73 +59,13 @@ const BEES: {
 type Props = {
   style?: ViewStyle | ViewStyle[];
   hideClusters?: boolean;
+  /** No-op (kept for API compat — bees are static now, see header). */
   scrollY?: Animated.Value;
-  triggerAnim?: number; // increment to restart fly-in; 0 = hold (wait for focus)
+  /** No-op (kept for API compat — bees are static now, see header). */
+  triggerAnim?: number;
 };
 
-// Rightward drift per bee over 500px of scroll.
-// Larger bees = "closer" = drift more for depth illusion.
-const MIN_BEE_W = 14;
-const MAX_BEE_W = 30;
-function parallaxDrift(width: number): number {
-  const t = (width - MIN_BEE_W) / (MAX_BEE_W - MIN_BEE_W);
-  return 40 + t * 60; // 40px (far) → 100px (close)
-}
-
-export function WarmGlowBackdrop({ style, hideClusters = false, scrollY, triggerAnim = 0 }: Props) {
-  // One Animated.Value per bee — drives fly-in translateX + opacity
-  const anims = useRef(BEES.map(() => new Animated.Value(0))).current;
-
-  // Pre-compute all per-bee animated nodes once so native driver tracks them
-  // across renders. Must be stable refs — never recreated.
-  const beeTransforms = useRef(
-    BEES.map((b, i) => {
-      const mountX = anims[i].interpolate({
-        inputRange: [0, 1],
-        outputRange: [-70, 0], // dramatic fly-in from left
-      });
-      const opacity = anims[i].interpolate({
-        inputRange: [0, 0.35, 1],
-        outputRange: [0, b.opacity * 0.7, b.opacity],
-      });
-      return { mountX, opacity };
-    })
-  ).current;
-
-  const parallaxValues = useRef(
-    BEES.map(b =>
-      scrollY
-        ? scrollY.interpolate({
-            inputRange: [0, 500],
-            outputRange: [0, parallaxDrift(b.width)],
-            extrapolate: 'clamp',
-          })
-        : null
-    )
-  ).current;
-
-  const combinedX = useRef(
-    BEES.map((_, i) => {
-      const p = parallaxValues[i];
-      return p ? Animated.add(beeTransforms[i].mountX, p) : beeTransforms[i].mountX;
-    })
-  ).current;
-
-  useEffect(() => {
-    if (hideClusters || triggerAnim === 0) return;
-    anims.forEach(a => a.setValue(0));
-    Animated.stagger(
-      35,
-      anims.map(anim =>
-        Animated.timing(anim, {
-          toValue: 1,
-          duration: 900,
-          useNativeDriver: true,
-        })
-      )
-    ).start();
-  }, [triggerAnim]);
-
+export function WarmGlowBackdrop({ style, hideClusters = false }: Props) {
   return (
     <View pointerEvents="none" style={[StyleSheet.absoluteFill, styles.root, style]}>
       {/* U-shape gradient: subtle pink wash at top + bottom, near-white middle.
@@ -132,35 +80,28 @@ export function WarmGlowBackdrop({ style, hideClusters = false, scrollY, trigger
         locations={[0, 0.12, 0.30, 0.62, 0.76, 0.90, 1]}
         style={StyleSheet.absoluteFill}
       />
-      {/* Shine removed — base is near-white, the shine was washing out the
-          intentional pink wash at the top. */}
 
       {!hideClusters
-        ? BEES.map((b, i) => {
-            return (
-              <Animated.Image
-                key={i}
-                source={BEE}
-                resizeMode="contain"
-                style={[
-                  styles.bee,
-                  {
-                    top: b.top,
-                    bottom: b.bottom,
-                    left: b.left,
-                    right: b.right,
-                    width: b.width,
-                    height: b.height,
-                    opacity: beeTransforms[i].opacity,
-                    transform: [
-                      { translateX: combinedX[i] },
-                      { rotate: b.rotate },
-                    ],
-                  },
-                ]}
-              />
-            );
-          })
+        ? BEES.map((b, i) => (
+            <Image
+              key={i}
+              source={BEE}
+              resizeMode="contain"
+              style={[
+                styles.bee,
+                {
+                  top: b.top,
+                  bottom: b.bottom,
+                  left: b.left,
+                  right: b.right,
+                  width: b.width,
+                  height: b.height,
+                  opacity: b.opacity,
+                  transform: [{ rotate: b.rotate }],
+                },
+              ]}
+            />
+          ))
         : null}
     </View>
   );
