@@ -634,6 +634,59 @@ export async function recordGearLegalAcceptance(
   if (error) throw new Error(error.message);
 }
 
+// ── Price suggestion (gear-price-suggest edge function) ───────────────────
+//
+// Returns a non-blocking price hint for CreateListingScreen. The function
+// uses heuristic-only suggestions until the eBay Developer credentials
+// land (waiting on app approval as of 2026-05-15); then it auto-promotes
+// to real eBay comp data without any client change. Source flips from
+// `'heuristic'` → `'ebay'` and `sample_count` starts appearing.
+//
+// UX intent: amber pill below the price field after category + condition
+// are picked. "Similar items go for $20–$35 → use $25?" with a
+// tap-to-fill action. Never auto-fills, never blocks submit. Errors
+// surface as `null` — caller hides the hint entirely.
+
+export type PriceSuggestion = {
+  suggested_low: number;
+  suggested_mid: number;
+  suggested_high: number;
+  currency: 'USD';
+  source: 'ebay' | 'heuristic';
+  confidence: 'low' | 'med' | 'high';
+  notes: string;
+  sample_count?: number;
+};
+
+export async function suggestGearPrice(input: {
+  category: GearCategory;
+  condition: GearCondition;
+  brand?: string | null;
+  model?: string | null;
+  year_manufactured?: number | null;
+}): Promise<PriceSuggestion | null> {
+  try {
+    const { data, error } = await supabase.functions.invoke('gear-price-suggest', {
+      body: {
+        category: input.category,
+        condition: input.condition,
+        brand: input.brand ?? undefined,
+        model: input.model ?? undefined,
+        year_manufactured: input.year_manufactured ?? undefined,
+      },
+    });
+    if (error) {
+      console.warn('suggestGearPrice failed', error.message);
+      return null;
+    }
+    if (!data || typeof data !== 'object') return null;
+    return data as PriceSuggestion;
+  } catch (e) {
+    console.warn('suggestGearPrice exception', e);
+    return null;
+  }
+}
+
 // ── Analytics (server-persisted for compliance events) ─────────────────────
 
 export async function logGearEvent(

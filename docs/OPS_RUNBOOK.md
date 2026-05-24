@@ -68,6 +68,7 @@ Companion docs (don't duplicate, just link):
 | `STRIPE_WEBHOOK_SIGNING_SECRET` | stripe-webhook | yes | Stripe → Webhooks → endpoint | per-endpoint |
 | `CALENDLY_SIGNING_KEY` | calendly-webhook | yes | Calendly → Integrations → Webhooks | — |
 | `GO_UPC_API_KEY` / `UPCITEMDB_API_KEY` | gear-upc-lookup | optional | Go-UPC or UPCitemdb | degrades to manual entry without |
+| `EBAY_APP_ID` + `EBAY_CERT_ID` | gear-price-suggest | optional | eBay Developer Program → Production Keyset | absent → function returns heuristic-only `source: 'heuristic'`. Adding both auto-promotes to live eBay Browse-API comps without any client change. Waiting on Developer account approval (~1 day) as of 2026-05-15. |
 | `PERKS_WEBHOOK_SECRET` / `IMPACT_WEBHOOK_SECRET` / `SHAREASALE_API_SECRET` / `CJ_ALLOWED_IPS` | perks-redemption-webhook | optional | per affiliate network | not active until G3 affiliate contracts |
 
 ### 2.3 · GitHub Actions secrets

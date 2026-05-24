@@ -5,7 +5,7 @@
 //
 // Prohibited items are excluded at the DB enum level — the UI cannot even name them.
 // Image upload targets Supabase Storage bucket `gear-listings` (create via Supabase dashboard).
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Image,
   Alert, ActivityIndicator, Switch, Linking,
@@ -25,11 +25,13 @@ import {
   SUBCATEGORIES_BY_CATEGORY,
   PROHIBITED_CATEGORIES,
   logGearEvent,
+  suggestGearPrice,
   type GearCategory,
   type GearCondition,
   type CpscRecallSummary,
   type VisionIdentifyResult,
   type ProhibitedCategory,
+  type PriceSuggestion,
 } from '@api/gear';
 import type { AgeTag } from '@api/events';
 import BarcodeScannerModal from '@components/gear/BarcodeScannerModal';
@@ -105,6 +107,31 @@ export default function CreateListingScreen() {
   } | null>(null);
 
   const yearRequired = category ? requiresYearManufactured(category, subcategory) : false;
+
+  // Phase G5 — Non-blocking price suggestion. Fires the gear-price-suggest
+  // edge function whenever category + condition (+ optional brand/year) is
+  // stable for ≥600ms. Heuristic-only until eBay keys land in env, then
+  // auto-promotes to live comp data. `null` = hidden (no category yet, or
+  // error). Tap "use $X" fills the price input.
+  const [priceHint, setPriceHint] = useState<PriceSuggestion | null>(null);
+  const priceHintReqRef = useRef(0);
+  useEffect(() => {
+    if (!category) { setPriceHint(null); return; }
+    const reqId = ++priceHintReqRef.current;
+    const yearNum = year ? Number(year) : undefined;
+    const timer = setTimeout(async () => {
+      const hint = await suggestGearPrice({
+        category, condition,
+        brand: brand || undefined,
+        model: model || undefined,
+        year_manufactured: Number.isFinite(yearNum) ? yearNum : undefined,
+      });
+      // Drop stale responses (user changed inputs mid-flight)
+      if (reqId !== priceHintReqRef.current) return;
+      setPriceHint(hint);
+    }, 600);
+    return () => clearTimeout(timer);
+  }, [category, condition, brand, model, year]);
 
   const fetchLocation = async () => {
     try {
@@ -756,6 +783,29 @@ export default function CreateListingScreen() {
               />
             </View>
           )}
+          {/* Price hint pill — gear-price-suggest heuristic until eBay
+              keys land. Hidden when free, when no category yet, or when
+              the function errored. Tap fills `priceDollars` with the
+              midpoint. */}
+          {!isFree && priceHint ? (
+            <TouchableOpacity
+              onPress={() => setPriceDollars(String(priceHint.suggested_mid))}
+              activeOpacity={0.85}
+              style={styles.priceHintPill}
+              accessibilityRole="button"
+              accessibilityLabel={`Suggested price ${priceHint.suggested_mid} dollars`}
+            >
+              <View style={styles.priceHintDot} />
+              <Text style={styles.priceHintText} numberOfLines={2}>
+                {priceHint.source === 'ebay'
+                  ? `Similar items sold for $${priceHint.suggested_low}–$${priceHint.suggested_high} on eBay`
+                  : `Estimated range: $${priceHint.suggested_low}–$${priceHint.suggested_high}`
+                }
+                {'  '}
+                <Text style={styles.priceHintCta}>use ${priceHint.suggested_mid} →</Text>
+              </Text>
+            </TouchableOpacity>
+          ) : null}
         </Section>
 
         <Section title={t('gearCreate.sectionPickup')}>
@@ -965,6 +1015,32 @@ const styles = StyleSheet.create({
   priceLabel: { fontSize: 14, color: COLORS.bark, fontFamily: FONTS.bodyMedium },
   priceInputRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 8 },
   priceCurrency: { fontSize: 18, fontFamily: FONTS.bodySemiBold, color: COLORS.barkSoft },
+  // Non-blocking price suggestion pill — amber/marigold accent so it
+  // reads as a hint, not an alert. Sits flush under the price input,
+  // collapsing to nothing when the suggestion is missing.
+  priceHintPill: {
+    marginTop: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    backgroundColor: 'rgba(212,168,128,0.14)',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(212,168,128,0.45)',
+  },
+  priceHintDot: {
+    width: 6, height: 6, borderRadius: 3,
+    backgroundColor: '#D4A880',
+  },
+  priceHintText: {
+    flex: 1,
+    fontSize: 12.5, fontFamily: FONTS.body, color: COLORS.bark, lineHeight: 17,
+  },
+  priceHintCta: {
+    fontFamily: FONTS.bodySemiBold, color: '#945A41',
+  },
 
   locationBtn: {
     backgroundColor: COLORS.paper, borderRadius: 10,
