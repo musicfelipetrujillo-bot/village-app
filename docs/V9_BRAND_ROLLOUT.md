@@ -527,6 +527,7 @@ Static design-consistency audit script (`apps/mobile/scripts/v9-audit.mjs`) gene
 
 These are tracked here so they don't get lost between sessions, but they're separate from v9 craft work.
 
+- [ ] **First TestFlight build** — canonical surface for OAuth Google+Apple validation, real Face ID, real Stripe Apple Pay, full universal-link round-trip. Sim cycle covers compilation + base routing; TestFlight is the only place real auth/payment/keychain flows are meaningful. Apple Developer cert needs installing locally first.
 - [ ] Send a real test invite to a non-self specialist (verify the Resend pipeline end-to-end)
 - [ ] Build admin UI in mobile app for issuing specialist invites
 - [ ] Pre-launch: final `RESEND_API_KEY` rotation from terminal

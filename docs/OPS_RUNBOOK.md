@@ -201,9 +201,22 @@ GROUP BY 1,2 ORDER BY 3 DESC LIMIT 10;
 
 **Prereq:** `EXPO_PUBLIC_OAUTH_PROVIDERS_ENABLED=1` in `.env` + iOS native rebuild (see §4).
 
-On the sim:
-1. Login screen → "Sign in with Apple" — tap → Apple sheet → confirm → land in app authenticated
-2. SignUp screen → "Continue with Google" — tap → Google sheet → pick account → land in app
+**Canonical validation surface = TestFlight on a real iPhone.** The sim can do the *button tap* but not the *full flow*: Google has no real Google app to deep-link into, Face ID is simulated, callback URL handling differs from device. A passing sim run doesn't prove TestFlight works; a failing sim run doesn't prove TestFlight is broken. Use the sim only to confirm the button is present and doesn't crash; treat the actual auth confirmation as a TestFlight gate.
+
+On the sim (smoke-only):
+1. Login screen → "Sign in with Apple" — tap → Apple sheet appears (Face ID simulated)
+2. SignUp screen → "Continue with Google" — tap → Google sheet appears in Safari
+
+On TestFlight / real iPhone (canonical):
+1. Same taps, but with a real Apple ID + Google account → confirm full round-trip → app comes back authed
+2. Verify with:
+
+```sql
+SELECT email, raw_app_meta_data->>'provider' AS provider, created_at
+FROM auth.users
+WHERE raw_app_meta_data->>'provider' IN ('apple','google')
+ORDER BY created_at DESC LIMIT 5;
+```
 
 **Expected:** `auth.users.provider` shows `apple` and `google` for the new rows.
 
