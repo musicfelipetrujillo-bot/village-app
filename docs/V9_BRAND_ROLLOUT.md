@@ -543,7 +543,16 @@ Design handoff dropped at `/Users/gp/Downloads/design_handoff_villie/` with new 
 
 **Phase 3 — Display typography flip (Playfair → Plus Jakarta Sans Bold)** — DEFERRED pending visual review. This is a brand-identity shift that affects ~50 editorial mastheads. Mock up one screen in both fonts before committing.
 
-**Phase 4 — Screen rebuilds** (Home/Manual/Village layouts per handoff) — pending.
+**Phase 4 — Screen rebuilds** (Home/Manual/Village layouts per handoff)
+- [x] **HomeScreenV3.tsx staged 2026-05-24** — pixel-faithful port of `HomeB` from the handoff. Lean editorial layout: header (wordmark + bell), greeting with salmon-italic accent, daily check-in pill (dashed salmon border + bee), THIS WEEK'S MANUAL hero card with 5-row TOC, EXPLORE THE VILLAGE 2×2 pillar grid. Reuses production hooks (`useUserStore`, `useHomeStore`, `useT`) so the preview shows real user state. NOT wired into the navigator — to A/B against current Home, swap the import in `apps/mobile/src/navigation/HomeNavigator.tsx`:
+  ```tsx
+  // import HomeScreen from '@screens/home/HomeScreen';
+  import HomeScreen from '@screens/home/HomeScreenV3';
+  ```
+  Then reload Metro. Revert by undoing the import swap. Approval gates: visual fidelity, decision on whether to keep the cut surfaces (WelcomeCard, Help, Explore, weekly journey checklist) or merge them in.
+- [ ] Manual Home redesign — pending.
+- [ ] Village redesign — pending.
+- [ ] AppTabBar customizable slots (3 locked + 2 user-pickable) — pending.
 
 ---
 
