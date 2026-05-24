@@ -27,9 +27,10 @@
 // Tapping a thumbnail opens ManualVideoScreen for the full-screen player.
 // Watched state is persisted server-side (manual_video_progress) and
 // surfaced as a "Watched" overlay on the thumbnail.
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Share,
+  Alert, Dimensions, findNodeHandle, UIManager,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation, useRoute, useFocusEffect, type RouteProp } from '@react-navigation/native';
@@ -43,6 +44,9 @@ import {
   type ManualVideo,
   type ManualAudience,
 } from '@/api/manual';
+import {
+  MenuButton, MenuPanel, MenuGroup, MenuItem, MENU_ICONS,
+} from '@components/shared/HamburgerMenu';
 
 const VILLIE_BEE = require('../../../assets/brand/villie-bee.png');
 
@@ -289,6 +293,78 @@ export default function ManualCategoryScreen() {
   const babyProfile = useHomeStore((s) => s.babyProfile);
   const week = Math.max(1, babyProfile?.current_week_number ?? 1);
 
+  // ─── Hamburger menu state ──────────────────────────────────────────
+  // v3 brand kit headline change: replaces the old audience tag pill in
+  // the top-right with a Library / This chapter / More dropdown. The
+  // trigger's on-screen rect is measured on layout so the MenuPanel can
+  // anchor to its bottom-right edge (Modal-hosted; the panel doesn't
+  // need to live in the trigger's layout tree).
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [anchor, setAnchor] = useState({ right: 22, top: 64 });
+  const triggerRef = useRef<View>(null);
+  const screenWidth = Dimensions.get('window').width;
+
+  const openMenu = () => {
+    // Measure trigger position so the panel slides under it. Falls back
+    // to the prior anchor if measurement isn't ready (e.g. first tap
+    // before initial layout settles).
+    const node = triggerRef.current && findNodeHandle(triggerRef.current);
+    if (node) {
+      UIManager.measureInWindow(node, (x, y, w, h) => {
+        if (w === 0) return setMenuOpen(true);
+        setAnchor({ right: screenWidth - (x + w), top: y + h });
+        setMenuOpen(true);
+      });
+    } else {
+      setMenuOpen(true);
+    }
+  };
+
+  // Shared close-then-act wrapper. Closing first feels native — the
+  // menu collapses, the user sees their action take effect.
+  const closeAnd = (fn?: () => void) => () => {
+    setMenuOpen(false);
+    if (fn) setTimeout(fn, 80);
+  };
+
+  // ─── Menu actions ─────────────────────────────────────────────────
+  // Wired against the existing app primitives; placeholders for the
+  // few that don't have backing infra yet (chapter-level save, reading
+  // history, PDF generation).
+  const goToCompleteManual = () => navigation.navigate('ManualHome' as never);
+  const goToSavedChapters = () => navigation.navigate('SavedManual' as never);
+  const goToReadingHistory = () => Alert.alert(
+    t('manualMenu.historyComingTitle'),
+    t('manualMenu.historyComingBody'),
+  );
+  const saveThisChapter = () => Alert.alert(
+    t('manualMenu.saveChapterComingTitle'),
+    t('manualMenu.saveChapterComingBody'),
+  );
+  const shareThisChapter = async () => {
+    // Reuse the same Share API + URL convention as video sharing;
+    // chapter pages don't have their own share-landing yet, so link to
+    // the audience+category. Future: dedicated /m/c/<audience>/<cat> page.
+    const url = `https://villieapp.com/m/?c=${audience}-${category}`;
+    const heroEm = hero.em.replace(/\.$/, '');
+    try {
+      await Share.share({
+        message: `${hero.prefix} ${heroEm} — week ${week} · villie\n${url}`,
+      });
+    } catch { /* user cancelled */ }
+  };
+  const printChapterPdf = () => Alert.alert(
+    t('manualMenu.pdfComingTitle'),
+    t('manualMenu.pdfComingBody'),
+  );
+  const subscribeDigest = () => {
+    // Cross-tab nav to Me → NotificationPreferences. Use the parent
+    // navigator (tab navigator) rather than the local stack.
+    navigation.getParent()?.navigate('Me' as never, {
+      screen: 'NotificationPreferences',
+    } as never);
+  };
+
   const key = `${audience}/${category}`;
   const hero       = HERO_TITLE[key]     ?? { prefix: 'Read about', em: 'this.' };
   const subLead    = SUB_LEAD[key]       ?? '';
@@ -302,34 +378,102 @@ export default function ManualCategoryScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Top nav — Back + small audience tag (MOM / BABY) */}
+      {/* Top nav — Back · audience tag · hamburger menu (v3 brand kit) */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} accessibilityRole="button" accessibilityLabel={t('common.back')}>
           <Text style={styles.back}>← {t('common.back')}</Text>
         </TouchableOpacity>
-        {/* Liquid-glass pill — VISIBLE body on cream bg. iOS 26 pills
-            still read as distinct shapes, not invisible films. Higher
-            opacity backdrop + coco hairline border + softer top highlight. */}
-        <View style={styles.audienceTagPill}>
-          {/* Subtle top-edge specular — visible but not blown out */}
-          <LinearGradient
-            colors={['rgba(255,255,255,0.55)', 'rgba(255,255,255,0)']}
-            start={{ x: 0, y: 0 }} end={{ x: 0, y: 0.55 }}
-            style={StyleSheet.absoluteFill as any}
-            pointerEvents="none"
-          />
-          {/* Faint warm wash bottom-half for depth */}
-          <LinearGradient
-            colors={['rgba(255,255,255,0)', 'rgba(173,121,91,0.10)']}
-            start={{ x: 0, y: 0.5 }} end={{ x: 0, y: 1 }}
-            style={StyleSheet.absoluteFill as any}
-            pointerEvents="none"
-          />
-          <Text style={styles.audienceTag}>
-            {audience === 'mom' ? 'Mom' : 'Baby'}
-          </Text>
+        <View style={styles.headerRight}>
+          {/* Liquid-glass pill — audience context (MOM / BABY). Kept
+              alongside the menu because the screen otherwise loses the
+              "which manual am I in" signal on scroll. */}
+          <View style={styles.audienceTagPill}>
+            <LinearGradient
+              colors={['rgba(255,255,255,0.55)', 'rgba(255,255,255,0)']}
+              start={{ x: 0, y: 0 }} end={{ x: 0, y: 0.55 }}
+              style={StyleSheet.absoluteFill as any}
+              pointerEvents="none"
+            />
+            <LinearGradient
+              colors={['rgba(255,255,255,0)', 'rgba(173,121,91,0.10)']}
+              start={{ x: 0, y: 0.5 }} end={{ x: 0, y: 1 }}
+              style={StyleSheet.absoluteFill as any}
+              pointerEvents="none"
+            />
+            <Text style={styles.audienceTag}>
+              {audience === 'mom' ? 'Mom' : 'Baby'}
+            </Text>
+          </View>
+          {/* v3 hamburger — Library / This chapter / More */}
+          <View ref={triggerRef} collapsable={false}>
+            <MenuButton
+              onPress={openMenu}
+              expanded={menuOpen}
+              a11yLabel={t('manualMenu.triggerA11y')}
+            />
+          </View>
         </View>
       </View>
+
+      {/* Hamburger menu panel — Modal-hosted so it can break out of
+          the ScrollView clip. */}
+      <MenuPanel
+        visible={menuOpen}
+        onDismiss={() => setMenuOpen(false)}
+        anchorRight={anchor.right}
+        anchorTop={anchor.top}
+      >
+        <MenuGroup label={t('manualMenu.groupLibrary')} first>
+          <MenuItem
+            title={t('manualMenu.completeManual')}
+            sub={t('manualMenu.completeManualSub')}
+            count="52 wk"
+            icon={MENU_ICONS.bookOpen}
+            featured
+            onPress={closeAnd(goToCompleteManual)}
+          />
+          <MenuItem
+            title={t('manualMenu.savedChapters')}
+            sub={t('manualMenu.savedChaptersSub')}
+            icon={MENU_ICONS.bookmark}
+            onPress={closeAnd(goToSavedChapters)}
+          />
+          <MenuItem
+            title={t('manualMenu.readingHistory')}
+            sub={t('manualMenu.readingHistorySub')}
+            icon={MENU_ICONS.history}
+            onPress={closeAnd(goToReadingHistory)}
+          />
+        </MenuGroup>
+        <MenuGroup label={t('manualMenu.groupThisChapter')}>
+          <MenuItem
+            title={t('manualMenu.saveChapter', { chapter: route.params.label })}
+            sub={t('manualMenu.saveChapterSub')}
+            icon={MENU_ICONS.save}
+            onPress={closeAnd(saveThisChapter)}
+          />
+          <MenuItem
+            title={t('manualMenu.shareChapter')}
+            sub={t('manualMenu.shareChapterSub')}
+            icon={MENU_ICONS.share}
+            onPress={closeAnd(shareThisChapter)}
+          />
+          <MenuItem
+            title={t('manualMenu.printPdf')}
+            sub={t('manualMenu.printPdfSub', { chapter: route.params.label, week })}
+            icon={MENU_ICONS.printer}
+            onPress={closeAnd(printChapterPdf)}
+          />
+        </MenuGroup>
+        <MenuGroup label={t('manualMenu.groupMore')}>
+          <MenuItem
+            title={t('manualMenu.subscribe')}
+            sub={t('manualMenu.subscribeSub')}
+            icon={MENU_ICONS.mailHeart}
+            onPress={closeAnd(subscribeDigest)}
+          />
+        </MenuGroup>
+      </MenuPanel>
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         {/* ─── Masthead ─── */}
@@ -617,6 +761,9 @@ const styles = StyleSheet.create({
     backgroundColor: V9.paper,
   },
   back: { fontSize: 13, color: V9.coco, fontFamily: FONTS.bodySemiBold },
+  // Right cluster — audience tag + hamburger menu trigger. 10px gap so
+  // the pill + chip read as two distinct affordances, not a compound.
+  headerRight: { flexDirection: 'row', alignItems: 'center', gap: 10 },
 
   // ── Liquid-glass audience tag pill (iOS 26 styling) ─────────────────
   // Visible-body recipe: high-opacity warm-tinted backdrop + soft top

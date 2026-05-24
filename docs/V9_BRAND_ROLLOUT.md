@@ -523,6 +523,30 @@ Static design-consistency audit script (`apps/mobile/scripts/v9-audit.mjs`) gene
 
 ---
 
+## Done — v3 brand kit Phase 1+2 (2026-05-24)
+
+Design handoff dropped at `/Users/gp/Downloads/design_handoff_villie/` with new HTML mockups, JSX prototypes, and a brand-kit spec. Pixel-for-pixel color compatibility with the existing v9 token system — every hex in the handoff's `BRAND` block already lives in `apps/mobile/src/utils/constants.ts` as `v2_*`. No token rename or color sweep needed for Phase 1.
+
+**Phase 1 — Foundation** (low risk, autonomous)
+- [x] Verified all v3 hexes are already in `constants.ts` as `v2_*` tokens (paper, cream, parchment, butter, marigold, caramel, cinnamon, blush, salmon, sage, moss, persimmon, cocoa, walnut, amber — all match)
+- [x] Copied new asset: `apps/mobile/assets/brand/villie-v-mark.png` (V monogram for tight spaces / icon contexts)
+- [x] Existing `villie-wordmark-v2.png` confirmed identical to handoff wordmark (same SHA `098f984…`) — no swap needed
+
+**Phase 2 — Hamburger menu primitive** (the headline ship)
+- [x] New component: `apps/mobile/src/components/shared/HamburgerMenu.tsx` — exports `MenuButton`, `MenuPanel`, `MenuGroup`, `MenuItem`, `MENU_ICONS`. RN port of the handoff's `shared.jsx` menu primitives. Modal-hosted panel (not absolute positioning — breaks ScrollView clip on iOS). Warm-tinted shadow stack, paper→cream gradient, arrow nub anchored top-right, 24px icon chips with cinnamon-when-featured variant, mono group labels at 8.5px/0.26em tracking, cinnamon @ 14% press fill, optional count badge.
+- [x] Wired onto `ManualCategoryScreen` header — sits next to the existing audience tag pill, opens with 7 actions across 3 groups:
+  - **Library**: The complete manual (52 wk badge, featured), Saved chapters, Reading history
+  - **This chapter**: Save {chapter}, Share this chapter, Print as PDF
+  - **More**: Subscribe (weekly digest)
+- [x] Actions wired to existing infra where it exists: complete manual → `ManualHome`, saved → `SavedManual`, share → `Share.share` with chapter URL, subscribe → cross-tab to `Me/NotificationPreferences`. Placeholders for not-yet-built infra: reading history, chapter-level save, PDF generation — each surfaces a "Coming soon" Alert rather than failing silently.
+- [x] EN+ES i18n keys added under `manualMenu.*` (27 strings each).
+
+**Phase 3 — Display typography flip (Playfair → Plus Jakarta Sans Bold)** — DEFERRED pending visual review. This is a brand-identity shift that affects ~50 editorial mastheads. Mock up one screen in both fonts before committing.
+
+**Phase 4 — Screen rebuilds** (Home/Manual/Village layouts per handoff) — pending.
+
+---
+
 ## Pending — Non-design queue
 
 These are tracked here so they don't get lost between sessions, but they're separate from v9 craft work.
