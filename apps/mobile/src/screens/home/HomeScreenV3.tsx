@@ -39,6 +39,7 @@ import { useUserStore } from '@store/user';
 import { useHomeStore } from '@store/home';
 import { useT } from '@/i18n';
 import { WarmGlowBackdrop } from '@components/shared/WarmGlowBackdrop';
+import { GlassHighlight } from '@components/shared/GlassHighlight';
 import { useFocusEffect } from '@react-navigation/native';
 
 // villie-bee.png — the meticulously-designed bee mascot from the v9 brand
@@ -145,7 +146,7 @@ function Eyebrow({ children, style }: { children: React.ReactNode; style?: Style
 // "she's here, waiting." Native driver, runs on the UI thread so it
 // never stutters even while the user scrolls. Ported verbatim from
 // production HomeScreen.tsx (CheckinStrip).
-function BreathingBee({ size = 36, style }: { size?: number; style?: any }) {
+function BreathingBee({ size = 52, style }: { size?: number; style?: any }) {
   const breathScale = useRef(new Animated.Value(1)).current;
   useEffect(() => {
     const loop = Animated.loop(
@@ -163,7 +164,16 @@ function BreathingBee({ size = 36, style }: { size?: number; style?: any }) {
       resizeMode="contain"
       accessible={false}
       style={[
-        { width: size, height: size },
+        {
+          width: size, height: size,
+          // Cocoa drop shadow — makes the bee hover above the page like
+          // she's standing there, not stuck on it. iOS treats shadow on
+          // Image as the silhouette drop; Android elevation via parent.
+          shadowColor: '#6B2E0E',
+          shadowOffset: { width: 0, height: 6 },
+          shadowOpacity: 0.32,
+          shadowRadius: 10,
+        },
         style,
         { transform: [{ scale: breathScale }] },
       ]}
@@ -434,18 +444,17 @@ export default function HomeScreenV3() {
           dateLabel={dateLabel}
         />
 
-        {/* Daily check-in pill — full-width gradient w/ dashed salmon border + bee */}
+        {/* Daily check-in pill — v9 immersive recipe:
+            iOS-26 wet-glass top sheen · cocoa-tinted floating shadow ·
+            dashed cinnamon border · bee 52px in 56px slot with negative
+            margin overflow so she sticks out the right side. */}
         <TouchableOpacity
           activeOpacity={0.9}
           onPress={() => navigation.navigate('DailyCheckin' as never)}
           style={styles.checkinPill}
         >
-          <LinearGradient
-            colors={[T.paper, 'rgba(234,224,200,0.4)']}
-            start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }}
-            style={[StyleSheet.absoluteFillObject, { borderRadius: 8 }]}
-            pointerEvents="none"
-          />
+          {/* iOS-26 wet-glass sheen across the top of the strip */}
+          <GlassHighlight radius={12} height={10} />
           <View style={{ flex: 1, minWidth: 0 }}>
             <Text style={styles.checkinEyebrow}>
               {lang === 'es' ? 'Chequeo diario' : 'Daily check-in'}
@@ -454,8 +463,12 @@ export default function HomeScreenV3() {
               {lang === 'es' ? '¿Cómo te sientes esta noche?' : 'How are you feeling tonight?'}
             </Text>
           </View>
-          {/* v9 breathing bee — IS the affordance. "She's here, waiting." */}
-          <BreathingBee size={42} />
+          {/* v9 breathing bee — IS the affordance. "She's here, waiting."
+              Slot overflows the pill via negative margin so the bee carries
+              presence on her own — character not button. */}
+          <View style={styles.checkinBeeSlot}>
+            <BreathingBee size={52} />
+          </View>
         </TouchableOpacity>
 
         <ManualHeroCard
@@ -513,27 +526,39 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase', fontWeight: '500',
   },
 
-  // ── Daily check-in pill ───────────────────────────────────────────────
+  // ── Daily check-in pill (v9 immersive recipe) ────────────────────────
+  // Cocoa-tinted floating shadow so the pill reads as a "ticket" lifted
+  // off the page. Dashed cinnamon border. Opaque cream bg so the
+  // GlassHighlight on top has something to sheen off. Asymmetric padding
+  // (12 left / 10 right) gives the bee room to overflow on the right.
   checkinPill: {
     marginTop: 22,
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingVertical: 14, paddingHorizontal: 16,
-    borderRadius: 8,
-    borderWidth: 1.25,
+    paddingTop: 8, paddingBottom: 8, paddingLeft: 12, paddingRight: 10,
+    borderRadius: 12,
+    borderWidth: 1,
     borderStyle: 'dashed',
-    borderColor: T.salmon,
-    gap: 12,
-    // shadowSm from handoff — warm-tinted soft cast
-    shadowColor: T.walnut,
-    shadowOffset: { width: 0, height: 4 },
+    borderColor: 'rgba(176,115,85,0.36)',   // cinnamon-tinted dash
+    gap: 10,
+    backgroundColor: 'rgba(254,252,248,0.92)',
+    // v9 floating-ticket shadow
+    shadowColor: '#6B2E0E',
+    shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.18,
     shadowRadius: 14,
-    elevation: 2,
-    backgroundColor: T.paper,
+    elevation: 4,
+    overflow: 'visible',
+  },
+  // 56×56 slot with negative margin so the 52×52 breathing bee can
+  // overflow the pill on right + top/bottom — gives her presence.
+  checkinBeeSlot: {
+    width: 56, height: 56,
+    alignItems: 'center', justifyContent: 'center',
+    marginRight: -10, marginVertical: -12,
   },
   checkinEyebrow: {
-    fontFamily: FONTS.v2_mono, fontSize: 9.5,
-    color: T.cinnamon, letterSpacing: 2.1,
+    fontFamily: FONTS.v2_mono, fontSize: 9,
+    color: T.amber, letterSpacing: 2.2,    // v9 kit canon: eyebrows = amber
     textTransform: 'uppercase', fontWeight: '500',
   },
   checkinPrompt: {
