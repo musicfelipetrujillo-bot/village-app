@@ -579,6 +579,25 @@ Design handoff dropped at `/Users/gp/Downloads/design_handoff_villie/` with new 
 
 ---
 
+## Pending — v3 brand kit for the 4 Village verticals (logged 2026-05-24, do next session)
+
+The outer `VillageHomeScreenV3` ("Your backup is *here.*" masthead + 2×2 tile grid + ON THE CALENDAR list) is on the revised brand kit. The 4 vertical tiles route correctly post `f662bd7` fix, but tap-through lands on screens that still need the same lean editorial treatment:
+
+- **Milk Connect** → `MilkConnectHomeScreen` (Milk tab landing)
+- **Specialists** → `ExpertsHomeScreen` (Experts tab landing)
+- **Baby Gear** → `GearBrowseScreen` (Gear tab landing)
+- **Villie Plans** → Village tab's events/plans list (whichever screen the Village tab's secondary surface is)
+
+Apply same v3 recipe as `HomeScreenV3` / `ManualScrollV3` / `VillageHomeScreenV3` / `InboxHomeScreen`:
+- `WarmGlowBackdrop` with bees
+- Editorial masthead: eyebrow + Plus Jakarta display title + salmon italic period accent + italic body subtitle + 48px hairline rule
+- V3Card-lifted content surfaces (paper + hairline rust border + cocoa shadow + GlassHighlight sheen)
+- `v3_display` + `v3_display_italic` + `v2_body` fonts; T-token colors throughout
+
+Bigger visual sweep than today's polish work — confirm scope with Felipe before starting.
+
+---
+
 ## Pending — Non-design queue
 
 These are tracked here so they don't get lost between sessions, but they're separate from v9 craft work.
