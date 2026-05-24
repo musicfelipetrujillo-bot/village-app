@@ -407,7 +407,6 @@
   },
   "account": {
     "back": "Back",
-    "pwTitle": "Change\npassword",
     "pwTitleLead": "Change your",
     "pwTitleEm": "password.",
     "pwEyebrow": "ACCOUNT & SECURITY",
@@ -426,7 +425,6 @@
     "pwUpdatedBody": "Your password has been changed. Use it next time you sign in.",
     "pwErrorTitle": "Could not update password",
     "pwErrorBody": "Please try again.",
-    "emTitle": "Change\nemail",
     "emTitleLead": "Change your",
     "emTitleEm": "email.",
     "emEyebrow": "ACCOUNT & SECURITY",
@@ -446,7 +444,6 @@
     "emErrorBody": "Please try again.",
     "emDisclaimer": "Heads up: Supabase may also send a notice to your old email so you know the change was requested. Until you confirm in the new inbox, sign-in keeps using your current address.",
     "ok": "OK",
-    "delTitle": "Delete\naccount",
     "delTitleLead": "Delete your",
     "delTitleEm": "account.",
     "delEyebrow": "ACCOUNT & SECURITY",

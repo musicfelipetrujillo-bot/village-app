@@ -265,8 +265,17 @@ LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 npx expo prebuild --clean --platform ios
 # Re-apply the three path-with-spaces patches that die on every clean prebuild
 pnpm ios:patch
 
-# Build — xcodebuild path is the most reliable; expo run:ios sometimes
-# misclassifies the iPhone 17 sim as a physical device
+# Build — xcodebuild path is the most reliable.
+#
+# Why not `pnpm run ios` / `expo run:ios`?
+#   On this machine the Xcode CLI devicectl reports an unexpected JSON
+#   version. expo-cli reads that, decides the booted iPhone 17 sim is a
+#   *physical* device, and bails on "No code signing certificates" before
+#   ever invoking the compiler. Symptom in /tmp/villie-ios-build.log:
+#     "Unexpected devicectl JSON version output from devicectl"
+#     "CommandError: No code signing certificates are available to use."
+#   The xcodebuild path below targets the simulator destination explicitly
+#   and disables code signing, so devicectl is never consulted.
 cd ios
 xcodebuild -workspace villie.xcworkspace -scheme villie -configuration Debug \
   -destination 'platform=iOS Simulator,name=iPhone 17,OS=latest' \

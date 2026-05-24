@@ -407,7 +407,6 @@
   },
   "account": {
     "back": "Atrás",
-    "pwTitle": "Cambiar\ncontraseña",
     "pwTitleLead": "Cambia tu",
     "pwTitleEm": "contraseña.",
     "pwEyebrow": "CUENTA Y SEGURIDAD",
@@ -426,7 +425,6 @@
     "pwUpdatedBody": "Tu contraseña fue cambiada. Úsala la próxima vez que inicies sesión.",
     "pwErrorTitle": "No se pudo actualizar la contraseña",
     "pwErrorBody": "Por favor intenta nuevamente.",
-    "emTitle": "Cambiar\ncorreo",
     "emTitleLead": "Cambia tu",
     "emTitleEm": "correo.",
     "emEyebrow": "CUENTA Y SEGURIDAD",
@@ -446,7 +444,6 @@
     "emErrorBody": "Por favor intenta nuevamente.",
     "emDisclaimer": "Aviso: Supabase también puede enviar una notificación a tu correo anterior para que sepas que se solicitó el cambio. Hasta que confirmes en la nueva bandeja, el inicio de sesión sigue usando tu dirección actual.",
     "ok": "OK",
-    "delTitle": "Eliminar\ncuenta",
     "delTitleLead": "Elimina tu",
     "delTitleEm": "cuenta.",
     "delEyebrow": "CUENTA Y SEGURIDAD",
