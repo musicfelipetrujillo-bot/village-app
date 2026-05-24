@@ -107,17 +107,22 @@ export default function VillageHomeScreenV3() {
       {/* Warm halos — salmon top-right, butter mid-left */}
       <View style={styles.haloSalmon} pointerEvents="none" />
       <View style={styles.haloButter} pointerEvents="none" />
-      {/* v9 bee — atmospheric companion, drifting near the headline */}
-      <View pointerEvents="none" style={styles.cornerBee}>
-        <Image
-          source={VILLIE_BEE}
-          resizeMode="contain"
-          accessible={false}
-          style={{ width: '100%', height: '100%' }}
-        />
-      </View>
-
       <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+        {/* Atmosphere bees — drift through the page background as the
+            user scrolls. Inside the ScrollView so they move with content.
+            Varied sizes / rotations / opacities so they read as a swarm. */}
+        <View pointerEvents="none" style={styles.atmosphereBee1}>
+          <Image source={VILLIE_BEE} resizeMode="contain" style={{ width: '100%', height: '100%' }} accessible={false} />
+        </View>
+        <View pointerEvents="none" style={styles.atmosphereBee2}>
+          <Image source={VILLIE_BEE} resizeMode="contain" style={{ width: '100%', height: '100%' }} accessible={false} />
+        </View>
+        <View pointerEvents="none" style={styles.atmosphereBee3}>
+          <Image source={VILLIE_BEE} resizeMode="contain" style={{ width: '100%', height: '100%' }} accessible={false} />
+        </View>
+        <View pointerEvents="none" style={styles.atmosphereBee4}>
+          <Image source={VILLIE_BEE} resizeMode="contain" style={{ width: '100%', height: '100%' }} accessible={false} />
+        </View>
         {/* Header — wordmark + map-pin button */}
         <View style={styles.header}>
           <Image source={WORDMARK} style={styles.wordmark} resizeMode="contain" accessibilityLabel="villie" />
@@ -229,12 +234,30 @@ const styles = StyleSheet.create({
     width: 260, height: 260, borderRadius: 130,
     backgroundColor: 'rgba(250,208,128,0.15)',
   },
-  cornerBee: {
-    position: 'absolute', top: 140, right: 24,
-    width: 42, height: 42,
-    transform: [{ rotate: '-14deg' }],
-    opacity: 0.92,
-    zIndex: 1,
+  // Atmosphere bees — scattered background swarm, scrolls with content.
+  atmosphereBee1: {
+    position: 'absolute', top: 100, right: 36,
+    width: 32, height: 32,
+    transform: [{ rotate: '22deg' }],
+    opacity: 0.18,
+  },
+  atmosphereBee2: {
+    position: 'absolute', top: 280, left: 24,
+    width: 26, height: 26,
+    transform: [{ rotate: '-28deg' }],
+    opacity: 0.22,
+  },
+  atmosphereBee3: {
+    position: 'absolute', top: 580, right: 48,
+    width: 38, height: 38,
+    transform: [{ rotate: '14deg' }],
+    opacity: 0.16,
+  },
+  atmosphereBee4: {
+    position: 'absolute', top: 880, left: 40,
+    width: 28, height: 28,
+    transform: [{ rotate: '-8deg' }],
+    opacity: 0.20,
   },
 
   header: {

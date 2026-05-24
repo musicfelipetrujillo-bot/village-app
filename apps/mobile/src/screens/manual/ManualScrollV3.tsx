@@ -183,6 +183,22 @@ export default function ManualScrollV3() {
         {/* Marigold halo behind the title block */}
         <View style={styles.marigoldHalo} pointerEvents="none" />
 
+        {/* Atmosphere bees — drift through the page background as the
+            user scrolls. Low opacity, varied rotations + sizes, inside
+            the ScrollView so they move with content not pinned to viewport. */}
+        <View pointerEvents="none" style={styles.atmosphereBee1}>
+          <Image source={VILLIE_BEE} resizeMode="contain" style={{ width: '100%', height: '100%' }} accessible={false} />
+        </View>
+        <View pointerEvents="none" style={styles.atmosphereBee2}>
+          <Image source={VILLIE_BEE} resizeMode="contain" style={{ width: '100%', height: '100%' }} accessible={false} />
+        </View>
+        <View pointerEvents="none" style={styles.atmosphereBee3}>
+          <Image source={VILLIE_BEE} resizeMode="contain" style={{ width: '100%', height: '100%' }} accessible={false} />
+        </View>
+        <View pointerEvents="none" style={styles.atmosphereBee4}>
+          <Image source={VILLIE_BEE} resizeMode="contain" style={{ width: '100%', height: '100%' }} accessible={false} />
+        </View>
+
         {/* Header — eyebrow + title + hamburger */}
         <View style={styles.headerRow}>
           <View style={{ flex: 1, minWidth: 0 }}>
@@ -260,15 +276,6 @@ export default function ManualScrollV3() {
             style={[StyleSheet.absoluteFillObject, { borderRadius: 10 }]}
             pointerEvents="none"
           />
-          {/* v9 bee — perched bottom-right for personality */}
-          <View pointerEvents="none" style={styles.weekBannerBee}>
-            <Image
-              source={VILLIE_BEE}
-              resizeMode="contain"
-              accessible={false}
-              style={{ width: '100%', height: '100%' }}
-            />
-          </View>
           <View style={styles.weekBannerInner}>
             <View style={styles.weekBannerIconChip}>
               <Svg width={13} height={13} viewBox="0 0 24 24">
@@ -516,11 +523,33 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(61,31,14,0.12)', borderRadius: 2, overflow: 'hidden',
   },
   weekBannerFill: { height: '100%', backgroundColor: T.moss },
-  weekBannerBee: {
-    position: 'absolute', bottom: 6, right: 10,
-    width: 30, height: 30,
-    opacity: 0.78,
+  // Atmospheric bees — scattered low-opacity across the page background,
+  // each at a different rotation + size so they read as a swarm not a
+  // pattern. Positioned inside the ScrollView contentContainer so they
+  // scroll with the content (feels "alive in the page" vs pinned).
+  atmosphereBee1: {
+    position: 'absolute', top: 120, right: 30,
+    width: 28, height: 28,
+    transform: [{ rotate: '18deg' }],
+    opacity: 0.16,
+  },
+  atmosphereBee2: {
+    position: 'absolute', top: 360, left: 18,
+    width: 36, height: 36,
+    transform: [{ rotate: '-32deg' }],
+    opacity: 0.14,
+  },
+  atmosphereBee3: {
+    position: 'absolute', top: 720, right: 40,
+    width: 24, height: 24,
+    transform: [{ rotate: '8deg' }],
+    opacity: 0.20,
+  },
+  atmosphereBee4: {
+    position: 'absolute', top: 980, left: 60,
+    width: 32, height: 32,
     transform: [{ rotate: '-12deg' }],
+    opacity: 0.18,
   },
 
   // Colored chapter band — full-width
