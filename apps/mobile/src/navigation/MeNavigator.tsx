@@ -11,6 +11,7 @@ import ChangeEmailScreen from '@screens/me/ChangeEmailScreen';
 import DeleteAccountScreen from '@screens/me/DeleteAccountScreen';
 import SavedDashboardScreen from '@screens/me/SavedDashboardScreen';
 import AnonymousModeScreen from '@screens/me/AnonymousModeScreen';
+import AdminInviteScreen from '@screens/me/AdminInviteScreen';
 
 export type MeStackParamList = {
   MeRoot: undefined;
@@ -22,6 +23,7 @@ export type MeStackParamList = {
   DeleteAccount: undefined;
   SavedDashboard: undefined;
   AnonymousMode: undefined;
+  AdminInvite: undefined;
 };
 
 const Stack = createNativeStackNavigator<MeStackParamList>();
@@ -68,6 +70,11 @@ export function MeNavigator() {
       <Stack.Screen
         name="AnonymousMode"
         component={AnonymousModeScreen}
+        options={{ animation: 'slide_from_right' }}
+      />
+      <Stack.Screen
+        name="AdminInvite"
+        component={AdminInviteScreen}
         options={{ animation: 'slide_from_right' }}
       />
     </Stack.Navigator>

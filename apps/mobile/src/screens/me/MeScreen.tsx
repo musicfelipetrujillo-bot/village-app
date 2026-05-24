@@ -681,6 +681,35 @@ export default function MeScreen() {
           ) : null}
         </Section>
 
+        {/* Admin tools — dev-build-only entry. Always renders in __DEV__
+            so internal users get a discoverable path to the in-app
+            admin tools (specialist invites today; can host bulk gear
+            moderation actions, manual-video reviewer tools, etc.
+            later). The actual authority check lives server-side in
+            the admin-specialist-invite edge function (ADMIN_USER_IDS
+            allowlist); non-admin taps surface as a friendly 403 on
+            submit. Suppressed in TestFlight/App Store builds to keep
+            the Me tab clean for real users. */}
+        {__DEV__ ? (
+          <Section title="Admin">
+            <TouchableOpacity
+              style={[s.row, s.rowLast]}
+              onPress={() => navigation.navigate('AdminInvite')}
+              accessibilityRole="button"
+              accessibilityLabel="Open specialist invite admin tool"
+            >
+              <Text style={s.rowIcon}>✉️</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={s.rowLabel}>Specialist invites</Text>
+                <Text style={s.rowDetail}>
+                  Issue a one-time invite link in-app.
+                </Text>
+              </View>
+              <Text style={s.rowChevron}>›</Text>
+            </TouchableOpacity>
+          </Section>
+        ) : null}
+
         {/* Clinical review — reviewer-only entry point. Hidden for everyone
             else; the launcher pill in RootNavigator covers the same surface
             but lives in a corner, so this row is the discoverable path. */}
