@@ -40,6 +40,7 @@ import { useHomeStore } from '@store/home';
 import { useT } from '@/i18n';
 import { WarmGlowBackdrop } from '@components/shared/WarmGlowBackdrop';
 import { DailyCheckinStrip } from '@components/shared/DailyCheckinStrip';
+import { GlassHighlight } from '@components/shared/GlassHighlight';
 import { useFocusEffect } from '@react-navigation/native';
 
 // villie-bee.png — the meticulously-designed bee mascot from the v9 brand
@@ -235,13 +236,15 @@ function ManualHeroCard({ babyName, weekNumber, onPress }: {
       </View>
 
       <TouchableOpacity activeOpacity={0.92} onPress={onPress} style={[styles.heroCard, { backgroundColor: heroBg }]}>
-        {/* Top-edge paper sheen (kit's "sun on warm paper" finish) */}
+        {/* Top-edge paper sheen + iOS-26 wet glass — same immersive recipe
+            as the daily check-in card so both cards lift the same way. */}
         <LinearGradient
-          colors={['rgba(253,251,246,0.22)', 'rgba(253,251,246,0)']}
-          start={{ x: 0, y: 0 }} end={{ x: 0, y: 0.42 }}
+          colors={['rgba(253,251,246,0.32)', 'rgba(253,251,246,0)']}
+          start={{ x: 0, y: 0 }} end={{ x: 0, y: 0.55 }}
           style={[StyleSheet.absoluteFillObject, { borderRadius: 10 }]}
           pointerEvents="none"
         />
+        <GlassHighlight radius={10} height={14} />
         {/* Marigold halo top-right */}
         <View style={styles.heroHalo} pointerEvents="none" />
 

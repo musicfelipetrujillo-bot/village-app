@@ -282,6 +282,8 @@ export default function ManualScrollV3() {
             style={[StyleSheet.absoluteFillObject, { borderRadius: 10 }]}
             pointerEvents="none"
           />
+          {/* iOS-26 wet-glass sheen — matches check-in card + chapter band */}
+          <GlassHighlight radius={10} height={10} />
           <View style={styles.weekBannerInner}>
             <View style={styles.weekBannerIconChip}>
               <Svg width={13} height={13} viewBox="0 0 24 24">
