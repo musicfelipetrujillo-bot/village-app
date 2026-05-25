@@ -1181,7 +1181,9 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: 'rgba(0,0,0,0.08)',
+    // Was pure-black 8% — read harsh on the new butter-cream tinted card.
+    // Cocoa-tinted 6% harmonizes with the warm card surface.
+    borderBottomColor: 'rgba(61,31,14,0.06)',
   },
   rowColumn: { flexDirection: 'column', alignItems: 'flex-start', gap: 10 },
   rowLast: { borderBottomWidth: 0 },
