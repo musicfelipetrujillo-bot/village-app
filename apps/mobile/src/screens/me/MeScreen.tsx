@@ -929,15 +929,16 @@ function Section({
 }: { title: string; subtitle?: string; children: React.ReactNode }) {
   // Editorial section heading — small rust accent bar + uppercase
   // letter-spaced eyebrow, mirroring HomeScreen's sectionEyebrow +
-  // sectionAccentBar so Me reads as part of the same magazine spread
-  // rather than a settings sheet.
+  // sectionAccentBar so Me reads as part of the same magazine spread.
   //
-  // V3Card wraps every section's content so each card gets the full
-  // v3 immersive recipe (paper bg + hairline rust border + cocoa
-  // floating shadow + top inner warm glow + iOS-26 wet-glass sheen).
-  // Previously this used a plain <View style={s.card}> which had the
-  // border + shadow but no inner glow / sheen — looked flat compared
-  // to v3 surfaces on Home/Manual/Village.
+  // V3Card wrapper with `deepShadow` — Felipe 2026-05-25: the standard
+  // lift recipe got absorbed by the warm pink-tinted page gradient on
+  // Me (FDF1EB → F5DFD3), making the wider multi-row cards (Preferences
+  // with Language + Search radius + Notifications) look "paper thin"
+  // while the shorter single-row cards (Change email / password,
+  // Specialist invites) stood out. deepShadow (op 0.28 / offset 14 /
+  // radius 24 / darker shadow color) gives every Section card the
+  // same distinct silhouette regardless of inner-row count.
   return (
     <View style={s.section}>
       <View style={s.sectionHeadingRow}>
@@ -945,7 +946,7 @@ function Section({
         <Text style={s.sectionEyebrow}>{title}</Text>
       </View>
       {subtitle ? <Text style={s.sectionSubtitle}>{subtitle}</Text> : null}
-      <V3Card>{children}</V3Card>
+      <V3Card deepShadow>{children}</V3Card>
     </View>
   );
 }
