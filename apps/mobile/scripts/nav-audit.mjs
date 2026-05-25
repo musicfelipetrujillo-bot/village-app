@@ -118,6 +118,36 @@ async function collectNoOpHandlers(files) {
   return out;
 }
 
+// Find <TouchableOpacity ...> (or Pressable) WITHOUT an onPress prop.
+// Looks at each opening tag spanning multiple lines; flags any that
+// has no `onPress=` token before the `>` (allowing for `style=`,
+// `accessibilityRole`, etc).
+async function collectMissingOnPress(files) {
+  const out = [];
+  const re = /<(TouchableOpacity|Pressable|TouchableHighlight|TouchableWithoutFeedback)\b([^>]*?)\/?>/gs;
+  for (const file of files) {
+    const text = await readFile(file, 'utf8');
+    let m;
+    while ((m = re.exec(text)) !== null) {
+      const props = m[2];
+      // Skip if it has any onPress / onLongPress / onPressIn / onPressOut.
+      if (/\bon(?:Press|LongPress|PressIn|PressOut)\s*=/.test(props)) continue;
+      // Skip role-less display-only wrappers (often intentional).
+      // Heuristic: if no `accessibilityRole=` either, it's likely a
+      // decorative wrapper. Only flag when there's a role suggesting
+      // tappable intent (button, link).
+      if (!/accessibilityRole\s*=\s*['"](?:button|link)['"]/.test(props)) continue;
+      const line = text.slice(0, m.index).split('\n').length;
+      out.push({
+        file: path.relative(path.resolve(ROOT, '..'), file),
+        line,
+        tag: m[1],
+      });
+    }
+  }
+  return out;
+}
+
 function main() { return run(); }
 async function run() {
   const files = await walk(ROOT);
@@ -125,6 +155,7 @@ async function run() {
   const calls = await collectNavCalls(files);
   const placeholders = await collectPlaceholders(files);
   const noops = await collectNoOpHandlers(files);
+  const missing = await collectMissingOnPress(files);
 
   const screenNames = new Set(screens.keys());
   // Tabs registered in AppNavigator are also valid targets (cross-tab nav).
@@ -154,7 +185,8 @@ async function run() {
   console.log(`- Dynamic nav targets: ${calls.filter((c) => c.kind === 'dynamic').length}`);
   console.log(`- Registered screen names: ${screens.size}`);
   console.log(`- Placeholder Alerts: ${placeholders.length}`);
-  console.log(`- No-op onPress handlers: ${noops.length}\n`);
+  console.log(`- No-op onPress handlers: ${noops.length}`);
+  console.log(`- Touchables with role=button/link missing onPress entirely: ${missing.length}\n`);
   console.log('---\n');
 
   console.log(`## DEAD nav targets (${dead.length})\n`);
@@ -198,6 +230,17 @@ async function run() {
   } else {
     for (const n of noops) {
       console.log(`- \`${n.file}:${n.line}\``);
+    }
+  }
+  console.log('\n');
+
+  console.log(`## MISSING onPress on tappable-role touchables (${missing.length})\n`);
+  console.log('TouchableOpacity/Pressable with `accessibilityRole="button"|"link"` but no onPress handler — the button is labeled tappable to screen readers but does nothing on tap.\n');
+  if (missing.length === 0) {
+    console.log('_None._\n');
+  } else {
+    for (const x of missing) {
+      console.log(`- \`${x.file}:${x.line}\` — <${x.tag}> with role but no handler`);
     }
   }
   console.log('\n');

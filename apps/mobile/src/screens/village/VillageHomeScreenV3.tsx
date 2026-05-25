@@ -89,16 +89,21 @@ const VERTICALS: Vertical[] = [
 // events store returns nothing (cold start / empty feed). Once
 // useEventsStore.fetchUpcoming resolves with real events, the live
 // rows replace these placeholders via formatPlanRow below.
-const PLACEHOLDER_PLANS = [
-  { day: 'TUE', date: '19', time: '9:00 AM',  name: 'Postpartum yoga',        loc: 'Prospect Park · 1.2mi',      going: 12 },
-  { day: 'THU', date: '21', time: '10:30 AM', name: 'Sensory play, 0–9m',     loc: 'Park Slope library · 0.6mi', going: 8 },
-  { day: 'SAT', date: '23', time: '10:00 AM', name: 'Stroller walk + coffee', loc: '7th & Smith · 0.9mi',        going: 24 },
+// id: null on placeholders → calendar-row tap falls back to "All plans"
+// (full events list) since there's no real event row to drill into.
+const PLACEHOLDER_PLANS: Array<{
+  id: string | null; day: string; date: string; time: string;
+  name: string; loc: string; going: number;
+}> = [
+  { id: null, day: 'TUE', date: '19', time: '9:00 AM',  name: 'Postpartum yoga',        loc: 'Prospect Park · 1.2mi',      going: 12 },
+  { id: null, day: 'THU', date: '21', time: '10:30 AM', name: 'Sensory play, 0–9m',     loc: 'Park Slope library · 0.6mi', going: 8 },
+  { id: null, day: 'SAT', date: '23', time: '10:00 AM', name: 'Stroller walk + coffee', loc: '7th & Smith · 0.9mi',        going: 24 },
 ];
 
 // Format a live EventCard into the calendar row shape used by the
 // render block. Keeps the visual treatment identical between live +
 // placeholder data so the screen never flickers structurally.
-function formatPlanRow(e: { starts_at: string; title: string; venue_name: string | null; city: string | null; distance_km: number | null; going_count: number; timezone?: string }, lang: 'en' | 'es') {
+function formatPlanRow(e: { id?: string; starts_at: string; title: string; venue_name: string | null; city: string | null; distance_km: number | null; going_count: number; timezone?: string }, lang: 'en' | 'es') {
   const d = new Date(e.starts_at);
   const dayNames = lang === 'es'
     ? ['DOM','LUN','MAR','MIÉ','JUE','VIE','SÁB']
@@ -111,6 +116,7 @@ function formatPlanRow(e: { starts_at: string; title: string; venue_name: string
     : '';
   const loc = `${e.venue_name ?? e.city ?? 'TBD'}${distance}`;
   return {
+    id: e.id ?? null,
     day: dayNames[d.getDay()],
     date: String(d.getDate()),
     time,
@@ -135,6 +141,16 @@ export default function VillageHomeScreenV3() {
   const goVertical = (route: string) => {
     navigation.getParent()?.navigate(route as never);
   };
+  // Wired 2026-05-25 nav audit — these were dead handlers / display-only
+  // Views before. Now the calendar plan rows + "All plans →" link route
+  // to the events list within the Village stack; the map-pin button
+  // routes to the donor map (only map surface in the app today) as the
+  // closest sensible destination.
+  const goAllPlans   = () => navigation.navigate('EventsList' as never);
+  const goPlanDetail = (eventId: string) =>
+    navigation.navigate('EventDetail' as never, { id: eventId } as never);
+  const goMap        = () =>
+    navigation.getParent()?.navigate('Milk' as never, { screen: 'DonorMap' } as never);
 
   const scrollY = useRef(new Animated.Value(0)).current;
   const [triggerAnim, setTriggerAnim] = useState(0);
@@ -178,7 +194,12 @@ export default function VillageHomeScreenV3() {
             Felipe — the editorial masthead ("Your backup is here.") IS
             the brand signature on in-app surfaces. Map-pin flush-right. */}
         <View style={styles.header}>
-          <TouchableOpacity style={styles.mapBtn} accessibilityRole="button" accessibilityLabel="Map">
+          <TouchableOpacity
+            style={styles.mapBtn}
+            accessibilityRole="button"
+            accessibilityLabel="Donor map"
+            onPress={goMap}
+          >
             <Svg width={16} height={16} viewBox="0 0 24 24">
               <Path
                 d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"
@@ -238,7 +259,7 @@ export default function VillageHomeScreenV3() {
         <View style={{ marginTop: 28 }}>
           <View style={styles.sectionHead}>
             <Eyebrow>{lang === 'es' ? 'En el calendario' : 'On the calendar'}</Eyebrow>
-            <TouchableOpacity accessibilityRole="link">
+            <TouchableOpacity accessibilityRole="link" onPress={goAllPlans}>
               <Text style={styles.sectionLink}>
                 {lang === 'es' ? 'Todos →' : 'All plans →'}
               </Text>
@@ -246,9 +267,20 @@ export default function VillageHomeScreenV3() {
           </View>
           {planRows.map((e, i) => {
             const isLast = i === planRows.length - 1;
+            // Tappable when we have a real event id from the store;
+            // placeholder rows (no id) tap to the full events list as
+            // the next-best destination. Both routes live in this
+            // Village stack so the back button returns here.
+            const onPress = e.id
+              ? () => goPlanDetail(e.id!)
+              : goAllPlans;
             return (
-              <View
-                key={e.date}
+              <TouchableOpacity
+                key={`${e.date}-${i}`}
+                onPress={onPress}
+                activeOpacity={0.85}
+                accessibilityRole="button"
+                accessibilityLabel={`${e.name} · ${e.time}`}
                 style={[styles.calRow, { borderBottomWidth: isLast ? 0 : StyleSheet.hairlineWidth }]}
               >
                 <View style={styles.calDayBlock}>
@@ -262,7 +294,7 @@ export default function VillageHomeScreenV3() {
                 <Text style={styles.calGoing}>
                   <Text style={styles.calGoingNum}>{e.going}</Text> {lang === 'es' ? 'van' : 'going'}
                 </Text>
-              </View>
+              </TouchableOpacity>
             );
           })}
         </View>

@@ -246,13 +246,17 @@ function tocSubFor(chapter: string, milestones: Milestone[]): string {
   return TOC_PLACEHOLDERS[chapter] ?? '';
 }
 
-function ManualHeroCard({ babyName, weekNumber, milestones, onPress }: {
+function ManualHeroCard({ babyName, weekNumber, milestones, onPress, onChapterPress }: {
   babyName: string;
   weekNumber: number;
   /** Live milestones for the current week, mapped to TOC rows via
    *  CHAPTER_TO_CATEGORY. Empty array falls back to TOC_PLACEHOLDERS. */
   milestones: Milestone[];
   onPress: () => void;
+  /** Tap a specific chapter row → opens Manual tab pre-selected to that
+   *  chapter via route params. Falls back to the card-level `onPress`
+   *  if the row's TouchableOpacity isn't wired through (defensive). */
+  onChapterPress: (chapter: string) => void;
 }) {
   // Hero bg = blush per handoff palette (first slot of the kit's default
   // 3-color palette: [accent, primary, heroBg]).
@@ -294,8 +298,16 @@ function ManualHeroCard({ babyName, weekNumber, milestones, onPress }: {
             const sub = tocSubFor(chapter, milestones);
             const dur = TOC_DURATIONS[chapter] ?? '';
             return (
-              <View
+              // Each row is its own tap target — deep-links to Manual
+              // with this chapter pre-selected via route params. The
+              // parent card's whole-area onPress (line above) is still
+              // active for taps outside the rows (hero title, halo).
+              <TouchableOpacity
                 key={chapter}
+                onPress={() => onChapterPress(chapter)}
+                activeOpacity={0.85}
+                accessibilityRole="button"
+                accessibilityLabel={`${chapter} — ${sub}`}
                 style={[
                   styles.tocRow,
                   { borderBottomWidth: isLast ? 0 : StyleSheet.hairlineWidth },
@@ -306,7 +318,7 @@ function ManualHeroCard({ babyName, weekNumber, milestones, onPress }: {
                 <Text style={styles.tocChapter} numberOfLines={1}>{chapter}</Text>
                 <Text style={styles.tocSub} numberOfLines={1}>{sub}</Text>
                 <Text style={styles.tocDur}>{dur}</Text>
-              </View>
+              </TouchableOpacity>
             );
           })}
         </View>
@@ -394,6 +406,17 @@ export default function HomeScreenV3() {
 
   // Navigation handlers — uses parent tab navigator for cross-tab moves.
   const goManual = () => navigation.navigate('Manual' as never);
+  // Deep-link to Manual tab with a specific chapter pre-selected via
+  // route params. Wired 2026-05-25 UX audit: the TOC rows on the Home
+  // ManualHeroCard previously routed only to the Manual tab home
+  // (any chapter row → same destination), so the user had to manually
+  // switch to the chapter they'd just tapped. Now the row's intent is
+  // honored at the destination.
+  const goManualChapter = (chapter: string) =>
+    navigation.navigate('Manual' as never, {
+      screen: 'ManualHome',
+      params: { audience: 'baby', chapter },
+    } as never);
   // goBell removed 2026-05-24 alongside the header bell.
   const goVillagePillar = (route: string) => {
     // The handoff routes map to existing tab names. "Experts" = experts tab,
@@ -475,6 +498,7 @@ export default function HomeScreenV3() {
           weekNumber={heroWeek}
           milestones={weekMilestones}
           onPress={goManual}
+          onChapterPress={goManualChapter}
         />
 
         <VillageStrip onPillar={goVillagePillar} onAll={goVillageAll} />

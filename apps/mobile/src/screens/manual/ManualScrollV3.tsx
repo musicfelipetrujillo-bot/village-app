@@ -34,7 +34,7 @@ import {
 } from '@/api/manual';
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Path } from 'react-native-svg';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { COLORS, FONTS } from '@utils/constants';
 import { useT } from '@/i18n';
 import { useUserStore } from '@store/user';
@@ -389,9 +389,25 @@ export default function ManualScrollV3() {
   const babyProfile = useHomeStore((s) => s.babyProfile);
   const lang = (profile?.preferred_language ?? 'en') as 'en' | 'es';
 
-  const [who, setWho] = useState<'mom' | 'baby'>('baby');
+  // Route params allow deep-linking from Home into a specific chapter
+  // (e.g. tapping "Sleep · Separation anxiety wakings" on the Home
+  // hero TOC). When passed, the screen initializes audience + chapter
+  // from the params; otherwise defaults to baby / first chapter.
+  const route = useRoute();
+  const initialParams = route.params as
+    | { audience?: 'mom' | 'baby'; chapter?: string }
+    | undefined;
+  const initialWho: 'mom' | 'baby' = initialParams?.audience ?? 'baby';
+  const initialList = initialWho === 'baby' ? BABY_CHAPTERS : MOM_CHAPTERS;
+  const initialChapter = (
+    initialParams?.chapter
+      ? initialList.find((c) => c.ch === initialParams.chapter) ?? initialList[0]
+      : initialList[0]
+  );
+
+  const [who, setWho] = useState<'mom' | 'baby'>(initialWho);
   const list = who === 'baby' ? BABY_CHAPTERS : MOM_CHAPTERS;
-  const [chapter, setChapter] = useState<ChapterMeta>(list[0]);
+  const [chapter, setChapter] = useState<ChapterMeta>(initialChapter);
 
   // Switch audience → reset to first chapter of new list
   const switchWho = (next: 'mom' | 'baby') => {
