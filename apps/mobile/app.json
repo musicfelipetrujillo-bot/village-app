@@ -16,13 +16,16 @@
       "supportsTablet": false,
       "icon": "./assets/icon.png",
       "bundleIdentifier": "com.villieapp.mobile",
-      "buildNumber": "1",
+      "buildNumber": "2",
       "entitlements": {
         "keychain-access-groups": [
           "$(AppIdentifierPrefix)com.villieapp.mobile"
         ]
       },
-      "associatedDomains": ["applinks:villieapp.com", "applinks:www.villieapp.com"],
+      "associatedDomains": [
+        "applinks:villieapp.com",
+        "applinks:www.villieapp.com"
+      ],
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "villie uses your location to find nearby donors, specialists, and events.",
         "NSLocationAlwaysUsageDescription": "villie uses your location to find nearby donors, specialists, and events.",
@@ -49,12 +52,31 @@
           "action": "VIEW",
           "autoVerify": true,
           "data": [
-            { "scheme": "https", "host": "villieapp.com", "pathPrefix": "/m/" },
-            { "scheme": "https", "host": "villieapp.com", "pathPrefix": "/manual/v/" },
-            { "scheme": "https", "host": "www.villieapp.com", "pathPrefix": "/m/" },
-            { "scheme": "https", "host": "www.villieapp.com", "pathPrefix": "/manual/v/" }
+            {
+              "scheme": "https",
+              "host": "villieapp.com",
+              "pathPrefix": "/m/"
+            },
+            {
+              "scheme": "https",
+              "host": "villieapp.com",
+              "pathPrefix": "/manual/v/"
+            },
+            {
+              "scheme": "https",
+              "host": "www.villieapp.com",
+              "pathPrefix": "/m/"
+            },
+            {
+              "scheme": "https",
+              "host": "www.villieapp.com",
+              "pathPrefix": "/manual/v/"
+            }
           ],
-          "category": ["BROWSABLE", "DEFAULT"]
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
         }
       ],
       "permissions": [
@@ -147,9 +169,7 @@
         "projectId": "4b786f88-d387-4aba-a420-dfae6db88671"
       }
     },
-    "runtimeVersion": {
-      "policy": "appVersion"
-    },
+    "runtimeVersion": "1.0.0",
     "owner": "villagepeople"
   }
 }
