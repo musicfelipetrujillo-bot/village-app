@@ -6,6 +6,7 @@ import {
 } from 'react-native';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import { COLORS, FONTS } from '@utils/constants';
+import { cardLift, cardLiftBorder } from '@utils/cardLift';
 import { V9PageBackdrop } from '@components/shared/V9PageBackdrop';
 import { GlassHighlight } from '@components/shared/GlassHighlight';
 import { useT } from '@/i18n';
@@ -521,9 +522,14 @@ const styles = StyleSheet.create({
   },
   mapsBtnText: { fontSize: 13, fontFamily: FONTS.bodySemiBold, color: COLORS.cocoDeep },
 
+  // "Before you meet" safety info — was translucent caramel tint that blended
+  // into the WarmGlowBackdrop. Now lifted paper card with rust hairline so
+  // it reads as a deliberate informational surface.
   safetyBlock: {
-    backgroundColor: 'rgba(196,163,90,0.12)', borderRadius: 14,
+    backgroundColor: COLORS.v2_card, borderRadius: 14,
     padding: 16, marginTop: 16,
+    ...cardLiftBorder,
+    ...cardLift,
   },
   safetyTitle: { fontSize: 12, fontFamily: FONTS.bodySemiBold, color: COLORS.bark, marginBottom: 6, letterSpacing: 0.4 },
   safetyBody: { fontSize: 12, color: COLORS.barkSoft, lineHeight: 19, fontFamily: FONTS.body },

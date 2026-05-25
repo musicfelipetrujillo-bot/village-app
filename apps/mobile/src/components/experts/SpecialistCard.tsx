@@ -8,6 +8,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { COLORS, FONTS } from '@utils/constants';
+import { cardLift, cardLiftBorder } from '@utils/cardLift';
 import type { Specialist, SpecialtyType } from 'shared/src/types/v1';
 
 const SPECIALTY_CONFIG: Record<
@@ -149,18 +150,15 @@ const styles = StyleSheet.create({
   // Cream chrome with thin border + soft rounded corners — same recipe as
   // the design artifact's `var(--warm) #FAF5ED` card. We map to ceramic
   // (canonical token) so a future re-theme cascades automatically.
+  // Specialist row card — lift bumped to canonical recipe (was 0.08 op + 4
+  // offset, blended against the warm gradient backdrop per blend audit).
   card: {
-    backgroundColor: COLORS.paper,
+    backgroundColor: COLORS.v2_card,
     borderRadius: 18,
     paddingVertical: 6,
     paddingHorizontal: 14,
-    borderWidth: 1,
-    borderColor: 'rgba(173, 121, 91, 0.12)', // coco @ 12%
-    shadowColor: COLORS.bark,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 20,
-    elevation: 2,
+    ...cardLiftBorder,
+    ...cardLift,
   },
 
   eyebrowRow: {

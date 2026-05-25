@@ -8,6 +8,7 @@ import { FlashList } from '@shopify/flash-list';
 import { useNavigation } from '@react-navigation/native';
 import * as Location from 'expo-location';
 import { COLORS, FONTS } from '@utils/constants';
+import { cardLift, cardLiftBorder } from '@utils/cardLift';
 import { getEffectiveCoords } from '@utils/devLocation';
 import { useEventsStore } from '@store/events';
 import { formatDistance, type EventCard, type EventType, type AgeTag } from '@api/events';
@@ -339,15 +340,16 @@ const styles = StyleSheet.create({
   ageChipText: { fontSize: 12, fontFamily: FONTS.bodySemiBold, color: COLORS.barkSoft },
   ageChipTextActive: { color: '#FDFBF6' },
 
-  // Concept B card — cream chrome, ceramicDeep border, hairline-divided footer.
+  // Event card — paper-lifted v3 surface (was flat per blend audit). Matches
+  // DailyCheckinStrip on Home + V3Card across the app.
   card: {
-    backgroundColor: COLORS.paper,
+    backgroundColor: COLORS.v2_card,
     borderRadius: 14,
     paddingVertical: 16,
     paddingHorizontal: 16,
     marginBottom: 12,
-    borderWidth: 1,
-    borderColor: COLORS.sandSoft,
+    ...cardLiftBorder,
+    ...cardLift,
   },
   cardHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
   cardBadge: { fontSize: 10, fontFamily: FONTS.bodySemiBold, letterSpacing: 1.6, color: COLORS.barkSoft, textTransform: 'uppercase' },

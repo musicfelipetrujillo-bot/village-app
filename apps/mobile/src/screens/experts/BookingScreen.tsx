@@ -7,6 +7,7 @@ import {
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useFocusEffect } from '@react-navigation/native';
 import { COLORS, FONTS } from '@utils/constants';
+import { cardLift, cardLiftBorder } from '@utils/cardLift';
 import { V9PageBackdrop } from '@components/shared/V9PageBackdrop';
 import { useT } from '@/i18n';
 import { useExpertsStore } from '@store/experts';
@@ -360,11 +361,14 @@ const styles = StyleSheet.create({
 
   content: { paddingHorizontal: 16, paddingTop: 20, gap: 20 },
 
+  // Booking form section — paper-lifted v3 surface (was flat per blend audit).
   section: {
-    backgroundColor: COLORS.paper,
+    backgroundColor: COLORS.v2_card,
     borderRadius: 16,
     padding: 16,
     gap: 12,
+    ...cardLiftBorder,
+    ...cardLift,
   },
   sectionLabel: {
     fontSize: 12,

@@ -11,6 +11,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useAuthStore } from '@store/auth';
 import { useMilkStore } from '@store/milk';
 import { COLORS, FONTS } from '@utils/constants';
+import { cardLift, cardLiftBorder } from '@utils/cardLift';
 import { useT } from '@/i18n';
 import type { MilkStackParamList } from '@/navigation/MilkNavigator';
 
@@ -338,15 +339,18 @@ const styles = StyleSheet.create({
     marginHorizontal: -20,
   },
 
-  // Donor dashboard — slim white card, no shadow stack. Playfair italic name
-  // + slim inline badge. One rust filled CTA + one rust outline.
+  // Donor dashboard — lifted v3 card (was blending into the WarmGlow
+  // gradient with stale #F2E9C4 golden bg + no shadow per blend audit).
+  // Now paper bg + canonical cardLift recipe so it sits well above the
+  // page wash, matching DailyCheckinStrip on Home.
   dashboardCard: {
     marginHorizontal: 20, marginTop: 14,
-    backgroundColor: '#F2E9C4',
+    backgroundColor: COLORS.v2_card,
     overflow: 'hidden',
     borderRadius: 18,
     padding: 16,
-    borderWidth: 1, borderColor: 'rgba(150,80,50,0.18)',
+    ...cardLiftBorder,
+    ...cardLift,
   },
   dashboardRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 },
   dashboardLeft: { flex: 1, paddingRight: 12 },

@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { COLORS, FONTS } from '@utils/constants';
+import { cardLift, cardLiftBorder } from '@utils/cardLift';
 import type { Review } from 'shared/src/types/v1';
 
 interface Props { review: Review }
@@ -32,16 +33,15 @@ export function ReviewCard({ review }: Props) {
 }
 
 const styles = StyleSheet.create({
+  // Review card — lift bumped from 0.05/1r to canonical recipe (was
+  // barely visible against the cream wash per blend audit).
   card: {
-    backgroundColor: COLORS.paper,
+    backgroundColor: COLORS.v2_card,
     borderRadius: 10,
     padding: 16,
     marginBottom: 10,
-    shadowColor: '#6B2E0E',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
-    elevation: 1,
+    ...cardLiftBorder,
+    ...cardLift,
   },
   header: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8, flexWrap: 'wrap' },
   stars: { fontSize: 14, color: COLORS.sand },

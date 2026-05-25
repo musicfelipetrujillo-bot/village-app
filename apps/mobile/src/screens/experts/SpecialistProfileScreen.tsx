@@ -6,6 +6,7 @@ import {
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { COLORS, FONTS } from '@utils/constants';
+import { cardLift, cardLiftBorder } from '@utils/cardLift';
 import { V9PageBackdrop } from '@components/shared/V9PageBackdrop';
 import { GlassHighlight } from '@components/shared/GlassHighlight';
 import { useT } from '@/i18n';
@@ -376,12 +377,16 @@ const styles = StyleSheet.create({
   ratingCount: { fontSize: 12, color: COLORS.textLight, fontFamily: FONTS.body },
   aiSummaryBtn: { fontSize: 12, color: '#A77349', fontFamily: FONTS.bodyMedium },
 
+  // AI summary — was flat butter-cream that blended into the page wash;
+  // now paper-lifted v3 card.
   aiSummaryCard: {
     marginHorizontal: 16,
     marginBottom: 12,
-    backgroundColor: '#FFF8E8',
+    backgroundColor: COLORS.v2_card,
     borderRadius: 12,
     padding: 16,
+    ...cardLiftBorder,
+    ...cardLift,
   },
   aiSummaryTitle: { fontSize: 12, fontFamily: FONTS.bodySemiBold, color: COLORS.sand, marginBottom: 6 },
   aiSummaryText: { fontSize: 13, color: COLORS.bark, lineHeight: 20, fontFamily: FONTS.body },

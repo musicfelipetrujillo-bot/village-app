@@ -6,6 +6,7 @@ import {
 import { FlashList } from '@shopify/flash-list';
 import { useNavigation } from '@react-navigation/native';
 import { COLORS, FONTS } from '@utils/constants';
+import { cardLift, cardLiftBorder } from '@utils/cardLift';
 import { V9PageBackdrop } from '@components/shared/V9PageBackdrop';
 import { usePerksStore } from '@store/perks';
 import { useHomeStore } from '@store/home';
@@ -251,15 +252,15 @@ const styles = StyleSheet.create({
   ageCheckMark: { color: '#FDFBF6', fontSize: 13, fontFamily: FONTS.bodySemiBold },
   ageText: { fontSize: 12, color: COLORS.barkSoft, flex: 1 },
 
-  // Concept B card — cream chrome, ceramicDeep border, hairline-divided footer.
+  // Perk card — paper-lifted v3 surface (was flat per blend audit).
   card: {
-    backgroundColor: COLORS.paper,
+    backgroundColor: COLORS.v2_card,
     borderRadius: 14,
     paddingVertical: 16,
     paddingHorizontal: 16,
     marginBottom: 12,
-    borderWidth: 1,
-    borderColor: COLORS.sandSoft,
+    ...cardLiftBorder,
+    ...cardLift,
   },
   cardHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
   cardCategory: { fontSize: 10, fontFamily: FONTS.bodySemiBold, letterSpacing: 1.6, color: COLORS.barkSoft },

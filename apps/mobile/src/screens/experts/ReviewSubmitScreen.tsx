@@ -6,6 +6,7 @@ import {
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { COLORS, FONTS } from '@utils/constants';
+import { cardLift, cardLiftBorder } from '@utils/cardLift';
 import { V9PageBackdrop } from '@components/shared/V9PageBackdrop';
 import { useT } from '@/i18n';
 import { useExpertsStore } from '@store/experts';
@@ -206,12 +207,15 @@ const styles = StyleSheet.create({
   providerName: { fontSize: 15, fontFamily: FONTS.bodySemiBold, color: COLORS.bark },
   providerSub: { fontSize: 12, color: COLORS.textLight, marginTop: 2, fontFamily: FONTS.body },
 
+  // Rating card — paper-lifted v3 surface (was flat per blend audit).
   starsSection: {
-    backgroundColor: COLORS.paper,
+    backgroundColor: COLORS.v2_card,
     borderRadius: 16,
     padding: 20,
     alignItems: 'center',
     gap: 10,
+    ...cardLiftBorder,
+    ...cardLift,
   },
   starsLabel: { fontSize: 13, color: COLORS.textLight, fontFamily: FONTS.bodyMedium, textTransform: 'uppercase', letterSpacing: 0.8 },
   starsRow: { flexDirection: 'row', gap: 8 },
