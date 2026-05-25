@@ -162,30 +162,6 @@ function CornerBee({ size = 26, rotate = 0, style }: {
 }
 
 // ─── Sections ──────────────────────────────────────────────────────────
-function HomeHeader({ unread = 0, onBellPress }: { unread?: number; onBellPress: () => void }) {
-  // Wordmark removed 2026-05-24 per Felipe — the editorial masthead
-  // ("Good evening, friend.") IS the brand signature on in-app
-  // surfaces. Wordmark stays on auth (Splash / Login / SignUp) where
-  // it's the brand-identity moment. Bell flush-right.
-  return (
-    <View style={styles.header}>
-      <TouchableOpacity onPress={onBellPress} accessibilityRole="button" accessibilityLabel="Notifications" style={styles.bellBtn}>
-        <Svg width={16} height={16} viewBox="0 0 24 24">
-          <Path
-            d="M15 17h5l-1.4-1.4A2 2 0 0118 14.2V11a6 6 0 10-12 0v3.2a2 2 0 01-.6 1.4L4 17h5m6 0a3 3 0 11-6 0"
-            stroke={T.walnut} strokeWidth={1.8} fill="none" strokeLinecap="round" strokeLinejoin="round"
-          />
-        </Svg>
-        {unread > 0 && (
-          <View style={styles.bellBadge}>
-            <Text style={styles.bellBadgeText}>{unread}</Text>
-          </View>
-        )}
-      </TouchableOpacity>
-    </View>
-  );
-}
-
 function HomeGreeting({ firstName, babyName, weekNumber, monthsOld, dateLabel }: {
   firstName: string;
   babyName: string | null;
@@ -404,7 +380,7 @@ export default function HomeScreenV3() {
 
   // Navigation handlers — uses parent tab navigator for cross-tab moves.
   const goManual = () => navigation.navigate('Manual' as never);
-  const goBell   = () => navigation.navigate('Notifications' as never);
+  // goBell removed 2026-05-24 alongside the header bell.
   const goVillagePillar = (route: string) => {
     // The handoff routes map to existing tab names. "Experts" = experts tab,
     // "MilkConnect" = milk tab landing, etc. Fall back to AllExploreScreen
@@ -457,7 +433,10 @@ export default function HomeScreenV3() {
         )}
         scrollEventThrottle={16}
       >
-        <HomeHeader unread={0} onBellPress={goBell} />
+        {/* HomeHeader removed 2026-05-24 per Felipe — bell + wordmark
+            both gone; the editorial greeting opens the page directly.
+            NotificationsScreen stays registered on HomeNavigator for
+            deep-link compatibility but has no in-app entry point. */}
         <HomeGreeting
           firstName={firstName}
           babyName={babyName}
@@ -496,23 +475,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: T.paper, overflow: 'hidden' },
   scroll: { paddingTop: 56, paddingHorizontal: 22, paddingBottom: 96 },
 
-  // ── Header ────────────────────────────────────────────────────────────
-  header: {
-    flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center',
-  },
-  bellBtn: {
-    width: 36, height: 36, borderRadius: 12, backgroundColor: T.parchment,
-    alignItems: 'center', justifyContent: 'center', position: 'relative',
-  },
-  bellBadge: {
-    position: 'absolute', top: -3, right: -3,
-    backgroundColor: T.cinnamon, borderRadius: 99,
-    paddingVertical: 1, paddingHorizontal: 5, minWidth: 14,
-    alignItems: 'center', justifyContent: 'center',
-  },
-  bellBadgeText: {
-    fontFamily: FONTS.v2_bold, fontSize: 9, color: T.paper,
-  },
+  // ── Header / bell styles removed 2026-05-24 alongside HomeHeader. ────
 
   // ── Greeting block ────────────────────────────────────────────────────
   greeting: {
