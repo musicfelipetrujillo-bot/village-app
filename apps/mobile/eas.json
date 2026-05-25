@@ -37,7 +37,8 @@
         "EXPO_PUBLIC_SUPABASE_URL": "https://albyndcruwopulazvpjs.supabase.co",
         "EXPO_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable_zBiBB7U-7BGuAcfMfivMcQ_IRuYo4yj",
         "EXPO_PUBLIC_API_BASE_URL": "https://albyndcruwopulazvpjs.supabase.co/functions/v1",
-        "EXPO_PUBLIC_INTERNAL_AGENTS_ENABLED": "0"
+        "EXPO_PUBLIC_INTERNAL_AGENTS_ENABLED": "0",
+        "EXPO_PUBLIC_OAUTH_PROVIDERS_ENABLED": "1"
       },
       "ios": {
         "buildConfiguration": "Release"
@@ -50,9 +51,8 @@
   "submit": {
     "production": {
       "ios": {
-        "appleId": "your-apple-id@email.com",
-        "ascAppId": "your-app-store-connect-app-id",
-        "appleTeamId": "your-team-id"
+        "appleId": "musicfelipetrujillo@gmail.com",
+        "appleTeamId": "B9BRJPBM6G"
       },
       "android": {
         "serviceAccountKeyPath": "./google-play-key.json",
