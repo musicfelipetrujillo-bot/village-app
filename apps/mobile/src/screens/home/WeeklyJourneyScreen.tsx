@@ -41,13 +41,25 @@ import {
 
 type ParamList = { WeeklyJourney: { week?: number } };
 
+// Maps weekly-journey AI CTA tab tokens → actual Tab.Screen names in
+// AppNavigator. Updated 2026-05-25 nav audit:
+//   - `community: 'Connect'` REMOVED — Connect tab is hidden and not
+//     shipping; AI-generated `community:*` CTAs are silently dropped
+//     by the early-return guard below (vs navigating to a non-existent
+//     tab and silently failing).
+//   - `me: 'Me'` → `me: 'Profile'` — actual tab name in AppNavigator is
+//     `Profile` (hosts MeNavigator under the hood).
+//   - Added `manual`, `village`, `inbox` for completeness so AI CTAs
+//     targeting newer surfaces resolve.
 const TAB_KEY_MAP: Record<string, string> = {
-  home:      'Home',
-  milk:      'Milk',
-  experts:   'Experts',
-  community: 'Connect',
-  gear:      'Gear',
-  me:        'Me',
+  home:    'Home',
+  manual:  'Manual',
+  village: 'Village',
+  inbox:   'Inbox',
+  milk:    'Milk',
+  experts: 'Experts',
+  gear:    'Gear',
+  me:      'Profile',
 };
 
 type Segment = 'aboutYou' | 'village' | 'todos';
