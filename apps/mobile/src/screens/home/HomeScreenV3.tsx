@@ -178,18 +178,18 @@ function HomeGreeting({ firstName, babyName, weekNumber, monthsOld, dateLabel }:
     : null;
   return (
     <View style={styles.greetingBlock}>
-      {/* Greeting-corner bee cluster 2026-05-24 — Felipe: the existing
-          DailyCheckinStrip bee felt lonely after the header bell came
-          off. Three small atmospheric bees fill the right-rail
-          whitespace next to the short "Good evening," line + the area
-          below it. All low-opacity so they read as background
-          atmosphere, not foreground decoration. Layered ABOVE the
-          greeting text via z-index so they sit in front of the warm
-          page wash but behind any tappable surface. */}
+      {/* Greeting-corner bee swarm 2026-05-24 — first pass had 3 bees in
+          a rigid triangle that Felipe read as forced. Five-bee swarm now
+          with deliberately varied sizes (14-26px) + non-uniform rotation
+          + opacity drift, no clean alignment. Reads as flight path /
+          accidental wandering, not arranged decoration. Layered ABOVE
+          the page wash but pointerEvents=none so taps fall through. */}
       <View pointerEvents="none" style={styles.greetingBeeCluster}>
-        <CornerBee size={28} rotate={-18} style={styles.greetingBeeTop} />
-        <CornerBee size={18} rotate={22}  style={styles.greetingBeeRight} />
-        <CornerBee size={22} rotate={-6}  style={styles.greetingBeeLower} />
+        <CornerBee size={24} rotate={-22} style={styles.greetingBee1} />
+        <CornerBee size={14} rotate={48}  style={styles.greetingBee2} />
+        <CornerBee size={20} rotate={-6}  style={styles.greetingBee3} />
+        <CornerBee size={18} rotate={31}  style={styles.greetingBee4} />
+        <CornerBee size={16} rotate={-44} style={styles.greetingBee5} />
       </View>
 
       <View style={{ marginTop: 22 }}><Eyebrow>{dateLabel}</Eyebrow></View>
@@ -498,18 +498,21 @@ const styles = StyleSheet.create({
   // container so the bees stay anchored to this surface (not the
   // scroll content as a whole, which would put them in different
   // visual spots per screen).
+  // Wider canvas so the swarm can drift further from any one anchor.
   greetingBeeCluster: {
-    position: 'absolute', top: 0, right: 0, width: 110, height: 160,
+    position: 'absolute', top: -8, right: -6, width: 140, height: 200,
     zIndex: 1,
   },
-  // Top-right anchor — sits where the header bell used to live.
-  greetingBeeTop:   { position: 'absolute', top: 4,  right: 4 },
-  // Tucked next to the trailing comma of "evening," — fills the
-  // shortest visual line break in the masthead.
-  greetingBeeRight: { position: 'absolute', top: 78, right: 42 },
-  // Slightly lower, further out — third corner of a loose triangle so
-  // the cluster reads as a flight path, not a stack.
-  greetingBeeLower: { position: 'absolute', top: 122, right: 16 },
+  // Five-bee organic swarm — each at a deliberately non-uniform
+  // position + opacity. Positions chosen by eye to feel like a flight
+  // path passing through the right rail (top-right → lower-left of the
+  // cluster), not a stack or a triangle. Opacities vary so the closer
+  // bees feel "near" and the smaller ones recede.
+  greetingBee1: { position: 'absolute', top: 6,   right: 14, opacity: 0.32 },
+  greetingBee2: { position: 'absolute', top: 38,  right: 78, opacity: 0.18 },
+  greetingBee3: { position: 'absolute', top: 82,  right: 36, opacity: 0.26 },
+  greetingBee4: { position: 'absolute', top: 122, right: 88, opacity: 0.20 },
+  greetingBee5: { position: 'absolute', top: 152, right: 24, opacity: 0.22 },
 
   greeting: {
     fontFamily: FONTS.v3_display,    // Plus Jakarta Sans 700 — brand kit grotesk display

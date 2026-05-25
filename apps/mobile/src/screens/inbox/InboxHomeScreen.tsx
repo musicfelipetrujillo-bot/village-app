@@ -166,7 +166,10 @@ export default function InboxHomeScreen() {
 
     return (
       <View style={styles.rowWrap}>
-        <V3Card pressable={() => openThread(item)} contentStyle={styles.rowInner}>
+        {/* deepShadow bumped 2026-05-25 — standard shadow read flat
+            against the Inbox warm wash; deep recipe lifts thread rows
+            distinctly. Matches MeScreen card bump same session. */}
+        <V3Card deepShadow pressable={() => openThread(item)} contentStyle={styles.rowInner}>
           <View style={styles.rowTopLine}>
             <View style={[styles.kindChip, { backgroundColor: chip.bg }]}>
               <Text style={[styles.kindChipText, { color: chip.fg }]}>
@@ -225,7 +228,7 @@ export default function InboxHomeScreen() {
           }
           ListEmptyComponent={
             <View style={styles.emptyWrap}>
-              <V3Card contentStyle={styles.emptyInner}>
+              <V3Card deepShadow contentStyle={styles.emptyInner}>
                 <Eyebrow>{t('inbox.eyebrow')}</Eyebrow>
                 <Text style={styles.emptyTitle}>
                   {t('inbox.emptyTitle')}

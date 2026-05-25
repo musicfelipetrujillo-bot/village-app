@@ -1152,18 +1152,22 @@ const s = StyleSheet.create({
     color: COLORS.barkSoft,
     marginBottom: 10,
   },
+  // Me page bg gradient is warmer than Home (FDF1EB → FCFCFB → F5DFD3),
+  // which absorbs the standard cocoa shadow. Bumped to cardLiftDeep
+  // recipe (deeper offset + radius, darker shadow color) so cards
+  // actually read as lifted against the pink-tinted wash. Border also
+  // bumped from hairline to 1px for clearer silhouette.
   card: {
-    backgroundColor: COLORS.paper,
+    backgroundColor: COLORS.v2_card,
     borderRadius: 14,
     overflow: 'hidden',
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'rgba(150, 80, 50, 0.18)',
-    // v9 lift — same cocoa drop recipe as Home cards
-    shadowColor: '#6B2E0E',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.22,
-    shadowRadius: 22,
-    elevation: 5,
+    borderWidth: 1,
+    borderColor: 'rgba(150, 80, 50, 0.22)',
+    shadowColor: '#3D1F0E',
+    shadowOffset: { width: 0, height: 14 },
+    shadowOpacity: 0.28,
+    shadowRadius: 24,
+    elevation: 8,
   },
   row: {
     paddingHorizontal: 14,
