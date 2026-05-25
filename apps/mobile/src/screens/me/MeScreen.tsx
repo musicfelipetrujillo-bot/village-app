@@ -946,7 +946,12 @@ function Section({
         <Text style={s.sectionEyebrow}>{title}</Text>
       </View>
       {subtitle ? <Text style={s.sectionSubtitle}>{subtitle}</Text> : null}
-      <V3Card deepShadow>{children}</V3Card>
+      {/* tinted with subtle butter-cream (#FBF4DE) — Felipe 2026-05-25
+          "they should have a bit of color tone." Pure-paper card on the
+          pink-tinted Me page wash looked flat; a warm butter-paper tint
+          gives the card distinct character without losing the paper
+          feel. Still neutral enough to host body text. */}
+      <V3Card deepShadow tinted="#FBF4DE">{children}</V3Card>
     </View>
   );
 }
