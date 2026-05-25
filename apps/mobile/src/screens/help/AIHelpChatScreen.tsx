@@ -10,6 +10,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useAuthStore } from '@store/auth';
 import { appHelpApi, type HelpMessage, type HelpUserContext, type CrisisResource } from '@api/appHelp';
 import { COLORS, FONTS } from '@utils/constants';
+import { cardLift, cardLiftBorder } from '@utils/cardLift';
 import { useT } from '@/i18n';
 
 interface UIMessage {
@@ -187,9 +188,13 @@ const styles = StyleSheet.create({
   bubbleTheirs: { backgroundColor: COLORS.paper, borderBottomLeftRadius: 4 },
   bubbleText: { fontSize: 15, color: COLORS.bark, lineHeight: 20, fontFamily: FONTS.body },
 
+  // Crisis card — was flat blush bg, low contrast in the chat scroll.
+  // Lift recipe + paper bg so it reads as a deliberate intervention.
   crisisCard: {
     marginTop: 6, marginHorizontal: 8, padding: 12, borderRadius: 12,
-    backgroundColor: '#FFF7F2', borderWidth: 1, borderColor: COLORS.cocoSoft,
+    backgroundColor: COLORS.v2_card,
+    ...cardLiftBorder,
+    ...cardLift,
   },
   crisisTitle: { fontSize: 12, fontFamily: FONTS.bodySemiBold, color: '#A77349', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 8 },
   crisisRow: { paddingVertical: 6 },
