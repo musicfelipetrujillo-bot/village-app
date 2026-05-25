@@ -177,7 +177,21 @@ function HomeGreeting({ firstName, babyName, weekNumber, monthsOld, dateLabel }:
     ? `${babyName} · ${monthsOld} ${lang === 'es' ? 'meses' : 'months'} · ${lang === 'es' ? 'semana' : 'week'} ${weekNumber}`
     : null;
   return (
-    <>
+    <View style={styles.greetingBlock}>
+      {/* Greeting-corner bee cluster 2026-05-24 — Felipe: the existing
+          DailyCheckinStrip bee felt lonely after the header bell came
+          off. Three small atmospheric bees fill the right-rail
+          whitespace next to the short "Good evening," line + the area
+          below it. All low-opacity so they read as background
+          atmosphere, not foreground decoration. Layered ABOVE the
+          greeting text via z-index so they sit in front of the warm
+          page wash but behind any tappable surface. */}
+      <View pointerEvents="none" style={styles.greetingBeeCluster}>
+        <CornerBee size={28} rotate={-18} style={styles.greetingBeeTop} />
+        <CornerBee size={18} rotate={22}  style={styles.greetingBeeRight} />
+        <CornerBee size={22} rotate={-6}  style={styles.greetingBeeLower} />
+      </View>
+
       <View style={{ marginTop: 22 }}><Eyebrow>{dateLabel}</Eyebrow></View>
       <Text style={styles.greeting}>
         {greet},{'\n'}
@@ -186,7 +200,7 @@ function HomeGreeting({ firstName, babyName, weekNumber, monthsOld, dateLabel }:
       {babyLine ? (
         <Text style={styles.babyMonoLine}>{babyLine}</Text>
       ) : null}
-    </>
+    </View>
   );
 }
 
@@ -478,6 +492,25 @@ const styles = StyleSheet.create({
   // ── Header / bell styles removed 2026-05-24 alongside HomeHeader. ────
 
   // ── Greeting block ────────────────────────────────────────────────────
+  greetingBlock: { position: 'relative' },
+  // Bee cluster overlay — fills the upper-right rail next to the short
+  // "Good evening," line. Sits inside the greeting block's relative
+  // container so the bees stay anchored to this surface (not the
+  // scroll content as a whole, which would put them in different
+  // visual spots per screen).
+  greetingBeeCluster: {
+    position: 'absolute', top: 0, right: 0, width: 110, height: 160,
+    zIndex: 1,
+  },
+  // Top-right anchor — sits where the header bell used to live.
+  greetingBeeTop:   { position: 'absolute', top: 4,  right: 4 },
+  // Tucked next to the trailing comma of "evening," — fills the
+  // shortest visual line break in the masthead.
+  greetingBeeRight: { position: 'absolute', top: 78, right: 42 },
+  // Slightly lower, further out — third corner of a loose triangle so
+  // the cluster reads as a flight path, not a stack.
+  greetingBeeLower: { position: 'absolute', top: 122, right: 16 },
+
   greeting: {
     fontFamily: FONTS.v3_display,    // Plus Jakarta Sans 700 — brand kit grotesk display
     fontSize: 40, lineHeight: 41,
