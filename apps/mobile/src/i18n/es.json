@@ -593,7 +593,9 @@
     "step2": "Construye tu insignia",
     "step3": "Crea tu publicación",
     "getStarted": "Empezar",
-    "safetyNote": "🔒 El intercambio de leche es entre adultos que consienten. villie no ofrece consejo médico. Consulta a tu pediatra antes de usar leche donada."
+    "safetyNote": "🔒 El intercambio de leche es entre adultos que consienten. villie no ofrece consejo médico. Consulta a tu pediatra antes de usar leche donada.",
+    "homeTitleRoman": "Leche",
+    "homeTitleItalic": "Materna."
   },
   "donorSearch": {
     "back": "Atrás",
@@ -1368,7 +1370,9 @@
     "chipPelvic": "Fisio del suelo pélvico",
     "chipTherapist": "Terapeuta",
     "chipDietitian": "Dietista",
-    "chipMyInsurance": "{{name}}"
+    "chipMyInsurance": "{{name}}",
+    "homeTitleRoman": "Encuentra tu equipo de",
+    "homeTitleItalic": "cuidado."
   },
   "expertsFavorites": {
     "back": "← Atrás",
@@ -1641,7 +1645,9 @@
     "noPhoto": "Sin foto",
     "cpscBadge": "CPSC ✓",
     "metaSeparator": " · {{brand}}",
-    "distanceKm": " · {{km}} km"
+    "distanceKm": " · {{km}} km",
+    "homeTitleRoman": "Pásalo a otra",
+    "homeTitleItalic": "mamá."
   },
   "gearDetail": {
     "back": "← Atrás",
@@ -1783,7 +1789,9 @@
     "badgeLocal": "📍 LOCAL",
     "partner": "Socio",
     "hostPrefix": "con {{host}}",
-    "platformOnline": "EN LÍNEA"
+    "platformOnline": "EN LÍNEA",
+    "mastheadTitleRoman": "Eventos cerca de",
+    "mastheadTitleItalic": "ti."
   },
   "eventDetail": {
     "back": "← Atrás",

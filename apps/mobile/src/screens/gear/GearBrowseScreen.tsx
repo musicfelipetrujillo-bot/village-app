@@ -133,7 +133,11 @@ export default function GearBrowseScreen() {
           <View style={styles.heroEyebrowBar} />
           <Text style={styles.heroEyebrowText}>{t('gearBrowse.eyebrow')}</Text>
         </View>
-        <Text style={styles.heroTitle}>{t('gearBrowse.homeTitle')}</Text>
+        {/* v3 split headline — see MilkConnectHomeScreen for recipe. */}
+        <Text style={styles.heroTitle}>
+          {t('gearBrowse.homeTitleRoman')}{' '}
+          <Text style={styles.heroTitleItalic}>{t('gearBrowse.homeTitleItalic')}</Text>
+        </Text>
         <Text style={styles.heroSub}>{t('gearBrowse.homeSub')}</Text>
       </View>
     </View>
@@ -381,9 +385,15 @@ const styles = StyleSheet.create({
   },
   heroTitle: {
     fontSize: 36, lineHeight: 42,
-    fontFamily: FONTS.headerItalic, fontStyle: 'italic',
+    fontFamily: FONTS.v3_display,
     color: '#FDFBF6',
     marginBottom: 8,
+    letterSpacing: -0.8,
+  },
+  heroTitleItalic: {
+    fontFamily: FONTS.v3_display_italic,
+    color: COLORS.v2_salmon,
+    fontStyle: 'italic',
   },
   heroSub: {
     fontSize: 14, lineHeight: 20,

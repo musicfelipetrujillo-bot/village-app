@@ -118,7 +118,13 @@ export default function MilkConnectHomeScreen({ navigation }: Props) {
             <View style={styles.heroEyebrowBar} />
             <Text style={styles.heroEyebrowText}>{t('milk.eyebrow')}</Text>
           </View>
-          <Text style={styles.heroTitle}>{t('milk.homeTitle')}</Text>
+          {/* v3 split headline — Plus Jakarta bold roman + salmon italic
+              accent (one italic per screen rule) matching VillageHomeV3.
+              Visual unity across the 4 verticals + outer Village hub. */}
+          <Text style={styles.heroTitle}>
+            {t('milk.homeTitleRoman')}{' '}
+            <Text style={styles.heroTitleItalic}>{t('milk.homeTitleItalic')}</Text>
+          </Text>
           <Text style={styles.heroSub}>{t('milk.homeSub')}</Text>
         </View>
       </View>
@@ -504,10 +510,17 @@ const styles = StyleSheet.create({
     opacity: 0.92,
   },
   heroTitle: {
+    // v3 split-headline: Plus Jakarta bold roman; italic span swaps in.
     fontSize: 36, lineHeight: 42,
-    fontFamily: FONTS.headerItalic, fontStyle: 'italic',
+    fontFamily: FONTS.v3_display,
     color: '#FDFBF6',
     marginBottom: 8,
+    letterSpacing: -0.8,
+  },
+  heroTitleItalic: {
+    fontFamily: FONTS.v3_display_italic,
+    color: COLORS.v2_salmon,
+    fontStyle: 'italic',
   },
   heroSub: {
     fontSize: 14, lineHeight: 20,
