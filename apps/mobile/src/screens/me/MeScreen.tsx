@@ -946,12 +946,12 @@ function Section({
         <Text style={s.sectionEyebrow}>{title}</Text>
       </View>
       {subtitle ? <Text style={s.sectionSubtitle}>{subtitle}</Text> : null}
-      {/* tinted with subtle butter-cream (#FBF4DE) — Felipe 2026-05-25
-          "they should have a bit of color tone." Pure-paper card on the
-          pink-tinted Me page wash looked flat; a warm butter-paper tint
-          gives the card distinct character without losing the paper
-          feel. Still neutral enough to host body text. */}
-      <V3Card deepShadow tinted="#FBF4DE">{children}</V3Card>
+      {/* tinted with very-subtle warm paper (#FDF8ED) — Felipe asked for
+          "a bit of color tone" but the first pass (#FBF4DE) read too
+          butter-yellow. This is much closer to pure paper #FEFAF6, just
+          a hint of warmth so the card edge reads against the pink page
+          wash without committing to a tinted-paper look. */}
+      <V3Card deepShadow tinted="#FDF8ED">{children}</V3Card>
     </View>
   );
 }
