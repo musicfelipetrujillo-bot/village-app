@@ -579,22 +579,16 @@ Design handoff dropped at `/Users/gp/Downloads/design_handoff_villie/` with new 
 
 ---
 
-## Pending — v3 brand kit for the 4 Village verticals (logged 2026-05-24, do next session)
+## Done — v3 brand kit for the 4 Village verticals (2026-05-24, commit `8571fe2`)
 
-The outer `VillageHomeScreenV3` ("Your backup is *here.*" masthead + 2×2 tile grid + ON THE CALENDAR list) is on the revised brand kit. The 4 vertical tiles route correctly post `f662bd7` fix, but tap-through lands on screens that still need the same lean editorial treatment:
+The outer `VillageHomeScreenV3` ("Your backup is *here.*" masthead + 2×2 tile grid + ON THE CALENDAR list) was on the revised brand kit; the 4 vertical tiles it routes to had `WarmGlowBackdrop` + `V3Card` + KenBurns hero photography from earlier Phase D work but used pure-italic `FONTS.headerItalic` hero titles instead of the v3 split-headline recipe. Patched all 4 to share the headline DNA:
 
-- **Milk Connect** → `MilkConnectHomeScreen` (Milk tab landing)
-- **Specialists** → `ExpertsHomeScreen` (Experts tab landing)
-- **Baby Gear** → `GearBrowseScreen` (Gear tab landing)
-- **Villie Plans** → Village tab's events/plans list (whichever screen the Village tab's secondary surface is)
+- **Milk Connect** → `MilkConnectHomeScreen` — "Milk · *Connect.*" / "Leche · *Materna.*"
+- **Specialists** → `ExpertsHomeScreen` — "Find your care · *team.*" / "Encuentra tu equipo de · *cuidado.*"
+- **Baby Gear** → `GearBrowseScreen` — "Pass it · *on.*" / "Pásalo a otra · *mamá.*"
+- **Villie Plans** → `EventsListScreen` — "Events near · *you.*" / "Eventos cerca de · *ti.*"
 
-Apply same v3 recipe as `HomeScreenV3` / `ManualScrollV3` / `VillageHomeScreenV3` / `InboxHomeScreen`:
-- `WarmGlowBackdrop` with bees
-- Editorial masthead: eyebrow + Plus Jakarta display title + salmon italic period accent + italic body subtitle + 48px hairline rule
-- V3Card-lifted content surfaces (paper + hairline rust border + cocoa shadow + GlassHighlight sheen)
-- `v3_display` + `v3_display_italic` + `v2_body` fonts; T-token colors throughout
-
-Bigger visual sweep than today's polish work — confirm scope with Felipe before starting.
+Style change per screen: `heroTitle.fontFamily` flipped from `FONTS.headerItalic` to `FONTS.v3_display` (Plus Jakarta Sans Bold) with `letterSpacing: -0.8`, drop `fontStyle: 'italic'`; new `heroTitleItalic` style uses `FONTS.v3_display_italic` + `COLORS.v2_salmon`. New i18n keys: `{milk,expertsHome,gearBrowse}.homeTitleRoman` + `homeTitleItalic` and `eventsList.mastheadTitleRoman` + `Italic` (EN+ES). Old single-string keys preserved in i18n in case any other surface references them.
 
 ---
 
