@@ -13,7 +13,6 @@ import { useAuthStore } from '@store/auth';
 import { useUserStore, getPreferredRadiusMiles } from '@store/user';
 import { SpecialistCard } from '@components/experts/SpecialistCard';
 import { ExpertsListSkeleton } from '@components/shared/SkeletonLoader';
-import { KenBurnsImage } from '@components/shared/KenBurnsImage';
 import { WarmGlowBackdrop } from '@components/shared/WarmGlowBackdrop';
 import type { ExpertsStackParamList } from '@/navigation/ExpertsNavigator';
 import type { SpecialtyType } from 'shared/src/types/v1';
@@ -125,47 +124,37 @@ export default function ExpertsHomeScreen({ navigation, route }: Props) {
   // to re-filter. Hero stays full-size at rest.
   const ListHeader = (
     <>
-      <View style={styles.heroHeader} accessibilityElementsHidden importantForAccessibility="no">
-        <KenBurnsImage
-          source={require('../../../assets/photos/specialist.jpg')}
-          style={styles.heroHeaderImage}
-        />
-        <View style={styles.heroHeaderScrimTop} />
-        <View style={styles.heroHeaderScrimMid} />
-        <View style={styles.heroHeaderScrimBottom} />
-        <View style={styles.heroHeaderHaze} />
-
-        <View style={styles.heroActionBar}>
+      {/* v3 editorial masthead 2026-05-24 — replaces the KenBurns photo
+          header per Felipe. See MilkConnectHomeScreen for the pattern. */}
+      <View style={styles.mastheadWrap}>
+        <View style={styles.mastheadUtility}>
           <TouchableOpacity
             onPress={() => navigation.getParent()?.navigate('Village' as never)}
             accessibilityRole="button"
             accessibilityLabel={t('common.backToVillage')}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
-            <Text style={styles.heroBackText}>{t('common.backToVillage')}</Text>
+            <Text style={styles.backLink}>← {t('common.backToVillage')}</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={styles.heroSavedBtn}
+            style={styles.utilityPill}
             onPress={() => navigation.navigate('Favorites')}
             accessibilityRole="button"
             accessibilityLabel={t('expertsHome.savedBtn')}
           >
-            <Text style={styles.heroSavedBtnText}>{t('expertsHome.savedBtn')}</Text>
+            <Text style={styles.utilityPillText}>{t('expertsHome.savedBtn')}</Text>
           </TouchableOpacity>
         </View>
-
-        <View style={styles.heroCopy}>
-          <View style={styles.heroEyebrowRow}>
-            <View style={styles.heroEyebrowBar} />
-            <Text style={styles.heroEyebrowText}>{t('expertsHome.eyebrow')}</Text>
-          </View>
-          {/* v3 split headline — see MilkConnectHomeScreen for recipe. */}
-          <Text style={styles.heroTitle}>
-            {t('expertsHome.homeTitleRoman')}{' '}
-            <Text style={styles.heroTitleItalic}>{t('expertsHome.homeTitleItalic')}</Text>
-          </Text>
-          <Text style={styles.heroSub}>{t('expertsHome.homeSub')}</Text>
+        <View style={styles.mastheadEyebrowRow}>
+          <View style={styles.mastheadEyebrowBar} />
+          <Text style={styles.mastheadEyebrowText}>{t('expertsHome.eyebrow')}</Text>
         </View>
+        <Text style={styles.mastheadTitle}>
+          {t('expertsHome.homeTitleRoman')}{' '}
+          <Text style={styles.mastheadTitleItalic}>{t('expertsHome.homeTitleItalic')}</Text>
+        </Text>
+        <Text style={styles.mastheadDeck}>{t('expertsHome.homeSub')}</Text>
+        <View style={styles.mastheadRule} />
       </View>
 
       <ScrollView
@@ -307,93 +296,66 @@ const styles = StyleSheet.create({
   // Magazine-cover hero — full-bleed photo dominates the top of the
   // screen. Mirrors Milk Hub heroHeader pattern. Square edges (no border
   // radius) so the photo runs corner-to-corner like a print magazine cover.
-  heroHeader: {
-    height: 340,
-    position: 'relative',
-    backgroundColor: COLORS.bark,
-    overflow: 'hidden',
-    // Negate FlashList contentContainerStyle's paddingHorizontal:16 so
-    // the hero photo bleeds edge-to-edge.
+  // v3 editorial masthead (replaces KenBurns photo header 2026-05-24).
+  // Same recipe as MilkConnectHomeScreen.
+  mastheadWrap: {
+    paddingTop: 56,
+    paddingHorizontal: 22,
+    paddingBottom: 18,
+    // Negate FlashList contentContainerStyle's paddingHorizontal:16
     marginHorizontal: -16,
   },
-  heroHeaderImage: { width: '100%', height: '100%' },
-  // Single light scrim — minimal darkening so action-bar text stays legible
-  // against any photo. Cream haze removed so the photo color reads true.
-  heroHeaderScrimTop: {
-    position: 'absolute', left: 0, right: 0, top: 0, height: '40%',
-    backgroundColor: 'transparent',
-  },
-  heroHeaderScrimMid: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(44,26,14,0.20)',
-  },
-  heroHeaderScrimBottom: {
-    position: 'absolute', left: 0, right: 0, bottom: 0, height: '40%',
-    backgroundColor: 'transparent',
-  },
-  heroHeaderHaze: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'transparent',
-  },
-  heroActionBar: {
-    position: 'absolute',
-    top: 0, left: 0, right: 0,
-    paddingTop: 56, paddingHorizontal: 20, paddingBottom: 8,
-    flexDirection: 'row',
-    alignItems: 'center',
+  mastheadUtility: {
+    flexDirection: 'row', alignItems: 'center',
     justifyContent: 'space-between',
+    marginBottom: 18,
   },
-  heroBackText: {
-    fontSize: 14,
-    color: '#FDFBF6',
-    fontFamily: FONTS.bodySemiBold,
+  backLink: {
+    fontFamily: FONTS.v2_mono, fontSize: 12, color: COLORS.v2_walnut,
+    letterSpacing: 0.6,
   },
-  heroSavedBtn: {
+  utilityPill: {
     paddingVertical: 6, paddingHorizontal: 12,
     borderRadius: 999,
-    backgroundColor: 'rgba(253,250,245,0.18)',
-    borderWidth: 1,
-    borderColor: 'rgba(253,250,245,0.35)',
+    backgroundColor: COLORS.v2_parchment,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(61,31,14,0.13)',
   },
-  heroSavedBtnText: {
-    fontSize: 12, color: '#FDFBF6', fontFamily: FONTS.bodySemiBold,
+  utilityPillText: {
+    fontSize: 12, color: COLORS.v2_cocoa, fontFamily: FONTS.v2_bold,
   },
-  heroCopy: {
-    position: 'absolute',
-    left: 22, right: 22, bottom: 28,
+  mastheadEyebrowRow: { flexDirection: 'row', alignItems: 'center' },
+  mastheadEyebrowBar: {
+    width: 16, height: 1.5, backgroundColor: COLORS.v2_walnut,
+    marginRight: 8,
   },
-  heroEyebrowRow: {
-    flexDirection: 'row', alignItems: 'center', marginBottom: 8,
+  mastheadEyebrowText: {
+    fontFamily: FONTS.v2_mono, fontSize: 11, letterSpacing: 2.6,
+    textTransform: 'uppercase', fontWeight: '500',
+    color: COLORS.v2_walnut,
   },
-  heroEyebrowBar: {
-    width: 22, height: 2, backgroundColor: COLORS.cream,
-    marginRight: 10, borderRadius: 1, opacity: 0.85,
+  mastheadTitle: {
+    marginTop: 6,
+    fontFamily: FONTS.v3_display, fontSize: 36, lineHeight: 40,
+    color: COLORS.v2_cocoa,
+    letterSpacing: -0.9,
   },
-  heroEyebrowText: {
-    fontSize: 11, lineHeight: 16, letterSpacing: 1.6,
-    fontFamily: FONTS.bodySemiBold,
-    color: '#FDFBF6',
-    textTransform: 'uppercase',
-    opacity: 0.92,
-  },
-  heroTitle: {
-    fontSize: 36, lineHeight: 42,
-    fontFamily: FONTS.v3_display,
-    color: '#FDFBF6',
-    marginBottom: 8,
-    letterSpacing: -0.8,
-  },
-  heroTitleItalic: {
+  mastheadTitleItalic: {
     fontFamily: FONTS.v3_display_italic,
     color: COLORS.v2_salmon,
     fontStyle: 'italic',
   },
-  heroSub: {
-    fontSize: 14, lineHeight: 20,
-    fontFamily: FONTS.body,
-    color: '#FDFBF6',
-    opacity: 0.9,
+  mastheadDeck: {
+    marginTop: 10,
+    fontFamily: FONTS.v2_body, fontSize: 14, lineHeight: 20,
+    color: COLORS.v2_walnut,
     maxWidth: 340,
+  },
+  mastheadRule: {
+    marginTop: 16,
+    height: StyleSheet.hairlineWidth,
+    width: 48,
+    backgroundColor: 'rgba(61,31,14,0.13)',
   },
 
   chipScroll: { flexGrow: 0 },

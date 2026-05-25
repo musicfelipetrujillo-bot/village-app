@@ -5,7 +5,6 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { GlassHighlight } from '@components/shared/GlassHighlight';
-import { KenBurnsImage } from '@components/shared/KenBurnsImage';
 import { WarmGlowBackdrop } from '@components/shared/WarmGlowBackdrop';
 import { V3Card } from '@components/shared/V3Card';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -52,81 +51,52 @@ export default function MilkConnectHomeScreen({ navigation }: Props) {
     <View style={styles.wrapper}>
       <WarmGlowBackdrop hideClusters />
       <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      {/* Magazine-cover hero — full-bleed photo dominates the top of the
-          screen. ActionBar (back + inbox/orders) overlays the top of the
-          photo with cream text on the warm scrim. Bottom of the photo
-          carries the page eyebrow + Playfair italic title + sub. Photo
-          and title are merged into a single block — the photo IS the
-          page header. Slight bottom radius softens the transition into
-          the cream content area below. */}
-      <View style={styles.heroHeader} accessibilityElementsHidden importantForAccessibility="no">
-        {/* Photo: Hu Chen on Unsplash — adult hand cupping baby's hand,
-            faceless intimacy crop. Reads as "connection / quiet
-            generosity" without showing identity. Free commercial.
-            Source: https://unsplash.com/photos/tCbTGNwrFNM */}
-        <KenBurnsImage
-          source={require('../../../assets/photos/milk.jpg')}
-          style={styles.heroHeaderImage}
-        />
-        {/* Two-layer soft-frost — warm brownDeep scrim + cream haze
-            desaturates the photo into an editorial / watercolor feel
-            without pulling in expo-blur (which would force a native
-            rebuild). The cream layer is what does most of the
-            "frosted" lift; the brown layer keeps text contrast. */}
-        <View style={styles.heroHeaderScrimTop} />
-        <View style={styles.heroHeaderScrimMid} />
-        <View style={styles.heroHeaderScrimBottom} />
-        <View style={styles.heroHeaderHaze} />
-
-        {/* ActionBar overlay — back link + icon buttons. Cream text on
-            the scrim. paddingTop covers iOS safe-area without a SafeArea
-            wrapper since the screen sits inside a stack header-less
-            navigator. */}
-        <View style={styles.heroActionBar}>
+      {/* v3 editorial masthead 2026-05-24 — replaces the prior full-bleed
+          KenBurns photo header per Felipe ("remove the pictures, add
+          similar formatting like the rest of the app"). Matches the
+          VillageHomeV3 / HomeScreenV3 / ManualScrollV3 / InboxHomeScreen
+          pattern: utility-row up top (back link left + action icons
+          right), then eyebrow + split-headline + deck on the cream
+          page wash, hairline rule below to seal the masthead block. */}
+      <View style={styles.mastheadWrap}>
+        <View style={styles.mastheadUtility}>
           <TouchableOpacity
             onPress={() => navigation.getParent()?.navigate('Village' as never)}
             accessibilityRole="button"
             accessibilityLabel={t('common.backToVillage')}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
-            <Text style={styles.heroBackText}>{t('common.backToVillage')}</Text>
+            <Text style={styles.backLink}>← {t('common.backToVillage')}</Text>
           </TouchableOpacity>
-          <View style={styles.heroActionsRight}>
+          <View style={styles.utilityRight}>
             <TouchableOpacity
-              style={styles.heroIconBtn}
+              style={styles.utilityIconBtn}
               onPress={() => navigation.navigate('MilkOrders')}
               accessibilityRole="button"
               accessibilityLabel={t('milk.ordersA11y')}
             >
-              <Text style={styles.heroIcon}>📦</Text>
+              <Text style={styles.utilityIcon}>📦</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={styles.heroIconBtn}
+              style={styles.utilityIconBtn}
               onPress={() => navigation.navigate('MilkMessageThreads')}
               accessibilityRole="button"
               accessibilityLabel={t('milk.messagesA11y')}
             >
-              <Text style={styles.heroIcon}>💬</Text>
+              <Text style={styles.utilityIcon}>💬</Text>
             </TouchableOpacity>
           </View>
         </View>
-
-        {/* Magazine-cover copy — page eyebrow + Playfair italic title +
-            sub. Anchored bottom-left like a magazine cover line. */}
-        <View style={styles.heroCopy}>
-          <View style={styles.heroEyebrowRow}>
-            <View style={styles.heroEyebrowBar} />
-            <Text style={styles.heroEyebrowText}>{t('milk.eyebrow')}</Text>
-          </View>
-          {/* v3 split headline — Plus Jakarta bold roman + salmon italic
-              accent (one italic per screen rule) matching VillageHomeV3.
-              Visual unity across the 4 verticals + outer Village hub. */}
-          <Text style={styles.heroTitle}>
-            {t('milk.homeTitleRoman')}{' '}
-            <Text style={styles.heroTitleItalic}>{t('milk.homeTitleItalic')}</Text>
-          </Text>
-          <Text style={styles.heroSub}>{t('milk.homeSub')}</Text>
+        <View style={styles.mastheadEyebrowRow}>
+          <View style={styles.mastheadEyebrowBar} />
+          <Text style={styles.mastheadEyebrowText}>{t('milk.eyebrow')}</Text>
         </View>
+        <Text style={styles.mastheadTitle}>
+          {t('milk.homeTitleRoman')}{' '}
+          <Text style={styles.mastheadTitleItalic}>{t('milk.homeTitleItalic')}</Text>
+        </Text>
+        <Text style={styles.mastheadDeck}>{t('milk.homeSub')}</Text>
+        <View style={styles.mastheadRule} />
       </View>
 
       {/* Donor dashboard — quieter, editorial. Playfair italic name + stat,
@@ -436,98 +406,61 @@ const styles = StyleSheet.create({
     height: 14,
   },
 
-  // Magazine-cover hero — full-bleed photo dominates the top of the
-  // screen. The photo IS the page header: actionBar overlays the top,
-  // editorial copy (eyebrow + Playfair italic title + sub) overlays the
-  // bottom. Slight bottom radius softens the transition into the cream
-  // content below; top is flush to the screen edge for the magazine feel.
-  heroHeader: {
-    height: 340,
-    position: 'relative',
-    backgroundColor: COLORS.bark,
-    overflow: 'hidden',
-    marginBottom: 8,
+  // v3 editorial masthead (replaces the prior KenBurns photo header
+  // 2026-05-24). Cocoa-on-cream tokens matching VillageHomeV3.
+  mastheadWrap: {
+    paddingTop: 56,
+    paddingHorizontal: 22,
+    paddingBottom: 18,
   },
-  heroHeaderImage: { width: '100%', height: '100%' },
-  // Single light scrim — minimal darkening so action-bar text stays legible
-  // against any photo. Cream haze removed so the photo color reads true.
-  heroHeaderScrimTop: {
-    position: 'absolute', left: 0, right: 0, top: 0, height: '40%',
-    backgroundColor: 'transparent',
-  },
-  heroHeaderScrimMid: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(44,26,14,0.20)',
-  },
-  heroHeaderScrimBottom: {
-    position: 'absolute', left: 0, right: 0, bottom: 0, height: '40%',
-    backgroundColor: 'transparent',
-  },
-  heroHeaderHaze: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'transparent',
-  },
-  heroActionBar: {
-    position: 'absolute',
-    top: 0, left: 0, right: 0,
-    paddingTop: 56, paddingHorizontal: 20, paddingBottom: 8,
-    flexDirection: 'row',
-    alignItems: 'center',
+  mastheadUtility: {
+    flexDirection: 'row', alignItems: 'center',
     justifyContent: 'space-between',
+    marginBottom: 18,
   },
-  heroBackText: {
-    fontSize: 14,
-    color: '#FDFBF6',
-    fontFamily: FONTS.bodySemiBold,
+  backLink: {
+    fontFamily: FONTS.v2_mono, fontSize: 12, color: COLORS.v2_walnut,
+    letterSpacing: 0.6,
   },
-  heroActionsRight: { flexDirection: 'row', gap: 8 },
-  heroIconBtn: {
-    width: 36, height: 36, borderRadius: 18,
-    backgroundColor: 'rgba(253,250,245,0.18)',
+  utilityRight: { flexDirection: 'row', gap: 8 },
+  utilityIconBtn: {
+    width: 36, height: 36, borderRadius: 12,
+    backgroundColor: COLORS.v2_parchment,
     alignItems: 'center', justifyContent: 'center',
   },
-  heroIcon: { fontSize: 16 },
-
-  // Magazine cover-line — bottom-left anchor (editorial cover convention).
-  // Eyebrow row + Playfair italic page title + sub. White headline reads
-  // strongest on the warm scrim; cream secondaries soften.
-  heroCopy: {
-    position: 'absolute',
-    left: 22, right: 22, bottom: 28,
+  utilityIcon: { fontSize: 16 },
+  mastheadEyebrowRow: { flexDirection: 'row', alignItems: 'center' },
+  mastheadEyebrowBar: {
+    width: 16, height: 1.5, backgroundColor: COLORS.v2_walnut,
+    marginRight: 8,
   },
-  heroEyebrowRow: {
-    flexDirection: 'row', alignItems: 'center', marginBottom: 8,
+  mastheadEyebrowText: {
+    fontFamily: FONTS.v2_mono, fontSize: 11, letterSpacing: 2.6,
+    textTransform: 'uppercase', fontWeight: '500',
+    color: COLORS.v2_walnut,
   },
-  heroEyebrowBar: {
-    width: 22, height: 2, backgroundColor: COLORS.cream,
-    marginRight: 10, borderRadius: 1, opacity: 0.85,
+  mastheadTitle: {
+    marginTop: 6,
+    fontFamily: FONTS.v3_display, fontSize: 36, lineHeight: 40,
+    color: COLORS.v2_cocoa,
+    letterSpacing: -0.9,
   },
-  heroEyebrowText: {
-    fontSize: 11, lineHeight: 16, letterSpacing: 1.6,
-    fontFamily: FONTS.bodySemiBold,
-    color: '#FDFBF6',
-    textTransform: 'uppercase',
-    opacity: 0.92,
-  },
-  heroTitle: {
-    // v3 split-headline: Plus Jakarta bold roman; italic span swaps in.
-    fontSize: 36, lineHeight: 42,
-    fontFamily: FONTS.v3_display,
-    color: '#FDFBF6',
-    marginBottom: 8,
-    letterSpacing: -0.8,
-  },
-  heroTitleItalic: {
+  mastheadTitleItalic: {
     fontFamily: FONTS.v3_display_italic,
     color: COLORS.v2_salmon,
     fontStyle: 'italic',
   },
-  heroSub: {
-    fontSize: 14, lineHeight: 20,
-    fontFamily: FONTS.body,
-    color: '#FDFBF6',
-    opacity: 0.9,
+  mastheadDeck: {
+    marginTop: 10,
+    fontFamily: FONTS.v2_body, fontSize: 14, lineHeight: 20,
+    color: COLORS.v2_walnut,
     maxWidth: 340,
+  },
+  mastheadRule: {
+    marginTop: 16,
+    height: StyleSheet.hairlineWidth,
+    width: 48,
+    backgroundColor: 'rgba(61,31,14,0.13)',
   },
   heroBannerImage: {
     width: '100%', height: '100%',
