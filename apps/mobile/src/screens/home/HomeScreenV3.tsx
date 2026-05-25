@@ -72,8 +72,9 @@ const T = {
   rule:      'rgba(61,31,14,0.13)',
 };
 
-// Wordmark — current v2 (= v3 handoff wordmark, SHA-identical).
-const WORDMARK = require('../../../assets/brand/villie-wordmark-v2.png');
+// Wordmark removed 2026-05-24 — editorial masthead is the brand
+// signature on in-app surfaces. Auth screens (Splash/Login/SignUp)
+// retain the wordmark as the identity moment.
 
 // ─── Chapter sub-palette ───────────────────────────────────────────────
 // Matches the CHAPTERS map in the handoff's shared.jsx — used for the
@@ -162,9 +163,12 @@ function CornerBee({ size = 26, rotate = 0, style }: {
 
 // ─── Sections ──────────────────────────────────────────────────────────
 function HomeHeader({ unread = 0, onBellPress }: { unread?: number; onBellPress: () => void }) {
+  // Wordmark removed 2026-05-24 per Felipe — the editorial masthead
+  // ("Good evening, friend.") IS the brand signature on in-app
+  // surfaces. Wordmark stays on auth (Splash / Login / SignUp) where
+  // it's the brand-identity moment. Bell flush-right.
   return (
     <View style={styles.header}>
-      <Image source={WORDMARK} style={styles.wordmark} resizeMode="contain" accessibilityLabel="villie" />
       <TouchableOpacity onPress={onBellPress} accessibilityRole="button" accessibilityLabel="Notifications" style={styles.bellBtn}>
         <Svg width={16} height={16} viewBox="0 0 24 24">
           <Path
@@ -494,9 +498,8 @@ const styles = StyleSheet.create({
 
   // ── Header ────────────────────────────────────────────────────────────
   header: {
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+    flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center',
   },
-  wordmark: { width: 130, height: 40 },
   bellBtn: {
     width: 36, height: 36, borderRadius: 12, backgroundColor: T.parchment,
     alignItems: 'center', justifyContent: 'center', position: 'relative',

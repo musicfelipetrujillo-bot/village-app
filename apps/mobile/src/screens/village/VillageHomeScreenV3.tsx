@@ -19,7 +19,7 @@
 
 import React, { useRef, useState } from 'react';
 import {
-  View, Text, StyleSheet, TouchableOpacity, Image, Animated,
+  View, Text, StyleSheet, TouchableOpacity, Animated,
   StyleProp, ViewStyle,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -46,10 +46,10 @@ const T = {
   rule:      'rgba(61,31,14,0.13)',
 };
 
-const WORDMARK = require('../../../assets/brand/villie-wordmark-v2.png');
-// villie-bee.png — meticulous v9 mascot, perched bottom-right of the
-// calendar block so the screen has the same "lived-in" feel as Home.
-const VILLIE_BEE = require('../../../assets/brand/villie-bee.png');
+// Wordmark removed 2026-05-24 — editorial masthead is the brand
+// signature on in-app surfaces. Auth retains the wordmark.
+// Inline bee asset removed alongside (was unused after the wordmark
+// header collapsed); atmospheric bees still ship via WarmGlowBackdrop.
 
 // ─── Atoms ─────────────────────────────────────────────────────────────
 function Eyebrow({ children, style }: { children: React.ReactNode; style?: StyleProp<ViewStyle> }) {
@@ -174,9 +174,10 @@ export default function VillageHomeScreenV3() {
         )}
         scrollEventThrottle={16}
       >
-        {/* Header — wordmark + map-pin button */}
+        {/* Header — map-pin button only. Wordmark removed 2026-05-24 per
+            Felipe — the editorial masthead ("Your backup is here.") IS
+            the brand signature on in-app surfaces. Map-pin flush-right. */}
         <View style={styles.header}>
-          <Image source={WORDMARK} style={styles.wordmark} resizeMode="contain" accessibilityLabel="villie" />
           <TouchableOpacity style={styles.mapBtn} accessibilityRole="button" accessibilityLabel="Map">
             <Svg width={16} height={16} viewBox="0 0 24 24">
               <Path
@@ -312,9 +313,8 @@ const styles = StyleSheet.create({
   },
 
   header: {
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+    flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center',
   },
-  wordmark: { width: 130, height: 40 },
   mapBtn: {
     width: 36, height: 36, borderRadius: 12, backgroundColor: T.parchment,
     alignItems: 'center', justifyContent: 'center',
