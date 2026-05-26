@@ -38,7 +38,8 @@
         "EXPO_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable_zBiBB7U-7BGuAcfMfivMcQ_IRuYo4yj",
         "EXPO_PUBLIC_API_BASE_URL": "https://albyndcruwopulazvpjs.supabase.co/functions/v1",
         "EXPO_PUBLIC_INTERNAL_AGENTS_ENABLED": "0",
-        "EXPO_PUBLIC_OAUTH_PROVIDERS_ENABLED": "1"
+        "EXPO_PUBLIC_OAUTH_PROVIDERS_ENABLED": "1",
+        "SENTRY_DISABLE_AUTO_UPLOAD": "true"
       },
       "ios": {
         "buildConfiguration": "Release"
