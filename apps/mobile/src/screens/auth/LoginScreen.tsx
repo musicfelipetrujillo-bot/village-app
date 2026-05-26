@@ -3,9 +3,9 @@ import {
   View, Text, StyleSheet, TextInput, TouchableOpacity,
   ScrollView, KeyboardAvoidingView, Platform, ActivityIndicator, Alert, Image,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { COLORS, FONTS } from '@utils/constants';
+import { WarmGlowBackdrop } from '@components/shared/WarmGlowBackdrop';
 import { confirm } from '@utils/haptics';
 import { authService } from '@/lib/auth';
 import type { AuthStackParamList } from '@/navigation/AuthStack';
@@ -45,17 +45,9 @@ export default function LoginScreen({ navigation }: Props) {
       style={{ flex: 1 }}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      {/* v9 page wash — same paper U-shape as Home / Manual / Me so the
-          first surface after Splash already speaks the brand's paper voice. */}
-      <LinearGradient
-        colors={[
-          '#FDF1EB', '#FDF8F4', '#FCFCFB',
-          '#FCFCFB', '#FCF6EF', '#F9E9DD', '#F5DFD3',
-        ]}
-        locations={[0, 0.12, 0.30, 0.62, 0.76, 0.90, 1]}
-        style={StyleSheet.absoluteFill}
-        pointerEvents="none"
-      />
+      {/* v3 atmosphere — WarmGlowBackdrop (paper U-shape + bees) so the
+          first surface after Splash speaks Home's brand voice. */}
+      <WarmGlowBackdrop />
       <ScrollView
         style={styles.container}
         contentContainerStyle={styles.content}
@@ -67,7 +59,19 @@ export default function LoginScreen({ navigation }: Props) {
           resizeMode="contain"
           accessibilityLabel="villie"
         />
-        <Text style={styles.title}>{t('login.title')}</Text>
+
+        {/* v3 editorial masthead — eyebrow + Plus Jakarta display title with
+            salmon italic accent + 48px hairline rule. */}
+        <View style={styles.masthead}>
+          <View style={styles.eyebrowRow}>
+            <View style={styles.eyebrowBar} />
+            <Text style={styles.eyebrow}>{t('login.mastheadEyebrow')}</Text>
+          </View>
+          <Text style={styles.title}>
+            {t('login.titleLead')} <Text style={styles.titleItalic}>{t('login.titleEm')}</Text>
+          </Text>
+          <View style={styles.titleRule} />
+        </View>
         <Text style={styles.sub}>{t('login.sub')}</Text>
 
         <View style={styles.form}>
@@ -166,15 +170,30 @@ const styles = StyleSheet.create({
   // crop. 150×95 keeps the auth header tight while preserving aspect.
   wordmark: { width: 150, height: 105, marginBottom: 12, marginLeft: -4, alignSelf: 'flex-start' },
 
-  title: {
-    fontFamily: FONTS.v2_display,
-    fontSize: 32,
-    color: COLORS.v2_cocoa,
-    letterSpacing: -0.6,
-    lineHeight: 36,
-    marginBottom: 6,
+  // v3 editorial masthead
+  masthead: { marginBottom: 14 },
+  eyebrowRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
+  eyebrowBar: { width: 16, height: 1.5, backgroundColor: COLORS.v2_walnut, marginRight: 8 },
+  eyebrow: {
+    fontFamily: FONTS.v2_mono, fontSize: 11, letterSpacing: 2.6,
+    textTransform: 'uppercase', fontWeight: '500', color: COLORS.v2_walnut,
   },
-  sub: { fontSize: 14, color: COLORS.v2_walnut, marginBottom: 32, fontFamily: FONTS.v2_body, lineHeight: 20 },
+  title: {
+    fontFamily: FONTS.v3_display,
+    fontSize: 36,
+    color: COLORS.v2_cocoa,
+    letterSpacing: -1.2,
+    lineHeight: 38,
+    marginBottom: 0,
+  },
+  titleItalic: { fontFamily: FONTS.v3_display_italic, color: COLORS.v2_salmon },
+  titleRule: {
+    height: StyleSheet.hairlineWidth,
+    width: 48,
+    backgroundColor: 'rgba(61,31,14,0.18)',
+    marginTop: 14,
+  },
+  sub: { fontSize: 14, color: COLORS.v2_walnut, marginTop: 14, marginBottom: 26, fontFamily: FONTS.v2_body, lineHeight: 20 },
 
   form: { gap: 16 },
   inputGroup: { gap: 6 },

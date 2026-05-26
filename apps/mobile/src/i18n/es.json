@@ -1949,6 +1949,9 @@
   },
   "login": {
     "title": "Bienvenida de nuevo",
+    "mastheadEyebrow": "BIENVENIDA",
+    "titleLead": "Bienvenida de",
+    "titleEm": "vuelta.",
     "sub": "Inicia sesión en tu cuenta",
     "emailLabel": "Correo electrónico",
     "emailPlaceholder": "tu@ejemplo.com",
@@ -1983,6 +1986,9 @@
   },
   "signUp": {
     "title": "Vamos a configurarte",
+    "mastheadEyebrow": "EMPEZAR",
+    "titleLead": "Vamos a",
+    "titleEm": "configurarte.",
     "sub": "Unos datos y listo.",
     "fullNameLabel": "Nombre completo",
     "fullNamePlaceholder": "Tu nombre completo",

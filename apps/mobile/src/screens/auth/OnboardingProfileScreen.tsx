@@ -12,7 +12,7 @@ import { COLORS, FONTS, PREGNANCY_STAGES } from '@utils/constants';
 import {
   YolkCircle, LeafSprig, SparkleMark,
 } from '@components/shared/DecorativeMarks';
-import { V9PageBackdrop } from '@components/shared/V9PageBackdrop';
+import { WarmGlowBackdrop } from '@components/shared/WarmGlowBackdrop';
 import { authService } from '@/lib/auth';
 import { useAuthStore } from '@store/auth';
 import { useUserStore } from '@store/user';
@@ -127,7 +127,7 @@ export default function OnboardingProfileScreen({ navigation, route }: Props) {
 
   return (
     <View style={styles.container}>
-      <V9PageBackdrop />
+      <WarmGlowBackdrop />
       {/* Progress */}
       <View
         style={styles.progressRow}
@@ -293,17 +293,15 @@ const styles = StyleSheet.create({
   content: { padding: 28, paddingTop: 24, paddingBottom: 120 },
   heroMark: { width: 72, height: 72, marginBottom: 16, overflow: 'hidden' },
   title: {
-    fontFamily: FONTS.v2_display,
-    fontSize: 30,
+    fontFamily: FONTS.v3_display,
+    fontSize: 32,
     color: COLORS.v2_cocoa,
-    letterSpacing: -0.6,
+    letterSpacing: -1.0,
     lineHeight: 36,
     marginBottom: 8,
   },
-  // v9 italic flourish — rust-deep matches every other v9 surface
-  // (caramel v2_caramel #D4A880 is the brand-kit token but HomeScreen
-  // and chapter screens use rust-deep #9A4A2B as the actual canonical).
-  titleAccent: { fontFamily: FONTS.v2_display_italic, color: '#C07840' },
+  // v3 italic flourish — Plus Jakarta italic + salmon, matching HomeScreenV3.
+  titleAccent: { fontFamily: FONTS.v3_display_italic, color: COLORS.v2_salmon },
   sub: { fontSize: 14, color: COLORS.v2_walnut, lineHeight: 22, marginBottom: 28, fontFamily: FONTS.v2_body },
 
   stageGrid: { gap: 12 },

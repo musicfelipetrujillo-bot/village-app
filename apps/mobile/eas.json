@@ -39,6 +39,8 @@
         "EXPO_PUBLIC_API_BASE_URL": "https://albyndcruwopulazvpjs.supabase.co/functions/v1",
         "EXPO_PUBLIC_INTERNAL_AGENTS_ENABLED": "0",
         "EXPO_PUBLIC_OAUTH_PROVIDERS_ENABLED": "1",
+        "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "595113218342-9k6gdicmqd30qn2j3gsu9nvenrnrh0nt.apps.googleusercontent.com",
+        "EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID": "595113218342-hh6m9dpe7go27mpri9hqlb9udvi88kb2.apps.googleusercontent.com",
         "SENTRY_DISABLE_AUTO_UPLOAD": "true"
       },
       "ios": {

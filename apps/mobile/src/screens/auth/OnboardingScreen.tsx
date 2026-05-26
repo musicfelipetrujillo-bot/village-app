@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { COLORS, FONTS } from '@utils/constants';
-import { V9PageBackdrop } from '@components/shared/V9PageBackdrop';
+import { WarmGlowBackdrop } from '@components/shared/WarmGlowBackdrop';
 import type { AuthStackParamList } from '@/navigation/AuthStack';
 import { useT } from '@/i18n';
 import { usePreAuthLanguage } from '@store/preAuthLanguage';
@@ -49,7 +49,7 @@ export default function OnboardingScreen({ navigation }: Props) {
 
   return (
     <View style={styles.container}>
-      <V9PageBackdrop />
+      <WarmGlowBackdrop />
       {/* Progress dots */}
       <View
         style={styles.progressRow}
@@ -169,11 +169,12 @@ export default function OnboardingScreen({ navigation }: Props) {
   );
 }
 
-// ─── v2 brand (villie · May 2026) ────────────────────────────────────────
-// Page bg v2_cream, headline Playfair roman 700 cocoa + caramel-italic accent
-// (the one italic per slide), body Plus Jakarta in walnut, CTA cinnamon (the
-// one spark), progress dots cinnamon-active, language option uses cinnamon
-// border for the selected affordance.
+// ─── v3 brand (villie · May 2026 lean editorial) ─────────────────────────
+// WarmGlowBackdrop atmospheric layer (paper U-shape + bees). Display swapped
+// from Playfair v2_display to v3_display (Plus Jakarta Sans Bold) per v3
+// brand kit canon. Italic accent flipped from caramel → salmon to match
+// HomeScreenV3 / ManualScrollV3 / VillageHomeScreenV3 / InboxHomeScreen.
+// One italic per slide rule preserved.
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: 'transparent' },
   progressRow: {
@@ -201,18 +202,18 @@ const styles = StyleSheet.create({
     paddingBottom: 24,
   },
   emoji: { fontSize: 72, marginBottom: 24 },
-  // Playfair roman 700 default (the v2 "less italic, more presence" rule)
+  // v3 display — Plus Jakarta Sans Bold 700 ("more presence, less italic")
   title: {
-    fontFamily: FONTS.v2_display,
+    fontFamily: FONTS.v3_display,
     fontSize: 34,
     color: COLORS.v2_cocoa,
     lineHeight: 40,
-    letterSpacing: -0.6,
+    letterSpacing: -0.8,
     textAlign: 'center',
     marginBottom: 12,
   },
-  // The one per-slide italic flourish — Playfair italic 600, caramel
-  titleAccent: { fontFamily: FONTS.v2_display_italic, color: COLORS.v2_caramel },
+  // The one per-slide italic flourish — Plus Jakarta italic + salmon
+  titleAccent: { fontFamily: FONTS.v3_display_italic, color: COLORS.v2_salmon },
   sub: {
     fontSize: 15,
     color: COLORS.v2_walnut,

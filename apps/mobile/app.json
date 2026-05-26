@@ -170,6 +170,9 @@
       }
     },
     "runtimeVersion": "1.0.0",
-    "owner": "villagepeople"
+    "owner": "villagepeople",
+    "updates": {
+      "url": "https://u.expo.dev/4b786f88-d387-4aba-a420-dfae6db88671"
+    }
   }
 }

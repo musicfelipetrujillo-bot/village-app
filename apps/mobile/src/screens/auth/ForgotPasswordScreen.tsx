@@ -5,7 +5,7 @@ import {
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { COLORS, FONTS } from '@utils/constants';
-import { V9PageBackdrop } from '@components/shared/V9PageBackdrop';
+import { WarmGlowBackdrop } from '@components/shared/WarmGlowBackdrop';
 import { authService } from '@/lib/auth';
 import type { AuthStackParamList } from '@/navigation/AuthStack';
 import { useT } from '@/i18n';
@@ -45,7 +45,7 @@ export default function ForgotPasswordScreen({ navigation }: Props) {
       style={{ flex: 1 }}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <V9PageBackdrop />
+      <WarmGlowBackdrop />
       <View style={styles.container}>
         <TouchableOpacity
           style={styles.back}
@@ -130,19 +130,23 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: 'transparent', padding: 28, paddingTop: 60 },
   back: { marginBottom: 18 },
   backText: { fontSize: 13, color: '#C07840', fontFamily: FONTS.v2_link },
-  // v9 editorial masthead
-  eyebrowRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
-  eyebrowBar: { width: 22, height: 2, backgroundColor: '#A77349', marginRight: 10, borderRadius: 1 },
-  eyebrow: { fontSize: 10, fontFamily: FONTS.bodySemiBold, color: '#A77349', letterSpacing: 1.8, textTransform: 'uppercase' },
+  // v3 editorial masthead — 16×1.5 walnut bar + JetBrains Mono eyebrow,
+  // Plus Jakarta display + salmon italic accent.
+  eyebrowRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
+  eyebrowBar: { width: 16, height: 1.5, backgroundColor: COLORS.v2_walnut, marginRight: 8 },
+  eyebrow: {
+    fontFamily: FONTS.v2_mono, fontSize: 11, letterSpacing: 2.6,
+    textTransform: 'uppercase', fontWeight: '500', color: COLORS.v2_walnut,
+  },
   title: {
-    fontFamily: FONTS.v2_display,
-    fontSize: 32,
+    fontFamily: FONTS.v3_display,
+    fontSize: 36,
     color: COLORS.v2_cocoa,
-    letterSpacing: -0.5,
-    marginBottom: 6,
+    letterSpacing: -1.2,
+    marginBottom: 0,
     lineHeight: 38,
   },
-  titleEm: { fontFamily: FONTS.headerItalic, fontStyle: 'italic', color: '#C07840' },
+  titleEm: { fontFamily: FONTS.v3_display_italic, color: COLORS.v2_salmon },
   titleRule: {
     height: StyleSheet.hairlineWidth, backgroundColor: 'rgba(61,31,13,0.18)',
     marginTop: 8, marginBottom: 18, width: 48,
@@ -201,10 +205,10 @@ const styles = StyleSheet.create({
   },
   sentEmoji: { fontSize: 56, marginBottom: 16 },
   sentTitle: {
-    fontFamily: FONTS.v2_display,
+    fontFamily: FONTS.v3_display,
     fontSize: 26,
     color: COLORS.v2_cocoa,
-    letterSpacing: -0.5,
+    letterSpacing: -0.8,
     marginBottom: 12,
   },
   sentSub: {
