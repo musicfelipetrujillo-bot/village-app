@@ -53,7 +53,8 @@
     "production": {
       "ios": {
         "appleId": "musicfelipetrujillo@gmail.com",
-        "appleTeamId": "B9BRJPBM6G"
+        "appleTeamId": "B9BRJPBM6G",
+        "ascAppId": "6773357128"
       },
       "android": {
         "serviceAccountKeyPath": "./google-play-key.json",
