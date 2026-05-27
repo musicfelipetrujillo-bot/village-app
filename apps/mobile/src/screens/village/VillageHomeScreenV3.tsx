@@ -227,7 +227,11 @@ export default function VillageHomeScreenV3() {
           {VERTICALS.map((v) => (
             <TouchableOpacity
               key={v.title}
-              onPress={() => goVertical(v.route)}
+              // "Villie Plans" tile self-references the current tab (route: 'Village')
+              // — that's a no-op. Route it into the EventsList screen in this same
+              // stack so tapping the tile actually does something. Every other tile
+              // still cross-tabs via goVertical.
+              onPress={v.route === 'Village' ? goAllPlans : () => goVertical(v.route)}
               activeOpacity={0.88}
               style={[styles.tile, { backgroundColor: v.bg }]}
             >
