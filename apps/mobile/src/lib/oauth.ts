@@ -55,7 +55,12 @@ export function configureGoogleSignIn() {
   GoogleSignin.configure({
     webClientId,
     iosClientId,
-    offlineAccess: false, // we use ID tokens directly, not refresh tokens
+    // offlineAccess MUST be true to populate `serverAuthCode` in the signIn
+    // response. We exchange that code server-side (see auth-google-exchange
+    // edge function) for a nonce-free id_token — necessary because the
+    // iOS-native flow's id_token has a PKCE nonce claim that Supabase can't
+    // verify without the raw nonce (which the SDK doesn't expose).
+    offlineAccess: true,
     scopes: ['email', 'profile'],
   });
 }
@@ -69,10 +74,35 @@ export async function signInWithGoogle(): Promise<{
     await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
     const result = await GoogleSignin.signIn();
     // SDK v13+ wraps the payload in .data; v11/12 returns it flat.
-    const idToken = (result as any).idToken ?? (result as any).data?.idToken;
-    if (!idToken) {
-      return { ok: false, error: 'No ID token returned from Google' };
+    const serverAuthCode = (result as any).serverAuthCode ?? (result as any).data?.serverAuthCode;
+    if (!serverAuthCode) {
+      // Could mean offlineAccess wasn't true at configure time, or the user
+      // already authorized on a previous attempt and Google withheld the code.
+      // Either way the only safe fallback is to ask the user to sign in again.
+      return { ok: false, error: 'No server auth code returned from Google' };
     }
+
+    // Exchange the serverAuthCode for a fresh nonce-free id_token via our
+    // edge function. The function uses the WEB client secret (server-side
+    // only) to call Google's token endpoint. The exchanged id_token is
+    // signed against the web client and is safe for Supabase to verify
+    // because the server-side OAuth code-exchange flow doesn't add a PKCE
+    // nonce claim.
+    const { data: exchangeData, error: exchangeError } = await supabase.functions.invoke(
+      'auth-google-exchange',
+      { body: { serverAuthCode } },
+    );
+    if (exchangeError) {
+      return { ok: false, error: exchangeError.message ?? 'Google token exchange failed' };
+    }
+    if (exchangeData?.error) {
+      return { ok: false, error: String(exchangeData.error) };
+    }
+    const idToken = exchangeData?.id_token;
+    if (typeof idToken !== 'string' || idToken.length === 0) {
+      return { ok: false, error: 'No ID token returned from Google exchange' };
+    }
+
     const { error } = await supabase.auth.signInWithIdToken({
       provider: 'google',
       token: idToken,
