@@ -23,6 +23,14 @@ import {
   isAppleSignInAvailable,
 } from '@/lib/oauth';
 
+// Google Sign-In is gated separately. The @react-native-google-signin/google-signin
+// v16 iOS SDK auto-generates a PKCE nonce that the library doesn't expose to JS,
+// which fails Supabase's signInWithIdToken nonce verification. Until we wire the
+// serverAuthCode → token-exchange edge function, the Google button stays hidden
+// on iOS (Apple Sign-In covers App Store guideline 4.8 by itself).
+const GOOGLE_SIGNIN_ENABLED =
+  process.env.EXPO_PUBLIC_OAUTH_GOOGLE_ENABLED === '1';
+
 interface Props {
   /** Label tweak so SignUpScreen says "Sign up" and LoginScreen says "Continue". */
   variant: 'sign_in' | 'sign_up';
@@ -102,27 +110,27 @@ export default function OAuthButtons({ variant, onSuccess }: Props) {
       ) : null}
 
       {/* Google — cream-on-cream surface with the multi-color "G" mark in copy.
-          We use a regular TouchableOpacity instead of GoogleSigninButton because
-          Google's stock button is heavy + clashes with the brand. Our subtle
-          version is still compliant: the "G" mark in the label is enough
-          recognition for Google's brand-guideline review. */}
-      <TouchableOpacity
-        style={[styles.googleButton, busy === 'google' && styles.buttonDisabled]}
-        onPress={handleGoogle}
-        disabled={!!busy}
-        accessibilityRole="button"
-        accessibilityLabel={labelGoogle}
-        accessibilityState={{ busy: busy === 'google' }}
-      >
-        {busy === 'google' ? (
-          <ActivityIndicator color={COLORS.coco} />
-        ) : (
-          <>
-            <View style={styles.googleMark}><Text style={styles.googleMarkText}>G</Text></View>
-            <Text style={styles.googleLabel}>{labelGoogle}</Text>
-          </>
-        )}
-      </TouchableOpacity>
+          Hidden behind GOOGLE_SIGNIN_ENABLED until the nonce-mismatch fix lands
+          (see comment at top of file). Apple Sign-In ships alone in the meantime. */}
+      {GOOGLE_SIGNIN_ENABLED ? (
+        <TouchableOpacity
+          style={[styles.googleButton, busy === 'google' && styles.buttonDisabled]}
+          onPress={handleGoogle}
+          disabled={!!busy}
+          accessibilityRole="button"
+          accessibilityLabel={labelGoogle}
+          accessibilityState={{ busy: busy === 'google' }}
+        >
+          {busy === 'google' ? (
+            <ActivityIndicator color={COLORS.coco} />
+          ) : (
+            <>
+              <View style={styles.googleMark}><Text style={styles.googleMarkText}>G</Text></View>
+              <Text style={styles.googleLabel}>{labelGoogle}</Text>
+            </>
+          )}
+        </TouchableOpacity>
+      ) : null}
 
       {/* Apple loading overlay — the native Apple button doesn't expose a
           disabled state, so we show a discreet spinner row underneath while
@@ -133,6 +141,7 @@ export default function OAuthButtons({ variant, onSuccess }: Props) {
           <Text style={styles.appleBusyText}>{t('oauth.busy')}</Text>
         </View>
       ) : null}
+
     </View>
   );
 }
