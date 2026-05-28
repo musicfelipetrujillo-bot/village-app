@@ -64,11 +64,21 @@ Order matters — they apply in published order. Build 11 picks up the latest at
 
 ## Apple Beta Review (external) — current state (2026-05-28 PM)
 
-- **Build 11**: In TestFlight as "Ready to Submit" — needs to be attached to Villie Testers + submitted for review
-- **Build 10**: "Waiting for Review" by Apple — withdrawing this to swap to Build 11
-- **Build 9**: was approved, then superseded; testers never installed (Build 10 became the candidate)
+- **Build 11**: ✅ In Apple Beta Review (submitted 2026-05-28 ~2:47 PM ET). Both groups attached (Villie Team internal + Villie Testers external × 5). Expected approval: 12-24h.
+- **Build 10**: Withdrawn from review to make room for Build 11.
+- **Build 9**: Superseded.
 
-**Action right now**: Path B — withdraw Build 10's review, attach Build 11 to Villie Testers, submit Build 11 for Beta App Review. Resets the review clock but means testers' first install is the OTA-receiving Build 11.
+**Next action**: WAIT. Apple decides on Build 11. When approved, all 5 external testers auto-receive the invite. No further button-clicking needed.
+
+## Install instructions for testers (paste into email when invites land)
+
+When testers ask "what do I do?", send them this:
+> 1. Open the email from Apple titled "villie — postpartum support is ready to test"
+> 2. Tap "View in TestFlight" or "Start Testing"
+> 3. If you don't have the TestFlight app: install it from the App Store first, then come back and tap the link again
+> 4. Tap "Install" → "Open"
+> 5. Sign in with Apple (recommended — uses Face ID, no password to remember) or create an account with email
+> 6. Poke around. If anything breaks or feels weird, take a screenshot and reply to this email.
 
 Workflow when Build 11 finishes EAS pipeline:
 1. App Store Connect → TestFlight → Villie Testers → Builds tab
