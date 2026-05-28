@@ -12,12 +12,15 @@ Group: **Villie Team (Expo)** — auto-managed by EAS Build.
 | `felitrujillo95@hotmail.com` | Account Holder | Build 10 (installed) → Build 11 (pending) | iPhone 13 mini · iOS 26.3.1 · 49 sessions on Build 10 |
 
 ### External testers (require Apple Beta App Review)
-Group: **Villie Testers** — manually managed.
+Group: **Villie Testers** — manually managed. **5 testers as of 2026-05-28 PM.**
 
 | Email | Status | Install state | Beta Review for them is gated by |
 |---|---|---|---|
+| `cindya101@bellsouth.net` (Cindy Alcivar) | Invited | "No Builds Available" — waiting on Apple | Build 11 review |
 | `alanahardan@gmail.com` | Invited | "No Builds Available" — waiting on Apple | Build 11 review |
 | `giulipino97@gmail.com` (Giulianna Pino) | Invited | "No Builds Available" — waiting on Apple | Build 11 review |
+| `daniela.azari@gmail.com` (Daniela Azari) | Invited | "No Builds Available" — waiting on Apple | Build 11 review |
+| `sophia.azari@gmail.com` (Sophia Azari) | Invited | "No Builds Available" — waiting on Apple | Build 11 review |
 
 ### Auth.users (people who actually signed in to villie)
 Real account creations as of last check (via Supabase `auth.users`):
@@ -45,7 +48,7 @@ EAS auto-increments buildNumber. Apple sees these as separate "Build N" rows und
 | 8 | `d81f0ec0`?* | TestFlight | V+bee icon properly staged | Icon shows | OTAs deaf, old V splash |
 | 9 | `d09302b4` | TestFlight (review withdrawn) | V+bee splash, `EXUpdatesRequestHeaders` in plist | — | EAS regenerated plist during build, channel header dropped → OTAs deaf |
 | 10 | `2ee99b88` | **Currently in TestFlight + In Review** | Google Sign-In env wiring, Villie Plans nav, OAuth nonce fix | Apple Sign-In, Google Sign-In, V+bee icon, V+bee splash | OTAs **still deaf** — plist regenerated again at build time |
-| 11 | building | EAS build in progress | `updates.requestHeaders` in **app.json** (not just plist) — survives prebuild | All of above + every OTA published since Build 10 lands automatically | TBD |
+| 11 | `14805f73` | **In TestFlight, awaiting Apple processing** | `updates.requestHeaders` in **app.json** (not just plist) — survives prebuild | All of above + every OTA published since Build 10 lands automatically on cold launch | TBD until first install |
 
 ## OTAs published (would all reach the device starting Build 11+)
 
@@ -59,10 +62,13 @@ Order matters — they apply in published order. Build 11 picks up the latest at
 | `8a57e011` | 2026-05-27 | `EXPO_PUBLIC_OAUTH_GOOGLE_ENABLED=1` in .env |
 | `54bb7358` | 2026-05-27 | Google Sign-In re-enabled via edge function exchange |
 
-## Apple Beta Review (external) — current state
+## Apple Beta Review (external) — current state (2026-05-28 PM)
 
-- **Build 10**: was attached to Villie Testers group, "In Review" by Apple
-- **Build 11**: queued in EAS; when it lands you need to swap (same flow as 9→10 earlier)
+- **Build 11**: In TestFlight as "Ready to Submit" — needs to be attached to Villie Testers + submitted for review
+- **Build 10**: "Waiting for Review" by Apple — withdrawing this to swap to Build 11
+- **Build 9**: was approved, then superseded; testers never installed (Build 10 became the candidate)
+
+**Action right now**: Path B — withdraw Build 10's review, attach Build 11 to Villie Testers, submit Build 11 for Beta App Review. Resets the review clock but means testers' first install is the OTA-receiving Build 11.
 
 Workflow when Build 11 finishes EAS pipeline:
 1. App Store Connect → TestFlight → Villie Testers → Builds tab
