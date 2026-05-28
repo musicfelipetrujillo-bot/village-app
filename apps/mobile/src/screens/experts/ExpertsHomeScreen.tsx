@@ -136,14 +136,24 @@ export default function ExpertsHomeScreen({ navigation, route }: Props) {
           >
             <Text style={styles.backLink}>← {t('common.backToVillage')}</Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.utilityPill}
-            onPress={() => navigation.navigate('Favorites')}
-            accessibilityRole="button"
-            accessibilityLabel={t('expertsHome.savedBtn')}
-          >
-            <Text style={styles.utilityPillText}>{t('expertsHome.savedBtn')}</Text>
-          </TouchableOpacity>
+          <View style={{ flexDirection: 'row', gap: 8 }}>
+            <TouchableOpacity
+              style={styles.utilityPill}
+              onPress={() => navigation.navigate('SpecialistsMap')}
+              accessibilityRole="button"
+              accessibilityLabel="Map view"
+            >
+              <Text style={styles.utilityPillText}>Map</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.utilityPill}
+              onPress={() => navigation.navigate('Favorites')}
+              accessibilityRole="button"
+              accessibilityLabel={t('expertsHome.savedBtn')}
+            >
+              <Text style={styles.utilityPillText}>{t('expertsHome.savedBtn')}</Text>
+            </TouchableOpacity>
+          </View>
         </View>
         <View style={styles.mastheadEyebrowRow}>
           <View style={styles.mastheadEyebrowBar} />

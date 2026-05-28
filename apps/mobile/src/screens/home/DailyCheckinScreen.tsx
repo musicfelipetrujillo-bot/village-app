@@ -14,6 +14,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { COLORS, FONTS } from '@utils/constants';
 import { tap, confirm } from '@utils/haptics';
 import { V9PageBackdrop } from '@components/shared/V9PageBackdrop';
+import MoodFaceIcon, { type MoodScore } from '@components/shared/MoodFaceIcon';
 import { homeApi, MOOD_OPTIONS } from '@api/home';
 import { useHomeStore } from '@store/home';
 import { useT } from '@/i18n';
@@ -124,7 +125,11 @@ export default function DailyCheckinScreen({ navigation }: Props) {
                     accessibilityLabel={t('checkin.moodA11y', { label: moodLabel })}
                     accessibilityState={{ selected: mood === opt.score }}
                   >
-                    <Text style={styles.moodEmoji}>{opt.emoji}</Text>
+                    <MoodFaceIcon
+                      score={opt.score as MoodScore}
+                      size={32}
+                      color={mood === opt.score ? '#FDFBF6' : '#3D1F0E'}
+                    />
                     <Text style={[styles.moodLabel, mood === opt.score && styles.moodLabelActive]}>
                       {moodLabel}
                     </Text>

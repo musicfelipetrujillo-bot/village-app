@@ -8,6 +8,7 @@ import BookingScreen from '@screens/experts/BookingScreen';
 import PaymentScreen from '@screens/experts/PaymentScreen';
 import BookingConfirmScreen from '@screens/experts/BookingConfirmScreen';
 import MessagingScreen from '@screens/experts/MessagingScreen';
+import SpecialistsMapScreen from '@screens/experts/SpecialistsMapScreen';
 import type { SpecialtyType } from 'shared/src/types/v1';
 
 export type ExpertsStackParamList = {
@@ -38,6 +39,7 @@ export type ExpertsStackParamList = {
     amountCents: number;
   };
   Messaging: { specialistId: string };
+  SpecialistsMap: undefined;
 };
 
 const Stack = createNativeStackNavigator<ExpertsStackParamList>();
@@ -80,6 +82,11 @@ export function ExpertsNavigator() {
         name="Messaging"
         component={MessagingScreen}
         options={{ animation: 'slide_from_right' }}
+      />
+      <Stack.Screen
+        name="SpecialistsMap"
+        component={SpecialistsMapScreen}
+        options={{ animation: 'slide_from_bottom' }}
       />
     </Stack.Navigator>
   );
