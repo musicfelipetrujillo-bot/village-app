@@ -13,7 +13,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { COLORS, FONTS } from '@utils/constants';
 import { tap, confirm } from '@utils/haptics';
-import { V9PageBackdrop } from '@components/shared/V9PageBackdrop';
+import { WarmGlowBackdrop } from '@components/shared/WarmGlowBackdrop';
 import MoodFaceIcon, { type MoodScore } from '@components/shared/MoodFaceIcon';
 import { homeApi, MOOD_OPTIONS } from '@api/home';
 import { useHomeStore } from '@store/home';
@@ -92,7 +92,7 @@ export default function DailyCheckinScreen({ navigation }: Props) {
       style={styles.container}
       keyboardVerticalOffset={0}
     >
-      <V9PageBackdrop />
+      <WarmGlowBackdrop />
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}

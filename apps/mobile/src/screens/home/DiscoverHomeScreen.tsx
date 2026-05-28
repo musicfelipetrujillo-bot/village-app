@@ -6,7 +6,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { COLORS, FONTS } from '@utils/constants';
-import { V9PageBackdrop } from '@components/shared/V9PageBackdrop';
+import { WarmGlowBackdrop } from '@components/shared/WarmGlowBackdrop';
 import { useT } from '@/i18n';
 
 interface Tile {
@@ -62,7 +62,7 @@ export default function DiscoverHomeScreen() {
 
   return (
     <View style={styles.container}>
-      <V9PageBackdrop />
+      <WarmGlowBackdrop />
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}

@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { COLORS, FONTS } from '@utils/constants';
-import { V9PageBackdrop } from '@components/shared/V9PageBackdrop';
+import { WarmGlowBackdrop } from '@components/shared/WarmGlowBackdrop';
 import { homeApi, type DailyCheckin } from '@api/home';
 import { useT } from '@/i18n';
 import type { HomeStackParamList } from '@/navigation/HomeNavigator';
@@ -70,7 +70,7 @@ export default function CheckinResponseScreen({ navigation }: Props) {
 
   return (
     <View style={styles.container}>
-      <V9PageBackdrop />
+      <WarmGlowBackdrop />
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => navigation.popToTop()}
