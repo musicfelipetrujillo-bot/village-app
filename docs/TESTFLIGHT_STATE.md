@@ -56,6 +56,8 @@ Order matters — they apply in published order. Build 11 picks up the latest at
 
 | OTA ID | Published | Contents |
 |---|---|---|
+| `2200972b` | 2026-05-28 | Strip 4 emoji prefixes from disclaimer body copy (en + es) |
+| `d03449cb` | 2026-05-28 | v3 backdrop swap on DailyCheckin / CheckinResponse / DiscoverHome |
 | `6bc46b82` | 2026-05-28 | Manual: checklist top, X/5 progress banner bottom |
 | `ec9249cd` | 2026-05-28 | Custom SVG mood faces, Specialists map view + Map button |
 | `56d5c437` | 2026-05-27 | Villie Plans tile → EventsList navigation fix |
