@@ -113,6 +113,13 @@ Pre-launch test data Felipe has populated (for verifying flows):
 - All OTAs: https://expo.dev/accounts/villagepeople/projects/the-village-app/updates
 - Channel mapping (must show production branch pointed at production channel): https://expo.dev/accounts/villagepeople/projects/the-village-app/channels
 
+## Queued for Build 12 (next native rebuild after Build 11 is verified)
+
+Don't ship Build 12 until Build 11 has been installed + OTA pipeline is confirmed working on at least 1 tester device. Then batch:
+
+- **Manual PDF export** — wire `expo-print` + `expo-sharing` so the "Print PDF" menu item actually generates a brand-styled PDF of the current chapter. Currently placeholder in both ManualScrollV3.tsx + ManualCategoryScreen.tsx.
+- *(add more as they surface)*
+
 ## Reminders / known issues
 
 - **Apple Sign-In JWT** rotates ~2026-11-16. Set calendar reminder. Source-of-truth: `memory/project_oauth_setup.md`.
