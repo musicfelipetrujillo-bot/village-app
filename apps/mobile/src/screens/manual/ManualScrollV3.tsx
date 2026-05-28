@@ -601,37 +601,36 @@ export default function ManualScrollV3() {
           </View>
         </View>
 
-        {/* Week progress banner — sage, "X more to complete" */}
-        <View style={styles.weekBanner}>
-          <LinearGradient
-            colors={['rgba(253,251,246,0.28)', 'rgba(253,251,246,0)']}
-            start={{ x: 0, y: 0 }} end={{ x: 0, y: 0.5 }}
-            style={[StyleSheet.absoluteFillObject, { borderRadius: 10 }]}
-            pointerEvents="none"
-          />
-          {/* iOS-26 wet-glass sheen — matches check-in card + chapter band */}
-          <GlassHighlight radius={10} height={10} />
-          <View style={styles.weekBannerInner}>
-            <View style={styles.weekBannerIconChip}>
-              <Svg width={13} height={13} viewBox="0 0 24 24">
-                <Path d="M5 13l4 4L19 7" stroke={T.moss} strokeWidth={2.4} fill="none" strokeLinecap="round" strokeLinejoin="round" />
-              </Svg>
-            </View>
-            <View style={{ flex: 1, minWidth: 0 }}>
-              <Text style={styles.weekBannerTitle}>
-                {lang === 'es'
-                  ? (remaining === 1 ? '1 categoría más esta semana.' : `${remaining} categorías más esta semana.`)
-                  : (remaining === 1 ? '1 more category to complete this week.' : `${remaining} more categories to complete this week.`)
-                }
-              </Text>
-              <Text style={styles.weekBannerEyebrow}>{lang === 'es' ? 'Tu semana' : 'Your week'}</Text>
-            </View>
-            <Text style={styles.weekBannerCount}>{doneCount} / 5</Text>
-          </View>
-          <View style={styles.weekBannerProgress}>
-            <View style={[styles.weekBannerFill, { width: `${(doneCount / 5) * 100}%` }]} />
-          </View>
-        </View>
+        {/* TOP CHECKLIST — Phase 4.6 swap (2026-05-28 per Felipe):
+            the actionable weekly checklist now sits FIRST so the page
+            opens with something a sleep-deprived mom can DO right now.
+            The progress meter (X/5 categories) moves to the bottom of
+            the stream so it reads as a reward / status, not the lead. */}
+        {(() => {
+          const dbChecklist = chapterPieces.find((p) => p.kind === 'checklist');
+          const checklistPiece: Piece | undefined = dbChecklist
+            ? {
+                kind: 'checklist',
+                num: dbChecklist.num,
+                title: dbChecklist.title,
+                steps: dbChecklist.steps ?? [],
+              }
+            : (PIECES_BY_CHAPTER[chapter.ch] ?? []).find((p) => p.kind === 'checklist');
+          if (!checklistPiece) return null;
+          return (
+            <TouchableOpacity
+              onPress={() => openPieceOverlay(checklistPiece)}
+              activeOpacity={0.85}
+              style={[styles.pieceSection, { marginTop: 18 }]}
+            >
+              <ChecklistPiece
+                piece={checklistPiece as Extract<Piece, { kind: 'checklist' }>}
+                accentBg={chapter.bg}
+                accentFg={chapter.fg}
+              />
+            </TouchableOpacity>
+          );
+        })()}
 
         {/* COLORED CHAPTER BAND — full-width identity surface with depth.
             Three-layer lift recipe (Felipe: "more depth, looks paper thin"):
@@ -698,8 +697,10 @@ export default function ManualScrollV3() {
             const fallback = PIECES_BY_CHAPTER[chapter.ch] ?? [];
             const videoPiece = fallback.find((p) => p.kind === 'video');
             const fallbackNonVideo = fallback.filter((p) => p.kind !== 'video');
+            // Phase 4.6 swap: checklist now renders at the TOP of the page,
+            // so drop it from the inline stream to avoid double-rendering.
             const dbNonVideo: Piece[] = chapterPieces
-              .filter((p) => p.kind === 'article' || p.kind === 'illustration' || p.kind === 'checklist')
+              .filter((p) => p.kind === 'article' || p.kind === 'illustration')
               .map((p): Piece => {
                 if (p.kind === 'article') {
                   return {
@@ -707,18 +708,14 @@ export default function ManualScrollV3() {
                     dur: p.dur ?? '3 min read', excerpt: p.excerpt ?? '',
                   };
                 }
-                if (p.kind === 'illustration') {
-                  return {
-                    kind: 'illustration', num: p.num, title: p.title,
-                    caption: p.caption ?? '',
-                  };
-                }
                 return {
-                  kind: 'checklist', num: p.num, title: p.title,
-                  steps: p.steps ?? [],
+                  kind: 'illustration', num: p.num, title: p.title,
+                  caption: p.caption ?? '',
                 };
               });
-            const nonVideo = dbNonVideo.length > 0 ? dbNonVideo : fallbackNonVideo;
+            const nonVideo = dbNonVideo.length > 0
+              ? dbNonVideo
+              : fallbackNonVideo.filter((p) => p.kind !== 'checklist');
             return [videoPiece, ...nonVideo].filter((x): x is Piece => Boolean(x));
           })().map((p, i) => {
             if (p.kind === 'video') {
@@ -860,6 +857,39 @@ export default function ManualScrollV3() {
             }
             return null;
           })}
+        </View>
+
+        {/* WEEK PROGRESS BANNER — Phase 4.6 swap: moved to bottom 2026-05-28.
+            Reads as a quiet "how am I doing this week" status check after
+            the user has scrolled through the chapter content. */}
+        <View style={[styles.weekBanner, { marginTop: 28 }]}>
+          <LinearGradient
+            colors={['rgba(253,251,246,0.28)', 'rgba(253,251,246,0)']}
+            start={{ x: 0, y: 0 }} end={{ x: 0, y: 0.5 }}
+            style={[StyleSheet.absoluteFillObject, { borderRadius: 10 }]}
+            pointerEvents="none"
+          />
+          <GlassHighlight radius={10} height={10} />
+          <View style={styles.weekBannerInner}>
+            <View style={styles.weekBannerIconChip}>
+              <Svg width={13} height={13} viewBox="0 0 24 24">
+                <Path d="M5 13l4 4L19 7" stroke={T.moss} strokeWidth={2.4} fill="none" strokeLinecap="round" strokeLinejoin="round" />
+              </Svg>
+            </View>
+            <View style={{ flex: 1, minWidth: 0 }}>
+              <Text style={styles.weekBannerTitle}>
+                {lang === 'es'
+                  ? (remaining === 1 ? '1 categoría más esta semana.' : `${remaining} categorías más esta semana.`)
+                  : (remaining === 1 ? '1 more category to complete this week.' : `${remaining} more categories to complete this week.`)
+                }
+              </Text>
+              <Text style={styles.weekBannerEyebrow}>{lang === 'es' ? 'Tu semana' : 'Your week'}</Text>
+            </View>
+            <Text style={styles.weekBannerCount}>{doneCount} / 5</Text>
+          </View>
+          <View style={styles.weekBannerProgress}>
+            <View style={[styles.weekBannerFill, { width: `${(doneCount / 5) * 100}%` }]} />
+          </View>
         </View>
       </Animated.ScrollView>
 
