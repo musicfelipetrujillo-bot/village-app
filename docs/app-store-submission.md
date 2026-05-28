@@ -1,308 +1,213 @@
-# App Store Submission — The Village
+# App Store Submission — villie
 
-Reference doc for App Store Connect + Google Play Console listings. All copy
-below is drafted for the **hospital-discharge GTM** positioning (clinician
-hands phone to postpartum mom — copy must be calm, clinical-handoff-grade,
-never breezy/marketing).
+Reference doc for App Store Connect listing. All copy below is drafted for the **hospital-discharge GTM** positioning (clinician hands phone to postpartum mom — copy reads calm, clinical-handoff-grade, never breezy/marketing).
+
+**App Store ID**: 6773357128
+**Bundle ID**: `com.villieapp.mobile`
+**Brand canonical**: `villie` lowercase, never "The Village" or "Villie"
+**Last refreshed**: 2026-05-28
 
 ---
 
-## 1) iOS — App Store Connect
-
-### App information
+## 1) App Information (rarely changes)
 
 | Field | Value |
 |---|---|
-| **App Name** | The Village |
-| **Subtitle** (30 char max) | Postpartum care, in one place |
+| **App Name** | villie |
+| **Subtitle** (30 char max) | A village for every mom |
 | **Primary Category** | Health & Fitness |
 | **Secondary Category** | Medical |
 | **Bundle ID** | `com.villieapp.mobile` |
-| **SKU** | `village-mobile-001` |
+| **SKU** | `villie-mobile-001` |
+| **Copyright** | `© 2026 villie` |
 
-### Promotional Text (170 char — editable without resubmission)
+> Subtitle is **23 chars** — fits Apple's 30-char ceiling with room. Tagline pulls from the in-app footer ("villie · a village for every mom") so the App Store label, splash, footer, and newsletter all rhyme.
 
-> Your postpartum support team in one app. Find OB/GYNs, doulas, lactation
-> consultants, and pediatricians near you. Track milestones. Connect with
-> other moms.
+---
 
-### Description (4000 char max)
+## 2) Promotional Text (170 char — editable without resubmission)
 
 ```
-The Village is a postpartum support app for new and expecting moms.
+Postpartum support, hand-delivered. Find specialists, track baby's first year, peer milk-sharing, and a 24-hour line that knows your stage. Cash-only marketplace.
+```
 
-Built with maternal-health clinicians, The Village helps you find the right
-care, track your baby's first year, and connect with other moms — all in one
-place.
+> 165 chars. Edit any time without a new build. Use the freedom: rotate this when launching a hospital pilot ("Now bundled with discharge at [hospital]"), or after a press hit.
 
-WHAT YOU CAN DO
+---
 
-— Find specialists near you
-Search OB/GYNs, doulas, midwives, lactation consultants, pediatricians, sleep
-coaches, pelvic floor PTs, perinatal dietitians, and PPD therapists.
-Filter by insurance, distance, and language. Read verified reviews. Book
-appointments directly through your provider's calendar.
+## 3) Description (4000 char max)
 
-— Track your baby's milestones
-Week-by-week milestone tracking from week 1 through week 52, written by
-pediatric specialists. Tailored to your baby's age, feeding method, and
-whether they were born preterm.
+```
+villie is the postpartum support app new moms use when they leave the hospital.
 
-— Daily check-ins
-Quick daily mood and energy check-ins with a warm, judgment-free response.
-Crisis resources surfaced automatically when needed — including 988
-(Suicide & Crisis Lifeline), Postpartum Support International, and the
-Crisis Text Line.
+Built with maternal-health clinicians for the first six weeks home, villie pulls every line of support a mom needs into one quiet place — a directory of specialists, a week-by-week Manual for baby's first year, a daily check-in that listens, peer milk-sharing for moms who can't or don't formula-feed, a moderated marketplace for outgrown gear, and a 24-hour crisis line one tap from any screen.
 
-— Milk Connect (peer milk-sharing marketplace)
-For moms who can't or choose not to formula-feed. Browse verified local
-donors with safety screening, allergy info, and dietary disclosures.
-Optional Stripe-backed payment. Always check with your pediatrician before
-using donor milk.
+WHAT'S INSIDE
 
-— Community rooms
-Moderated chat rooms organized by stage (TTC, trimester 1/2/3, postpartum
-weeks 0–6, 6–24, 6m+). AI-assisted moderation flags safety concerns. Crisis
-resources always one tap away.
+— Specialists near you
+OB/GYNs, doulas, midwives, lactation consultants, pediatricians, sleep coaches, pelvic floor PTs, perinatal dietitians, and PPD therapists. Filter by insurance, distance, and language (English / Spanish). Booking goes through Stripe with Apple Pay.
 
-— Curated gear marketplace
-Buy and sell baby gear locally. Every listing checked against the
-CPSC recall database before it goes live. Built-in safe-meeting checklist.
-Cash and peer-to-peer payments only — The Village does not process gear
-payments.
+— The Manual
+A week-by-week chapter library from week 1 through week 52, structured as Sleep / Feed / Grow / Care / Wins for baby and Feel / Heal / Nourish / Rest / Tips for mom. Every chapter is a video plus a short article plus a printable checklist plus an illustration — written by pediatric and postpartum specialists, tuned to your baby's age and feeding method.
 
-— Events & perks
-Local meetups, expert webinars, and curated brand discounts matched to
-your stage.
+— Daily check-in
+One tap to record how you're doing. villie reads it, replies in your voice, and surfaces crisis resources when the language flags concern. Mood and energy roll up into a private week timeline you can share with your provider.
+
+— Milk Connect
+Peer-to-peer breast milk sharing for moms who can't or don't formula-feed. Browse local donors with allergy disclosures, dietary screening, and verified-mom badges. Cash or peer-to-peer payment on pickup. Safe-handoff walkthrough required before the first message. Always check with your pediatrician.
+
+— Gear marketplace
+Buy and sell baby gear locally. Every listing is checked against the CPSC recall database before it goes live, and recalled items are blocked at upload. Built-in safe-meeting checklist. Cash and peer-to-peer payments only — villie does not process gear payments.
+
+— Events and brand perks
+Local meetups, expert webinars, and curated discounts from postpartum brands like Comotomo, UPPAbaby, Bobbie, and Nesting Co.
+
+— 24-hour crisis access
+988, Postpartum Support International (1-800-944-4773), Crisis Text Line (text HOME to 741741), and Miami-Dade local crisis lines available from any screen — including auto-surfaced on the check-in when language flags risk.
 
 WHO IT'S FOR
 
-The Village is built for moms in the U.S. Most useful in the first 0–6
-weeks postpartum, but supports the full journey from trying-to-conceive
-through baby's first year.
+Moms in the United States. Most useful in the first 0 to 6 weeks home from the hospital. Supports the full journey from trying-to-conceive through baby's first year. Fully translated to Spanish — clinical disclaimers and crisis lines included.
 
 NOT MEDICAL ADVICE
 
-The Village is a directory and tracking tool, not a medical service. AI
-features are decision support, not diagnosis. Always consult your
-provider for medical decisions. In an emergency call 911. For mental
-health crises call or text 988.
+villie is a directory, a tracker, and a quiet companion. It is not a medical service. AI features are decision support, not diagnosis. Always consult your provider for medical decisions. In an emergency call 911. For mental health crises call or text 988.
 
 PRIVACY
 
-We never sell your data. Your baby's name and birthday are stored
-encrypted at rest. You can delete your account from Settings at any time.
-Read our privacy policy at thevillageapp.com/privacy.html.
+We never sell your data and don't run ads. Your health information is encrypted in transit and at rest. Account deletion ships from Settings. Read the full policy at villieapp.com/privacy.
 ```
 
-### Keywords (100 char max, comma-separated)
+> 3,012 chars. Leaves 988 chars of headroom for future expansion (e.g. add a "WHAT'S NEW IN 1.1" block on next bump).
+
+---
+
+## 4) Keywords (100 char max, comma-separated, NO SPACES after commas)
 
 ```
-postpartum,doula,lactation,pediatrician,obgyn,milestone,baby tracker,mom,milk donor,maternal health
+postpartum,doula,lactation,pediatrician,obgyn,milestone,baby tracker,milk donor,maternal health,mom
 ```
 
-### Support / Marketing URLs
+> 99 chars. Includes the highest-intent ASO terms for a postpartum app. Avoid the keyword "village" (low-intent, drowns under unrelated apps). "mom" picks up the broad parenting traffic without the algorithm penalizing for "mother" duplication.
 
-| Field | URL |
-|---|---|
-| **Marketing URL** | `https://village-website-musicfelipetrujillo-bots-projects.vercel.app/` |
-| **Support URL** | `https://village-website-musicfelipetrujillo-bots-projects.vercel.app/contact.html` |
-| **Privacy Policy URL** | `https://village-website-musicfelipetrujillo-bots-projects.vercel.app/privacy.html` |
-| **Copyright** | `© 2026 The Village` |
+---
 
-### Age Rating
+## 5) What's New in this version
 
-**Recommended: 17+** because of:
-- **Unrestricted Web Access** — None (no in-app web browsing)
-- **Medical/Treatment Information** — Frequent (specialist info, milestones, mental health)
-- **Mature/Suggestive Themes** — Infrequent (postpartum / breastfeeding / fertility content)
-- **Profanity or Crude Humor** — None expected, but moderated chat rooms could surface user content
-
-If you go 12+, expect Apple to push back and require 17+ on review.
-
-### Review notes (private — for Apple reviewer only)
+### Build 11 (1.0.0)
 
 ```
-Reviewer login (already provisioned):
-Email: review-apple@thevillageapp.com
-Password: [TO BE PROVIDED — create a real test account before submission]
+First release. The full postpartum stack — specialists, week-by-week Manual, daily check-in, peer milk-sharing, gear marketplace, brand perks, and 24-hour crisis access — all in one app. English and Spanish.
+```
+
+> 220 chars. For subsequent builds, write 1-2 sentences and lead with the user-visible change ("Added PDF export for Manual chapters" beats "Various improvements and bug fixes").
+
+---
+
+## 6) Support / Marketing URLs
+
+| Field | URL | Status |
+|---|---|---|
+| **Marketing URL** | `https://villieapp.com` | Must be live before submit |
+| **Support URL** | `https://villieapp.com/support` | Must be live before submit |
+| **Privacy Policy URL** | `https://villieapp.com/privacy` | **BLOCKING** — Apple rejects without it |
+
+---
+
+## 7) Age Rating
+
+**Target: 17+** due to:
+
+- **Medical / Treatment Information** — Frequent (specialist directory, milestone tracking, mental-health check-ins)
+- **Mature / Suggestive Themes** — Infrequent (postpartum recovery / breastfeeding / fertility content)
+- **Unrestricted Web Access** — None (in-app browsing is disabled)
+- **User-Generated Content** — Yes, but moderated (Connect tab hidden in current build; Gear listings reviewed by mod cron + 24h SLA)
+- **Profanity** — None expected
+
+> If you select 12+ Apple will likely reroll to 17+ during review based on the postpartum / mental-health surfaces. Pick 17+ upfront to skip the back-and-forth.
+
+---
+
+## 8) Review Notes (private — Apple reviewer only)
+
+```
+Test account (pre-provisioned):
+  Email: review-apple@villieapp.com
+  Password: [SET BEFORE SUBMIT — minimum 12 chars, no SSO]
 
 To exercise the full app:
-1. Sign up with the credentials above (or any email)
-2. On the onboarding screen, select stage "Postpartum 0–6 wk"
-3. Enter ZIP 33133 (Miami) for nearby specialists, donors, gear
-4. The Connect tab is intentionally hidden in this build — V3 Community
-   ships in a later release pending moderation infrastructure
+
+1. Sign up with the credentials above, or with any email.
+2. On onboarding, select stage "Postpartum 0–6 months" and ZIP 33133 (Miami)
+   to populate nearby specialists, milk donors, and gear listings.
+3. The Connect (community chat) tab is intentionally hidden in this build —
+   moderation infrastructure ships with a later release.
+4. The Manual reaches every chapter — try Week 1 Sleep, then the daily
+   check-in.
+5. Crisis resources are available from any screen via the "Need help now?"
+   row on the home feed, and auto-surface on the daily check-in when the
+   AI flags risk language.
 
 Permissions are all optional and used only as described in their usage
-strings. Location is used to surface nearby specialists/donors/events;
-the app works without it via ZIP fallback.
+strings. Location is used to surface nearby specialists / donors / gear
+listings; the app works without it via ZIP fallback (Miami in this seed).
 
-The Milk Connect marketplace is peer-to-peer milk donation between moms.
-There is no commercial milk sale; donations are intended for personal use
-and explicitly disclaimed as not-medical-advice. Pediatrician consultation
-is recommended before use, and this is surfaced in-app.
+Milk Connect is peer-to-peer breast milk sharing. There is no commercial
+milk sale through villie — payments are cash or P2P, off-platform. The
+SafeMilkHandoff walkthrough is required before the first message to a
+donor. A "not medical advice" disclaimer and a pediatrician-consultation
+reminder are surfaced before every contact.
 
-The Gear Marketplace is local-pickup only. The Village does not process
-payments — buyers pay sellers directly via cash or peer-to-peer apps.
-Every listing is checked against the CPSC recall database; recalled
-items are blocked at listing time.
+The Gear marketplace is local pickup, cash-only. villie does not process
+payments for gear. Every listing is checked against the CPSC recall
+database at upload; recalled items are hard-blocked. Listings flagged
+for harassment or recall are auto-withdrawn within 24h by a moderation
+cron (see docs/V4_GEAR_TAKEDOWN_SOP.md).
 
-AI features (Villie chat, milestone explainers, weekly summaries) all
-display "not medical advice" disclaimers and route to crisis resources
-(988, Postpartum Support International, Crisis Text Line) when crisis
-language is detected.
+AI features (the daily check-in reply, milestone explainers, weekly
+summaries) all display "not medical advice" disclaimers and route to
+crisis resources (988, Postpartum Support International, Crisis Text
+Line, 911) when crisis language is detected by the moderation pass.
 
-For any review questions, reach out to review-apple@thevillageapp.com.
-```
-
-### Sign in info (App Store Connect requires test credentials)
-
-```
-Username: review-apple@thevillageapp.com
-Password: [CREATE BEFORE SUBMIT]
+For any review questions, reach review at:
+  reviews@villieapp.com
 ```
 
 ---
 
-## 2) App Privacy declaration (App Store Connect → App Privacy)
+## 9) Cross-references
 
-This is the most-failed gate at submission. Map every data type collected in
-the app to Apple's taxonomy, then declare per-type whether it's:
-- **Used to track you** (data linked across companies for advertising)
-- **Linked to you** (associated with the user identity)
-- **Not linked to you** (anonymized)
-
-### Data types collected by The Village
-
-| Data type | Apple bucket | Purpose | Linked? | Used to track? |
-|---|---|---|---|---|
-| Email address | Contact Info | App Functionality, Account Management | Linked | No |
-| Name | Contact Info | App Functionality | Linked | No |
-| Phone number (optional) | Contact Info | App Functionality (SMS appointment reminders) | Linked | No |
-| Physical address (ZIP code) | Contact Info | App Functionality (nearby specialists, donors) | Linked | No |
-| User ID (Supabase auth UUID) | Identifiers | App Functionality | Linked | No |
-| Device ID (OneSignal external_id) | Identifiers | App Functionality (push notifications) | Linked | No |
-| Coarse location (when granted) | Location | App Functionality (nearby specialists/events) | Linked | No |
-| Photos (avatar, gear listings) | User Content | App Functionality (profile, marketplace listings) | Linked | No |
-| Audio data | — | **NOT collected** (mic permission declared but unused for audio capture) | — | — |
-| Health data (pregnancy stage, due date, baby DOB, feeding method, mood/energy check-ins, milestone progress) | Health & Fitness | App Functionality (personalized milestone tracking, daily check-ins) | Linked | No |
-| Diagnostics / crash data (Sentry) | Diagnostics | App Functionality (crash reporting) | Linked | No |
-| Product interaction (analytics events — gear views, milk views, perk claims) | Usage Data | Analytics, Product Personalization | Linked | No |
-
-**Critical: "Used to track" must be NO for everything.** The Village does not
-share any data with third-party advertisers. Crash reports go to Sentry but
-are PII-stripped via `beforeSend` (per CLAUDE.md).
-
-### Third-party SDKs that touch user data
-
-| SDK | What it sees | Mitigation |
-|---|---|---|
-| Supabase | All user data (RLS-gated) | Supabase is the canonical backend — same data, same legal entity |
-| OneSignal | Push tokens + tags (`pregnancy_stage`, `preferred_language`, prefs) | External_id only — no email/PII |
-| Stripe | Payment-related data (Milk Connect only) | Stripe handles PCI scope; The Village never sees card numbers |
-| Twilio | Phone number + SMS body | Used for appointment reminders + crisis moderator alerts only |
-| Sentry | Crash stack traces, user.id only | `beforeSend` hook strips email/username server-side |
-| Anthropic (Claude API) | Message bodies sent to AI features | Cleared message bodies only; never PII like names/emails |
-| Google Maps | Coarse location | Map tile rendering; no user identity sent |
-
-### Privacy Manifest (`PrivacyInfo.xcprivacy`)
-
-Required for iOS 17+ apps. Expo SDK ≥50 auto-generates one based on plugins.
-**Confirm before submit:** Expo build output includes
-`PrivacyInfo.xcprivacy` in the IPA. If missing, declare these required-reason
-APIs:
-
-| API category | Reason code |
-|---|---|
-| File timestamps (NSPrivacyAccessedAPICategoryFileTimestamp) | `C617.1` (display to user) |
-| System boot time (NSPrivacyAccessedAPICategorySystemBootTime) | `35F9.1` (calculate elapsed time) |
-| Disk space (NSPrivacyAccessedAPICategoryDiskSpace) | `E174.1` (write to file system after free-space check) |
-| User defaults (NSPrivacyAccessedAPICategoryUserDefaults) | `CA92.1` (storing settings within the app) |
-
-These are typical for an Expo + RN app. Do **not** declare advertising
-categories.
+- **App Privacy questionnaire**: see `docs/APP_PRIVACY_QUESTIONNAIRE.md` — paste-ready answers for every data category and the linked × tracking × purpose matrix.
+- **Screenshot capture plan**: see `docs/SCREENSHOT_PLAN.md` — the 8-screen sequence, the per-screen overlay copy, and the simulator capture recipe.
+- **Spanish discharge-surface audit**: see `docs/I18N_DISCHARGE_AUDIT.md` — confirms ES copy is clinician-grade, lists the 4 polish nits.
+- **TestFlight + build train**: see `docs/TESTFLIGHT_STATE.md` — current Apple Beta Review state and the Build 12 queue.
 
 ---
 
-## 3) Android — Google Play Console
+## 10) Pre-submit checklist
 
-Mirror the iOS copy. Differences:
+Each box must be true before pressing **Submit for Review** on the public store.
 
-| Field | Value |
-|---|---|
-| **Short description** (80 char) | Postpartum care, milestone tracking, and mom community in one app. |
-| **Full description** | Same as iOS Description above |
-| **Application type** | App |
-| **Category** | Health & Fitness |
-| **Tags** | Health, Parenting, Pregnancy, Maternal Health |
-| **Content rating** | Everyone (will reroll on questionnaire — likely Teen due to community chat) |
-| **Target audience** | Adults (18+) — required because of milk donation and mental health features |
-| **Data safety form** | Same data types as iOS App Privacy above |
-
-### Google Play Data Safety form
-
-Mirrors App Privacy. Same answer set: linked-yes, tracked-no, encrypted-in-
-transit-yes, deletion-on-request-yes (account-delete edge function still
-pending per A2.c).
+- [ ] `villieapp.com/privacy` returns 200 with the published policy
+- [ ] `villieapp.com/support` returns 200 with a contact path
+- [ ] App Privacy form filled per `docs/APP_PRIVACY_QUESTIONNAIRE.md`, labels published
+- [ ] All 8 screenshots uploaded for 6.7" + 6.5" device classes
+- [ ] Reviewer test account created in production with a real Postpartum 0–6 stage selection
+- [ ] Crisis-line numbers verified word-for-word against source orgs (988, PSI 1-800-944-4773, Crisis Text Line 741741, Miami-Dade 305-358-4357)
+- [ ] All "not medical advice" disclaimers present on AI surfaces (DailyCheckin reply, Manual chapters, Weekly Journey, Milk Hub, Gear marketplace)
+- [ ] Connect tab confirmed hidden in production build (`AppNavigator.tsx`)
+- [ ] Account-delete flow surfaces from Settings → Account
+- [ ] Stale Info.plist permissions removed for Build 12+ (`NSContactsUsageDescription`, `NSMicrophoneUsageDescription`, `NSLocationAlwaysUsageDescription`) — see `APP_PRIVACY_QUESTIONNAIRE.md` Step 5
+- [ ] Build 11 has been installed on at least 1 external tester device and the OTA channel is confirmed working
+- [ ] `eas submit --platform ios` walked through TestFlight first
+- [ ] 48-hour external TestFlight period with at least 3 testers signed off
 
 ---
 
-## 4) Screenshots — required dimensions
+## 11) Maintenance triggers
 
-App Store Connect (one set required, take from a real device or simulator):
-
-| Device class | Dimensions | Count required |
-|---|---|---|
-| iPhone 6.7" (iPhone 16 Pro Max, 15 Pro Max) | 1290 × 2796 | 3–10 |
-| iPhone 6.5" (iPhone 11 Pro Max) | 1242 × 2688 | 3–10 (legacy — only if 6.7" missing) |
-| iPhone 5.5" (iPhone 8 Plus) | 1242 × 2208 | 3–10 |
-| iPad 13" (iPad Pro 12.9" gen 6) | 2048 × 2732 | only if `supportsTablet: true` (currently FALSE) |
-
-**You currently have `ios.supportsTablet: false`**, so iPad screenshots are
-not required. Drop the 5.5" set if Apple lets you (they will, since iPhone 8
-Plus is deprecated — submit only 6.7" and 6.5" minimum).
-
-### Recommended screenshot order
-
-1. **Home — milestone hero card** (Week 4: "Your baby is tracking sounds")
-2. **Specialists list** with nearby pins
-3. **Daily check-in flow** (mood + warm AI reply)
-4. **Milk Connect donor profile** (verified badges, trust narrative)
-5. **Gear listing detail** with CPSC-checked badge
-6. **Community rooms** [SKIP if Connect tab hidden in this build]
-7. **Me / profile** (preferences, notifications, search radius)
-
----
-
-## 5) What only YOU can provide
-
-| # | Item | Where to get it |
-|---|---|---|
-| 1 | **Apple Developer Account** | developer.apple.com — $99/year |
-| 2 | **Apple ID for `eas.json`** | The email on your Apple Developer account |
-| 3 | **App Store Connect App ID (`ascAppId`)** | App Store Connect → your app → App Information → "Apple ID" (number) |
-| 4 | **Apple Team ID (`appleTeamId`)** | developer.apple.com → Membership → Team ID |
-| 5 | **Google Play Developer Account** | play.google.com/console — $25 one-time |
-| 6 | **Google Play service account JSON** | Play Console → Setup → API access — download key, place at `google-play-key.json` |
-| 7 | **Reviewer test account** | Sign up `review-apple@thevillageapp.com` in the actual app and provide password in review notes |
-| 8 | **Screenshots** | Capture from device or simulator (see §4) |
-| 9 | **Privacy policy host** at a stable URL | We currently use the Vercel autogenerated URL. Apple reviewers sometimes flag long random subdomains as "not your domain". Consider buying `thevillageapp.com` before submit. |
-
----
-
-## 6) Pre-submit checklist
-
-Run through this in order. Each box must be true before pressing Submit.
-
-- [ ] Hosted Supabase URL + anon key wired in `eas.json` production env (DONE 2026-04-27)
-- [ ] OneSignal plugin set to `mode: production` (DONE 2026-04-27)
-- [ ] `eas.json` submit block has real Apple ID + ASC App ID + Team ID (BLOCKED on you)
-- [ ] Reviewer test account created and signed up in production
-- [ ] Crisis resource phone numbers verified word-for-word with source orgs (988, PSI, Crisis Text Line)
-- [ ] All `not medical advice` disclaimers present on AI features
-- [ ] Connect tab hidden in production build (verify `AppNavigator.tsx`)
-- [ ] Account-delete flow shipped or "request deletion" path documented (Privacy form requires it)
-- [ ] Run `eas build --profile production --platform ios` and confirm IPA opens against hosted Supabase
-- [ ] Run `eas submit --platform ios` and walk through TestFlight first
-- [ ] Internal TestFlight test with 3+ users for 48hrs before public-store submit
+Edit this doc when:
+- Apple revises the listing form or character limits
+- A new vertical ships (e.g. partner-pilot mode, in-app classes)
+- The What's New for the next version is decided
+- Crisis-line numbers are added or rotated
