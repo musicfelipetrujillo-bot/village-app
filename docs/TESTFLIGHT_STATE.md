@@ -117,8 +117,8 @@ Pre-launch test data Felipe has populated (for verifying flows):
 
 Don't ship Build 12 until Build 11 has been installed + OTA pipeline is confirmed working on at least 1 tester device. Then batch:
 
-- **Manual PDF export** — wire `expo-print` + `expo-sharing` so the "Print PDF" menu item actually generates a brand-styled PDF of the current chapter. Currently placeholder in both ManualScrollV3.tsx + ManualCategoryScreen.tsx.
-- *(add more as they surface)*
+- **Manual PDF export** — wire `expo-print` + `expo-sharing` so the "Print PDF" menu item actually generates a brand-styled PDF of the current chapter. HTML builder utility already shipped at `apps/mobile/src/utils/manualPdf.ts` (commit `8dd6ee8`). Wiring is: `pnpm add expo-print expo-sharing` → import + call from `ManualScrollV3.tsx` line 942 + `ManualCategoryScreen.tsx` line 465 (swap the placeholder fallback for the print call documented in the utility header).
+- **Sentry source maps re-enable** — currently disabled via `SENTRY_DISABLE_AUTO_UPLOAD=true` in eas.json. Steps: (1) Sentry dashboard → Settings → Auth Tokens → create token with `project:write` + `project:releases` scopes; (2) `npx eas-cli env:create --scope project --visibility encrypted --name SENTRY_AUTH_TOKEN --value <token>`; (3) add `SENTRY_ORG: 'village-app'` + `SENTRY_PROJECT: 'mobile'` to eas.json production.env (these can stay plaintext); (4) flip `SENTRY_DISABLE_AUTO_UPLOAD` from `'true'` → `'false'` (or delete the key). Production crash stacks will then show .ts line numbers instead of bundled JS.
 
 ## Reminders / known issues
 
