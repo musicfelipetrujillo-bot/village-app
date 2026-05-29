@@ -326,7 +326,7 @@ function ChecklistPiece({ piece, accentBg, accentFg }: {
   return (
     <View>
       <PieceLabel kind="checklist" num={piece.num} />
-      <Text style={styles.pieceArticleTitleSmall}>{piece.title}</Text>
+      <Text style={styles.checklistTitle}>{piece.title}</Text>
       <V3Card contentStyle={{ overflow: 'hidden' }}>
         {piece.steps.map((step, j) => {
           const done = checked[j];
@@ -601,38 +601,10 @@ export default function ManualScrollV3() {
           </View>
         </View>
 
-        {/* TOP CHECKLIST — Phase 4.6 swap (2026-05-28 per Felipe):
-            the actionable weekly checklist now sits FIRST so the page
-            opens with something a sleep-deprived mom can DO right now.
-            The progress meter (X/5 categories) moves to the bottom of
-            the stream so it reads as a reward / status, not the lead. */}
-        {(() => {
-          const dbChecklist = chapterPieces.find((p) => p.kind === 'checklist');
-          const checklistPiece: Piece | undefined = dbChecklist
-            ? {
-                kind: 'checklist',
-                num: dbChecklist.num,
-                title: dbChecklist.title,
-                steps: dbChecklist.steps ?? [],
-              }
-            : (PIECES_BY_CHAPTER[chapter.ch] ?? []).find((p) => p.kind === 'checklist');
-          if (!checklistPiece) return null;
-          return (
-            <TouchableOpacity
-              onPress={() => openPieceOverlay(checklistPiece)}
-              activeOpacity={0.85}
-              style={[styles.pieceSection, { marginTop: 18 }]}
-            >
-              <ChecklistPiece
-                piece={checklistPiece as Extract<Piece, { kind: 'checklist' }>}
-                accentBg={chapter.bg}
-                accentFg={chapter.fg}
-              />
-            </TouchableOpacity>
-          );
-        })()}
-
         {/* COLORED CHAPTER BAND — full-width identity surface with depth.
+            Re-promoted to lead position 2026-05-29 per Felipe — the chapter
+            band sets the editorial context for the page; "Tonight's plan"
+            sits below as the actionable beat.
             Three-layer lift recipe (Felipe: "more depth, looks paper thin"):
             1. Inner top highlight gradient — light from above
             2. Cocoa-tinted floating shadow — band hovers off the page
@@ -675,6 +647,37 @@ export default function ManualScrollV3() {
           </View>
           </TouchableOpacity>
         </View>
+
+        {/* TONIGHT'S PLAN CHECKLIST — sits below the chapter band so the
+            page opens with editorial context (Sleep · week 1 of 52) and
+            then drops a sleep-deprived mom into something she can DO
+            right now. Compact recipe (smaller title, tighter rows,
+            slimmer checkbox) so it doesn't dominate the viewport. */}
+        {(() => {
+          const dbChecklist = chapterPieces.find((p) => p.kind === 'checklist');
+          const checklistPiece: Piece | undefined = dbChecklist
+            ? {
+                kind: 'checklist',
+                num: dbChecklist.num,
+                title: dbChecklist.title,
+                steps: dbChecklist.steps ?? [],
+              }
+            : (PIECES_BY_CHAPTER[chapter.ch] ?? []).find((p) => p.kind === 'checklist');
+          if (!checklistPiece) return null;
+          return (
+            <TouchableOpacity
+              onPress={() => openPieceOverlay(checklistPiece)}
+              activeOpacity={0.85}
+              style={[styles.pieceSection, { marginTop: 18 }]}
+            >
+              <ChecklistPiece
+                piece={checklistPiece as Extract<Piece, { kind: 'checklist' }>}
+                accentBg={chapter.bg}
+                accentFg={chapter.fg}
+              />
+            </TouchableOpacity>
+          );
+        })()}
 
         {/* ─── PIECE STREAM (Phase 4.2) ───────────────────────────────
             4 mixed pieces per chapter — video, article, illustration,
@@ -1264,23 +1267,29 @@ const styles = StyleSheet.create({
     color: T.amber,
   },
 
-  // Checklist piece
+  // Checklist piece — compact recipe (2026-05-29 per Felipe: less bulk,
+  // so the chapter band can lead and the checklist doesn't dominate the
+  // viewport).
+  checklistTitle: {
+    fontFamily: FONTS.v3_display, fontSize: 18, lineHeight: 22,
+    color: T.cocoa, letterSpacing: -0.4, marginBottom: 10,
+  },
   checklistRow: {
-    flexDirection: 'row', alignItems: 'center', gap: 12,
-    paddingVertical: 12, paddingHorizontal: 14,
+    flexDirection: 'row', alignItems: 'center', gap: 10,
+    paddingVertical: 9, paddingHorizontal: 12,
   },
   checklistRowDivider: {
     borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: T.rule,
   },
   checkbox: {
-    width: 20, height: 20, borderRadius: 4,
+    width: 18, height: 18, borderRadius: 4,
     borderWidth: 1.5,
     alignItems: 'center', justifyContent: 'center',
   },
   checklistStep: {
     flex: 1,
-    fontFamily: FONTS.v2_body, fontSize: 13.5,
-    color: T.cocoa, lineHeight: 18,
+    fontFamily: FONTS.v2_body, fontSize: 13,
+    color: T.cocoa, lineHeight: 17,
   },
   checklistStepDone: {
     color: T.walnut,
