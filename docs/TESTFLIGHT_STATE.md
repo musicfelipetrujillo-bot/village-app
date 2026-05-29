@@ -56,6 +56,7 @@ Order matters — they apply in published order. Build 11 picks up the latest at
 
 | OTA ID | Published | Contents |
 |---|---|---|
+| `c62ac3cb` | 2026-05-29 | V5 Phase 5.1 — Mom hero on Home + Manual/Playbook toggle (Playbook is coming-soon teaser) |
 | `79d787da` | 2026-05-29 | Manual: chapter band leads, compact "Tonight's plan" |
 | `2200972b` | 2026-05-28 | Strip 4 emoji prefixes from disclaimer body copy (en + es) |
 | `d03449cb` | 2026-05-28 | v3 backdrop swap on DailyCheckin / CheckinResponse / DiscoverHome |
