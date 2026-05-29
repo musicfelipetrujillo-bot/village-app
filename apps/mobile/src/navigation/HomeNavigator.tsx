@@ -12,6 +12,7 @@ import MilestoneTimelineScreen from '@screens/home/MilestoneTimelineScreen';
 import DailyCheckinScreen from '@screens/home/DailyCheckinScreen';
 import CheckinResponseScreen from '@screens/home/CheckinResponseScreen';
 import DiscoverHomeScreen from '@screens/home/DiscoverHomeScreen';
+import MomHubScreen from '@screens/home/MomHubScreen';
 import NotificationsScreen from '@screens/home/NotificationsScreen';
 import WeeklyJourneyScreen from '@screens/home/WeeklyJourneyScreen';
 import EventsListScreen from '@screens/events/EventsListScreen';
@@ -41,6 +42,7 @@ export type HomeStackParamList = {
   PerkDetail: { id: string };
   PerkClaim: { id: string };
   MyClaims: undefined;
+  MomHub: undefined;
 };
 
 const Stack = createNativeStackNavigator<HomeStackParamList>();
@@ -65,6 +67,7 @@ export function HomeNavigator() {
       <Stack.Screen name="PerkDetail" component={PerkDetailScreen} />
       <Stack.Screen name="PerkClaim" component={PerkClaimScreen} options={{ presentation: 'modal' }} />
       <Stack.Screen name="MyClaims" component={MyClaimsScreen} />
+      <Stack.Screen name="MomHub" component={MomHubScreen} />
     </Stack.Navigator>
   );
 }

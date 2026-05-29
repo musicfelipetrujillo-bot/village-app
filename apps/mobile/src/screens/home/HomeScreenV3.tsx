@@ -346,6 +346,52 @@ const PILLAR_ICONS = {
   plans: 'M3 5h18v16H3zM3 9h18M8 3v4M16 3v4',
 } as const;
 
+// V5 Phase 5.1 — Mom hero card.
+// Sits between the Manual hero (baby-led) and the Village strip on Home.
+// Salmon + blush so it reads as "for mom" without competing with the
+// cinnamon Manual hero. Single Playfair italic on the title word
+// ("corner.") — same one-italic-per-card rule as every other v3 surface.
+// Tap opens MomHubScreen — the dedicated mom-side surface that replaced
+// the now-removed Mom Manual track inside the Manual tab.
+function MomHeroCard({ onPress }: { onPress: () => void }) {
+  const t = useT();
+  return (
+    <View style={{ marginTop: 22 }}>
+      <TouchableOpacity
+        onPress={onPress}
+        activeOpacity={0.92}
+        accessibilityRole="button"
+        accessibilityLabel={t('momHub.homeCardA11y')}
+        style={styles.momCard}
+      >
+        {/* Soft blush halo top-right — same recipe as auth/confirm */}
+        <View style={styles.momHalo} pointerEvents="none" />
+
+        {/* The shared Eyebrow uses walnut by default; override the dash + text
+            color inline so the Mom card eyebrow reads salmon-pink. */}
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <View style={{ width: 16, height: 1.5, backgroundColor: T.salmon, marginRight: 8 }} />
+          <Text style={{
+            fontFamily: FONTS.v2_mono, fontSize: 11, letterSpacing: 2.6,
+            textTransform: 'uppercase', fontWeight: '500', color: T.salmon,
+          }}>{t('momHub.homeCardEyebrow')}</Text>
+        </View>
+
+        <Text style={styles.momTitle}>
+          <Text style={styles.momTitleLead}>{t('momHub.titleLead')} </Text>
+          <Text style={styles.momTitleEm}>{t('momHub.titleEm')}</Text>
+        </Text>
+
+        <Text style={styles.momBlurb}>{t('momHub.homeCardBlurb')}</Text>
+
+        <View style={styles.momCtaRow}>
+          <Text style={styles.momCta}>{t('momHub.homeCardCta')}</Text>
+        </View>
+      </TouchableOpacity>
+    </View>
+  );
+}
+
 function VillageStrip({ onPillar, onAll }: { onPillar: (route: string) => void; onAll: () => void }) {
   return (
     <View style={{ marginTop: 26 }}>
@@ -500,6 +546,14 @@ export default function HomeScreenV3() {
           onPress={goManual}
           onChapterPress={goManualChapter}
         />
+
+        {/* V5 Phase 5.1 (2026-05-29) — Mom hero card.
+            Sits below the Manual hero so the page reads as "baby first,
+            then mama" — same order as the brand's tagline "for every mom"
+            but interior context is baby-led. Salmon/blush palette so it
+            visually separates from the cinnamon manual hero. Taps land
+            on MomHubScreen — see ../home/MomHubScreen.tsx. */}
+        <MomHeroCard onPress={() => navigation.navigate('MomHub' as never)} />
 
         <VillageStrip onPillar={goVillagePillar} onAll={goVillageAll} />
       </Animated.ScrollView>
@@ -661,5 +715,53 @@ const styles = StyleSheet.create({
   pillarSub: {
     fontFamily: FONTS.v2_body, fontSize: 10.5,
     color: T.walnut, marginTop: 2,
+  },
+
+  // ── V5 Phase 5.1 — Mom hero card ─────────────────────────────────────
+  // Paper-tone base + blush halo top-right + cinnamon CTA. Same lift recipe
+  // as the daily check-in strip + manual hero (subtle shadow, hairline
+  // border) so the page reads as a coherent vertical stack of cards.
+  momCard: {
+    backgroundColor: T.paper,
+    borderRadius: 20,
+    paddingHorizontal: 20, paddingTop: 18, paddingBottom: 18,
+    overflow: 'hidden',
+    position: 'relative',
+    borderWidth: 1, borderColor: 'rgba(237, 168, 160, 0.45)',
+    shadowColor: T.cocoa,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.10,
+    shadowRadius: 18,
+    elevation: 3,
+  },
+  momHalo: {
+    position: 'absolute',
+    top: -36, right: -36,
+    width: 140, height: 140,
+    borderRadius: 70,
+    backgroundColor: T.blush,
+    opacity: 0.32,
+  },
+  momTitle: {
+    marginTop: 10,
+    fontFamily: FONTS.v3_display, fontSize: 32, lineHeight: 34,
+    color: T.cocoa, letterSpacing: -1.0,
+  },
+  momTitleLead: { color: T.cocoa, fontWeight: '700' },
+  momTitleEm: {
+    fontFamily: FONTS.v3_display_italic, color: T.salmon, fontWeight: '600',
+  },
+  momBlurb: {
+    marginTop: 8,
+    fontFamily: FONTS.v2_body, fontSize: 13.5, lineHeight: 19,
+    color: T.walnut, maxWidth: 320,
+  },
+  momCtaRow: {
+    marginTop: 14, flexDirection: 'row', alignItems: 'center',
+  },
+  momCta: {
+    fontFamily: FONTS.v2_mono, fontSize: 11, letterSpacing: 1.8,
+    textTransform: 'uppercase', fontWeight: '500',
+    color: T.cinnamon,
   },
 });

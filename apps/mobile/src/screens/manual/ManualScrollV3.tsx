@@ -392,29 +392,54 @@ export default function ManualScrollV3() {
 
   // Route params allow deep-linking from Home into a specific chapter
   // (e.g. tapping "Sleep · Separation anxiety wakings" on the Home
-  // hero TOC). When passed, the screen initializes audience + chapter
-  // from the params; otherwise defaults to baby / first chapter.
+  // hero TOC). When passed, the screen initializes the view + chapter
+  // from the params; otherwise defaults to the General Manual / first chapter.
+  //
+  // V5 Phase 5.1 (2026-05-29) — the previous "mom vs baby" audience toggle
+  // was retired. The "Mom Manual" track moved to its own dedicated surface
+  // (HomeStack/MomHub) so the Manual tab can lead with the baby-side
+  // 52-week reference. Mom content was always editorial / weekly-digest in
+  // shape, not chapter-paginated, so the split was always under tension.
+  //
+  // The new toggle reads "Manual" vs "Playbook":
+  //   - Manual   = General Manual (the existing baby chapters, the static
+  //                educational base — free in 5.3's tier model).
+  //   - Playbook = personalized track that adapts to Baby Check-in answers
+  //                + preferences (co-sleeping vs sleep-training, starting
+  //                solids, etc). Coming-soon teaser in 5.1; real shape in
+  //                5.2 (data) and 5.3 (Pro paywall).
+  //
+  // Legacy `audience: 'mom'` route params are coerced to the Manual view
+  // (the closest non-broken landing) — anything that linked to a Mom
+  // chapter now lands here gracefully instead of crashing.
+  type ManualView = 'manual' | 'playbook';
   const route = useRoute();
   const initialParams = route.params as
-    | { audience?: 'mom' | 'baby'; chapter?: string }
+    | { audience?: 'mom' | 'baby'; view?: ManualView; chapter?: string }
     | undefined;
-  const initialWho: 'mom' | 'baby' = initialParams?.audience ?? 'baby';
-  const initialList = initialWho === 'baby' ? BABY_CHAPTERS : MOM_CHAPTERS;
+  const initialView: ManualView =
+    initialParams?.view === 'playbook' ? 'playbook' : 'manual';
   const initialChapter = (
     initialParams?.chapter
-      ? initialList.find((c) => c.ch === initialParams.chapter) ?? initialList[0]
-      : initialList[0]
+      ? BABY_CHAPTERS.find((c) => c.ch === initialParams.chapter) ?? BABY_CHAPTERS[0]
+      : BABY_CHAPTERS[0]
   );
 
-  const [who, setWho] = useState<'mom' | 'baby'>(initialWho);
-  const list = who === 'baby' ? BABY_CHAPTERS : MOM_CHAPTERS;
+  const [view, setView] = useState<ManualView>(initialView);
+  // The chip list and DB queries always run against the baby chapters now.
+  // MOM_CHAPTERS is kept defined above for the eventual "Phase 2 — restore
+  // Mom Manual as a tertiary track" optionality the voice memo flagged.
+  const list = BABY_CHAPTERS;
+  // The DB API still takes a ManualAudience ('mom' | 'baby') — pin to baby.
+  const who: ManualAudience = 'baby';
   const [chapter, setChapter] = useState<ChapterMeta>(initialChapter);
 
-  // Switch audience → reset to first chapter of new list
-  const switchWho = (next: 'mom' | 'baby') => {
-    setWho(next);
-    const nextList = next === 'baby' ? BABY_CHAPTERS : MOM_CHAPTERS;
-    setChapter(nextList[0]);
+  // Switch the view tab. Manual resets to the first baby chapter; Playbook
+  // doesn't have chapters yet, so we leave `chapter` as-is (Manual state
+  // is preserved when the user toggles back).
+  const switchView = (next: ManualView) => {
+    setView(next);
+    if (next === 'manual') setChapter(BABY_CHAPTERS[0]);
   };
 
   // Tap-to-jump: chip click sets selected chapter (and could scroll
@@ -637,32 +662,76 @@ export default function ManualScrollV3() {
           <View style={[styles.progressFill, { width: `${(doneCount / 5) * 100}%` }]} />
         </View>
 
-        {/* For mom / For baby toggle — embossed parchment track */}
+        {/* Manual / Playbook toggle — embossed parchment track.
+            V5 Phase 5.1 (2026-05-29): swap replaces the mom/baby track. */}
         <View style={styles.toggleTrack}>
-          {(['mom', 'baby'] as const).map((opt) => {
-            const on = who === opt;
+          {(['manual', 'playbook'] as const).map((opt) => {
+            const on = view === opt;
             return (
               <TouchableOpacity
                 key={opt}
-                onPress={() => switchWho(opt)}
+                onPress={() => switchView(opt)}
                 activeOpacity={0.85}
                 style={[styles.toggleBtn, on && styles.toggleBtnOn]}
               >
                 <Text style={[styles.toggleLabel, on && styles.toggleLabelOn]}>
-                  {opt === 'mom' ? (lang === 'es' ? 'Para mamá' : 'For mom') : (lang === 'es' ? 'Para el bebé' : 'For baby')}
+                  {opt === 'manual'
+                    ? (lang === 'es' ? 'Manual' : 'Manual')
+                    : (lang === 'es' ? 'Playbook' : 'Playbook')}
                 </Text>
               </TouchableOpacity>
             );
           })}
         </View>
 
+        {view === 'playbook' ? (
+          // V5 Phase 5.1 — Playbook coming-soon teaser.
+          // No chapter chips, no chapter band, no piece stream. The
+          // personalized track lights up in 5.2 (Baby Check-in + AI
+          // schedule generator) and 5.3 (Pro paywall + AI playbook).
+          // For now: a single editorial card that explains what's coming
+          // so the toggle isn't a tease into emptiness.
+          <View style={styles.playbookTeaserWrap}>
+            <View style={styles.playbookTeaserHalo} pointerEvents="none" />
+            <Eyebrow color={T.cinnamon}>
+              {lang === 'es' ? 'PRÓXIMAMENTE · PERSONALIZADO' : 'COMING SOON · PERSONALIZED'}
+            </Eyebrow>
+            <Text style={styles.playbookTeaserTitle}>
+              {lang === 'es' ? (
+                <>Un libro que <Text style={styles.playbookTeaserTitleEm}>crece contigo.</Text></>
+              ) : (
+                <>A book that <Text style={styles.playbookTeaserTitleEm}>grows with you.</Text></>
+              )}
+            </Text>
+            <Text style={styles.playbookTeaserBody}>
+              {lang === 'es'
+                ? 'Tu Playbook se va ajustando a las respuestas del chequeo diario del bebé y a tus preferencias — co-sleeping, sleep training, comenzar sólidos. Cambias tu enfoque y el plan se actualiza el mismo día. Llega pronto.'
+                : "Your Playbook adapts to your Baby Check-in answers and your preferences — co-sleeping, sleep training, starting solids. Change your approach any day and the plan rewrites itself. Landing soon."}
+            </Text>
+            <View style={styles.playbookTeaserBullets}>
+              <Text style={styles.playbookTeaserBullet}>
+                {lang === 'es' ? '· Horario de siestas a partir de la noche anterior' : '· Nap windows from last night\'s wakings'}
+              </Text>
+              <Text style={styles.playbookTeaserBullet}>
+                {lang === 'es' ? '· Cadencia de tomas según tus preferencias' : '· Feed cadence tuned to your method'}
+              </Text>
+              <Text style={styles.playbookTeaserBullet}>
+                {lang === 'es' ? '· Cambia preferencias cuando quieras — el plan se ajusta' : '· Change prefs any time — the plan re-adapts'}
+              </Text>
+            </View>
+            <Text style={styles.playbookTeaserFooter}>
+              {lang === 'es' ? 'Parte de Pro cuando llegue.' : 'Part of Pro when it ships.'}
+            </Text>
+          </View>
+        ) : (
+          <>
         {/* Category chip row */}
         <View style={{ marginTop: 18 }}>
           <View style={styles.sectionHead}>
             <Eyebrow>
               {lang === 'es'
-                ? `${who === 'baby' ? 'Categorías del bebé' : 'Tus categorías'}`
-                : `${ownerName === 'Your' || who === 'mom' ? 'Your' : `${ownerName}'s`} categories`}
+                ? 'Categorías del bebé'
+                : `${ownerName === 'Your' ? 'Your' : `${ownerName}'s`} categories`}
             </Eyebrow>
             <TouchableOpacity onPress={goToCompleteManual} accessibilityRole="link">
               <Text style={styles.jumpLink}>
@@ -980,6 +1049,8 @@ export default function ManualScrollV3() {
             <View style={[styles.weekBannerFill, { width: `${(doneCount / 5) * 100}%` }]} />
           </View>
         </View>
+          </>
+        )}
       </Animated.ScrollView>
 
       {/* Hamburger menu */}
@@ -1350,6 +1421,57 @@ const styles = StyleSheet.create({
   illustrationCaption: {
     marginTop: 10, marginHorizontal: 4,
     fontFamily: FONTS.v2_body, fontSize: 12, lineHeight: 17,
+    color: T.amber,
+  },
+
+  // V5 Phase 5.1 — Playbook coming-soon teaser styles.
+  // Mirrors the chapter band's lift recipe + adds a soft cinnamon halo
+  // so it reads as "the same Manual surface, just empty for now," not a
+  // visually disconnected page.
+  playbookTeaserWrap: {
+    marginTop: 24,
+    backgroundColor: T.paper,
+    borderRadius: 22,
+    paddingHorizontal: 22, paddingTop: 22, paddingBottom: 24,
+    borderWidth: 1, borderColor: 'rgba(192,120,64,0.22)',
+    overflow: 'hidden',
+    position: 'relative',
+    shadowColor: T.cocoa,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.16,
+    shadowRadius: 22,
+    elevation: 4,
+  },
+  playbookTeaserHalo: {
+    position: 'absolute',
+    top: -48, right: -48,
+    width: 160, height: 160, borderRadius: 80,
+    backgroundColor: T.butter, opacity: 0.28,
+  },
+  playbookTeaserTitle: {
+    marginTop: 10,
+    fontFamily: FONTS.v3_display, fontSize: 30, lineHeight: 32,
+    color: T.cocoa, letterSpacing: -0.9, fontWeight: '700',
+  },
+  playbookTeaserTitleEm: {
+    fontFamily: FONTS.v3_display_italic, color: T.cinnamon, fontWeight: '600',
+  },
+  playbookTeaserBody: {
+    marginTop: 10,
+    fontFamily: FONTS.v2_body, fontSize: 14, lineHeight: 20,
+    color: T.walnut,
+  },
+  playbookTeaserBullets: {
+    marginTop: 14, gap: 6,
+  },
+  playbookTeaserBullet: {
+    fontFamily: FONTS.v2_body, fontSize: 13.5, lineHeight: 19,
+    color: T.cocoa,
+  },
+  playbookTeaserFooter: {
+    marginTop: 16,
+    fontFamily: FONTS.v2_mono, fontSize: 10.5, letterSpacing: 1.6,
+    textTransform: 'uppercase', fontWeight: '500',
     color: T.amber,
   },
 
