@@ -4,6 +4,19 @@ Step-by-step for triggering Build 12. Follow top to bottom. Estimated wall-clock
 
 **Pre-flight assumption**: Build 11 is approved and at least one external tester has confirmed it works.
 
+## ☑ Checklist (tick as you go)
+
+- [ ] **Step 0** — App Privacy form filled in ASC per `docs/APP_PRIVACY_QUESTIONNAIRE.md` and labels published
+- [ ] **Step 1** — Sentry auth token created (`project:write` + `project:releases` scopes), saved to 1Password
+- [ ] **Step 2** — Token dropped into EAS env via `eas-cli env:create`
+- [ ] **Step 3** — eas.json Sentry config verified (`SENTRY_ORG` + `SENTRY_PROJECT` present; no `SENTRY_DISABLE_AUTO_UPLOAD`) — ✅ already committed `<commit-hash>` on 2026-05-29
+- [ ] **Step 4** — `eas build --platform ios --profile production` triggered + completed
+- [ ] **Step 5** — Build 12 installed via TestFlight + smoke test passed (PDF export, OAuth, Sentry source map)
+- [ ] **Step 6** — Build 12 submitted to Apple Beta App Review (Villie Testers group)
+- [ ] **Step 7** — `TESTFLIGHT_STATE.md` updated with the Build 12 row
+
+> If a step blows up, **stop** — don't push through. The earlier steps are reversible; the build itself is the irreversible bit.
+
 ---
 
 ## What ships in Build 12
@@ -53,27 +66,25 @@ Expect one row with `(encrypted)`.
 
 ---
 
-## Step 3 — Flip the Sentry upload flag in `eas.json` (30 seconds)
+## Step 3 — Verify Sentry config in `eas.json` (30 seconds)
 
-Edit `apps/mobile/eas.json` under `build.production.env`:
+✅ **Already committed on 2026-05-29.** Removed `SENTRY_DISABLE_AUTO_UPLOAD`, added `SENTRY_ORG: 'village-app'` + `SENTRY_PROJECT: 'mobile'` to `apps/mobile/eas.json` → `build.production.env`.
 
-```diff
--        "SENTRY_DISABLE_AUTO_UPLOAD": "true"
-+        "SENTRY_ORG": "village-app",
-+        "SENTRY_PROJECT": "mobile"
-```
+**Before triggering Step 4, sanity-check the slugs match Sentry:**
+1. Open https://sentry.io → Settings → Projects → villie (or whatever your project is called)
+2. Confirm:
+   - **Organization Slug** = `village-app`
+   - **Project Slug** = `mobile`
 
-(Just remove `SENTRY_DISABLE_AUTO_UPLOAD` entirely and add the two new keys. The token comes from EAS env at build time.)
-
-> **If your Sentry org / project slugs are different from `village-app` / `mobile`**, check Sentry → Settings → Projects → villie → "Project Slug" and "Organization Slug" and use those instead.
-
-Commit:
+If either differs, edit `apps/mobile/eas.json` and commit the correction:
 
 ```bash
 cd "/Users/gp/The Village App/village-app"
 git add apps/mobile/eas.json
-git commit -m "Build 12: enable Sentry source-map auto-upload"
+git commit -m "Build 12: correct Sentry slugs"
 ```
+
+If both match, skip the edit and move to Step 4.
 
 ---
 
