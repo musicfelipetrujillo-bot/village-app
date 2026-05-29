@@ -9,7 +9,7 @@ Step-by-step for triggering Build 12. Follow top to bottom. Estimated wall-clock
 - [ ] **Step 0** — App Privacy form filled in ASC per `docs/APP_PRIVACY_QUESTIONNAIRE.md` and labels published
 - [ ] **Step 1** — Sentry auth token created (`project:write` + `project:releases` scopes), saved to 1Password
 - [ ] **Step 2** — Token dropped into EAS env via `eas-cli env:create`
-- [ ] **Step 3** — eas.json Sentry config verified (`SENTRY_ORG` + `SENTRY_PROJECT` present; no `SENTRY_DISABLE_AUTO_UPLOAD`) — ✅ already committed `<commit-hash>` on 2026-05-29
+- [ ] **Step 3** — eas.json Sentry config verified (`SENTRY_ORG` + `SENTRY_PROJECT` present; no `SENTRY_DISABLE_AUTO_UPLOAD`) — ✅ already committed `83537e5` on 2026-05-29
 - [ ] **Step 4** — `eas build --platform ios --profile production` triggered + completed
 - [ ] **Step 5** — Build 12 installed via TestFlight + smoke test passed (PDF export, OAuth, Sentry source map)
 - [ ] **Step 6** — Build 12 submitted to Apple Beta App Review (Villie Testers group)
