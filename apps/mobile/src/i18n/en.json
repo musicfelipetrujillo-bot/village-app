@@ -23,7 +23,10 @@
     "saveChapterComingTitle": "Save this chapter",
     "saveChapterComingBody": "Coming soon — you can save individual videos in the meantime.",
     "pdfComingTitle": "Print as PDF",
-    "pdfComingBody": "Coming soon — we'll generate a print-ready PDF of the current chapter."
+    "pdfComingBody": "Coming soon — we'll generate a print-ready PDF of the current chapter.",
+    "pdfShareDialogTitle": "Save your chapter",
+    "pdfErrorTitle": "Couldn't generate the PDF",
+    "pdfErrorBody": "Something went wrong on this device. Try again, or save the chapter from a different week."
   },
   "common": {
     "back": "Back",

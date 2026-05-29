@@ -48,6 +48,7 @@ import { V3Card } from '@components/shared/V3Card';
 import { ManualPieceOverlay, type OverlayPiece } from '@screens/manual/ManualPieceOverlay';
 import { useFocusEffect } from '@react-navigation/native';
 import { Animated } from 'react-native';
+import { buildManualChapterHtml, type ManualPdfPiece } from '@utils/manualPdf';
 
 // ─── Tokens ────────────────────────────────────────────────────────────
 const T = {
@@ -463,6 +464,91 @@ export default function ManualScrollV3() {
     try {
       await Share.share({ message: `${chapter.ch} · week ${week} · villie\n${url}` });
     } catch { /* user cancelled */ }
+  };
+
+  // Compose the current screen's pieces into the ManualPdfPiece shape the
+  // HTML builder expects. Prefers DB-authored pieces (chapterPieces) and
+  // falls back to PIECES_BY_CHAPTER if the bucket is empty for this chapter.
+  // Video pieces are inferred from `firstVideo` so the PDF shows the actual
+  // Mux thumbnail's title — falling back to the static placeholder otherwise.
+  const buildPdfPieces = (): ManualPdfPiece[] => {
+    const fromDb: ManualPdfPiece[] = chapterPieces.map((p) => {
+      if (p.kind === 'article') {
+        return { kind: 'article', num: p.num, title: p.title, dur: p.dur ?? undefined, excerpt: (p as any).excerpt ?? '' };
+      }
+      if (p.kind === 'illustration') {
+        return { kind: 'illustration', num: p.num, title: p.title, caption: (p as any).caption ?? undefined };
+      }
+      if (p.kind === 'checklist') {
+        return { kind: 'checklist', num: p.num, title: p.title, steps: (p as any).steps ?? [] };
+      }
+      // Should not occur — listManualPieces returns only article/illustration/checklist
+      return { kind: 'article', num: p.num, title: p.title, excerpt: '' };
+    });
+    const fallback = PIECES_BY_CHAPTER[chapter.ch] ?? [];
+    const merged: ManualPdfPiece[] = fromDb.length ? fromDb : fallback.map((p): ManualPdfPiece => {
+      if (p.kind === 'video') return { kind: 'video', num: p.num, title: p.title, dur: p.dur, expert: p.expert };
+      if (p.kind === 'article') return { kind: 'article', num: p.num, title: p.title, dur: p.dur, excerpt: p.excerpt };
+      if (p.kind === 'illustration') return { kind: 'illustration', num: p.num, title: p.title, caption: p.caption };
+      return { kind: 'checklist', num: p.num, title: p.title, steps: p.steps };
+    });
+    // Prepend the live video piece (when present) so the PDF leads with
+    // the current week's watch, matching the screen's piece order.
+    if (firstVideo && !merged.find((p) => p.kind === 'video')) {
+      // DB videos don't carry an expert byline; PIECES_BY_CHAPTER fallback
+      // does. Live video card omits expert for now — wire when the
+      // manual_videos schema grows an expert_name column.
+      merged.unshift({
+        kind: 'video',
+        num: '01',
+        title: firstVideo.title,
+        dur: formatDuration(firstVideo.duration_seconds ?? 0) || undefined,
+      });
+    }
+    return merged;
+  };
+
+  const exportChapterPdf = async () => {
+    // Dynamic require keeps the native module reference out of the bundle's
+    // top-level. On a stale build (Build 11) the JS shim resolves but the
+    // native bridge throws "Native module 'ExpoPrint' not registered" —
+    // caught below and the user sees the "coming soon" placeholder.
+    // On Build 12+ the modules are linked and the call lands real PDFs.
+    try {
+      const Print = require('expo-print');
+      const Sharing = require('expo-sharing');
+      const ownerName = babyProfile?.baby_name?.trim() || (lang === 'es' ? 'tu bebé' : "your baby");
+      const html = buildManualChapterHtml({
+        chapterName: chapter.ch,
+        chapterIntro: CHAPTER_INTRO[chapter.ch],
+        week,
+        who,
+        ownerName,
+        pieces: buildPdfPieces(),
+      });
+      const { uri } = await Print.printToFileAsync({ html, base64: false });
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(uri, {
+          dialogTitle: t('manualMenu.pdfShareDialogTitle'),
+          mimeType: 'application/pdf',
+          UTI: 'com.adobe.pdf',
+        });
+      }
+    } catch (err) {
+      // "Native module not registered" on Build 11 lands here; treat as the
+      // "coming soon" placeholder rather than a hard error so testers don't
+      // think the app crashed. Real Build 12+ errors (network / disk / share
+      // sheet cancellation) also funnel through here — the body copy stays
+      // soft enough to read fine in either case.
+      const msg = String((err as any)?.message ?? err);
+      const isNativeMissing = /native module/i.test(msg) || /not registered/i.test(msg);
+      console.warn('[manual] PDF export failed', err);
+      if (isNativeMissing) {
+        Alert.alert(t('manualMenu.pdfComingTitle'), t('manualMenu.pdfComingBody'));
+      } else {
+        Alert.alert(t('manualMenu.pdfErrorTitle'), t('manualMenu.pdfErrorBody'));
+      }
+    }
   };
 
   // ─── Phase 4.3 — Real Mux videos for the current chapter ─────────────
@@ -942,7 +1028,7 @@ export default function ManualScrollV3() {
             title={t('manualMenu.printPdf')}
             sub={t('manualMenu.printPdfSub', { chapter: chapter.ch, week })}
             icon={MENU_ICONS.printer}
-            onPress={closeAnd(() => placeholder('manualMenu.pdfComingTitle', 'manualMenu.pdfComingBody'))}
+            onPress={closeAnd(exportChapterPdf)}
           />
         </MenuGroup>
         <MenuGroup label={t('manualMenu.groupMore')}>

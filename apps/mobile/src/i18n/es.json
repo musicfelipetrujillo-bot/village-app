@@ -23,7 +23,10 @@
     "saveChapterComingTitle": "Guardar este capítulo",
     "saveChapterComingBody": "Próximamente — por ahora puedes guardar videos individuales.",
     "pdfComingTitle": "Imprimir como PDF",
-    "pdfComingBody": "Próximamente — generaremos un PDF listo para imprimir del capítulo actual."
+    "pdfComingBody": "Próximamente — generaremos un PDF listo para imprimir del capítulo actual.",
+    "pdfShareDialogTitle": "Guarda tu capítulo",
+    "pdfErrorTitle": "No pudimos generar el PDF",
+    "pdfErrorBody": "Algo salió mal en este dispositivo. Inténtalo de nuevo o guarda el capítulo de otra semana."
   },
   "common": {
     "back": "Atrás",

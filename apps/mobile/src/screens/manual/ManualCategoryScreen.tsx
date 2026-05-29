@@ -47,6 +47,7 @@ import {
 import {
   MenuButton, MenuPanel, MenuGroup, MenuItem, MENU_ICONS,
 } from '@components/shared/HamburgerMenu';
+import { buildManualChapterHtml, type ManualPdfPiece } from '@utils/manualPdf';
 
 const VILLIE_BEE = require('../../../assets/brand/villie-bee.png');
 
@@ -353,10 +354,54 @@ export default function ManualCategoryScreen() {
       });
     } catch { /* user cancelled */ }
   };
-  const printChapterPdf = () => Alert.alert(
-    t('manualMenu.pdfComingTitle'),
-    t('manualMenu.pdfComingBody'),
-  );
+  const printChapterPdf = async () => {
+    // Dynamic require defers native-module resolution to call time. Build 11
+    // throws "Native module not registered" → caught and downgraded to the
+    // "coming soon" placeholder. Build 12+ has the native frameworks linked
+    // and the call lands a real PDF. See sibling ManualScrollV3 for details.
+    try {
+      const Print = require('expo-print');
+      const Sharing = require('expo-sharing');
+      const ownerName = babyProfile?.baby_name?.trim() || (lang === 'es' ? 'tu bebé' : "your baby");
+      // Category screen doesn't carry a full piece stream — the PDF
+      // captures the chapter masthead + video list. Videos map to the
+      // PdfPiece 'video' shape so the printed PDF mirrors what the user
+      // can watch on this screen.
+      // DB videos don't carry an expert byline; omit until manual_videos
+      // schema grows an expert_name column.
+      const pieces: ManualPdfPiece[] = videos.map((v, i): ManualPdfPiece => ({
+        kind: 'video',
+        num: String(i + 1).padStart(2, '0'),
+        title: v.title,
+        dur: formatDuration(v.duration_seconds ?? 0) || undefined,
+      }));
+      const html = buildManualChapterHtml({
+        chapterName: route.params.label,
+        chapterIntro: subLead || undefined,
+        week,
+        who: audience,
+        ownerName,
+        pieces,
+      });
+      const { uri } = await Print.printToFileAsync({ html, base64: false });
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(uri, {
+          dialogTitle: t('manualMenu.pdfShareDialogTitle'),
+          mimeType: 'application/pdf',
+          UTI: 'com.adobe.pdf',
+        });
+      }
+    } catch (err) {
+      const msg = String((err as any)?.message ?? err);
+      const isNativeMissing = /native module/i.test(msg) || /not registered/i.test(msg);
+      console.warn('[manual] PDF export failed', err);
+      if (isNativeMissing) {
+        Alert.alert(t('manualMenu.pdfComingTitle'), t('manualMenu.pdfComingBody'));
+      } else {
+        Alert.alert(t('manualMenu.pdfErrorTitle'), t('manualMenu.pdfErrorBody'));
+      }
+    }
+  };
   const subscribeDigest = () => {
     // Cross-tab nav to Me → NotificationPreferences. Use the parent
     // navigator (tab navigator) rather than the local stack.

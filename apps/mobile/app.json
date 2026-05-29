@@ -16,7 +16,7 @@
       "supportsTablet": false,
       "icon": "./assets/icon.png",
       "bundleIdentifier": "com.villieapp.mobile",
-      "buildNumber": "10",
+      "buildNumber": "11",
       "entitlements": {
         "keychain-access-groups": [
           "$(AppIdentifierPrefix)com.villieapp.mobile"
@@ -27,15 +27,12 @@
         "applinks:www.villieapp.com"
       ],
       "infoPlist": {
-        "NSLocationWhenInUseUsageDescription": "villie uses your location to find nearby donors, specialists, and events.",
-        "NSLocationAlwaysUsageDescription": "villie uses your location to find nearby donors, specialists, and events.",
-        "NSCameraUsageDescription": "Used to take profile photos, gear listing photos, and scan product barcodes.",
-        "NSPhotoLibraryUsageDescription": "Used to upload profile photos and gear listing photos.",
-        "NSPhotoLibraryAddUsageDescription": "Save photos you take in villie to your library.",
-        "NSMicrophoneUsageDescription": "Only used if you record video when listing an item.",
-        "NSCalendarsUsageDescription": "Add events you RSVP to your calendar.",
-        "NSCalendarsFullAccessUsageDescription": "Add events you RSVP to your calendar.",
-        "NSContactsUsageDescription": "Share villie with contacts you choose.",
+        "NSLocationWhenInUseUsageDescription": "villie uses your location to find nearby specialists, milk donors, and gear listings.",
+        "NSCameraUsageDescription": "villie uses the camera so you can take photos of gear listings or scan product barcodes.",
+        "NSPhotoLibraryUsageDescription": "villie uses your photo library so you can attach images to gear listings and your profile.",
+        "NSPhotoLibraryAddUsageDescription": "villie saves your Manual chapter PDFs to your photo library when you tap Save.",
+        "NSCalendarsUsageDescription": "villie adds your specialist booking to your calendar when you tap Add to Calendar.",
+        "NSCalendarsFullAccessUsageDescription": "villie adds your specialist booking to your calendar when you tap Add to Calendar.",
         "NSUserNotificationsUsageDescription": "Notifications for appointments, new donors, and community messages.",
         "ITSAppUsesNonExemptEncryption": false
       }
@@ -108,7 +105,7 @@
         "expo-camera",
         {
           "cameraPermission": "Allow villie to access your camera to take listing photos and scan product barcodes.",
-          "microphonePermission": "Only used if you record video when listing an item.",
+          "microphonePermission": false,
           "recordAudioAndroid": false
         }
       ],
