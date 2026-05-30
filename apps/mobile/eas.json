@@ -42,7 +42,8 @@
         "EXPO_PUBLIC_OAUTH_GOOGLE_ENABLED": "1",
         "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "595113218342-9k6gdicmqd30qn2j3gsu9nvenrnrh0nt.apps.googleusercontent.com",
         "EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID": "595113218342-hh6m9dpe7go27mpri9hqlb9udvi88kb2.apps.googleusercontent.com",
-        "SENTRY_ORG": "village-app",
+        "EXPO_PUBLIC_SENTRY_DSN": "https://3ce10404112612ffdf8e56064875cfaf@o4511377779523584.ingest.us.sentry.io/4511475446644736",
+        "SENTRY_ORG": "villie-app",
         "SENTRY_PROJECT": "mobile"
       },
       "ios": {
