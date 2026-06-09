@@ -41,7 +41,15 @@ import {
 } from '@/api/manual';
 
 type ParamList = {
-  ManualVideo: { audience: ManualAudience; category: string; videoId: string };
+  ManualVideo: {
+    audience: ManualAudience;
+    category: string;
+    videoId: string;
+    // Optional playlist: ordered video ids for the chapter "row". When present
+    // the player auto-advances on completion and shows prev/next controls.
+    playlist?: string[];
+    playlistIndex?: number;
+  };
 };
 
 export default function ManualVideoScreen() {
@@ -50,6 +58,19 @@ export default function ManualVideoScreen() {
   const t = useT();
   const lang = useUserStore((s) => s.profile?.preferred_language ?? 'en') as 'en' | 'es';
   const { audience, category, videoId } = route.params;
+
+  // Playlist: the ordered ids for this row (or just the single tapped clip).
+  const playlist = route.params.playlist && route.params.playlist.length
+    ? route.params.playlist
+    : [videoId];
+  const [index, setIndex] = useState(() => {
+    const i = route.params.playlistIndex ?? playlist.indexOf(videoId);
+    return i >= 0 && i < playlist.length ? i : 0;
+  });
+  const currentVideoId = playlist[Math.min(index, playlist.length - 1)] ?? videoId;
+  const hasPrev = index > 0;
+  const hasNext = index < playlist.length - 1;
+  const isPlaylist = playlist.length > 1;
 
   const [video, setVideo] = useState<ManualVideo | null>(null);
   const [loading, setLoading] = useState(true);
@@ -86,17 +107,13 @@ export default function ManualVideoScreen() {
     let cancelled = false;
     setLoading(true);
     setForceRemote(false); // new clip — try its local bundle again
-    setFullscreen(false);
+    completionWrittenRef.current = false; // reset per-clip completion tracking
     (async () => {
       try {
-        const v = await getManualVideo(audience, category, videoId, lang);
+        const v = await getManualVideo(audience, category, currentVideoId, lang);
         if (cancelled) return;
         setVideo(v);
         setSaved(v?.is_saved ?? false);
-        // HTML animation clips are authored portrait (1080×1920) to fill the
-        // screen, so open them fullscreen by default. Mux videos keep the
-        // inline player (they carry their own fullscreen control).
-        if (v?.html_url) setFullscreen(true);
         screenMountedAtRef.current = Date.now();
         // View event — fires on screen-load (not actual <video> play). Pairs
         // with manual_video_saved + manual_video_shared so the "of X who saw
@@ -122,7 +139,27 @@ export default function ManualVideoScreen() {
       }
     })();
     return () => { cancelled = true; };
-  }, [audience, category, videoId, lang]);
+  }, [audience, category, currentVideoId, lang]);
+
+  // Auto-open fullscreen ONCE for HTML animation clips (authored portrait to
+  // fill the screen). Done via a ref so it persists across playlist advances
+  // and respects a manual exit (doesn't reopen on the next clip).
+  const fsInitRef = useRef(false);
+  useEffect(() => {
+    if (video?.html_url && !fsInitRef.current) {
+      fsInitRef.current = true;
+      setFullscreen(true);
+    }
+  }, [video]);
+
+  // Advance/retreat within the playlist (also used by auto-advance on
+  // completion). Resets per-clip refs so the new clip tracks cleanly.
+  const goToIndex = (next: number) => {
+    if (next < 0 || next >= playlist.length || next === index) return;
+    completionWrittenRef.current = false;
+    screenMountedAtRef.current = Date.now();
+    setIndex(next);
+  };
 
   // Periodic save. Reads elapsed screen-time every 10s and pings
   // mark_video_watched. Fires the duration-as-full once we cross 90% so
@@ -146,6 +183,11 @@ export default function ManualVideoScreen() {
           audience,
           category,
         });
+        // Playlist auto-advance: when a clip completes, roll to the next one
+        // in the row (YouTube-style). Stops at the last clip.
+        if (isPlaylist && index < playlist.length - 1) {
+          goToIndex(index + 1);
+        }
       } else {
         markVideoWatched(video.id, clamped).catch(() => {});
       }
@@ -343,6 +385,37 @@ export default function ManualVideoScreen() {
               >
                 <Text style={styles.fsExitIcon}>✕</Text>
               </TouchableOpacity>
+
+              {/* Playlist controls — position counter + prev/next. */}
+              {isPlaylist && (
+                <>
+                  <View style={styles.fsCount} pointerEvents="none">
+                    <Text style={styles.fsCountText}>{index + 1} / {playlist.length}</Text>
+                  </View>
+                  {hasPrev && (
+                    <TouchableOpacity
+                      style={[styles.fsNav, styles.fsNavLeft]}
+                      onPress={() => goToIndex(index - 1)}
+                      accessibilityRole="button"
+                      accessibilityLabel={t('manual.playlistPrevA11y')}
+                      hitSlop={{ top: 16, bottom: 16, left: 12, right: 12 }}
+                    >
+                      <Text style={styles.fsNavIcon}>‹</Text>
+                    </TouchableOpacity>
+                  )}
+                  {hasNext && (
+                    <TouchableOpacity
+                      style={[styles.fsNav, styles.fsNavRight]}
+                      onPress={() => goToIndex(index + 1)}
+                      accessibilityRole="button"
+                      accessibilityLabel={t('manual.playlistNextA11y')}
+                      hitSlop={{ top: 16, bottom: 16, left: 12, right: 12 }}
+                    >
+                      <Text style={styles.fsNavIcon}>›</Text>
+                    </TouchableOpacity>
+                  )}
+                </>
+              )}
             </View>
           </Modal>
 
@@ -488,6 +561,23 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.55)',
   },
   fsExitIcon: { color: '#fff', fontSize: 18, lineHeight: 20, fontWeight: '600' },
+
+  // Playlist controls inside the fullscreen Modal.
+  fsCount: {
+    position: 'absolute', top: 56, alignSelf: 'center',
+    paddingHorizontal: 12, paddingVertical: 5, borderRadius: 999,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  fsCountText: { color: '#fff', fontSize: 12, fontWeight: '600', letterSpacing: 0.5 },
+  fsNav: {
+    position: 'absolute', top: '50%', marginTop: -24,
+    width: 48, height: 48, borderRadius: 24,
+    alignItems: 'center', justifyContent: 'center',
+    backgroundColor: 'rgba(0,0,0,0.45)',
+  },
+  fsNavLeft: { left: 12 },
+  fsNavRight: { right: 12 },
+  fsNavIcon: { color: '#fff', fontSize: 30, lineHeight: 32, fontWeight: '300' },
 
   meta: { paddingHorizontal: 20, paddingTop: 16, backgroundColor: COLORS.cream, flex: 1 },
   title: {

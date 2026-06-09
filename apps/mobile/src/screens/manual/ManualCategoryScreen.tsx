@@ -266,9 +266,13 @@ export default function ManualCategoryScreen() {
     }, [audience, category, lang]),
   );
 
+  // Tapping any thumb plays the whole chapter row as a playlist, starting at
+  // the tapped clip (auto-advances through the rest).
   const onCardPress = (video: ManualVideo) => {
+    const playlist = videos.map((v) => v.id);
+    const startIndex = Math.max(0, playlist.indexOf(video.id));
     navigation.navigate('ManualVideo' as never, {
-      audience, category, videoId: video.id,
+      audience, category, videoId: video.id, playlist, playlistIndex: startIndex,
     } as never);
   };
 
@@ -727,7 +731,7 @@ export default function ManualCategoryScreen() {
             onPress={watchFirstVideo}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             accessibilityRole="button"
-            accessibilityLabel={videos[0] ? `Watch ${videos[0].title}` : 'Browse all chapters'}
+            accessibilityLabel={videos.length ? `Play all ${videos.length} videos in this chapter` : 'Browse all chapters'}
           >
             <Text style={[styles.cardCtaRust, { color: theme.accentDeep }]}>Watch the row →</Text>
           </TouchableOpacity>
