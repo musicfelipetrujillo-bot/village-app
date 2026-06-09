@@ -1,4 +1,7 @@
 {
+  "env": {
+    "IMPECCABLE_CONTEXT_DIR": "/Users/gp/The Village App"
+  },
   "permissions": {
     "allow": [
       "mcp__Claude_Preview__preview_screenshot",
@@ -45,7 +48,54 @@
       "Bash(npx tsc --noEmit)",
       "Bash(npx tsc --noEmit --skipLibCheck)",
       "Bash(pnpm tsc --noEmit)",
-      "Bash(pnpm tsc --noEmit --skipLibCheck)"
+      "Bash(pnpm tsc --noEmit --skipLibCheck)",
+
+      "Bash(node -e *)",
+      "Bash(node *)",
+      "Bash(grep *)",
+      "Bash(rg *)",
+      "Bash(ls *)",
+      "Bash(cat *)",
+      "Bash(head *)",
+      "Bash(tail *)",
+      "Bash(wc *)",
+      "Bash(find *)",
+      "Bash(sed -n *)",
+      "Bash(file *)",
+      "Bash(file -b *)",
+      "Bash(sips *)",
+      "Bash(python3 *)",
+      "Bash(cp *)",
+      "Bash(mv *)",
+      "Bash(diff *)",
+      "Bash(jq *)",
+      "Bash(sort *)",
+      "Bash(uniq *)",
+      "Bash(echo *)",
+
+      "Bash(npx tsc *)",
+      "Bash(pnpm tsc *)",
+      "Bash(npx eslint *)",
+      "Bash(pnpm lint*)",
+      "Bash(pnpm --filter shared supabase:types*)",
+
+      "Bash(supabase db push*)",
+      "Bash(supabase migration*)",
+      "Bash(supabase functions deploy*)",
+      "Bash(supabase link*)",
+
+      "Bash(npx --no-install eas-cli update*)",
+      "Bash(npx eas-cli update*)",
+      "Bash(eas update*)",
+      "Bash(eas channel:view*)",
+      "Bash(eas build:list*)",
+      "Bash(eas channel:list*)",
+
+      "Bash(nohup npx expo start*)",
+      "Bash(npx expo start*)",
+
+      "mcp__supabase__execute_sql",
+      "mcp__supabase__apply_migration"
     ]
   }
 }

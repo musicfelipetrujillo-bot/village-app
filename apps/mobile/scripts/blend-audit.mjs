@@ -84,9 +84,9 @@ function hasBlendBg(body) {
 }
 
 function shadowStrength(body) {
-  // Spread of the canonical cardLift mixin counts as 'ok' — no need to
-  // look at inline shadow tokens.
-  if (/\.\.\.cardLift(Deep)?\b/.test(body)) return 'ok';
+  // Spread of any local shadow mixin (foo Shadow, fooLift, cardLift…)
+  // counts as 'ok' — caller has factored the recipe out.
+  if (/\.\.\.\w*(?:[Ss]hadow|[Ll]ift)\b/.test(body)) return 'ok';
   if (!/shadowColor/.test(body)) return 'none';
   const opMatch = body.match(/shadowOpacity:\s*(0?\.\d+|0|1)/);
   if (!opMatch) return 'unknown';

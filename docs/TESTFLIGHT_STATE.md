@@ -1,6 +1,6 @@
 # TestFlight + Build State
 
-Single-page status board. Update as builds + testers change. Last touched: **2026-05-28 PM**.
+Single-page status board. Update as builds + testers change. Last touched: **2026-05-29 PM**.
 
 ## Roster
 
@@ -49,6 +49,8 @@ EAS auto-increments buildNumber. Apple sees these as separate "Build N" rows und
 | 9 | `d09302b4` | TestFlight (review withdrawn) | V+bee splash, `EXUpdatesRequestHeaders` in plist | — | EAS regenerated plist during build, channel header dropped → OTAs deaf |
 | 10 | `2ee99b88` | **Currently in TestFlight + In Review** | Google Sign-In env wiring, Villie Plans nav, OAuth nonce fix | Apple Sign-In, Google Sign-In, V+bee icon, V+bee splash | OTAs **still deaf** — plist regenerated again at build time |
 | 11 | `14805f73` | **In TestFlight, awaiting Apple processing** | `updates.requestHeaders` in **app.json** (not just plist) — survives prebuild | All of above + every OTA published since Build 10 lands automatically on cold launch | TBD until first install |
+| 12 | `6d504283` | **Expired in ASC (2026-05-29)** | Sentry DSN env + Manual PDF export wired (expo-print/sharing) | Sentry crash reporting live | **Print-as-PDF crashes** — expo-print/sharing pinned to wrong SDK majors. Expired so nobody can install it. |
+| 13 | `d6e05ec8` | **In TestFlight — live + processed (Felipe confirmed 2026-05-29)** | Pins expo-print `~15.0.8` + expo-sharing `~14.0.8` (SDK-54 aligned) → fixes PDF crash; `.npmrc` `node-linker=hoisted` for EAS resolve | All of above + **PDF export fixed** (handler verified: dynamic require + try/catch, can't hard-crash) | Pending PDF smoke test on device |
 
 ## OTAs published (would all reach the device starting Build 11+)
 
@@ -66,13 +68,14 @@ Order matters — they apply in published order. Build 11 picks up the latest at
 | `8a57e011` | 2026-05-27 | `EXPO_PUBLIC_OAUTH_GOOGLE_ENABLED=1` in .env |
 | `54bb7358` | 2026-05-27 | Google Sign-In re-enabled via edge function exchange |
 
-## Apple Beta Review (external) — current state (2026-05-28 PM)
+## Apple Beta Review (external) — current state (2026-05-29 PM)
 
-- **Build 11**: ✅ In Apple Beta Review (submitted 2026-05-28 ~2:47 PM ET). Both groups attached (Villie Team internal + Villie Testers external × 5). Expected approval: 12-24h.
-- **Build 10**: Withdrawn from review to make room for Build 11.
-- **Build 9**: Superseded.
+- **Build 13**: ✅ Uploaded to ASC clean (EAS submission `071af65e` FINISHED 2026-05-29 9:06 PM ET, no error) → processed + **live in TestFlight** (Felipe confirmed 2026-05-29). **This is the external-promote candidate** once PDF is smoke-tested on device.
+- **Build 12**: **Expired in ASC 2026-05-29** (carried the Print-as-PDF crash). No longer installable.
+- **Build 11**: Was in Apple Beta Review (submitted 2026-05-28 ~2:47 PM ET). Superseded by Build 13 for external once 13 is verified — withdraw 11's review if still pending so 13 can take its place.
+- **Build 10 / 9**: Superseded.
 
-**Next action**: WAIT. Apple decides on Build 11. When approved, all 5 external testers auto-receive the invite. No further button-clicking needed.
+**Next action**: (1) install Build 13 internally (instant), (2) smoke-test PDF export (Manual → chapter → ⋯ → Print as PDF — expect a real PDF share sheet), (3) ASC → TestFlight → **Villie Testers** → Builds → `+` → Build 13 → submit to Beta App Review (withdraw Build 11 first if it's still in review — one build per version in review at a time). When approved, all 5 external testers auto-receive the invite.
 
 ## Install instructions for testers (paste into email when invites land)
 
