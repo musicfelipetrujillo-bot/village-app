@@ -12,7 +12,8 @@
     "lint": "eslint src --ext .ts,.tsx",
     "ios:patch": "bash scripts/post-prebuild-patch.sh",
     "ios:patch:verify": "bash scripts/post-prebuild-patch.sh --verify",
-    "specialist:invite": "node scripts/specialist-invite.mjs"
+    "specialist:invite": "node scripts/specialist-invite.mjs",
+    "ota:prod": "node scripts/ota-prod.mjs"
   },
   "dependencies": {
     "@expo-google-fonts/bricolage-grotesque": "^0.4.1",
