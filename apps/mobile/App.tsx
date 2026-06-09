@@ -45,7 +45,6 @@ import {
   BricolageGrotesque_800ExtraBold,
 } from '@expo-google-fonts/bricolage-grotesque';
 import {
-  HankenGrotesk_300Light,
   HankenGrotesk_400Regular,
   HankenGrotesk_500Medium,
   HankenGrotesk_600SemiBold,
@@ -132,7 +131,6 @@ export default function App() {
     BricolageGrotesque_400Regular,
     BricolageGrotesque_700Bold,
     BricolageGrotesque_800ExtraBold,
-    HankenGrotesk_300Light,
     HankenGrotesk_400Regular,
     HankenGrotesk_500Medium,
     HankenGrotesk_600SemiBold,

@@ -765,10 +765,11 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.v2_bold, fontSize: 15.5, lineHeight: 21,
     color: T.cocoa, marginTop: 9,
   },
-  // Subtitle on the "This week's manual" card — light weight (not italic; the
-  // screen already carries plenty of italic) for a more refined feel.
+  // Subtitle on the "This week's manual" card — Bricolage Grotesque Regular
+  // (the display family's light weight, same family as the card titles), not
+  // italic, for a refined feel. Sized up for presence.
   heroSub: {
-    fontFamily: FONTS.v2_light, fontSize: 16, lineHeight: 23,
+    fontFamily: FONTS.v2_display_regular, fontSize: 21, lineHeight: 28,
     color: T.cocoa, letterSpacing: 0.1, marginTop: 12,
   },
   heroBody: {
