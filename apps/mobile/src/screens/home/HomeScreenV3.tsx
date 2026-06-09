@@ -769,7 +769,7 @@ const styles = StyleSheet.create({
   // (the display family's light weight, same family as the card titles), not
   // italic, for a refined feel. Sized up for presence.
   heroSub: {
-    fontFamily: FONTS.v2_display_regular, fontSize: 21, lineHeight: 28,
+    fontFamily: FONTS.v2_display_regular, fontSize: 18, lineHeight: 25,
     color: T.cocoa, letterSpacing: 0.1, marginTop: 12,
   },
   heroBody: {
