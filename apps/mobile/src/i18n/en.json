@@ -140,6 +140,8 @@
     "fullscreenExitA11y": "Exit fullscreen",
     "playlistPrevA11y": "Previous video",
     "playlistNextA11y": "Next video",
+    "hideControlsA11y": "Hide controls",
+    "showControlsA11y": "Show controls",
     "shareMessage": "{title} — a 2-minute video for tired parents from villie.\n{url}",
     "shareErrorTitle": "Couldn't share",
     "shareErrorBody": "Please try again in a moment."

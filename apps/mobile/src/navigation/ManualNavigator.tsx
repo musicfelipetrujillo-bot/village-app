@@ -26,7 +26,10 @@ export function ManualNavigator() {
       <Stack.Screen name="ManualHome" component={ManualHomeScreen} />
       <Stack.Screen name="ManualCategory" component={ManualCategoryScreen} />
       <Stack.Screen name="ManualChapterRead" component={ManualChapterReadScreen} />
-      <Stack.Screen name="ManualVideo" component={ManualVideoScreen} />
+      {/* gestureEnabled off: the player owns horizontal swipes (prev/next clip)
+          and vertical swipe-down to dismiss, so the native edge-back must not
+          compete. */}
+      <Stack.Screen name="ManualVideo" component={ManualVideoScreen} options={{ gestureEnabled: false }} />
       <Stack.Screen name="SavedManual" component={SavedManualScreen} />
       <Stack.Screen name="ManualWeekIndex" component={ManualWeekIndexScreen} />
       <Stack.Screen name="WeeklyJourney" component={WeeklyJourneyScreen} />

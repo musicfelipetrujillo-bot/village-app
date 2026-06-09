@@ -20,7 +20,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Share, Alert, StatusBar,
-  Animated, PanResponder, Dimensions,
+  Animated, PanResponder, Dimensions, Pressable,
 } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -86,6 +86,7 @@ export default function ManualVideoScreen() {
   const [forceRemote, setForceRemote] = useState(false); // local→remote fallback
   const [progress, setProgress] = useState(0);            // 0..1 for the bar
   const [watched, setWatched] = useState(false);          // crossed 90% this session
+  const [chrome, setChrome] = useState(true);             // overlay text/controls visible
 
   const { trackEvent } = useAnalytics();
 
@@ -139,12 +140,21 @@ export default function ManualVideoScreen() {
     setProgress(0);
     setWatched(video.is_watched ?? false);
     setSaved(video.is_saved ?? false);
+    setChrome(true); // briefly reveal the title on each clip, then auto-hide
     completionWrittenRef.current = false;
     lastSaveSecRef.current = 0;
     startedAtRef.current = Date.now();
     trackEvent('manual_video_viewed', { video_id: video.id, audience, category });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [video?.id]);
+
+  // Auto-hide the overlay chrome ~3s after it's shown, so the clip plays
+  // unobstructed. Tapping toggles it (see the tap layer in the render).
+  useEffect(() => {
+    if (!chrome) return;
+    const id = setTimeout(() => setChrome(false), 3000);
+    return () => clearTimeout(id);
+  }, [chrome]);
 
   // Advance/retreat within the playlist (also used by auto-advance).
   const goToIndex = (next: number) => {
@@ -276,25 +286,55 @@ export default function ManualVideoScreen() {
     />
   ), [usingLocal, localHtml, playerUrl, forceRemote, CLIP_HEALTH_JS]);
 
-  // Swipe-down-to-dismiss — the natural, one-handed way out of a full-screen
-  // player. PanResponder only claims clearly-downward drags, so taps on the
-  // overlay controls still work. A small downward fling or a >130px drag pops
-  // the screen; anything less springs back.
+  // Gestures: swipe DOWN to dismiss, swipe LEFT/RIGHT to change clip. The axis
+  // is locked on the first significant move so the two never fight, and taps
+  // fall through to the controls / tap-to-toggle layer (we only claim on move).
+  const translateX = useRef(new Animated.Value(0)).current;
   const translateY = useRef(new Animated.Value(0)).current;
-  const screenH = Dimensions.get('window').height;
+  const axisRef = useRef<null | 'x' | 'y'>(null);
+  const { width: screenW, height: screenH } = Dimensions.get('window');
+  // Mutable mirror of nav bounds so the once-created responder reads fresh values.
+  const navRef = useRef({ hasPrev: false, hasNext: false });
+  navRef.current = { hasPrev, hasNext };
   const panResponder = useRef(
     PanResponder.create({
-      onMoveShouldSetPanResponder: (_, g) => g.dy > 8 && g.dy > Math.abs(g.dx) * 1.4,
-      onPanResponderMove: (_, g) => { if (g.dy > 0) translateY.setValue(g.dy); },
-      onPanResponderRelease: (_, g) => {
-        if (g.dy > 130 || g.vy > 0.6) {
-          Animated.timing(translateY, { toValue: screenH, duration: 200, useNativeDriver: true })
-            .start(() => navigation.goBack());
-        } else {
-          Animated.spring(translateY, { toValue: 0, useNativeDriver: true, bounciness: 4 }).start();
+      onMoveShouldSetPanResponder: (_, g) => Math.abs(g.dx) > 12 || g.dy > 10,
+      onPanResponderGrant: () => { axisRef.current = null; },
+      onPanResponderMove: (_, g) => {
+        if (!axisRef.current) {
+          if (Math.abs(g.dx) > Math.abs(g.dy)) axisRef.current = 'x';
+          else if (g.dy > 0) axisRef.current = 'y';
+          else return;
         }
+        if (axisRef.current === 'x') translateX.setValue(g.dx);
+        else if (g.dy > 0) translateY.setValue(g.dy);
+      },
+      onPanResponderRelease: (_, g) => {
+        const axis = axisRef.current;
+        axisRef.current = null;
+        if (axis === 'y') {
+          if (g.dy > 130 || g.vy > 0.6) {
+            Animated.timing(translateY, { toValue: screenH, duration: 200, useNativeDriver: true })
+              .start(() => navigation.goBack());
+          } else {
+            Animated.spring(translateY, { toValue: 0, useNativeDriver: true, bounciness: 4 }).start();
+          }
+          return;
+        }
+        if (axis === 'x') {
+          const goNext = (g.dx < -90 || g.vx < -0.5) && navRef.current.hasNext;
+          const goPrev = (g.dx > 90 || g.vx > 0.5) && navRef.current.hasPrev;
+          if (goNext) setIndex((i) => i + 1);
+          else if (goPrev) setIndex((i) => i - 1);
+          Animated.spring(translateX, { toValue: 0, useNativeDriver: true, speed: 18, bounciness: 0 }).start();
+          return;
+        }
+        Animated.spring(translateX, { toValue: 0, useNativeDriver: true }).start();
+        Animated.spring(translateY, { toValue: 0, useNativeDriver: true }).start();
       },
       onPanResponderTerminate: () => {
+        axisRef.current = null;
+        Animated.spring(translateX, { toValue: 0, useNativeDriver: true }).start();
         Animated.spring(translateY, { toValue: 0, useNativeDriver: true }).start();
       },
     }),
@@ -302,7 +342,7 @@ export default function ManualVideoScreen() {
 
   return (
     <Animated.View
-      style={[styles.container, { transform: [{ translateY }] }]}
+      style={[styles.container, { transform: [{ translateX }, { translateY }] }]}
       {...panResponder.panHandlers}
     >
       {loading && (
@@ -325,40 +365,55 @@ export default function ManualVideoScreen() {
         <>
           {player}
 
-          {/* Top scrim for control legibility over a bright clip. */}
-          <LinearGradient
-            colors={['rgba(0,0,0,0.5)', 'transparent']}
-            style={[styles.scrimTop, { height: insets.top + 96 }]}
-            pointerEvents="none"
+          {/* Tap anywhere on the clip to toggle the overlay chrome so the
+              video plays unobstructed. */}
+          <Pressable
+            style={StyleSheet.absoluteFill}
+            onPress={() => setChrome((c) => !c)}
+            accessibilityRole="button"
+            accessibilityLabel={chrome ? t('manual.hideControlsA11y') : t('manual.showControlsA11y')}
           />
 
-          {/* Progress bar (HTML clips have a known duration; Mux carries its
-              own scrubber). */}
+          {/* Progress bar — ALWAYS visible (marks clip length); HTML clips have
+              a known duration, Mux carries its own scrubber. */}
           {isHtmlClip && (
             <View style={[styles.progressTrack, { top: insets.top + 8 }]} pointerEvents="none">
               <View style={[styles.progressFill, { width: `${Math.round(progress * 100)}%` }]} />
             </View>
           )}
 
-          {/* Top row: close + position counter. */}
-          <View style={[styles.topRow, { top: insets.top + 16 }]}>
-            <TouchableOpacity
-              onPress={() => navigation.goBack()}
-              style={styles.iconBtn}
-              accessibilityRole="button"
-              accessibilityLabel={t('common.back')}
-              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-            >
-              <Text style={styles.iconGlyph}>✕</Text>
-            </TouchableOpacity>
-            {isPlaylist && (
-              <View style={styles.counterPill}>
-                <Text style={styles.counterText}>{index + 1} / {playlist.length}</Text>
-              </View>
-            )}
-          </View>
+          {chrome && (
+            <>
+              {/* Top scrim for control legibility over a bright clip. */}
+              <LinearGradient
+                colors={['rgba(0,0,0,0.5)', 'transparent']}
+                style={[styles.scrimTop, { height: insets.top + 96 }]}
+                pointerEvents="none"
+              />
 
-          {/* Bottom scrim with title, description, and controls. */}
+              {/* Top row: close + position counter. */}
+              <View style={[styles.topRow, { top: insets.top + 16 }]}>
+                <TouchableOpacity
+                  onPress={() => navigation.goBack()}
+                  style={styles.iconBtn}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('common.back')}
+                  hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                >
+                  <Text style={styles.iconGlyph}>✕</Text>
+                </TouchableOpacity>
+                {isPlaylist && (
+                  <View style={styles.counterPill}>
+                    <Text style={styles.counterText}>{index + 1} / {playlist.length}</Text>
+                  </View>
+                )}
+              </View>
+            </>
+          )}
+
+          {/* Bottom scrim with title, description, and controls — hidden by
+              default so the clip plays unobstructed; tap to reveal. */}
+          {chrome && (
           <LinearGradient
             colors={['transparent', 'rgba(0,0,0,0.82)']}
             style={[styles.scrimBottom, { paddingBottom: insets.bottom + 20 }]}
@@ -425,6 +480,7 @@ export default function ManualVideoScreen() {
               )}
             </View>
           </LinearGradient>
+          )}
         </>
       )}
     </Animated.View>
