@@ -20,6 +20,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Share, Alert, StatusBar,
+  Animated, PanResponder, Dimensions,
 } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -31,7 +32,7 @@ import { useUserStore } from '@store/user';
 import { useAnalytics } from '@hooks/useAnalytics';
 import { getLocalClipHtml, MANUAL_VIDEO_REMOTE_BASE } from '@/manual/localManualClips';
 import {
-  getManualVideo,
+  listManualVideos,
   markVideoWatched,
   muxPlayerUrl,
   formatDuration,
@@ -77,7 +78,7 @@ export default function ManualVideoScreen() {
   const hasNext = index < playlist.length - 1;
   const isPlaylist = playlist.length > 1;
 
-  const [video, setVideo] = useState<ManualVideo | null>(null);
+  const [videos, setVideos] = useState<ManualVideo[]>([]);
   const [loading, setLoading] = useState(true);
   const [saved, setSaved] = useState(false);
   const [saveBusy, setSaveBusy] = useState(false);
@@ -95,6 +96,14 @@ export default function ManualVideoScreen() {
   const completionWrittenRef = useRef(false);
   const lastSaveSecRef = useRef(0);
 
+  // A playlist is always one chapter, so the active clip is resolved from an
+  // in-memory list fetched ONCE. Switching clips is synchronous — no per-clip
+  // fetch, no loading state ⇒ no background flash between videos.
+  const video = useMemo(
+    () => videos.find((v) => v.id === currentVideoId) ?? null,
+    [videos, currentVideoId],
+  );
+
   // Hide the status bar only while focused; restore on blur so leaving the
   // player always resets the chrome to default.
   useFocusEffect(
@@ -104,38 +113,43 @@ export default function ManualVideoScreen() {
     }, []),
   );
 
-  // Load the current clip's metadata. Resets per-clip playback tracking.
+  // Fetch the chapter's clips ONCE (the whole playlist lives in this list).
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
-    setForceRemote(false);
-    setProgress(0);
-    setWatched(false);
-    completionWrittenRef.current = false;
-    lastSaveSecRef.current = 0;
-    startedAtRef.current = Date.now();
     (async () => {
       try {
-        const v = await getManualVideo(audience, category, currentVideoId, lang);
-        if (cancelled) return;
-        setVideo(v);
-        setSaved(v?.is_saved ?? false);
-        setWatched(v?.is_watched ?? false);
-        startedAtRef.current = Date.now();
-        if (v) trackEvent('manual_video_viewed', { video_id: v.id, audience, category });
+        const list = await listManualVideos(audience, category, lang);
+        if (!cancelled) setVideos(list);
       } catch (e) {
-        console.error('manual video load', e);
+        console.error('manual list load', e);
       } finally {
         if (!cancelled) setLoading(false);
       }
     })();
     return () => { cancelled = true; };
-  }, [audience, category, currentVideoId, lang]);
+  }, [audience, category, lang]);
+
+  // Per-clip reset — runs on first load and on every playlist switch. Resets
+  // tracking, syncs saved/watched, fires the view event. The player stays
+  // mounted across switches (no loading flash).
+  useEffect(() => {
+    if (!video) return;
+    setForceRemote(false);
+    setProgress(0);
+    setWatched(video.is_watched ?? false);
+    setSaved(video.is_saved ?? false);
+    completionWrittenRef.current = false;
+    lastSaveSecRef.current = 0;
+    startedAtRef.current = Date.now();
+    trackEvent('manual_video_viewed', { video_id: video.id, audience, category });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [video?.id]);
 
   // Advance/retreat within the playlist (also used by auto-advance).
   const goToIndex = (next: number) => {
     if (next < 0 || next >= playlist.length || next === index) return;
-    setIndex(next); // the load effect resets all per-clip tracking
+    setIndex(next); // the per-clip effect resets all tracking
   };
 
   // Progress + watch-tracking loop. Drives the visible bar (position within the
@@ -262,8 +276,35 @@ export default function ManualVideoScreen() {
     />
   ), [usingLocal, localHtml, playerUrl, forceRemote, CLIP_HEALTH_JS]);
 
+  // Swipe-down-to-dismiss — the natural, one-handed way out of a full-screen
+  // player. PanResponder only claims clearly-downward drags, so taps on the
+  // overlay controls still work. A small downward fling or a >130px drag pops
+  // the screen; anything less springs back.
+  const translateY = useRef(new Animated.Value(0)).current;
+  const screenH = Dimensions.get('window').height;
+  const panResponder = useRef(
+    PanResponder.create({
+      onMoveShouldSetPanResponder: (_, g) => g.dy > 8 && g.dy > Math.abs(g.dx) * 1.4,
+      onPanResponderMove: (_, g) => { if (g.dy > 0) translateY.setValue(g.dy); },
+      onPanResponderRelease: (_, g) => {
+        if (g.dy > 130 || g.vy > 0.6) {
+          Animated.timing(translateY, { toValue: screenH, duration: 200, useNativeDriver: true })
+            .start(() => navigation.goBack());
+        } else {
+          Animated.spring(translateY, { toValue: 0, useNativeDriver: true, bounciness: 4 }).start();
+        }
+      },
+      onPanResponderTerminate: () => {
+        Animated.spring(translateY, { toValue: 0, useNativeDriver: true }).start();
+      },
+    }),
+  ).current;
+
   return (
-    <View style={styles.container}>
+    <Animated.View
+      style={[styles.container, { transform: [{ translateY }] }]}
+      {...panResponder.panHandlers}
+    >
       {loading && (
         <View style={styles.center}>
           <ActivityIndicator color={ROSE} />
@@ -306,9 +347,9 @@ export default function ManualVideoScreen() {
               style={styles.iconBtn}
               accessibilityRole="button"
               accessibilityLabel={t('common.back')}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
             >
-              <Text style={styles.iconGlyph}>⌄</Text>
+              <Text style={styles.iconGlyph}>✕</Text>
             </TouchableOpacity>
             {isPlaylist && (
               <View style={styles.counterPill}>
@@ -386,7 +427,7 @@ export default function ManualVideoScreen() {
           </LinearGradient>
         </>
       )}
-    </View>
+    </Animated.View>
   );
 }
 
@@ -418,7 +459,7 @@ const styles = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
     backgroundColor: 'rgba(0,0,0,0.4)',
   },
-  iconGlyph: { color: '#fff', fontSize: 26, lineHeight: 28, marginTop: -4 },
+  iconGlyph: { color: '#fff', fontSize: 17, lineHeight: 19, fontWeight: '600' },
   counterPill: {
     paddingHorizontal: 12, paddingVertical: 5, borderRadius: 999,
     backgroundColor: 'rgba(0,0,0,0.4)',
