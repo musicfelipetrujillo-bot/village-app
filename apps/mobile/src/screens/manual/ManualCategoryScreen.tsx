@@ -211,6 +211,68 @@ export const MANUAL_BULLETS: Record<string, string[]> = {
   'baby/tips':   ['White noise = vacuum cleaner pitch, not ocean.', 'Swaddle until they fight it. Then sleep sack.', 'Pacifier dipped in breastmilk takes faster.'],
 };
 
+// Rich "essentials" content for the swipeable carousel — each chapter's three
+// must-knows as a title + a short, plain-language explanation. Expands the
+// MANUAL_BULLETS one-liners (kept for ManualChapterRead) without introducing
+// new clinical thresholds beyond what's already stated there.
+export const MANUAL_ESSENTIALS: Record<string, { title: string; body: string }[]> = {
+  'mom/feel': [
+    { title: 'The day-3 drop', body: 'Estrogen and progesterone fall sharply around days 3 to 5, and tears that arrive for no reason are part of that shift. It is hormonal, not a verdict on how you are doing. Let them come.' },
+    { title: 'When the blues linger', body: 'The baby blues usually lift on their own by the end of week 2. If low mood, anxiety, or numbness stretches past that — or ever feels frightening — tell your OB. It is common, treatable, and not your fault.' },
+    { title: 'Name it to ease it', body: 'Putting words to a feeling, even silently or in a note on your phone, loosens its grip. You do not have to fix it or explain it. Naming it is enough to make it lighter.' },
+  ],
+  'mom/heal': [
+    { title: 'Lochia, week by week', body: 'Postpartum bleeding thins and fades from red to pink to brown over about 4 to 6 weeks. A gradual lightening is the pattern to expect. Soaking a pad in an hour or passing large clots is worth a call.' },
+    { title: 'Caring for stitches', body: 'Perineal stitches dissolve on their own — there is nothing to remove. Rinse with warm water from a peri bottle and pat dry rather than wiping. Keep the area clean and let it do its slow work.' },
+    { title: 'If you had a C-section', body: 'Keep the incision clean and dry, skip soaking baths until you are cleared, and glance at it daily. Spreading redness, warmth, or new discharge is the sign to call. Otherwise, rest and let it knit.' },
+  ],
+  'mom/nourish': [
+    { title: 'Eat on a clock', body: 'In the newborn fog it is easy to forget meals entirely, so eat something every three hours whether or not you feel hungry. Set a phone alarm if you need to. Steady fuel steadies your mood and your milk.' },
+    { title: 'Protein first', body: 'Front-loading protein at breakfast keeps the mid-afternoon crash away and holds your energy through the long stretch. Eggs, yogurt, nut butter — whatever is one-handed. It matters more than the perfect meal.' },
+    { title: 'Read your hydration', body: 'Aim for urine the color of pale straw — not crystal clear, not dark. Keep water wherever you feed. Thirst lags behind need, especially while nursing.' },
+  ],
+  'mom/rest': [
+    { title: '"Sleep when baby sleeps"', body: 'The advice is real, just badly worded — it does not mean do chores. When the baby goes down, lie down too, even if you only rest your eyes. Horizontal counts.' },
+    { title: 'The 20-minute reset', body: 'A short nap of about twenty minutes lowers cortisol and restores you more than the same time spent scrolling. Set an alarm so it stays short. Tiny sleep is still sleep.' },
+    { title: 'Hand off a night', body: 'Where you can, pass one night feed to a partner — a single bottle is recovery, not failure. Even one unbroken stretch helps your body and mood. Ask for it.' },
+  ],
+  'mom/tips': [
+    { title: 'Warm relief for breasts', body: 'Rest a washcloth warmed for about twenty seconds on sore, full breasts before a feed to ease letdown and the ache. A cool pack after can calm swelling. Small comforts add up.' },
+    { title: 'Snacks everywhere', body: 'Stash a snack on every floor so food is always within one-handed reach while you feed or hold the baby. You will eat more, and more often. Future-you is grateful.' },
+    { title: 'One-handed everything', body: 'Velcro or wrap robes beat anything you tie when one arm is always full. Set your world up for a single free hand. The right small swaps save a dozen frustrations a day.' },
+  ],
+  'baby/feed': [
+    { title: 'How often is normal', body: 'Eight to twelve feeds in twenty-four hours is typical at this age, and newborn rhythm is uneven, not clockwork. Follow hunger cues over the clock. Frequent does not mean something is wrong.' },
+    { title: 'Cluster feeding', body: 'Evening stretches where the baby feeds again and again are usually a growth spurt, not low supply. It is exhausting and it is normal. Your body answers the demand within a day or two.' },
+    { title: 'Counting diapers', body: 'After day five, at least six wet diapers a day is a reassuring sign the baby is getting enough. Output is an easier gauge than ounces at the breast. Track wets and weights, not minutes.' },
+  ],
+  'baby/sleep': [
+    { title: 'Day-night confusion', body: 'Newborns often have days and nights flipped, peaking around weeks 2 to 3, and it passes on its own. Bright, active days and dim, quiet nights gently nudge it along. Be patient with the mix-up.' },
+    { title: 'How newborns sleep', body: 'Expect 14 to 17 hours of sleep across the day in short chunks, not one long run. Fragmented is normal at this age. Long consolidated nights come later.' },
+    { title: 'Safe sleep, every time', body: 'Always on the back, on a firm flat surface, with nothing else in the crib — no bumpers, blankets, or toys. The same setup for naps and nights. This is the one rule worth being rigid about.' },
+  ],
+  'baby/grow': [
+    { title: 'The week-5 leap', body: 'Around week 5 many babies hit a developmental leap: crying spikes, sleep wobbles, then it settles. The fussiness is growth happening, not a setback. It eases as the new skill lands.' },
+    { title: 'Track the curve, not days', body: 'Growth is read on the weight curve over time, not against a calendar — your pediatrician decides what "on track" means for your baby. Trust the trend across visits. One number is just one point.' },
+    { title: 'Skills cost sleep', body: 'A new skill often arrives with an old sleep regression, and having both at once is normal. The brain is busy. It re-settles once the skill is practiced.' },
+  ],
+  'baby/care': [
+    { title: 'Gas vs. colic', body: 'Gas brings curled legs and eases with burping and bicycle motions. Colic follows the rule of threes — crying 3+ hours a day, 3+ days a week, for 3+ weeks — and passes by around month three. Both are hard; neither means harm.' },
+    { title: 'Reflux, normal vs. not', body: 'Easy spit-up after feeds is normal and mostly a laundry problem. Forceful, projectile vomiting, or spit-up paired with weight loss, is not — flag that. When in doubt, mention it at the next visit.' },
+    { title: 'Fever in the first 3 months', body: 'For a baby under three months, a temperature of 100.4°F (38°C) or higher is an urgent call, day or night — do not wait it out. Young immune systems need a fast look. Trust the thermometer over how they seem.' },
+  ],
+  'baby/soothe': [
+    { title: 'The crying curve', body: 'Crying climbs to a peak around weeks 4 to 6, usually in the evenings, then steadily eases. Knowing the peak is coming makes it less frightening. It is a phase with an end, not a problem you caused.' },
+    { title: "The 5 S's, in order", body: 'Swaddle, side or stomach hold in your arms, shush, swing with tiny fast jiggles, and suck — together and in that order, they recreate the womb. Stack them rather than trying one at a time. Hold the combination a few minutes before deciding it is not working.' },
+    { title: 'What colic actually is', body: 'Colic is the rule of threes: crying 3+ hours a day, 3+ days a week, for 3+ weeks in an otherwise healthy, fed baby. It is real and temporary, typically fading by month three. You are not doing anything wrong.' },
+  ],
+  'baby/tips': [
+    { title: 'Pick the right noise', body: 'White noise works best at the steady pitch of a vacuum cleaner, not a gentle ocean wave, and it should run the whole sleep, not just the first few minutes. Loud enough to match a shower is fine. Consistency is the trick.' },
+    { title: 'Swaddle, then sack', body: 'Swaddle until the baby starts fighting it or shows signs of rolling, then move to a sleep sack. The snug phase mimics the womb; the sack keeps it safe once arms want out. Watch their cues for the switch.' },
+    { title: 'Pacifier uptake', body: 'A pacifier briefly dipped in breastmilk is often accepted faster than a dry one. Offer it once feeding is well established. If it is refused, that is fine too — not every baby wants one.' },
+  ],
+};
+
 export const SPECIALIST_QS: Record<string, string[]> = {
   'mom/feel':    ['Is what I am feeling baby blues or PPD?', 'When should I worry about my mood?', 'Can I be screened today?'],
   'mom/heal':    ['Is my bleeding amount normal for this week?', 'When can I expect stitches to fully heal?', 'What activity is safe right now?'],
@@ -322,6 +384,9 @@ export default function ManualCategoryScreen() {
   // need to live in the trigger's layout tree).
   const [menuOpen, setMenuOpen] = useState(false);
   const [anchor, setAnchor] = useState({ right: 22, top: 64 });
+  // Essentials carousel — measured page width + active page for the dots.
+  const [essW, setEssW] = useState(0);
+  const [essIdx, setEssIdx] = useState(0);
   const triggerRef = useRef<View>(null);
   const screenWidth = Dimensions.get('window').width;
 
@@ -434,6 +499,7 @@ export default function ManualCategoryScreen() {
   const hero       = HERO_TITLE[key]     ?? { prefix: 'Read about', em: 'this.' };
   const subLead    = SUB_LEAD[key]       ?? '';
   const bullets    = MANUAL_BULLETS[key] ?? [];
+  const essentials = MANUAL_ESSENTIALS[key] ?? bullets.map((b) => ({ title: '', body: b }));
   const questions  = SPECIALIST_QS[key]  ?? [];
   const hacks      = MOM_HACKS[key]      ?? [];
   const theme      = CHAPTER_THEME[key]  ?? CHAPTER_THEME_DEFAULT;
@@ -449,26 +515,8 @@ export default function ManualCategoryScreen() {
           <Text style={styles.back}>← {t('common.back')}</Text>
         </TouchableOpacity>
         <View style={styles.headerRight}>
-          {/* Liquid-glass pill — audience context (MOM / BABY). Kept
-              alongside the menu because the screen otherwise loses the
-              "which manual am I in" signal on scroll. */}
-          <View style={styles.audienceTagPill}>
-            <LinearGradient
-              colors={['rgba(255,255,255,0.55)', 'rgba(255,255,255,0)']}
-              start={{ x: 0, y: 0 }} end={{ x: 0, y: 0.55 }}
-              style={StyleSheet.absoluteFill as any}
-              pointerEvents="none"
-            />
-            <LinearGradient
-              colors={['rgba(255,255,255,0)', 'rgba(173,121,91,0.10)']}
-              start={{ x: 0, y: 0.5 }} end={{ x: 0, y: 1 }}
-              style={StyleSheet.absoluteFill as any}
-              pointerEvents="none"
-            />
-            <Text style={styles.audienceTag}>
-              {audience === 'mom' ? 'Mom' : 'Baby'}
-            </Text>
-          </View>
+          {/* Audience (Mom/Baby) pill removed 2026-06-09 — mom/baby is no
+              longer a toggleable mode, so the badge served no purpose. */}
           {/* v3 hamburger — Library / This chapter / More */}
           <View ref={triggerRef} collapsable={false}>
             <MenuButton
@@ -568,25 +616,50 @@ export default function ManualCategoryScreen() {
             (`p. {week}`) inside the Manual book card. */}
 
         {/* ─── CARD · The Manual (book spread) ─── */}
-        <View style={styles.bookCard} accessibilityLabel="The manual. What to actually know.">
+        <View style={styles.bookCard} accessibilityLabel="The essentials. Three things to know.">
           <View style={styles.bookSpine} pointerEvents="none" />
           <View style={styles.bookSpineHighlight} pointerEvents="none" />
           <View style={styles.bookYolkRing} pointerEvents="none" />
 
           <View style={styles.eyebrowRow}>
             <View style={[styles.eyebrowBar, { backgroundColor: theme.accent }]} />
-            <Text style={[styles.eyebrowText, { color: theme.accentDeep }]}>The manual</Text>
+            <Text style={[styles.eyebrowText, { color: theme.accentDeep }]}>The essentials</Text>
           </View>
           <Text style={styles.bookTitle}>
-            What to actually <Text style={[styles.italicAccent, { color: theme.accentDeep }]}>know.</Text>
+            Three things to <Text style={[styles.italicAccent, { color: theme.accentDeep }]}>know.</Text>
           </Text>
 
-          {bullets.map((b, i) => (
-            <View key={i} style={[styles.chapterRow, i > 0 && styles.chapterRowDivider]}>
-              <Text style={styles.chapterNum}>{ROMAN[i] ?? String(i + 1)}.</Text>
-              <Text style={styles.chapterText}>{b}</Text>
+          {/* Swipeable essentials — one card per must-know, with room to
+              breathe. Swipe left/right; the dots track position. */}
+          <View style={styles.essViewport} onLayout={(e) => setEssW(e.nativeEvent.layout.width)}>
+            {essW > 0 && (
+              <ScrollView
+                horizontal
+                pagingEnabled
+                showsHorizontalScrollIndicator={false}
+                onMomentumScrollEnd={(e) => setEssIdx(Math.round(e.nativeEvent.contentOffset.x / essW))}
+              >
+                {essentials.map((it, i) => (
+                  <View key={i} style={[styles.essPage, { width: essW }]}>
+                    <Text style={[styles.essNum, { color: theme.accentDeep }]}>{ROMAN[i] ?? String(i + 1)}</Text>
+                    {!!it.title && <Text style={styles.essTitle}>{it.title}</Text>}
+                    <Text style={styles.essBody}>{it.body}</Text>
+                  </View>
+                ))}
+              </ScrollView>
+            )}
+          </View>
+
+          {essentials.length > 1 && (
+            <View style={styles.essDots}>
+              {essentials.map((_, i) => (
+                <View
+                  key={i}
+                  style={[styles.essDot, i === essIdx && [styles.essDotActive, { backgroundColor: theme.accent }]]}
+                />
+              ))}
             </View>
-          ))}
+          )}
 
           <TouchableOpacity
             onPress={goToChapterRead}
@@ -599,66 +672,44 @@ export default function ManualCategoryScreen() {
           <Text style={styles.folio}>p. {week}</Text>
         </View>
 
-        {/* ─── CARD 3 · Ask Specialist (clinical chart) ─── */}
-        <View style={styles.chartCardWrap}>
-          {/* Liquid-glass file-folder tab: chart paper base + subtle top-edge
-              specular highlight for the iOS 26 frosted feel. */}
-          <View style={styles.chartTab}>
-            <LinearGradient
-              colors={['rgba(255,255,255,0.40)', 'rgba(255,255,255,0)']}
-              start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }}
-              style={[StyleSheet.absoluteFill as any, { borderTopLeftRadius: 6, borderTopRightRadius: 6 }]}
-              pointerEvents="none"
-            />
-            <Text style={styles.chartTabText}>For your visit</Text>
+        {/* ─── Try this · Mom hacks (swapped above the visit card 2026-06-09) ─── */}
+        <View style={styles.softCardSage} accessibilityLabel="Mom hacks. Try one tonight.">
+          <View style={styles.sageDots} pointerEvents="none">
+            <View style={[styles.sageDot, { top: 14, left: 8, width: 6, height: 6 }]} />
+            <View style={[styles.sageDot, { top: 4,  left: 28, width: 4, height: 4 }]} />
+            <View style={[styles.sageDot, { top: 26, left: 42, width: 7, height: 7 }]} />
+            <View style={[styles.sageDot, { top: 38, left: 18, width: 4, height: 4 }]} />
+            <View style={[styles.sageDot, { top: 46, left: 36, width: 6, height: 6 }]} />
           </View>
-          <View style={styles.chartCard} accessibilityLabel="Ask your specialist. Bring these three.">
-            {/* Hard-cutoff sage corner-fold (50/50, not smooth) */}
-            <LinearGradient
-              colors={[V9.sageDeep, V9.sageDeep, 'transparent', 'transparent']}
-              locations={[0, 0.5, 0.5, 1]}
-              start={{ x: 1, y: 0 }}
-              end={{ x: 0, y: 1 }}
-              style={styles.chartFold}
-              pointerEvents="none"
-            />
+          <View style={styles.villieCardMascot} pointerEvents="none">
+            <Image source={VILLIE_BEE} style={styles.villieCardMascotImg} resizeMode="contain" />
+          </View>
 
-            <View style={styles.eyebrowRow}>
-              <View style={[styles.eyebrowBar, { backgroundColor: V9.sageDeep }]} />
-              <Text style={[styles.eyebrowText, { color: V9.sageDeep }]}>Ask your specialist</Text>
-            </View>
-            <Text style={styles.chartTitle}>
-              Bring these <Text style={[styles.italicAccent, { color: theme.accentDeep }]}>three.</Text>
-            </Text>
+          <View style={styles.eyebrowRow}>
+            <View style={[styles.eyebrowBar, { backgroundColor: theme.accent }]} />
+            <Text style={[styles.eyebrowText, { color: theme.accentDeep }]}>Mom hacks &amp; tips</Text>
+          </View>
+          <Text style={styles.cardTitle}>
+            Try one <Text style={[styles.italicAccent, { color: theme.accentDeep }]}>tonight.</Text>
+          </Text>
 
-            {questions.map((q, i) => (
-              <View key={i} style={[styles.qRow, i < questions.length - 1 && styles.qRowDivider]}>
-                {/* Liquid-glass Q-chip: sage base + soft top highlight */}
-                <View style={styles.qTag}>
-                  <LinearGradient
-                    colors={['rgba(255,255,255,0.25)', 'rgba(255,255,255,0)']}
-                    start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }}
-                    style={[StyleSheet.absoluteFill as any, { borderRadius: 3 }]}
-                    pointerEvents="none"
-                  />
-                  <Text style={styles.qTagText}>Q{i + 1}</Text>
-                </View>
-                <Text style={styles.qText}>{q}</Text>
+          <View style={styles.chipStrip}>
+            {hacks.map((h, i) => (
+              <View key={i} style={styles.chipRow}>
+                <View style={styles.chipBulletSage} />
+                <Text style={styles.chipText}>{h}</Text>
               </View>
             ))}
-
-            <View style={styles.chartFooter}>
-              <Text style={styles.chartStamp}>— signed, your week-{week} self</Text>
-              <TouchableOpacity
-                onPress={shareQuestions}
-                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                accessibilityRole="button"
-                accessibilityLabel="Share these 3 questions with your provider"
-              >
-                <Text style={[styles.cardCtaRust, { color: theme.accentDeep }]}>Share these →</Text>
-              </TouchableOpacity>
-            </View>
           </View>
+
+          <TouchableOpacity
+            onPress={goToChapterRead}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            accessibilityRole="link"
+            accessibilityLabel="Read the full picture for this chapter"
+          >
+            <Text style={[styles.cardCtaRust, { color: theme.accentDeep }]}>Read the full picture →</Text>
+          </TouchableOpacity>
         </View>
 
         {/* ─── CARD 4 · Quick Watches ─── */}
@@ -733,44 +784,66 @@ export default function ManualCategoryScreen() {
           )}
         </View>
 
-        {/* ─── CARD 5 · Mom Hacks ─── */}
-        <View style={styles.softCardSage} accessibilityLabel="Mom hacks. Try one tonight.">
-          <View style={styles.sageDots} pointerEvents="none">
-            <View style={[styles.sageDot, { top: 14, left: 8, width: 6, height: 6 }]} />
-            <View style={[styles.sageDot, { top: 4,  left: 28, width: 4, height: 4 }]} />
-            <View style={[styles.sageDot, { top: 26, left: 42, width: 7, height: 7 }]} />
-            <View style={[styles.sageDot, { top: 38, left: 18, width: 4, height: 4 }]} />
-            <View style={[styles.sageDot, { top: 46, left: 36, width: 6, height: 6 }]} />
+        {/* ─── For your visit · Ask your specialist (swapped below the hacks card 2026-06-09) ─── */}
+        <View style={styles.chartCardWrap}>
+          {/* Liquid-glass file-folder tab: chart paper base + subtle top-edge
+              specular highlight for the iOS 26 frosted feel. */}
+          <View style={styles.chartTab}>
+            <LinearGradient
+              colors={['rgba(255,255,255,0.40)', 'rgba(255,255,255,0)']}
+              start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }}
+              style={[StyleSheet.absoluteFill as any, { borderTopLeftRadius: 6, borderTopRightRadius: 6 }]}
+              pointerEvents="none"
+            />
+            <Text style={styles.chartTabText}>For your visit</Text>
           </View>
-          <View style={styles.villieCardMascot} pointerEvents="none">
-            <Image source={VILLIE_BEE} style={styles.villieCardMascotImg} resizeMode="contain" />
-          </View>
+          <View style={styles.chartCard} accessibilityLabel="Ask your specialist. Bring these three.">
+            {/* Hard-cutoff sage corner-fold (50/50, not smooth) */}
+            <LinearGradient
+              colors={[V9.sageDeep, V9.sageDeep, 'transparent', 'transparent']}
+              locations={[0, 0.5, 0.5, 1]}
+              start={{ x: 1, y: 0 }}
+              end={{ x: 0, y: 1 }}
+              style={styles.chartFold}
+              pointerEvents="none"
+            />
 
-          <View style={styles.eyebrowRow}>
-            <View style={[styles.eyebrowBar, { backgroundColor: theme.accent }]} />
-            <Text style={[styles.eyebrowText, { color: theme.accentDeep }]}>Mom hacks &amp; tips</Text>
-          </View>
-          <Text style={styles.cardTitle}>
-            Try one <Text style={[styles.italicAccent, { color: theme.accentDeep }]}>tonight.</Text>
-          </Text>
+            <View style={styles.eyebrowRow}>
+              <View style={[styles.eyebrowBar, { backgroundColor: V9.sageDeep }]} />
+              <Text style={[styles.eyebrowText, { color: V9.sageDeep }]}>Ask your specialist</Text>
+            </View>
+            <Text style={styles.chartTitle}>
+              Bring these <Text style={[styles.italicAccent, { color: theme.accentDeep }]}>three.</Text>
+            </Text>
 
-          <View style={styles.chipStrip}>
-            {hacks.map((h, i) => (
-              <View key={i} style={styles.chipRow}>
-                <View style={styles.chipBulletSage} />
-                <Text style={styles.chipText}>{h}</Text>
+            {questions.map((q, i) => (
+              <View key={i} style={[styles.qRow, i < questions.length - 1 && styles.qRowDivider]}>
+                {/* Liquid-glass Q-chip: sage base + soft top highlight */}
+                <View style={styles.qTag}>
+                  <LinearGradient
+                    colors={['rgba(255,255,255,0.25)', 'rgba(255,255,255,0)']}
+                    start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }}
+                    style={[StyleSheet.absoluteFill as any, { borderRadius: 3 }]}
+                    pointerEvents="none"
+                  />
+                  <Text style={styles.qTagText}>Q{i + 1}</Text>
+                </View>
+                <Text style={styles.qText}>{q}</Text>
               </View>
             ))}
-          </View>
 
-          <TouchableOpacity
-            onPress={goToChapterRead}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            accessibilityRole="link"
-            accessibilityLabel="Read the full picture for this chapter"
-          >
-            <Text style={[styles.cardCtaRust, { color: theme.accentDeep }]}>Read the full picture →</Text>
-          </TouchableOpacity>
+            <View style={styles.chartFooter}>
+              <Text style={styles.chartStamp}>— signed, your week-{week} self</Text>
+              <TouchableOpacity
+                onPress={shareQuestions}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                accessibilityRole="button"
+                accessibilityLabel="Share these 3 questions with your provider"
+              >
+                <Text style={[styles.cardCtaRust, { color: theme.accentDeep }]}>Share these →</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
         </View>
 
         <View style={{ height: 20 }} />
@@ -1021,6 +1094,30 @@ const styles = StyleSheet.create({
     fontSize: 10, color: V9.coco, opacity: 0.55,
     zIndex: 2,
   },
+
+  // ── Essentials carousel (swipeable, one must-know per page) ──────────
+  essViewport: { marginTop: 12, zIndex: 2 },
+  essPage: { minHeight: 132, paddingRight: 4 },
+  essNum: {
+    fontFamily: FONTS.headerItalic, fontStyle: 'italic',
+    fontSize: 30, lineHeight: 34, opacity: 0.9, marginBottom: 2,
+  },
+  essTitle: {
+    fontSize: 16.5, fontFamily: FONTS.bodySemiBold, color: V9.bark,
+    lineHeight: 22, marginBottom: 6, letterSpacing: 0.1,
+  },
+  essBody: {
+    fontSize: 14, fontFamily: FONTS.body, color: V9.barkSoft, lineHeight: 21,
+  },
+  essDots: {
+    flexDirection: 'row', gap: 6, alignItems: 'center',
+    marginTop: 14, zIndex: 2,
+  },
+  essDot: {
+    width: 6, height: 6, borderRadius: 3,
+    backgroundColor: 'rgba(61,31,13,0.18)',
+  },
+  essDotActive: { width: 18 },
 
   // ── CARD 3 · Clinical chart ──────────────────────────────────────────
   chartCardWrap: { position: 'relative', marginTop: 14, marginBottom: 10 },
