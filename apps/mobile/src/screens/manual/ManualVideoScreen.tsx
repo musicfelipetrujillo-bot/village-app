@@ -19,7 +19,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, ScrollView,
-  Share, Alert,
+  Share, Alert, Modal, StatusBar,
 } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
@@ -27,6 +27,7 @@ import { COLORS, FONTS } from '@utils/constants';
 import { useT } from '@/i18n';
 import { useUserStore } from '@store/user';
 import { useAnalytics } from '@hooks/useAnalytics';
+import { getLocalClipHtml, MANUAL_VIDEO_REMOTE_BASE } from '@/manual/localManualClips';
 import {
   getManualVideo,
   markVideoWatched,
@@ -62,6 +63,13 @@ export default function ManualVideoScreen() {
   const [saveBusy, setSaveBusy] = useState(false);
   const [shareBusy, setShareBusy] = useState(false);
 
+  // Fullscreen presentation (immersive Modal, chrome + status bar hidden).
+  const [fullscreen, setFullscreen] = useState(false);
+  // Offline-first: try the bundled local clip first; on a hard load error
+  // flip to the remote URL. (A clip that isn't bundled never sets local in the
+  // first place — see `localHtml` below — so this only covers load failures.)
+  const [forceRemote, setForceRemote] = useState(false);
+
   const { trackEvent } = useAnalytics();
 
   // Approximate watch position via screen-time. WebView doesn't expose the
@@ -77,6 +85,8 @@ export default function ManualVideoScreen() {
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
+    setForceRemote(false); // new clip — try its local bundle again
+    setFullscreen(false);
     (async () => {
       try {
         const v = await getManualVideo(audience, category, videoId, lang);
@@ -159,6 +169,54 @@ export default function ManualVideoScreen() {
               ? muxPlayerUrl(video.mux_playback_id, { autoplay: true, poster: video.poster_url })
               : null))
     : null;
+
+  // Offline-first source. For bundled HTML clips we feed the self-contained
+  // string (no network) with the remote dir as baseUrl so the Google-Fonts
+  // <link> still resolves when online. Everything else (Mux, un-bundled clips,
+  // or after a local load error) uses the remote URL.
+  const localHtml =
+    video && !forceRemote ? getLocalClipHtml(video.html_url) : null;
+  const usingLocal = !!localHtml;
+
+  // Mount health-check for local clips: a JS error inside the WebView can leave
+  // an empty #root WITHOUT firing onError. We poll for ~3s; if React never
+  // mounts, post 'clip:empty' and fall back to the remote copy. This makes the
+  // bundled-clip path safe to ship even when it can't be render-verified.
+  const CLIP_HEALTH_JS = `(function(){var n=0;var iv=setInterval(function(){n++;var r=document.getElementById('root');if(r&&r.childElementCount>0){clearInterval(iv);window.ReactNativeWebView&&window.ReactNativeWebView.postMessage('clip:ok');}else if(n>=30){clearInterval(iv);window.ReactNativeWebView&&window.ReactNativeWebView.postMessage('clip:empty');}},100);})();true;`;
+
+  // One WebView definition reused for the inline frame and the fullscreen
+  // Modal. `key` differs so React mounts a fresh instance per placement
+  // (the short clip simply restarts on toggle — acceptable, and avoids two
+  // live WebViews fighting over the same source).
+  const renderPlayer = (placement: 'inline' | 'full') => (
+    <WebView
+      key={placement}
+      source={
+        usingLocal
+          ? { html: localHtml as string, baseUrl: MANUAL_VIDEO_REMOTE_BASE }
+          : { uri: playerUrl as string }
+      }
+      style={styles.videoView}
+      originWhitelist={['*']}
+      allowsInlineMediaPlayback
+      mediaPlaybackRequiresUserAction={false}
+      allowsFullscreenVideo
+      javaScriptEnabled
+      domStorageEnabled
+      injectedJavaScript={usingLocal ? CLIP_HEALTH_JS : undefined}
+      onMessage={(e) => {
+        // Local clip rendered nothing within the health-check window → fall
+        // back to the hosted copy.
+        if (e.nativeEvent.data === 'clip:empty' && usingLocal && !forceRemote) {
+          setForceRemote(true);
+        }
+      }}
+      onError={() => {
+        // Local clip failed to render → fall back to the hosted copy.
+        if (usingLocal && !forceRemote) setForceRemote(true);
+      }}
+    />
+  );
 
   // ── Save handler ──
   // Optimistic: flip locally first, call RPC, revert on error. The RPC
@@ -243,19 +301,44 @@ export default function ManualVideoScreen() {
         </View>
       )}
 
-      {!loading && video && playerUrl && (
+      {!loading && video && (playerUrl || usingLocal) && (
         <ScrollView contentContainerStyle={styles.scroll}>
           <View style={styles.videoFrame}>
-            <WebView
-              source={{ uri: playerUrl }}
-              style={styles.videoView}
-              allowsInlineMediaPlayback
-              mediaPlaybackRequiresUserAction={false}
-              allowsFullscreenVideo
-              javaScriptEnabled
-              domStorageEnabled
-            />
+            {!fullscreen && renderPlayer('inline')}
+            {/* Expand to fullscreen */}
+            <TouchableOpacity
+              style={styles.fsEnter}
+              onPress={() => setFullscreen(true)}
+              accessibilityRole="button"
+              accessibilityLabel={t('manual.fullscreenEnterA11y')}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <Text style={styles.fsEnterIcon}>⤢</Text>
+            </TouchableOpacity>
           </View>
+
+          {/* Fullscreen player — immersive Modal over the whole app. */}
+          <Modal
+            visible={fullscreen}
+            animationType="fade"
+            supportedOrientations={['portrait', 'landscape']}
+            onRequestClose={() => setFullscreen(false)}
+            statusBarTranslucent
+          >
+            <StatusBar hidden />
+            <View style={styles.fsContainer}>
+              {fullscreen && renderPlayer('full')}
+              <TouchableOpacity
+                style={styles.fsExit}
+                onPress={() => setFullscreen(false)}
+                accessibilityRole="button"
+                accessibilityLabel={t('manual.fullscreenExitA11y')}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <Text style={styles.fsExitIcon}>✕</Text>
+              </TouchableOpacity>
+            </View>
+          </Modal>
 
           <View style={styles.meta}>
             <Text style={styles.title}>{video.title}</Text>
@@ -374,8 +457,28 @@ const styles = StyleSheet.create({
     width: '100%',
     aspectRatio: 16 / 9,
     backgroundColor: '#000',
+    position: 'relative',
   },
   videoView: { width: '100%', height: '100%', backgroundColor: '#000' },
+
+  // Expand-to-fullscreen control on the inline frame (bottom-right).
+  fsEnter: {
+    position: 'absolute', right: 10, bottom: 10,
+    width: 36, height: 36, borderRadius: 18,
+    alignItems: 'center', justifyContent: 'center',
+    backgroundColor: 'rgba(0,0,0,0.55)',
+  },
+  fsEnterIcon: { color: '#fff', fontSize: 18, lineHeight: 20 },
+
+  // Immersive fullscreen Modal.
+  fsContainer: { flex: 1, backgroundColor: '#000' },
+  fsExit: {
+    position: 'absolute', top: 52, right: 18,
+    width: 40, height: 40, borderRadius: 20,
+    alignItems: 'center', justifyContent: 'center',
+    backgroundColor: 'rgba(0,0,0,0.55)',
+  },
+  fsExitIcon: { color: '#fff', fontSize: 18, lineHeight: 20, fontWeight: '600' },
 
   meta: { paddingHorizontal: 20, paddingTop: 16, backgroundColor: COLORS.cream, flex: 1 },
   title: {

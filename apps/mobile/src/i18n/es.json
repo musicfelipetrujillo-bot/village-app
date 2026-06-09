@@ -136,6 +136,8 @@
     "unsaveA11y": "Quitar de guardados",
     "share": "Compartir",
     "shareA11y": "Compartir este video",
+    "fullscreenEnterA11y": "Ver en pantalla completa",
+    "fullscreenExitA11y": "Salir de pantalla completa",
     "shareMessage": "{title} — un video de 2 minutos para mamás cansadas, de villie.\n{url}",
     "shareErrorTitle": "No se pudo compartir",
     "shareErrorBody": "Inténtalo en un momento."
