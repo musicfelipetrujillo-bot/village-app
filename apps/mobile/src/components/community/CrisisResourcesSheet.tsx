@@ -58,7 +58,7 @@ const RESOURCES: Resource[] = [
     title: '911 — Emergency',
     subtitleKey: 'crisis.subtitle911',
     action: { type: 'tel', value: '911' },
-    accent: '#C07840',  // v9 cinnamon — emergency action color per brand kit
+    accent: '#D96C88',  // v9 cinnamon — emergency action color per brand kit
   },
 ];
 
@@ -180,7 +180,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   sheet: {
-    backgroundColor: '#FDFBF6',
+    backgroundColor: '#FFFCF6',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     paddingHorizontal: 20,

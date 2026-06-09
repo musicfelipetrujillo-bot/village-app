@@ -153,7 +153,7 @@ const styles = StyleSheet.create({
   dividerLine: { flex: 1, height: StyleSheet.hairlineWidth, backgroundColor: 'rgba(122,74,40,0.25)' },
   dividerText: {
     fontSize: 11, fontFamily: FONTS.bodySemiBold, letterSpacing: 1.4,
-    color: '#A77349', textTransform: 'uppercase',
+    color: '#7A4A24', textTransform: 'uppercase',
   },
 
   appleButton: { width: '100%', height: 50 },
@@ -164,15 +164,15 @@ const styles = StyleSheet.create({
 
   googleButton: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10,
-    backgroundColor: '#FEFAF6', borderRadius: 14, paddingVertical: 14,
+    backgroundColor: '#FFFCF6', borderRadius: 14, paddingVertical: 14,
     borderWidth: 1, borderColor: 'rgba(150,80,50,0.20)',
-    shadowColor: '#6B2E0E', shadowOffset: { width: 0, height: 4 },
+    shadowColor: '#43260F', shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.10, shadowRadius: 8, elevation: 2,
   },
   buttonDisabled: { opacity: 0.6 },
   // EXEMPT — Google's brand guidelines mandate a white background + neutral
   // ring for the "G" mark when it appears in third-party UI. Don't swap to
-  // paper #FDFBF6 or rust hairline — that breaks Google branding compliance.
+  // paper #FFFCF6 or rust hairline — that breaks Google branding compliance.
   // v9-audit.mjs has an inline exemption for these two lines.
   googleMark: {
     width: 22, height: 22, borderRadius: 11,

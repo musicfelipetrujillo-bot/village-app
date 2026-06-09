@@ -13,6 +13,7 @@
 import React from 'react';
 import { View, Image, StyleSheet, ViewStyle, Animated } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import Svg, { Polygon } from 'react-native-svg';
 import { COLORS } from '@utils/constants';
 
 const BEE = require('../../../assets/brand/villie-bee.png');
@@ -56,6 +57,39 @@ const BEES: {
   { bottom: 62, right: 48, width: 18, height: 16, opacity: 0.09, rotate: '8deg'  },
 ];
 
+// Honeycomb echoes — faint hexagon outlines scattered through the SAME
+// atmosphere as the bees (Felipe: "add the honeycombs in the background,
+// same feeling as the bees"). Single flat-top cells, honey-tinted, even
+// quieter than the bees (7-13%) so they read as background texture that
+// echoes the masthead comb without competing with content. Interleaved
+// into the gaps between the bee anchors across the 5 bands.
+const HONEY = '#E0A23E';
+function hexPts(size: number): string {
+  const r = size / 2;
+  const pts: string[] = [];
+  for (let i = 0; i < 6; i++) {
+    const a = (Math.PI / 180) * (60 * i); // flat-top hexagon, matches the masthead comb
+    pts.push(`${(r + r * Math.cos(a)).toFixed(1)},${(r + r * Math.sin(a)).toFixed(1)}`);
+  }
+  return pts.join(' ');
+}
+const COMBS: {
+  top?: number; bottom?: number; left?: number; right?: number;
+  size: number; opacity: number; rotate: string;
+}[] = [
+  { top: 124, left: 44,   size: 30, opacity: 0.13, rotate: '6deg'   },
+  { top: 196, right: 96,  size: 22, opacity: 0.10, rotate: '-10deg' },
+  { top: 300, right: 28,  size: 34, opacity: 0.12, rotate: '12deg'  },
+  { top: 360, left: 150,  size: 18, opacity: 0.08, rotate: '-4deg'  },
+  { top: 452, left: 30,   size: 26, opacity: 0.11, rotate: '-8deg'  },
+  { top: 540, right: 54,  size: 30, opacity: 0.11, rotate: '14deg'  },
+  { top: 624, left: 120,  size: 20, opacity: 0.08, rotate: '-16deg' },
+  { top: 720, right: 100, size: 24, opacity: 0.10, rotate: '4deg'   },
+  { top: 800, left: 38,   size: 32, opacity: 0.11, rotate: '16deg'  },
+  { top: 900, right: 44,  size: 24, opacity: 0.09, rotate: '-8deg'  },
+  { top: 992, left: 96,   size: 20, opacity: 0.08, rotate: '10deg'  },
+];
+
 type Props = {
   style?: ViewStyle | ViewStyle[];
   hideClusters?: boolean;
@@ -80,6 +114,27 @@ export function WarmGlowBackdrop({ style, hideClusters = false }: Props) {
         locations={[0, 0.12, 0.30, 0.62, 0.76, 0.90, 1]}
         style={StyleSheet.absoluteFill}
       />
+
+      {/* Honeycomb echoes — rendered behind the bees so the bees stay the
+          focal marks and the combs sit as quiet hive texture. */}
+      {!hideClusters
+        ? COMBS.map((c, i) => (
+            <View
+              key={`comb-${i}`}
+              style={{
+                position: 'absolute',
+                top: c.top, bottom: c.bottom, left: c.left, right: c.right,
+                width: c.size, height: c.size,
+                opacity: c.opacity,
+                transform: [{ rotate: c.rotate }],
+              }}
+            >
+              <Svg width={c.size} height={c.size}>
+                <Polygon points={hexPts(c.size)} fill="none" stroke={HONEY} strokeWidth={1.6} />
+              </Svg>
+            </View>
+          ))
+        : null}
 
       {!hideClusters
         ? BEES.map((b, i) => (

@@ -82,11 +82,11 @@ type TileMarkKind = 'yolkCircle' | 'yolkRing' | 'leafSprig' | 'dotCluster' | 'sp
 //   tips  / tips   →    MARIGOLD (kit "hero pop", small wins)
 // ═══════════════════════════════════════════════════════════════════════
 type ChapterFamily = { bg: string; accent: string };
-const FAMILY_SALMON:   ChapterFamily = { bg: '#FBE3DF', accent: '#EDA8A0' };
-const FAMILY_MOSS:     ChapterFamily = { bg: '#E6EAD0', accent: '#606E46' };
-const FAMILY_BUTTER:   ChapterFamily = { bg: '#FDF1D0', accent: '#FAD080' };
-const FAMILY_SAGE:     ChapterFamily = { bg: '#EEEACE', accent: '#D8CEB0' };
-const FAMILY_MARIGOLD: ChapterFamily = { bg: '#FBE890', accent: '#F2C130' };
+const FAMILY_SALMON:   ChapterFamily = { bg: '#FBE3DF', accent: '#F7C5CB' };
+const FAMILY_MOSS:     ChapterFamily = { bg: '#F2E6DD', accent: '#E98A6A' };
+const FAMILY_BUTTER:   ChapterFamily = { bg: '#FDF1D0', accent: '#F4C53C' };
+const FAMILY_SAGE:     ChapterFamily = { bg: '#EEEACE', accent: '#F2E6DD' };
+const FAMILY_MARIGOLD: ChapterFamily = { bg: '#F7C5CB', accent: '#C25A78' };
 const TILE_FAMILY: Record<string, Record<string, ChapterFamily>> = {
   mom: {
     feel:    FAMILY_SALMON,
@@ -311,7 +311,7 @@ export default function ManualHomeScreen() {
         </View>
         {thisWeekLoading ? (
           <View style={styles.thisWeekLoading}>
-            <ActivityIndicator color="#C07840" />
+            <ActivityIndicator color="#D96C88" />
           </View>
         ) : thisWeek.length === 0 ? (
           <Text style={styles.thisWeekEmpty}>{t('manual.thisWeekEmpty')}</Text>
@@ -447,7 +447,7 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 28,
     overflow: 'hidden',
     marginBottom: 8,
-    shadowColor: '#6A3820',
+    shadowColor: '#43260F',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.10,
     shadowRadius: 12,
@@ -469,12 +469,12 @@ const styles = StyleSheet.create({
   // mark reads in the same rust voice.
   eyebrowBar: {
     width: 22, height: 2,
-    backgroundColor: '#A77349',
+    backgroundColor: '#7A4A24',
     marginRight: 10,
   },
   eyebrow: {
     fontSize: 10, fontFamily: FONTS.bodySemiBold,
-    color: '#A77349',
+    color: '#7A4A24',
     letterSpacing: 1.8, textTransform: 'uppercase',
   },
   // Bark bold body + coco italic accent — matches HomeScreen.greetingName.
@@ -484,7 +484,7 @@ const styles = StyleSheet.create({
   },
   titleItalic: {
     fontFamily: FONTS.headerItalic, fontStyle: 'italic',
-    color: '#C07840',  // v9 rust-deep — one italic flourish in the brand spark color
+    color: '#D96C88',  // v9 rust-deep — one italic flourish in the brand spark color
   },
   subtitle: {
     fontSize: 14, fontFamily: FONTS.body,
@@ -509,7 +509,7 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: 'rgba(61,31,13,0.18)',
   },
-  savedLinkIcon: { fontSize: 12, color: '#C07840' },
+  savedLinkIcon: { fontSize: 12, color: '#D96C88' },
   savedLinkText: {
     fontSize: 11, color: COLORS.bark, fontFamily: FONTS.bodySemiBold, letterSpacing: 0.3,
   },
@@ -517,7 +517,7 @@ const styles = StyleSheet.create({
   // "This week to watch" — horizontal-scroll row of up to 4 curated thumbs.
   thisWeekHead: { marginBottom: 10 },
   thisWeekEyebrow: {
-    fontSize: 10, fontFamily: FONTS.bodySemiBold, color: '#A77349',
+    fontSize: 10, fontFamily: FONTS.bodySemiBold, color: '#7A4A24',
     letterSpacing: 1.6, textTransform: 'uppercase', marginBottom: 5,
   },
   thisWeekTitle: {
@@ -585,10 +585,10 @@ const styles = StyleSheet.create({
   // primary segmented controls on hero surfaces, not propagated to filter
   // chips or settings toggles.
   toggleBtnActive: {
-    backgroundColor: '#EAE0C8',                  // parchment fill (kit token)
+    backgroundColor: '#F2E6DD',                  // parchment fill (kit token)
     borderWidth: 1.5,                            // visible cinnamon outline (hairline was too thin to register)
-    borderColor: '#C07840',                      // cinnamon
-    shadowColor: '#6B2E0E',
+    borderColor: '#D96C88',                      // cinnamon
+    shadowColor: '#43260F',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.22,
     shadowRadius: 10,
@@ -598,7 +598,7 @@ const styles = StyleSheet.create({
     fontSize: 13, fontFamily: FONTS.bodySemiBold, color: COLORS.bark,
     letterSpacing: 0.4,
   },
-  toggleTextActive: { color: '#3D1F0E' },         // cocoa (kit ink — readable on parchment)
+  toggleTextActive: { color: '#43260F' },         // cocoa (kit ink — readable on parchment)
 
   // ── v9 Compact chapter rows ────────────────────────────────────────
   // 5 horizontal rows replace the old 2-col tile grid. Layout: spine
@@ -620,7 +620,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     position: 'relative',
     // v9 paper lift — cocoa drop matching other v9 cards
-    shadowColor: '#6B2E0E',
+    shadowColor: '#43260F',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.18,
     shadowRadius: 20,

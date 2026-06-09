@@ -14,9 +14,9 @@ import type { MilkStackParamList } from '@/navigation/MilkNavigator';
 type Props = NativeStackScreenProps<MilkStackParamList, 'DonorMap'>;
 
 const BADGE_COLOR: Record<string, string> = {
-  none: '#9A8070',
+  none: '#7A4A24',
   basic: COLORS.statusAlert,
-  verified: '#6B7C3F',
+  verified: '#E98A6A',
   verified_bloodwork: COLORS.statusSuccess,
 };
 
@@ -119,7 +119,7 @@ export default function DonorMapScreen({ navigation }: Props) {
       {/* Loading overlay */}
       {loading && (
         <View style={styles.loadingOverlay}>
-          <ActivityIndicator color="#C07840" size="large" />
+          <ActivityIndicator color="#D96C88" size="large" />
         </View>
       )}
 
@@ -155,27 +155,27 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingTop: 56, paddingBottom: 12, paddingHorizontal: 16,
-    backgroundColor: '#FDFBF6', zIndex: 10,
+    backgroundColor: '#FFFCF6', zIndex: 10,
     borderBottomWidth: 1, borderBottomColor: '#E8E0D5',
   },
-  backText: { fontSize: 15, color: '#C07840', fontFamily: FONTS.bodySemiBold },
-  headerTitle: { fontSize: 17, fontFamily: FONTS.bodySemiBold, color: '#2C1810' },
-  donorCount: { fontSize: 13, color: '#A77349', fontFamily: FONTS.bodySemiBold },
+  backText: { fontSize: 15, color: '#D96C88', fontFamily: FONTS.bodySemiBold },
+  headerTitle: { fontSize: 17, fontFamily: FONTS.bodySemiBold, color: '#43260F' },
+  donorCount: { fontSize: 13, color: '#7A4A24', fontFamily: FONTS.bodySemiBold },
   map: { flex: 1 },
   pin: {
     width: 36, height: 36, borderRadius: 18,
     alignItems: 'center', justifyContent: 'center',
-    borderWidth: 2, borderColor: '#FDFBF6',
-    shadowColor: '#6B2E0E', shadowOpacity: 0.20, shadowRadius: 4, elevation: 4,
+    borderWidth: 2, borderColor: '#FFFCF6',
+    shadowColor: '#43260F', shadowOpacity: 0.20, shadowRadius: 4, elevation: 4,
   },
   pinText: { fontSize: 18 },
   callout: {
     backgroundColor: COLORS.paper, borderRadius: 12, padding: 12,
-    minWidth: 160, shadowColor: '#6B2E0E', shadowOpacity: 0.12, shadowRadius: 8,
+    minWidth: 160, shadowColor: '#43260F', shadowOpacity: 0.12, shadowRadius: 8,
   },
-  calloutName: { fontSize: 14, fontFamily: FONTS.bodySemiBold, color: '#2C1810', marginBottom: 4 },
-  calloutPrice: { fontSize: 13, color: '#A77349', fontFamily: FONTS.bodyMedium, marginBottom: 4 },
-  calloutTap: { fontSize: 11, color: '#9A8070', fontFamily: FONTS.body },
+  calloutName: { fontSize: 14, fontFamily: FONTS.bodySemiBold, color: '#43260F', marginBottom: 4 },
+  calloutPrice: { fontSize: 13, color: '#7A4A24', fontFamily: FONTS.bodyMedium, marginBottom: 4 },
+  calloutTap: { fontSize: 11, color: '#7A4A24', fontFamily: FONTS.body },
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(245,240,232,0.8)',
@@ -184,11 +184,11 @@ const styles = StyleSheet.create({
   legend: {
     position: 'absolute', top: 120, right: 12,
     backgroundColor: COLORS.paper, borderRadius: 10, padding: 8, gap: 6,
-    shadowColor: '#6B2E0E', shadowOpacity: 0.10, shadowRadius: 4, elevation: 3,
+    shadowColor: '#43260F', shadowOpacity: 0.10, shadowRadius: 4, elevation: 3,
   },
   legendItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   legendDot: { width: 10, height: 10, borderRadius: 5 },
-  legendLabel: { fontSize: 11, color: '#6B5C52', fontFamily: FONTS.bodyMedium },
+  legendLabel: { fontSize: 11, color: '#7A4A24', fontFamily: FONTS.bodyMedium },
   bottomBar: {
     position: 'absolute', bottom: 0, left: 0, right: 0,
     padding: 16, paddingBottom: 34,
@@ -196,8 +196,8 @@ const styles = StyleSheet.create({
     borderTopWidth: 1, borderTopColor: '#E8E0D5',
   },
   listViewBtn: {
-    backgroundColor: '#2C1810', borderRadius: 12,
+    backgroundColor: '#43260F', borderRadius: 12,
     paddingVertical: 14, alignItems: 'center',
   },
-  listViewText: { fontSize: 15, fontFamily: FONTS.bodySemiBold, color: '#FDFBF6' },
+  listViewText: { fontSize: 15, fontFamily: FONTS.bodySemiBold, color: '#FFFCF6' },
 });

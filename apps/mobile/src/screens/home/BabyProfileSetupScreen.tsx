@@ -257,7 +257,7 @@ export default function BabyProfileSetupScreen() {
           accessibilityRole="button"
         >
           {saving ? (
-            <ActivityIndicator color="#FDFBF6" />
+            <ActivityIndicator color="#FFFCF6" />
           ) : (
             <Text style={styles.primaryBtnText}>
               {step === TOTAL_STEPS - 1 ? t('babyProfile.saveProfile') : t('common.continue')}
@@ -292,7 +292,7 @@ const styles = StyleSheet.create({
   content: { paddingHorizontal: 20, paddingBottom: 32 },
 
   // v9 — eyebrow rust-deep + Playfair Bold roman title
-  eyebrow: { fontSize: 11, fontFamily: FONTS.bodySemiBold, letterSpacing: 1.8, color: '#A77349', textTransform: 'uppercase', marginBottom: 8 },
+  eyebrow: { fontSize: 11, fontFamily: FONTS.bodySemiBold, letterSpacing: 1.8, color: '#7A4A24', textTransform: 'uppercase', marginBottom: 8 },
   title: { fontSize: 28, fontFamily: FONTS.headerBold, color: COLORS.bark, marginBottom: 8, lineHeight: 34, letterSpacing: -0.4 },
   subtitle: { fontSize: 14, color: COLORS.barkSoft, marginBottom: 20, lineHeight: 20 },
 
@@ -312,7 +312,7 @@ const styles = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
   },
   checkboxOn: { backgroundColor: COLORS.coco },
-  checkboxTick: { color: '#FDFBF6', fontSize: 14, fontFamily: FONTS.bodySemiBold },
+  checkboxTick: { color: '#FFFCF6', fontSize: 14, fontFamily: FONTS.bodySemiBold },
   checkboxLabel: { fontSize: 14, color: COLORS.bark },
 
   optionRow: {
@@ -327,7 +327,7 @@ const styles = StyleSheet.create({
   reviewCard: {
     backgroundColor: COLORS.paper, borderRadius: 14, padding: 16, gap: 6,
     borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(150, 80, 50, 0.18)',
-    shadowColor: '#6B2E0E', shadowOffset: { width: 0, height: 8 },
+    shadowColor: '#43260F', shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.22, shadowRadius: 22, elevation: 5,
   },
   reviewRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 6 },
@@ -342,13 +342,13 @@ const styles = StyleSheet.create({
   },
   // v9 canonical CTA
   primaryBtn: {
-    flex: 1, backgroundColor: '#C07840', borderRadius: 999,
+    flex: 1, backgroundColor: '#D96C88', borderRadius: 999,
     paddingVertical: 15, alignItems: 'center', justifyContent: 'center',
-    shadowColor: '#945A41', shadowOffset: { width: 0, height: 4 },
+    shadowColor: '#D96C88', shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.24, shadowRadius: 10, elevation: 3,
   },
   primaryBtnDisabled: { opacity: 0.45 },
-  primaryBtnText: { color: '#FDFBF6', fontSize: 15, fontFamily: FONTS.bodySemiBold, letterSpacing: 0.3 },
+  primaryBtnText: { color: '#FFFCF6', fontSize: 15, fontFamily: FONTS.bodySemiBold, letterSpacing: 0.3 },
   backBtn: { paddingHorizontal: 18, justifyContent: 'center' },
   backBtnText: { color: COLORS.barkSoft, fontSize: 14, fontFamily: FONTS.bodySemiBold },
 });

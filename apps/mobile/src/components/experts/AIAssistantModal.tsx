@@ -141,7 +141,7 @@ export function AIAssistantModal({ visible, onClose, specialist }: Props) {
                   </Text>
                 </View>
                 {loading ? (
-                  <ActivityIndicator color="#C07840" size="small" />
+                  <ActivityIndicator color="#D96C88" size="small" />
                 ) : (
                   <Text style={styles.menuCardArrow}>›</Text>
                 )}
@@ -198,7 +198,7 @@ export function AIAssistantModal({ visible, onClose, specialist }: Props) {
                 {loading && (
                   <View style={styles.bubbleAI}>
                     <Text style={styles.bubbleAILabel}>🤖 Village AI</Text>
-                    <ActivityIndicator color="#C07840" size="small" style={{ marginTop: 4 }} />
+                    <ActivityIndicator color="#D96C88" size="small" style={{ marginTop: 4 }} />
                   </View>
                 )}
               </ScrollView>
@@ -281,7 +281,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     paddingHorizontal: 12,
   },
-  menuBadgeText: { fontSize: 11, color: '#8B6914', fontFamily: FONTS.bodyMedium },
+  menuBadgeText: { fontSize: 11, color: '#E98A6A', fontFamily: FONTS.bodyMedium },
   menuTitle: {
     fontFamily: FONTS.headerItalic,
     fontSize: 22,
@@ -295,7 +295,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 16,
     gap: 12,
-    shadowColor: '#6B2E0E',
+    shadowColor: '#43260F',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 4,
@@ -333,7 +333,7 @@ const styles = StyleSheet.create({
 
   bubble: { borderRadius: 16, padding: 13, maxWidth: '86%' },
   bubbleUser: {
-    backgroundColor: '#C07840',
+    backgroundColor: '#D96C88',
     alignSelf: 'flex-end',
     borderBottomRightRadius: 4,
   },
@@ -341,7 +341,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.paper,
     alignSelf: 'flex-start',
     borderBottomLeftRadius: 4,
-    shadowColor: '#6B2E0E',
+    shadowColor: '#43260F',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.06,
     shadowRadius: 3,
@@ -349,7 +349,7 @@ const styles = StyleSheet.create({
   },
   bubbleAILabel: { fontSize: 10, fontFamily: FONTS.bodySemiBold, color: COLORS.coco, marginBottom: 5, letterSpacing: 0.5 },
   bubbleText: { fontSize: 14, color: COLORS.bark, lineHeight: 21, fontFamily: FONTS.body },
-  bubbleTextUser: { color: '#FDFBF6' },
+  bubbleTextUser: { color: '#FFFCF6' },
 
   inputBar: {
     flexDirection: 'row',
@@ -378,12 +378,12 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#C07840',
+    backgroundColor: '#D96C88',
     alignItems: 'center',
     justifyContent: 'center',
   },
   sendBtnDisabled: { opacity: 0.35 },
-  sendBtnText: { color: '#FDFBF6', fontSize: 20, fontFamily: FONTS.bodySemiBold, lineHeight: 22 },
+  sendBtnText: { color: '#FFFCF6', fontSize: 20, fontFamily: FONTS.bodySemiBold, lineHeight: 22 },
 
   // Follow-up questions
   followupContent: { padding: 20, gap: 12 },
@@ -405,13 +405,13 @@ const styles = StyleSheet.create({
     width: 26,
     height: 26,
     borderRadius: 13,
-    backgroundColor: '#C07840',
+    backgroundColor: '#D96C88',
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
     marginTop: 1,
   },
-  questionNumText: { color: '#FDFBF6', fontSize: 12, fontFamily: FONTS.bodySemiBold },
+  questionNumText: { color: '#FFFCF6', fontSize: 12, fontFamily: FONTS.bodySemiBold },
   questionText: { fontSize: 14, color: COLORS.bark, lineHeight: 21, flex: 1, fontFamily: FONTS.body },
   followupDisclaimer: {
     fontSize: 12,

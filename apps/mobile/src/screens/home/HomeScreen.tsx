@@ -43,6 +43,7 @@ import WarmGlowBackdrop from '@components/shared/WarmGlowBackdrop';
 import CardGlowAccent from '@components/shared/CardGlowAccent';
 import EditorialLede from '@components/shared/EditorialLede';
 import EditorialSectionHead from '@components/shared/EditorialSectionHead';
+import FirstRunWalkthrough from '@components/shared/FirstRunWalkthrough';
 
 // Versioned key — bump if we ever want a new orientation card to surface to
 // users who already dismissed the previous one.
@@ -277,6 +278,11 @@ export default function HomeScreen() {
         <QuietHoursPill />
       </View>
 
+      {/* First-run walkthrough — a short swipeable tour shown once on the very
+          first Home visit after signup. Self-gating Modal (its own AsyncStorage
+          flag), so it portals over everything and needs no layout slot here. */}
+      <FirstRunWalkthrough />
+
       {/* Discharge welcome — one-shot orientation card for the hospital-handoff
           moment. Renders ABOVE the daily check-in so a brand-new postpartum
           mom sees a soft "you're in the right place" beat before being asked
@@ -288,7 +294,7 @@ export default function HomeScreen() {
 
       {loading && !babyProfile ? (
         <View style={styles.loadingWrap}>
-          <ActivityIndicator color="#C07840" />
+          <ActivityIndicator color="#D96C88" />
         </View>
       ) : !babyProfile ? (
         <EmptyBabyProfileCard onSetup={() => navigation.navigate('BabyProfileSetup')} />
@@ -398,7 +404,7 @@ export default function HomeScreen() {
             */}
             <HelpTile mark="yolkCircle" markTint={COLORS.coco}  label={t('home.helpFeeding')}    sub={t('home.helpFeedingSub')}    tint={COLORS.pink}     onPress={onHelpFeeding} />
             <HelpTile mark="yolkRing"   markTint={COLORS.coco}  label={t('home.helpEmotional')}  sub={t('home.helpEmotionalSub')}  tint={COLORS.sandSoft} onPress={onHelpEmotional} />
-            <HelpTile mark="leafSprig"  markTint={COLORS.sage}  label={t('home.helpRecovery')}   sub={t('home.helpRecoverySub')}   tint="#D8DFC4"          onPress={onHelpRecovery} />
+            <HelpTile mark="leafSprig"  markTint={COLORS.sage}  label={t('home.helpRecovery')}   sub={t('home.helpRecoverySub')}   tint="#F2E6DD"          onPress={onHelpRecovery} />
             <HelpTile mark="sparkle"    markTint={COLORS.bark}  label={t('home.helpAskVillage')} sub={t('home.helpAskVillageSub')} tint={COLORS.pinkSoft} onPress={onHelpAskVillage} />
           </View>
           </View>
@@ -440,7 +446,7 @@ export default function HomeScreen() {
                 label={t('home.exploreGearLabel')}
                 sub={t('home.exploreGearSub')}
                 photo={require('../../../assets/photos/gear.jpg')}
-                tint="#D8DFC4"
+                tint="#F2E6DD"
                 onPress={() => tabParent?.navigate('Gear')}
               />
               <ExploreTile
@@ -968,9 +974,13 @@ function WeekHeroV9({
   const headlineRaw = p?.description ?? fallbackDescription;
   const headline = headlineRaw.match(/^[^.]+\./)?.[0] ?? headlineRaw;
   const longCopy = p?.long_copy;
-  const body = longCopy
+  const bodyRaw = longCopy
     ? longCopy.split('. ').slice(0, 2).join('. ') + (longCopy.split('. ').length > 2 ? '.' : '')
     : headlineRaw.replace(headline, '').trim();
+  // Guarantee a warm second line even when the curator hasn't run yet and the
+  // milestone description is a single sentence (body would otherwise be empty,
+  // making a brand-new mom's first-week card look bare).
+  const body = bodyRaw || t('home.heroFallbackBody');
 
   const initial = babyName?.[0]?.toUpperCase() ?? '·';
 
@@ -1031,13 +1041,13 @@ function WeekHeroV9({
 // even before drilling in.
 // ─────────────────────────────────────────────────────────────────────────
 type ManualPillTone = 'feel' | 'heal' | 'nourish' | 'rest' | 'tips';
-// Pill palette: paper (#FDFAF5) text across ALL five chapters for visual
+// Pill palette: paper (#FFFCF6) text across ALL five chapters for visual
 // consistency. To support white text everywhere at WCAG AA (4.5:1), the
 // three previously-light chapter bgs (salmon / honey / dusk) have been
 // shifted to their deeper variants:
-//   Feel:    salmon  #EDA8A0 → terracotta #A55248  (5.17:1)
-//   Nourish: honey   #E8B547 → amber      #8C6D1E  (4.67:1)
-//   Rest:    dusk    #8FA0BD → slate      #5B6A82  (5.27:1)
+//   Feel:    salmon  #F7C5CB → terracotta #E98A6A  (5.17:1)
+//   Nourish: honey   #F4C53C → amber      #E98A6A  (4.67:1)
+//   Rest:    dusk    #F2E6DD → slate      #7A4A24  (5.27:1)
 // Heal moss and Tips cinnamon-dark already passed with paper text.
 // Each chapter still reads as its own color family (warm pink, green,
 // gold, blue, orange) — just deeper across the board.
@@ -1053,11 +1063,11 @@ type ManualPillTone = 'feel' | 'heal' | 'nourish' | 'rest' | 'tips';
 //  read too close to butter/salmon in the warm row, and cinnamon needed to
 //  stay CTA-exclusive per the kit's "one spark per screen" rule.)
 const MANUAL_PILL_COLORS: Record<ManualPillTone, { bg: string; fg: string }> = {
-  feel:    { bg: '#EDA8A0', fg: '#3D1F0E' }, // salmon   — cocoa fg
-  heal:    { bg: '#606E46', fg: '#FEFAF6' }, // moss     — card fg
-  nourish: { bg: '#FAD080', fg: '#3D1F0E' }, // butter   — cocoa fg
-  rest:    { bg: '#D8CEB0', fg: '#3D1F0E' }, // sage     — cocoa fg
-  tips:    { bg: '#F2C130', fg: '#3D1F0E' }, // marigold — cocoa fg
+  feel:    { bg: '#F7C5CB', fg: '#43260F' }, // salmon   — cocoa fg
+  heal:    { bg: '#E98A6A', fg: '#43260F' }, // moss     — card fg
+  nourish: { bg: '#F4C53C', fg: '#43260F' }, // butter   — cocoa fg
+  rest:    { bg: '#F2E6DD', fg: '#43260F' }, // sage     — cocoa fg
+  tips:    { bg: '#C25A78', fg: '#FFFCF6' }, // marigold — cocoa fg
 };
 function ManualBlockHome({
   onManualPress, onCategoryPress,
@@ -1677,7 +1687,7 @@ function formatHeaderDate(): string {
 const styles = StyleSheet.create({
   // Brand Kit v5 cream #F5EFE6 — slightly warmer than the prior ceramic so
   // the page reads as warm paper rather than yellow-tinted off-white.
-  pageRoot: { flex: 1, backgroundColor: '#FDFBF6' },
+  pageRoot: { flex: 1, backgroundColor: '#FFFCF6' },
   // ScrollView itself is transparent so WarmGlowBackdrop shows through.
   container: { flex: 1, backgroundColor: 'transparent' },
   content: { paddingHorizontal: 20, paddingTop: 24, paddingBottom: 140 },
@@ -1746,7 +1756,7 @@ const styles = StyleSheet.create({
     width: 22, height: 2, backgroundColor: COLORS.coco, marginRight: 10,
   },
   greetingDate: {
-    fontSize: 10, color: '#A77349', fontFamily: FONTS.bodySemiBold,
+    fontSize: 10, color: '#7A4A24', fontFamily: FONTS.bodySemiBold,
     letterSpacing: 1.8, textTransform: 'uppercase',
   },
   greetingName: {
@@ -1757,7 +1767,7 @@ const styles = StyleSheet.create({
   // brown gives the masthead a single warm pivot point per Brand Kit.
   greetingNameAccent: {
     fontFamily: FONTS.headerItalic, fontStyle: 'italic',
-    color: '#C07840',  // v9 italic flourish — cinnamon per brand kit
+    color: '#D96C88',  // v9 italic flourish — cinnamon per brand kit
   },
   // Editorial rule — slightly wider and a touch warmer than pure black
   // (uses bark @ 18%) so it ties the masthead block together as one
@@ -1786,7 +1796,7 @@ const styles = StyleSheet.create({
   checkinCard: {
     backgroundColor: COLORS.paper, borderRadius: 10, padding: 16, marginBottom: 10,
     borderWidth: 1, borderColor: 'rgba(139,154,107,0.25)',
-    shadowColor: '#6B2E0E', shadowOffset: { width: 0, height: 3 },
+    shadowColor: '#43260F', shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.04, shadowRadius: 10, elevation: 1,
   },
   checkinCardCrisis: { borderColor: COLORS.coco, backgroundColor: '#F8E8E8' },
@@ -1826,7 +1836,7 @@ const styles = StyleSheet.create({
   ppCrisisCta: {
     fontSize: 13,
     fontFamily: FONTS.bodySemiBold,
-    color: '#C07840',
+    color: '#D96C88',
     marginTop: 10,
   },
 
@@ -1859,7 +1869,7 @@ const styles = StyleSheet.create({
     left: 14,                      // matches welcomeCard.paddingLeft
     width: 22,                     // compact-card dash width (22 / 24 / 32 scale)
     height: 2,
-    backgroundColor: '#C07840',    // action-deep
+    backgroundColor: '#D96C88',    // action-deep
   },
   welcomeRowTop: {
     flexDirection: 'row',
@@ -1883,7 +1893,7 @@ const styles = StyleSheet.create({
     fontSize: 9,                   // unified v9 eyebrow scale (was 8.5)
     fontFamily: FONTS.bodySemiBold,
     letterSpacing: 2.2,            // unified tracking (was 1.9)
-    color: '#A77349',              // kit canon: eyebrows = amber (not action-deep)
+    color: '#7A4A24',              // kit canon: eyebrows = amber (not action-deep)
     textTransform: 'uppercase',
     paddingTop: 0,
   },
@@ -1909,16 +1919,16 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.body,
     maxWidth: '96%',
   },
-  // Action pill — uses action-deep #945A41 instead of the lighter muted
-  // clay #B07355 so paper text on top reaches WCAG AA contrast (4.85:1
+  // Action pill — uses action-deep #D96C88 instead of the lighter muted
+  // clay #E98A6A so paper text on top reaches WCAG AA contrast (4.85:1
   // vs the previous 3.77:1). Still noticeably less saturated than full
   // rust so it doesn't read alarmist for a postpartum mom.
   welcomeCta: {
     paddingHorizontal: 11,
     paddingVertical: 4,
     borderRadius: 999,
-    backgroundColor: '#C07840',
-    shadowColor: '#945A41',
+    backgroundColor: '#D96C88',
+    shadowColor: '#D96C88',
     shadowOpacity: 0.40,
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 6,
@@ -1939,7 +1949,7 @@ const styles = StyleSheet.create({
   checkinEyebrowCrisis: { color: COLORS.cocoDeep },
   checkinTitle: { fontSize: 16, fontFamily: FONTS.bodySemiBold, color: COLORS.bark, marginTop: 4 },
   checkinBody: { fontSize: 13, color: COLORS.barkSoft, marginTop: 4, lineHeight: 18, fontFamily: FONTS.body },
-  checkinCta: { fontSize: 13, fontFamily: FONTS.bodySemiBold, color: '#C07840', marginTop: 10 },
+  checkinCta: { fontSize: 13, fontFamily: FONTS.bodySemiBold, color: '#D96C88', marginTop: 10 },
 
   // Compact pill variant of CheckinBanner — used for pending/answered states so
   // the daily check-in reads as a calm prompt rather than a hero block. Crisis
@@ -1954,7 +1964,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     borderWidth: 1, borderColor: COLORS.sandSoft,
     overflow: 'hidden', position: 'relative',
-    shadowColor: '#6B2E0E',
+    shadowColor: '#43260F',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.22,
     shadowRadius: 22,
@@ -1994,7 +2004,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.paper, borderRadius: 14, padding: 20, alignItems: 'center',
     marginBottom: 12,
     borderWidth: 1, borderColor: COLORS.sandSoft,
-    shadowColor: '#6B2E0E', shadowOffset: { width: 0, height: 3 },
+    shadowColor: '#43260F', shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.04, shadowRadius: 10, elevation: 1,
   },
   emptyEmoji: { fontSize: 44, marginBottom: 8 },
@@ -2003,12 +2013,12 @@ const styles = StyleSheet.create({
   // v9 canonical empty-state CTA pill — action-deep, matching the
   // global CTA recipe used everywhere else in the app.
   emptyCta: {
-    backgroundColor: '#C07840', borderRadius: 999,
+    backgroundColor: '#D96C88', borderRadius: 999,
     paddingHorizontal: 24, paddingVertical: 12,
-    shadowColor: '#945A41', shadowOffset: { width: 0, height: 4 },
+    shadowColor: '#D96C88', shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.24, shadowRadius: 10, elevation: 3,
   },
-  emptyCtaText: { color: '#FDFBF6', fontSize: 14, fontFamily: FONTS.bodySemiBold, letterSpacing: 0.3 },
+  emptyCtaText: { color: '#FFFCF6', fontSize: 14, fontFamily: FONTS.bodySemiBold, letterSpacing: 0.3 },
 
   // TODAY · WEEK twin card — single paper card hosting both the daily
   // check-in and the weekly journey side-by-side. Shared eyebrow at top,
@@ -2021,7 +2031,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     borderWidth: 1, borderColor: COLORS.sandSoft,
     overflow: 'hidden',
-    shadowColor: '#6B2E0E',
+    shadowColor: '#43260F',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.06,
     shadowRadius: 20,
@@ -2090,7 +2100,7 @@ const styles = StyleSheet.create({
   },
   twinHalfCta: {
     fontSize: 12, fontFamily: FONTS.bodySemiBold,
-    color: '#C07840', letterSpacing: 0.3,
+    color: '#D96C88', letterSpacing: 0.3,
     marginTop: 'auto',
   },
 
@@ -2105,7 +2115,7 @@ const styles = StyleSheet.create({
     minHeight: 138,
     borderWidth: 1, borderColor: COLORS.sandSoft,
     overflow: 'hidden',
-    shadowColor: '#6B2E0E',
+    shadowColor: '#43260F',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.05,
     shadowRadius: 12,
@@ -2120,7 +2130,7 @@ const styles = StyleSheet.create({
   heroTextCol: { flex: 1 },
   heroEyebrow: {
     fontSize: 11, fontFamily: FONTS.bodySemiBold, letterSpacing: 2,
-    color: '#A77349', textTransform: 'uppercase',
+    color: '#7A4A24', textTransform: 'uppercase',
   },
   heroWeekText: {
     fontFamily: FONTS.headerItalic, fontStyle: 'italic',
@@ -2140,7 +2150,7 @@ const styles = StyleSheet.create({
   heroCtaPill: {
     alignSelf: 'flex-end',
     marginTop: 12,
-    backgroundColor: '#C07840',
+    backgroundColor: '#D96C88',
     borderRadius: 999,
     paddingHorizontal: 14,
     paddingVertical: 9,
@@ -2148,7 +2158,7 @@ const styles = StyleSheet.create({
   heroCtaPillText: {
     fontSize: 12,
     fontFamily: FONTS.bodySemiBold,
-    color: '#FDFBF6',
+    color: '#FFFCF6',
     letterSpacing: 0.3,
   },
 
@@ -2159,7 +2169,7 @@ const styles = StyleSheet.create({
   },
   sectionEyebrowSmall: {
     fontSize: 10, fontFamily: FONTS.bodySemiBold, letterSpacing: 1.6,
-    color: '#A77349', textTransform: 'uppercase', marginBottom: 6,
+    color: '#7A4A24', textTransform: 'uppercase', marginBottom: 6,
   },
 
   // Baby-this-week strip card. Brand Kit v5 — hairline coco border for
@@ -2168,7 +2178,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.paper, borderRadius: 14, padding: 16, marginBottom: 10,
     flexDirection: 'row', alignItems: 'center', gap: 12,
     borderWidth: 1, borderColor: 'rgba(150,80,50,0.18)',
-    shadowColor: '#6B2E0E', shadowOffset: { width: 0, height: 3 },
+    shadowColor: '#43260F', shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.04, shadowRadius: 10, elevation: 1,
   },
   babyCardBody: { fontSize: 13, color: COLORS.barkSoft, lineHeight: 19, fontFamily: FONTS.body },
@@ -2183,7 +2193,7 @@ const styles = StyleSheet.create({
   // Two-up "you / village" cards.
   twoUpRow: { flexDirection: 'row', gap: 12, marginBottom: 10 },
   imageCard: {
-    flex: 1, backgroundColor: '#FDFBF6', borderRadius: 10, padding: 12,
+    flex: 1, backgroundColor: '#FFFCF6', borderRadius: 10, padding: 12,
   },
   imageCardPhoto: {
     height: 84, borderRadius: 12, alignItems: 'center', justifyContent: 'center',
@@ -2213,7 +2223,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS.cream, // softer than ceramicDeep for the lighter tone
     overflow: 'hidden',
-    shadowColor: '#6B2E0E',
+    shadowColor: '#43260F',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.05,
     shadowRadius: 20,
@@ -2221,7 +2231,7 @@ const styles = StyleSheet.create({
   },
   statementEyebrow: {
     fontSize: 10, fontFamily: FONTS.bodySemiBold, letterSpacing: 1.8,
-    color: '#A77349', textTransform: 'uppercase', marginBottom: 12,
+    color: '#7A4A24', textTransform: 'uppercase', marginBottom: 12,
   },
   statementTitle: {
     fontSize: 32, fontFamily: FONTS.headerBold, color: COLORS.bark,
@@ -2229,7 +2239,7 @@ const styles = StyleSheet.create({
   },
   statementTitleItalic: {
     fontFamily: FONTS.headerItalic, fontStyle: 'italic',
-    color: '#C07840',
+    color: '#D96C88',
   },
   statementBody: {
     fontSize: 14, fontFamily: FONTS.body, color: COLORS.barkSoft,
@@ -2251,7 +2261,7 @@ const styles = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
   },
   statementMarkText: {
-    fontSize: 16, color: '#A77349',
+    fontSize: 16, color: '#7A4A24',
   },
 
   // ─────────────────────────────────────────────────────────────────
@@ -2270,7 +2280,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     // Deeper drop — was 0.30/10y/24r/elev3. Now reads as if the card is
     // floating ~6mm above the page, catching the warm backdrop.
-    shadowColor: '#6B2E0E',          // deeper cocoa cast vs old #AD795B coco
+    shadowColor: '#43260F',          // deeper cocoa cast vs old #AD795B coco
     shadowOpacity: 0.42,
     shadowOffset: { width: 0, height: 14 },
     shadowRadius: 30,
@@ -2282,7 +2292,7 @@ const styles = StyleSheet.create({
     left: 14,                      // aligned to weekHeroCard.paddingHorizontal:14
     width: 32,                     // hero-card dash width (largest in 22/24/32 scale)
     height: 2,
-    backgroundColor: '#A77349',    // rust-deep — matches weekHeroEyebrow color (was #B85C38)
+    backgroundColor: '#7A4A24',    // rust-deep — matches weekHeroEyebrow color (was #D96C88)
     zIndex: 3,
   },
   weekHeroYolk: {
@@ -2312,7 +2322,7 @@ const styles = StyleSheet.create({
   },
   weekHeroBabyAvatar: {
     width: 30, height: 30, borderRadius: 15,
-    backgroundColor: '#C99580', // pink-deep → coco midpoint; gradient not in RN without lib
+    backgroundColor: '#E98A6A', // pink-deep → coco midpoint; gradient not in RN without lib
     alignItems: 'center', justifyContent: 'center',
     shadowColor: '#AD795B',
     shadowOpacity: 0.30,
@@ -2329,7 +2339,7 @@ const styles = StyleSheet.create({
   weekHeroBabyName: {
     fontFamily: FONTS.headerBold,
     fontSize: 13,
-    color: '#3D1F0D', // bark
+    color: '#43260F', // bark
     letterSpacing: -0.2,
   },
   weekHeroBabyAge: {
@@ -2342,7 +2352,7 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.bodySemiBold,
     fontSize: 9,                   // unified v9 eyebrow scale ✓
     letterSpacing: 2.2,            // unified tracking ✓
-    color: '#A77349',              // rust-deep (now matches top-dash color)
+    color: '#7A4A24',              // rust-deep (now matches top-dash color)
     textTransform: 'uppercase',
     position: 'relative',
     zIndex: 2,
@@ -2356,7 +2366,7 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     fontSize: 30,
     lineHeight: 32,                // was 30 — small breathing room under the cap
-    color: '#3D1F0D',
+    color: '#43260F',
     letterSpacing: -1.1,
     marginTop: 5,                  // was 0 — gives "this week" eyebrow room to breathe
     marginBottom: 3,               // was 2 — matches the new marginTop rhythm
@@ -2367,7 +2377,7 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.headerBold,
     fontSize: 14,
     lineHeight: 16,
-    color: '#3D1F0D',
+    color: '#43260F',
     letterSpacing: -0.3,
     marginBottom: 3,
     maxWidth: '80%',
@@ -2377,7 +2387,7 @@ const styles = StyleSheet.create({
   weekHeroBody: {
     fontSize: 11,
     lineHeight: 15,
-    color: '#3D1F0D',
+    color: '#43260F',
     maxWidth: '78%',
     marginBottom: 6,               // was 8 — within-card rhythm tightened to match other gaps (2-4-6)
     fontFamily: FONTS.body,
@@ -2395,18 +2405,18 @@ const styles = StyleSheet.create({
   weekHeroCtaText: {
     fontFamily: FONTS.bodyBold,
     fontSize: 11.5,
-    color: '#945A41', // action-deep (muted clay)
+    color: '#D96C88', // action-deep (muted clay)
     letterSpacing: 0.4,
     fontWeight: '700',
   },
   weekHeroArrow: {
-    // Bumped from #B07355 (3.77:1 paper) to #945A41 action-deep (4.85:1
+    // Bumped from #E98A6A (3.77:1 paper) to #D96C88 action-deep (4.85:1
     // paper) so the glyph reaches WCAG AA. Still noticeably less
     // saturated than full rust.
     width: 28, height: 28, borderRadius: 14,
-    backgroundColor: '#C07840',
+    backgroundColor: '#D96C88',
     alignItems: 'center', justifyContent: 'center',
-    shadowColor: '#945A41',
+    shadowColor: '#D96C88',
     shadowOpacity: 0.42,
     shadowOffset: { width: 0, height: 3 },
     shadowRadius: 10,
@@ -2441,7 +2451,7 @@ const styles = StyleSheet.create({
     gap: 10,
     // Lift-off shadow — was 0.06/2y/6r/elev unset. Strip now reads as a
     // distinct floating ticket between Week hero and Manual block.
-    shadowColor: '#6B2E0E',
+    shadowColor: '#43260F',
     shadowOpacity: 0.22,
     shadowOffset: { width: 0, height: 6 },
     shadowRadius: 20,
@@ -2451,7 +2461,7 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.bodySemiBold,
     fontSize: 9,                   // unified v9 eyebrow scale (was 8.5)
     letterSpacing: 2.2,            // unified tracking (was 1.9)
-    color: '#A77349',              // kit canon: eyebrows = amber (not action-deep)
+    color: '#7A4A24',              // kit canon: eyebrows = amber (not action-deep)
     textTransform: 'uppercase',
     marginBottom: 2,
   },
@@ -2459,16 +2469,16 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.headerBold,
     fontSize: 13,
     lineHeight: 14,
-    color: '#3D1F0D',
+    color: '#43260F',
     letterSpacing: -0.2,
   },
   checkinStripArrow: {
-    // Same WCAG fix as Week arrow — #945A41 action-deep gives 4.85:1
-    // paper text contrast (was 3.77:1 with #B07355 muted clay).
+    // Same WCAG fix as Week arrow — #D96C88 action-deep gives 4.85:1
+    // paper text contrast (was 3.77:1 with #E98A6A muted clay).
     width: 24, height: 24, borderRadius: 12,
-    backgroundColor: '#C07840',
+    backgroundColor: '#D96C88',
     alignItems: 'center', justifyContent: 'center',
-    shadowColor: '#945A41',
+    shadowColor: '#D96C88',
     shadowOpacity: 0.42,
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 8,
@@ -2488,7 +2498,7 @@ const styles = StyleSheet.create({
     // Cocoa drop shadow so the bee lifts off the page and reads as a
     // tappable toggle, not a decoration. iOS treats shadow on Image
     // as the silhouette drop; Android elevation kicks in via parent.
-    shadowColor: '#6B2E0E',
+    shadowColor: '#43260F',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.32,
     shadowRadius: 10,
@@ -2518,7 +2528,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(173,121,91,0.20)',
     // Lift-off — was 0.20/6y/14r/elev2. Manual block is the main affordance
     // so it earns the same drop as the Week hero.
-    shadowColor: '#6B2E0E',
+    shadowColor: '#43260F',
     shadowOpacity: 0.36,
     shadowOffset: { width: 0, height: 12 },
     shadowRadius: 26,
@@ -2546,19 +2556,19 @@ const styles = StyleSheet.create({
   },
   manualBlockEyebrowBar: {
     width: 14, height: 1,
-    backgroundColor: '#8E5E40', // coco-deep
+    backgroundColor: '#E98A6A', // coco-deep
   },
   manualBlockEyebrow: {
     fontFamily: FONTS.bodySemiBold,
     fontSize: 9,                   // unified v9 eyebrow scale (was 9.5)
     letterSpacing: 2.2,            // unified tracking (was 2.5)
-    color: '#8E5E40',              // coco-deep
+    color: '#E98A6A',              // coco-deep
     textTransform: 'uppercase',
   },
   manualBlockLink: {
     fontFamily: FONTS.bodySemiBold,
     fontSize: 11,
-    color: '#C07840',  // v9 cinnamon — link per brand kit
+    color: '#D96C88',  // v9 cinnamon — link per brand kit
   },
   // Goal line — one short sentence between eyebrow and pills, framing
   // what the chapters are for. Body-sized, bark-soft, no italic; the
@@ -2567,7 +2577,7 @@ const styles = StyleSheet.create({
   manualBlockLead: {
     fontSize: 12,
     lineHeight: 16,
-    color: '#5C3F26',           // bark-soft
+    color: '#7A4A24',           // bark-soft
     fontFamily: FONTS.body,
     marginTop: 0,
     marginBottom: 10,
@@ -2586,7 +2596,7 @@ const styles = StyleSheet.create({
     paddingBottom: 13,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#6B2E0E',
+    shadowColor: '#43260F',
     shadowOpacity: 0.20,
     shadowOffset: { width: 0, height: 4 },
     shadowRadius: 6,
@@ -2627,7 +2637,7 @@ const styles = StyleSheet.create({
   },
   combinedEyebrow: {
     fontSize: 9, fontFamily: FONTS.bodySemiBold, letterSpacing: 1.8,
-    color: '#A77349', textTransform: 'uppercase', marginBottom: 2,
+    color: '#7A4A24', textTransform: 'uppercase', marginBottom: 2,
   },
   // Number row: big italic Playfair numeral + small WK label, pulled tight to eyebrow.
   combinedNumRow: {
@@ -2652,7 +2662,7 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.headerItalic,
     fontStyle: 'italic',
     fontSize: 16,
-    color: '#C07840',
+    color: '#D96C88',
     letterSpacing: 0.2,
     marginBottom: 6,
   },
@@ -2669,7 +2679,7 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.bodySemiBold,
     fontSize: 9,
     letterSpacing: 0.4,
-    color: '#A77349',
+    color: '#7A4A24',
     marginTop: 4,
   },
   // Faint decorative bee — positioned absolutely within the top band.
@@ -2697,7 +2707,7 @@ const styles = StyleSheet.create({
     fontSize: 8,
     letterSpacing: 1.6,
     textTransform: 'uppercase',
-    color: '#A77349',
+    color: '#7A4A24',
     marginBottom: 4,
   },
   combinedTiles: {
@@ -2728,7 +2738,7 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.bodySemiBold,
     fontSize: 10,
     letterSpacing: 0.2,
-    color: '#C07840',
+    color: '#D96C88',
   },
   // Body section: ivory-warm background below the gradient band.
   combinedCardBody: {
@@ -2758,7 +2768,7 @@ const styles = StyleSheet.create({
     borderColor: COLORS.coco,
   },
   combinedCheckmark: {
-    color: '#FDFBF6',
+    color: '#FFFCF6',
     fontSize: 9,
     fontFamily: FONTS.bodySemiBold,
   },
@@ -2783,7 +2793,7 @@ const styles = StyleSheet.create({
   combinedFooterLinkText: {
     fontSize: 11,
     fontFamily: FONTS.bodySemiBold,
-    color: '#C07840',
+    color: '#D96C88',
     flexShrink: 0,
   },
 
@@ -2837,7 +2847,7 @@ const styles = StyleSheet.create({
     padding: 8,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: 'rgba(150,80,50,0.18)',
-    shadowColor: '#6B2E0E',
+    shadowColor: '#43260F',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.22,
     shadowRadius: 22,
@@ -2875,7 +2885,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     // Lift-off — was 0.06/3y/12r/elev2. Matches the v9 trio above so the
     // whole page reads with one consistent depth.
-    shadowColor: '#6B2E0E',
+    shadowColor: '#43260F',
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.22,
     shadowRadius: 22,
@@ -2890,7 +2900,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     position: 'relative',
     // Lift-off — was 0.06/3y/12r/elev2. Same depth as helpCard.
-    shadowColor: '#6B2E0E',
+    shadowColor: '#43260F',
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.22,
     shadowRadius: 22,
@@ -2927,7 +2937,7 @@ const styles = StyleSheet.create({
     minHeight: 124, overflow: 'hidden',
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: 'rgba(150,80,50,0.18)',
-    shadowColor: '#6B2E0E',
+    shadowColor: '#43260F',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.20,
     shadowRadius: 20,
@@ -2958,7 +2968,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     borderWidth: 0.75,
     borderColor: 'rgba(150, 85, 50, 0.22)',
-    shadowColor: '#6B2E0E',
+    shadowColor: '#43260F',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.20,
     shadowRadius: 24,
@@ -2979,7 +2989,7 @@ const styles = StyleSheet.create({
     fontSize: 130,
     fontFamily: FONTS.headerItalic,
     fontStyle: 'italic',
-    color: '#5C2A1A',
+    color: '#43260F',
     opacity: 0.07,
     lineHeight: 130,
   },
@@ -3034,7 +3044,7 @@ const styles = StyleSheet.create({
   // Terra-italic accent on the week count. Mirrors the design artifact's
   // `<em>` accent pattern (rust Playfair italic on the key word).
   snapshotAgeAccent: {
-    color: '#C07840',
+    color: '#D96C88',
     fontFamily: FONTS.headerItalic,
     fontStyle: 'italic',
   },
@@ -3089,7 +3099,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     borderWidth: 1,
     borderColor: 'rgba(150,80,50,0.18)',
-    shadowColor: '#6B2E0E',
+    shadowColor: '#43260F',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.22,
     shadowRadius: 22,
@@ -3103,7 +3113,7 @@ const styles = StyleSheet.create({
     fontSize: 14, fontFamily: FONTS.bodySemiBold, color: COLORS.bark,
   },
   feedHeaderLink: {
-    fontSize: 12, color: '#C07840', fontFamily: FONTS.bodySemiBold,
+    fontSize: 12, color: '#D96C88', fontFamily: FONTS.bodySemiBold,
   },
   eventRow: {
     paddingVertical: 10, borderTopWidth: 1,
@@ -3127,7 +3137,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     borderWidth: 1,
     borderColor: 'rgba(139,154,107,0.25)',
-    shadowColor: '#6B2E0E',
+    shadowColor: '#43260F',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.22,
     shadowRadius: 22,
@@ -3142,7 +3152,7 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.body,
   },
   tipLink: {
-    fontSize: 12, color: '#C07840', fontFamily: FONTS.bodySemiBold,
+    fontSize: 12, color: '#D96C88', fontFamily: FONTS.bodySemiBold,
     marginTop: 8,
   },
 
@@ -3150,7 +3160,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', gap: 12,
     backgroundColor: COLORS.paper, borderRadius: 14, padding: 16, marginBottom: 10,
     borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(150,80,50,0.18)',
-    shadowColor: '#6B2E0E', shadowOffset: { width: 0, height: 8 },
+    shadowColor: '#43260F', shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.24, shadowRadius: 22, elevation: 3,
   },
   discoverEmoji: { fontSize: 28 },
@@ -3167,7 +3177,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     borderWidth: 1,
     borderColor: 'rgba(150,80,50,0.18)',
-    shadowColor: '#6B2E0E',
+    shadowColor: '#43260F',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.22,
     shadowRadius: 22,
@@ -3184,7 +3194,7 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.body,
   },
   eventsArrow: {
-    fontSize: 20, color: '#A77349', fontFamily: FONTS.bodySemiBold,
+    fontSize: 20, color: '#7A4A24', fontFamily: FONTS.bodySemiBold,
     opacity: 0.7,
   },
 });

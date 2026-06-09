@@ -188,7 +188,7 @@ export default function MessagingScreen({ navigation, route }: Props) {
         {/* Message list */}
         {loading ? (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator color="#C07840" />
+            <ActivityIndicator color="#D96C88" />
           </View>
         ) : (
           <FlatList
@@ -228,7 +228,7 @@ export default function MessagingScreen({ navigation, route }: Props) {
             disabled={!draft.trim() || sending}
           >
             {sending ? (
-              <ActivityIndicator size="small" color='#FDFBF6' />
+              <ActivityIndicator size="small" color='#FFFCF6' />
             ) : (
               <Text style={styles.sendBtnText}>↑</Text>
             )}
@@ -254,7 +254,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   backBtn: { width: 52 },
-  backText: { fontSize: 15, color: '#C07840', fontFamily: FONTS.bodyMedium },
+  backText: { fontSize: 15, color: '#D96C88', fontFamily: FONTS.bodyMedium },
   headerCenter: { flex: 1, alignItems: 'center' },
   headerName: {
     fontFamily: FONTS.headerItalic,
@@ -279,7 +279,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(0,0,0,0.05)',
   },
-  disclaimerText: { fontSize: 11, color: '#8B6914', lineHeight: 16, textAlign: 'center', fontFamily: FONTS.body },
+  disclaimerText: { fontSize: 11, color: '#E98A6A', lineHeight: 16, textAlign: 'center', fontFamily: FONTS.body },
 
   loadingContainer: { flex: 1, alignItems: 'center', justifyContent: 'center' },
 
@@ -326,14 +326,14 @@ const styles = StyleSheet.create({
   bubbleOther: {
     backgroundColor: COLORS.paper,
     borderBottomLeftRadius: 4,
-    shadowColor: '#6B2E0E',
+    shadowColor: '#43260F',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.06,
     shadowRadius: 3,
     elevation: 1,
   },
   bubbleText: { fontSize: 15, lineHeight: 22, fontFamily: FONTS.body },
-  bubbleTextOwn: { color: '#FDFBF6' },                                 // v9 paper white (kit canon)
+  bubbleTextOwn: { color: '#FFFCF6' },                                 // v9 paper white (kit canon)
   bubbleTextOther: { color: COLORS.bark },
 
   emptyState: {
@@ -375,10 +375,10 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#C07840',
+    backgroundColor: '#D96C88',
     alignItems: 'center',
     justifyContent: 'center',
   },
   sendBtnDisabled: { opacity: 0.35 },
-  sendBtnText: { color: '#FDFBF6', fontSize: 20, fontFamily: FONTS.bodySemiBold, lineHeight: 22 },
+  sendBtnText: { color: '#FFFCF6', fontSize: 20, fontFamily: FONTS.bodySemiBold, lineHeight: 22 },
 });

@@ -106,13 +106,13 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   btn: {
-    backgroundColor: '#C07840',
+    backgroundColor: '#D96C88',
     borderRadius: 24,
     paddingHorizontal: 32,
     paddingVertical: 14,
   },
   btnText: {
-    color: '#FDFBF6',
+    color: '#FFFCF6',
     fontFamily: FONTS.bodySemiBold,
     fontSize: 15,
     letterSpacing: 0.3,

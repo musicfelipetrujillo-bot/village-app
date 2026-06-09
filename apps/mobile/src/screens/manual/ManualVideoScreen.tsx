@@ -151,10 +151,14 @@ export default function ManualVideoScreen() {
     };
   }, [video]);
 
-  const playerUrl = video ? muxPlayerUrl(video.mux_playback_id, {
-    autoplay: true,
-    poster: video.poster_url,
-  }) : null;
+  // HTML clips (self-hosted animated pieces) load their URL directly; Mux
+  // videos go through the hosted Mux player. Both render in the same WebView.
+  const playerUrl = video
+    ? (video.html_url
+        ?? (video.mux_playback_id
+              ? muxPlayerUrl(video.mux_playback_id, { autoplay: true, poster: video.poster_url })
+              : null))
+    : null;
 
   // ── Save handler ──
   // Optimistic: flip locally first, call RPC, revert on error. The RPC
@@ -228,7 +232,7 @@ export default function ManualVideoScreen() {
 
       {loading && (
         <View style={styles.loading}>
-          <ActivityIndicator color="#C07840" />
+          <ActivityIndicator color="#D96C88" />
         </View>
       )}
 
@@ -379,7 +383,7 @@ const styles = StyleSheet.create({
     lineHeight: 28, marginBottom: 4,
   },
   duration: {
-    fontSize: 12, fontFamily: FONTS.bodySemiBold, color: '#A77349',
+    fontSize: 12, fontFamily: FONTS.bodySemiBold, color: '#7A4A24',
     letterSpacing: 1.2, textTransform: 'uppercase', marginBottom: 14,
   },
   description: {
@@ -401,7 +405,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.paper,
   },
   actionPillActive: {
-    backgroundColor: '#C07840', borderColor: '#C07840',
+    backgroundColor: '#D96C88', borderColor: '#D96C88',
   },
   actionIcon: {
     fontSize: 16, color: COLORS.bark,
@@ -415,7 +419,7 @@ const styles = StyleSheet.create({
 
   captionsBlock: { marginBottom: 24 },
   captionsLabel: {
-    fontSize: 11, fontFamily: FONTS.bodySemiBold, color: '#A77349',
+    fontSize: 11, fontFamily: FONTS.bodySemiBold, color: '#7A4A24',
     letterSpacing: 1.4, textTransform: 'uppercase', marginBottom: 8,
   },
   captionsRow: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },

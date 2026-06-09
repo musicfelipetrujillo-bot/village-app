@@ -37,27 +37,27 @@ const VILLIE = require('../../../assets/brand/villie-bee.png');
    PALETTE — live app brand colors
    =========================================================== */
 const C = {
-  paper:     '#FDFBF6',
+  paper:     '#FFFCF6',
   cream:     '#F5F0E8',
   // Kit canon (2026-05-16): cinnamon family replaces old rust in SVG tile art.
   // Token names kept for grep compatibility across 50+ Path/Circle fills below.
-  rust:      '#C07840', // cinnamon (was #B85C38)
-  rustDeep:  '#945A41', // action-deep (was #9A4A2B)
+  rust:      '#D96C88', // cinnamon (was #D96C88)
+  rustDeep:  '#D96C88', // action-deep (was #7A4A24)
   coco:      '#AD795B',
-  cocoDeep:  '#8B5E40',
+  cocoDeep:  '#E98A6A',
   cocoLight: '#C9A07E',
-  bark:      '#3D1F0D',
-  barkSoft:  '#5A3520',
-  sage:      '#8B9A6B',
-  sageDeep:  '#5C6B3A',
-  sageLight: '#A8B585',
+  bark:      '#43260F',
+  barkSoft:  '#7A4A24',
+  sage:      '#E98A6A',
+  sageDeep:  '#E98A6A',
+  sageLight: '#F2E6DD',
   pink:      '#E8C4B6',
   pinkSoft:  '#F5D9CC',
-  pinkDeep:  '#C99580',
+  pinkDeep:  '#E98A6A',
   sandSoft:  '#E8DFC9',
-  sandDeep:  '#D6C8AC',
-  flame:     '#F8D8A8',
-  flameDeep: '#E6A85C',
+  sandDeep:  '#F2E6DD',
+  flame:     '#F4C53C',
+  flameDeep: '#E98A6A',
 };
 
 export type ManualTileScene =
@@ -96,14 +96,14 @@ const VB_H = 100;
    the cream page background (#F5F0E8) without any gradient.
    =========================================================== */
 const SCENE_BG: Record<ManualTileScene, string> = {
-  candle: '#EFB07B', // Feel — warm flame peach (saturated)
-  salve:  '#DDA793', // Heal — rose blush
-  bowl:   '#9CAD75', // Nourish — sage
-  pillow: '#D9CBA8', // Rest — sand
-  note:   '#D6C390', // Tips — paper sand
-  bottle: '#EEC4A5', // Feed — cream blush
-  foot:   '#DDA793', // Grow — pink
-  bib:    '#9CAD75', // Care — sage
+  candle: '#F7C5CB', // Feel — warm flame peach (saturated)
+  salve:  '#E98A6A', // Heal — rose blush
+  bowl:   '#F4C53C', // Nourish — sage
+  pillow: '#F2E6DD', // Rest — sand
+  note:   '#C25A78', // Tips — paper sand
+  bottle: '#F4C53C', // Feed — cream blush
+  foot:   '#F7C5CB', // Grow — pink
+  bib:    '#E98A6A', // Care — sage
 };
 
 /* ===========================================================
@@ -117,12 +117,12 @@ function SharedDefs({ maskCx, maskCy, maskInnerPct, maskOuterPct }: {
   return (
     <Defs>
       <RadialGradient id="bottomShadow" cx={VB_W * 0.85} cy={VB_H * 0.88} r={VB_W * 0.75} gradientUnits="userSpaceOnUse">
-        <Stop offset="0" stopColor="#5F3C1C" stopOpacity={0.12} />
-        <Stop offset="0.55" stopColor="#5F3C1C" stopOpacity={0} />
+        <Stop offset="0" stopColor="#43260F" stopOpacity={0.12} />
+        <Stop offset="0.55" stopColor="#43260F" stopOpacity={0} />
       </RadialGradient>
       <Pattern id="halftoneDots" x="0" y="0" width={5} height={5} patternUnits="userSpaceOnUse">
-        <Circle cx={2.5} cy={2.5} r={0.85} fill="#3D1F0D" fillOpacity={0.42} />
-        <Circle cx={3.9} cy={3.9} r={0.72} fill="#C07840" fillOpacity={0.38} />
+        <Circle cx={2.5} cy={2.5} r={0.85} fill="#43260F" fillOpacity={0.42} />
+        <Circle cx={3.9} cy={3.9} r={0.72} fill="#D96C88" fillOpacity={0.38} />
       </Pattern>
       {/* Mask: white = halftone visible, black = erased.
           Inner zone (around the icon) is fully erased; transitions to visible at the corners. */}
@@ -285,7 +285,7 @@ function SceneBowl() {
         <Ellipse cx={0} cy={cy - 1} rx={13} ry={2} fill={C.flame} />
         <Ellipse cx={0} cy={cy + 0} rx={11} ry={1.6} fill={C.rustDeep} opacity={0.7} />
         <Rect x={-9} y={cy + 5} width={18} height={5} rx={1} fill={C.paper} />
-        <SvgText x={0} y={cy + 8.8} textAnchor="middle" fontFamily="Playfair Display" fontStyle="italic" fontWeight="600" fontSize={4.4} fill={C.rust}>honey</SvgText>
+        <SvgText x={0} y={cy + 8.8} textAnchor="middle" fontFamily="Caveat_600SemiBold" fontWeight="600" fontSize={4.4} fill={C.rust}>honey</SvgText>
       </G>
       {/* viscous honey drip from bee mouth to pot rim */}
       <Path d={`M ${cx + 8} ${cy - 1} Q ${cx + 14} ${cy + 2}, ${cx + 18} ${cy - 1}`} stroke={C.flameDeep} strokeWidth={1.8} fill="none" strokeLinecap="round" />
@@ -329,9 +329,9 @@ function ScenePillow() {
       {/* bee asleep at the anchor */}
       <Bee cx={cx + 2} cy={cy - 4} scale={1.0} rotation={12} sleeping={true} />
       {/* zzz — top z stays inside band */}
-      <SvgText x={cx + 14} y={cy - 10} fontFamily="Playfair Display" fontStyle="italic" fontWeight="700" fontSize={8} fill={C.bark} fillOpacity={0.7}>z</SvgText>
-      <SvgText x={cx + 18} y={cy - 16} fontFamily="Playfair Display" fontStyle="italic" fontWeight="700" fontSize={11} fill={C.bark} fillOpacity={0.85}>z</SvgText>
-      <SvgText x={cx + 24} y={cy - 22} fontFamily="Playfair Display" fontStyle="italic" fontWeight="700" fontSize={14} fill={C.rust} fillOpacity={0.95}>z</SvgText>
+      <SvgText x={cx + 14} y={cy - 10} fontFamily="Caveat_600SemiBold" fontWeight="700" fontSize={8} fill={C.bark} fillOpacity={0.7}>z</SvgText>
+      <SvgText x={cx + 18} y={cy - 16} fontFamily="Caveat_600SemiBold" fontWeight="700" fontSize={11} fill={C.bark} fillOpacity={0.85}>z</SvgText>
+      <SvgText x={cx + 24} y={cy - 22} fontFamily="Caveat_600SemiBold" fontWeight="700" fontSize={14} fill={C.rust} fillOpacity={0.95}>z</SvgText>
       {/* tiny moon on left */}
       <Path d={`M ${cx - 26} ${cy - 18} A 4 4 0 1 0 ${cx - 20} ${cy - 18} A 3.2 3.2 0 1 1 ${cx - 26} ${cy - 18} Z`} fill={C.coco} opacity={0.8} />
     </G>

@@ -90,7 +90,7 @@ export default function AIHelpChatScreen() {
       <View>
         <View style={[styles.bubbleRow, mine ? styles.bubbleRowMine : styles.bubbleRowTheirs]}>
           <View style={[styles.bubble, mine ? styles.bubbleMine : styles.bubbleTheirs]}>
-            <Text style={[styles.bubbleText, mine && { color: '#FDFBF6' }]}>{item.content}</Text>
+            <Text style={[styles.bubbleText, mine && { color: '#FFFCF6' }]}>{item.content}</Text>
           </View>
         </View>
         {item.crisisResources && (
@@ -135,7 +135,7 @@ export default function AIHelpChatScreen() {
 
       {sending && (
         <View style={styles.typingRow}>
-          <ActivityIndicator color="#C07840" size="small" />
+          <ActivityIndicator color="#D96C88" size="small" />
           <Text style={styles.typingText}>{t('help.typing')}</Text>
         </View>
       )}
@@ -173,7 +173,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.paper,
     borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.06)',
   },
-  close: { fontSize: 15, color: '#A77349', fontFamily: FONTS.bodyMedium },
+  close: { fontSize: 15, color: '#7A4A24', fontFamily: FONTS.bodyMedium },
   headerTitleWrap: { flex: 1, alignItems: 'center' },
   titleHeader: { fontSize: 18, fontFamily: FONTS.bodySemiBold, color: COLORS.bark },
   subtitle: { fontSize: 11, color: COLORS.textLight, marginTop: 2, letterSpacing: 0.5, fontFamily: FONTS.body },
@@ -196,7 +196,7 @@ const styles = StyleSheet.create({
     ...cardLiftBorder,
     ...cardLift,
   },
-  crisisTitle: { fontSize: 12, fontFamily: FONTS.bodySemiBold, color: '#A77349', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 8 },
+  crisisTitle: { fontSize: 12, fontFamily: FONTS.bodySemiBold, color: '#7A4A24', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 8 },
   crisisRow: { paddingVertical: 6 },
   crisisName: { fontSize: 15, fontFamily: FONTS.bodySemiBold, color: COLORS.bark },
   crisisDesc: { fontSize: 13, color: COLORS.barkSoft, marginTop: 2, fontFamily: FONTS.body },
@@ -218,8 +218,8 @@ const styles = StyleSheet.create({
   },
   sendBtn: {
     width: 44, height: 44, borderRadius: 22,
-    backgroundColor: '#C07840', alignItems: 'center', justifyContent: 'center',
+    backgroundColor: '#D96C88', alignItems: 'center', justifyContent: 'center',
   },
   sendBtnDisabled: { opacity: 0.4 },
-  sendBtnText: { color: '#FDFBF6', fontSize: 22, fontFamily: FONTS.bodySemiBold },
+  sendBtnText: { color: '#FFFCF6', fontSize: 22, fontFamily: FONTS.bodySemiBold },
 });

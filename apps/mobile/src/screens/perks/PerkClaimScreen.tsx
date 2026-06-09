@@ -69,7 +69,7 @@ export default function PerkClaimScreen() {
   if (loading) {
     return (
       <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-        <ActivityIndicator color="#C07840" size="large" />
+        <ActivityIndicator color="#D96C88" size="large" />
       </View>
     );
   }
@@ -190,25 +190,25 @@ const styles = StyleSheet.create({
     paddingVertical: 18, paddingHorizontal: 28,
     alignItems: 'center', minWidth: 240,
   },
-  codeText: { fontSize: 22, fontFamily: FONTS.bodySemiBold, color: '#A77349', letterSpacing: 1.5 },
+  codeText: { fontSize: 22, fontFamily: FONTS.bodySemiBold, color: '#7A4A24', letterSpacing: 1.5 },
   codeCopy: { fontSize: 11, color: COLORS.textLight, marginTop: 6, fontFamily: FONTS.bodySemiBold },
 
   // v9 canonical CTA — rect variant
   primaryBtn: {
     marginTop: 16,
-    backgroundColor: '#C07840', borderRadius: 14,
+    backgroundColor: '#D96C88', borderRadius: 14,
     paddingHorizontal: 28, paddingVertical: 14,
     minWidth: 240, alignItems: 'center',
-    shadowColor: '#945A41', shadowOffset: { width: 0, height: 4 },
+    shadowColor: '#D96C88', shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.24, shadowRadius: 10, elevation: 3,
   },
-  primaryBtnText: { color: '#FDFBF6', fontSize: 15, fontFamily: FONTS.bodySemiBold, letterSpacing: 0.3 },
+  primaryBtnText: { color: '#FFFCF6', fontSize: 15, fontFamily: FONTS.bodySemiBold, letterSpacing: 0.3 },
 
   secondaryBtn: {
     marginTop: 24,
     paddingHorizontal: 20, paddingVertical: 10,
   },
-  secondaryBtnText: { color: '#C07840', fontSize: 14, fontFamily: FONTS.bodySemiBold },
+  secondaryBtnText: { color: '#D96C88', fontSize: 14, fontFamily: FONTS.bodySemiBold },
 
   disclosure: {
     fontSize: 11, color: COLORS.textLight, marginTop: 24,

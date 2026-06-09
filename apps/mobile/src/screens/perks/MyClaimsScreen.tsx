@@ -7,6 +7,7 @@ import { FlashList } from '@shopify/flash-list';
 import { useNavigation } from '@react-navigation/native';
 import { COLORS, FONTS } from '@utils/constants';
 import { V9PageBackdrop } from '@components/shared/V9PageBackdrop';
+import { LinearGradient } from 'expo-linear-gradient';
 import { usePerksStore } from '@store/perks';
 import { claimStatusLabel, type MyClaimRow } from '@api/perks';
 import { useT } from '@/i18n';
@@ -29,6 +30,12 @@ export default function MyClaimsScreen() {
   return (
     <View style={styles.container}>
       <V9PageBackdrop />
+      <LinearGradient
+        pointerEvents="none"
+        colors={['rgba(233,138,106,0.40)', 'rgba(233,138,106,0.12)', 'rgba(252,247,239,0)']}
+        locations={[0, 0.45, 1]}
+        style={styles.pageWash}
+      />
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} accessibilityLabel={t('myClaims.backA11y')}>
           <Text style={styles.back}>{t('myClaims.back')}</Text>
@@ -38,7 +45,7 @@ export default function MyClaimsScreen() {
       </View>
 
       {loading && myClaims.length === 0 ? (
-        <ActivityIndicator color="#C07840" style={{ marginTop: 40 }} />
+        <ActivityIndicator color="#D96C88" style={{ marginTop: 40 }} />
       ) : (
         <FlashList
           data={myClaims}
@@ -113,19 +120,20 @@ function ClaimRow({ row, onPress, t }: { row: MyClaimRow; onPress: () => void; t
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: 'transparent' },
+  pageWash: { position: 'absolute', top: 0, left: 0, right: 0, height: 620 },
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingTop: 56, paddingBottom: 12, paddingHorizontal: 16,
     backgroundColor: COLORS.paper,
     borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.06)',
   },
-  back: { fontSize: 15, color: '#C07840', fontFamily: FONTS.bodySemiBold },
+  back: { fontSize: 15, color: '#D96C88', fontFamily: FONTS.bodySemiBold },
   headerTitle: { fontSize: 16, fontFamily: FONTS.bodySemiBold, color: COLORS.bark },
 
   card: {
     backgroundColor: COLORS.paper, borderRadius: 14, padding: 16, marginBottom: 10,
     borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(150, 80, 50, 0.18)',
-    shadowColor: '#6B2E0E', shadowOffset: { width: 0, height: 8 },
+    shadowColor: '#43260F', shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.22, shadowRadius: 22, elevation: 5,
   },
   cardHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
@@ -144,9 +152,9 @@ const styles = StyleSheet.create({
     marginTop: 10, padding: 8, backgroundColor: COLORS.cream, borderRadius: 8,
   },
   codeInlineLabel: { fontSize: 11, fontFamily: FONTS.bodySemiBold, color: COLORS.textLight, textTransform: 'uppercase', letterSpacing: 0.6 },
-  codeInlineValue: { fontSize: 14, fontFamily: FONTS.bodySemiBold, color: '#A77349', letterSpacing: 1 },
+  codeInlineValue: { fontSize: 14, fontFamily: FONTS.bodySemiBold, color: '#7A4A24', letterSpacing: 1 },
 
-  reopen: { fontSize: 12, color: '#A77349', fontFamily: FONTS.bodySemiBold, marginTop: 10 },
+  reopen: { fontSize: 12, color: '#7A4A24', fontFamily: FONTS.bodySemiBold, marginTop: 10 },
 
   empty: { alignItems: 'center', paddingTop: 80, paddingHorizontal: 32, gap: 8 },
   emptyEmoji: { fontSize: 52, marginBottom: 8 },
@@ -155,8 +163,8 @@ const styles = StyleSheet.create({
     fontSize: 14, color: COLORS.barkSoft, textAlign: 'center', lineHeight: 21, marginBottom: 8,
   },
   discoverBtn: {
-    marginTop: 8, backgroundColor: '#C07840', borderRadius: 14,
+    marginTop: 8, backgroundColor: '#D96C88', borderRadius: 14,
     paddingHorizontal: 24, paddingVertical: 14,
   },
-  discoverBtnText: { color: '#FDFBF6', fontFamily: FONTS.bodySemiBold, fontSize: 15 },
+  discoverBtnText: { color: '#FFFCF6', fontFamily: FONTS.bodySemiBold, fontSize: 15 },
 });

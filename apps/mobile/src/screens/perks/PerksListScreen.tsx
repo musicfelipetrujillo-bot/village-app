@@ -8,6 +8,7 @@ import { useNavigation } from '@react-navigation/native';
 import { COLORS, FONTS } from '@utils/constants';
 import { cardLift, cardLiftBorder } from '@utils/cardLift';
 import { V9PageBackdrop } from '@components/shared/V9PageBackdrop';
+import { LinearGradient } from 'expo-linear-gradient';
 import { usePerksStore } from '@store/perks';
 import { useHomeStore } from '@store/home';
 import {
@@ -61,6 +62,12 @@ export default function PerksListScreen() {
   return (
     <View style={styles.container}>
       <V9PageBackdrop />
+      <LinearGradient
+        pointerEvents="none"
+        colors={['rgba(233,138,106,0.40)', 'rgba(233,138,106,0.12)', 'rgba(252,247,239,0)']}
+        locations={[0, 0.45, 1]}
+        style={styles.pageWash}
+      />
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} accessibilityLabel={t('perksList.backA11y')}>
           <Text style={styles.back}>{t('perksList.back')}</Text>
@@ -185,15 +192,16 @@ function PerkCardView({ perk, onPress, t }: { perk: PerkCard; onPress: () => voi
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: 'transparent' },
+  pageWash: { position: 'absolute', top: 0, left: 0, right: 0, height: 620 },
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingTop: 56, paddingBottom: 12, paddingHorizontal: 16,
     backgroundColor: COLORS.paper,
     borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.06)',
   },
-  back: { fontSize: 15, color: '#C07840', fontFamily: FONTS.bodySemiBold },
+  back: { fontSize: 15, color: '#D96C88', fontFamily: FONTS.bodySemiBold },
   headerTitle: { fontSize: 16, fontFamily: FONTS.bodySemiBold, color: COLORS.bark },
-  headerLink: { fontSize: 14, color: '#C07840', fontFamily: FONTS.bodySemiBold },
+  headerLink: { fontSize: 14, color: '#D96C88', fontFamily: FONTS.bodySemiBold },
 
   // Editorial masthead — see EventsListScreen for rationale. Same accent-bar
   // + uppercase eyebrow + Playfair italic signature so the page matches the
@@ -235,7 +243,7 @@ const styles = StyleSheet.create({
   },
   chipActive: { backgroundColor: COLORS.coco, borderColor: COLORS.coco },
   chipText: { fontSize: 13, fontFamily: FONTS.bodySemiBold, color: COLORS.barkSoft },
-  chipTextActive: { color: '#FDFBF6' },
+  chipTextActive: { color: '#FFFCF6' },
 
   ageRow: {
     flexDirection: 'row', alignItems: 'center', gap: 10,
@@ -249,7 +257,7 @@ const styles = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
   },
   ageCheckActive: { backgroundColor: COLORS.coco },
-  ageCheckMark: { color: '#FDFBF6', fontSize: 13, fontFamily: FONTS.bodySemiBold },
+  ageCheckMark: { color: '#FFFCF6', fontSize: 13, fontFamily: FONTS.bodySemiBold },
   ageText: { fontSize: 12, color: COLORS.barkSoft, flex: 1 },
 
   // Perk card — paper-lifted v3 surface (was flat per blend audit).
@@ -263,7 +271,7 @@ const styles = StyleSheet.create({
     ...cardLift,
   },
   cardHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
-  cardCategory: { fontSize: 10, fontFamily: FONTS.bodySemiBold, letterSpacing: 1.6, color: COLORS.barkSoft },
+  cardCategory: { fontSize: 10, fontFamily: FONTS.bodySemiBold, letterSpacing: 1.6, color: '#C76B41' }, // Perks signature: coral
   partnerBadge: {
     fontSize: 9, fontFamily: FONTS.bodySemiBold, letterSpacing: 0.6, color: COLORS.sand,
     backgroundColor: 'rgba(196,163,90,0.15)', borderRadius: 999, paddingHorizontal: 7, paddingVertical: 2,
@@ -274,7 +282,7 @@ const styles = StyleSheet.create({
     lineHeight: 30,
     fontFamily: FONTS.headerItalic,
     fontStyle: 'italic',
-    color: '#C07840',
+    color: '#C76B41', // Perks signature: coral brand line
     marginTop: 2,
   },
   cardTitle: { fontSize: 15, fontFamily: FONTS.bodySemiBold, color: COLORS.bark, marginTop: 4 },
@@ -289,7 +297,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10, paddingVertical: 3,
   },
   offerChipText: {
-    fontSize: 10, fontFamily: FONTS.bodySemiBold, letterSpacing: 0.6, color: '#A77349',
+    fontSize: 10, fontFamily: FONTS.bodySemiBold, letterSpacing: 0.6, color: '#7A4A24',
   },
   claimedChip: {
     borderWidth: 1, borderColor: COLORS.sage, borderRadius: 999,

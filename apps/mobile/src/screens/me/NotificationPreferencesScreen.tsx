@@ -161,7 +161,7 @@ export default function NotificationPreferencesScreen({ navigation }: Props) {
         </TouchableOpacity>
         <Text style={s.topTitle}>{t('notifPrefs.topTitle')}</Text>
         <View style={s.topSpacer}>
-          {saving ? <ActivityIndicator color="#C07840" /> : null}
+          {saving ? <ActivityIndicator color="#D96C88" /> : null}
         </View>
       </View>
 
@@ -302,7 +302,7 @@ const s = StyleSheet.create({
   topLink: {
     fontFamily: FONTS.bodySemiBold,
     fontSize: 14,
-    color: '#C07840',
+    color: '#D96C88',
   },
   topSpacer: { width: 52, alignItems: 'flex-end' },
 
@@ -310,13 +310,13 @@ const s = StyleSheet.create({
 
   // v9 editorial masthead
   eyebrowRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
-  eyebrowBar: { width: 22, height: 2, backgroundColor: '#A77349', marginRight: 10, borderRadius: 1 },
-  eyebrow: { fontSize: 10, fontFamily: FONTS.bodySemiBold, color: '#A77349', letterSpacing: 1.8, textTransform: 'uppercase' },
+  eyebrowBar: { width: 22, height: 2, backgroundColor: '#7A4A24', marginRight: 10, borderRadius: 1 },
+  eyebrow: { fontSize: 10, fontFamily: FONTS.bodySemiBold, color: '#7A4A24', letterSpacing: 1.8, textTransform: 'uppercase' },
   headerTitle: {
     fontFamily: FONTS.headerBold, fontSize: 32, color: COLORS.bark,
     lineHeight: 38, letterSpacing: -0.5, marginBottom: 4,
   },
-  headerTitleEm: { fontFamily: FONTS.headerItalic, fontStyle: 'italic', color: '#C07840' },
+  headerTitleEm: { fontFamily: FONTS.headerItalic, fontStyle: 'italic', color: '#D96C88' },
   headerRule: {
     height: StyleSheet.hairlineWidth, backgroundColor: 'rgba(61,31,13,0.18)',
     marginTop: 6, marginBottom: 4, width: 48,
@@ -337,7 +337,7 @@ const s = StyleSheet.create({
     // reads as a single floating card like MeScreen sections.
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: 'rgba(150, 80, 50, 0.18)',
-    shadowColor: '#6B2E0E',
+    shadowColor: '#43260F',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.22,
     shadowRadius: 22,
@@ -423,7 +423,7 @@ const s = StyleSheet.create({
   stepBtnText: {
     fontFamily: FONTS.bodySemiBold,
     fontSize: 18,
-    color: '#C07840',
+    color: '#D96C88',
     lineHeight: 20,
   },
   stepperValue: {

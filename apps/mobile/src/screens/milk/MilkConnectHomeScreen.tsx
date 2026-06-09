@@ -6,6 +6,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { GlassHighlight } from '@components/shared/GlassHighlight';
 import { WarmGlowBackdrop } from '@components/shared/WarmGlowBackdrop';
+import { HoneycombBackdrop, type HoneycombIntensity } from '@components/shared/HoneycombBackdrop';
 import { V3Card } from '@components/shared/V3Card';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useAuthStore } from '@store/auth';
@@ -14,6 +15,12 @@ import { COLORS, FONTS } from '@utils/constants';
 import { cardLift, cardLiftBorder } from '@utils/cardLift';
 import { useT } from '@/i18n';
 import type { MilkStackParamList } from '@/navigation/MilkNavigator';
+
+// Section honeycomb hero — Milk Connect accent = blush (matches the Home pillar).
+const MILK_ACCENT = '#F7C5CB';
+// PROTOTYPE: flip between 'subtle' and 'playful' to compare on Chrome before
+// the rollout standardizes one across all four sections.
+const PREVIEW_INTENSITY: HoneycombIntensity = 'playful';
 
 type Props = NativeStackScreenProps<MilkStackParamList, 'MilkHome'>;
 
@@ -25,9 +32,9 @@ const BADGE_LABEL_KEYS: Record<string, string> = {
 };
 
 const BADGE_COLOR: Record<string, string> = {
-  none: '#9A8070',
+  none: '#7A4A24',
   basic: COLORS.statusAlert,
-  verified: '#6B7C3F',
+  verified: '#E98A6A',
   verified_bloodwork: COLORS.statusSuccess,
 };
 
@@ -40,10 +47,17 @@ export default function MilkConnectHomeScreen({ navigation }: Props) {
     if (user?.id) fetchDonorData(user.id);
   }, [user?.id]);
 
+  // Shared route for the listing CTA — established donors jump straight to a
+  // new listing; everyone else enters the screened donor onboarding first.
+  const onShareMilk = () =>
+    donorProfile
+      ? navigation.navigate('CreateListing', { donorProfileId: donorProfile.id })
+      : navigation.navigate('BecomeDonorIntro');
+
   if (loading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator color="#C07840" />
+        <ActivityIndicator color="#D96C88" />
       </View>
     );
   }
@@ -51,6 +65,12 @@ export default function MilkConnectHomeScreen({ navigation }: Props) {
   return (
     <View style={styles.wrapper}>
       <WarmGlowBackdrop hideClusters />
+      <LinearGradient
+        pointerEvents="none"
+        colors={['rgba(247,197,203,0.36)', 'rgba(247,197,203,0.10)', 'rgba(252,247,239,0)']}
+        locations={[0, 0.45, 1]}
+        style={styles.pageWash}
+      />
       <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       {/* v3 editorial masthead 2026-05-24 — replaces the prior full-bleed
           KenBurns photo header per Felipe ("remove the pictures, add
@@ -60,6 +80,7 @@ export default function MilkConnectHomeScreen({ navigation }: Props) {
           right), then eyebrow + split-headline + deck on the cream
           page wash, hairline rule below to seal the masthead block. */}
       <View style={styles.mastheadWrap}>
+        <HoneycombBackdrop accent={MILK_ACCENT} intensity={PREVIEW_INTENSITY} scene="milk" />
         <View style={styles.mastheadUtility}>
           <TouchableOpacity
             onPress={() => navigation.getParent()?.navigate('Village' as never)}
@@ -70,6 +91,14 @@ export default function MilkConnectHomeScreen({ navigation }: Props) {
             <Text style={styles.backLink}>← {t('common.backToVillage')}</Text>
           </TouchableOpacity>
           <View style={styles.utilityRight}>
+            <TouchableOpacity
+              style={styles.utilityIconBtn}
+              onPress={() => navigation.navigate('SavedDonors')}
+              accessibilityRole="button"
+              accessibilityLabel={t('milk.saved')}
+            >
+              <Text style={styles.utilityIcon}>♡</Text>
+            </TouchableOpacity>
             <TouchableOpacity
               style={styles.utilityIconBtn}
               onPress={() => navigation.navigate('MilkOrders')}
@@ -132,10 +161,12 @@ export default function MilkConnectHomeScreen({ navigation }: Props) {
           </View>
           <View style={styles.dashboardActions}>
             <TouchableOpacity
-              style={styles.dashboardBtn}
-              onPress={() => navigation.navigate('DonorDashboard')}
+              style={[styles.dashboardBtn, styles.dashboardBtnPrimary]}
+              onPress={onShareMilk}
+              accessibilityRole="button"
+              accessibilityLabel={t('milk.addListingA11y')}
             >
-              <Text style={styles.dashboardBtnText}>{t('milk.myDashboard')}</Text>
+              <Text style={[styles.dashboardBtnText, styles.dashboardBtnTextPrimary]}>{t('milk.addListing')}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.dashboardBtn, styles.dashboardBtnSecondary]}
@@ -144,6 +175,20 @@ export default function MilkConnectHomeScreen({ navigation }: Props) {
               <Text style={styles.dashboardBtnText}>{t('milk.manageListings')}</Text>
             </TouchableOpacity>
           </View>
+          {/* Social links — self-attested credibility (Risk & Compliance:
+              donor-provided, not verified). Opens the editor. */}
+          <TouchableOpacity
+            style={styles.socialCta}
+            onPress={() => navigation.navigate('DonorSocialLinks', { donorProfileId: donorProfile.id })}
+            accessibilityRole="button"
+            accessibilityLabel={t('milk.socialCtaA11y')}
+          >
+            <Text style={styles.socialCtaText}>
+              {donorProfile.social_links && Object.keys(donorProfile.social_links).length > 0
+                ? t('milk.socialCtaEdit')
+                : t('milk.socialCtaAdd')}
+            </Text>
+          </TouchableOpacity>
         </View>
       )}
 
@@ -162,77 +207,63 @@ export default function MilkConnectHomeScreen({ navigation }: Props) {
         <Text style={styles.matchArrow}>→</Text>
       </TouchableOpacity>
 
-      {/* Magazine-style section break — full-bleed hairline anchors each
-          editorial block so adjacent sections don't visually fuse on cream. */}
-      <View style={styles.sectionDivider} />
-
-      {/* Find a donor — centered editorial card, no thumb. The hero banner
-          above the title carries the imagery for the whole page. */}
-      <V3Card style={styles.section} contentStyle={styles.sectionContent}>
-        <View style={styles.sectionTextCenter}>
-          <View style={styles.eyebrowChipCenter}>
-            <Text style={styles.eyebrowNum}>01</Text>
-            <Text style={styles.eyebrowDash}>—</Text>
-            <Text style={styles.eyebrow}>{t('milk.findDonorEyebrow')}</Text>
+      {/* Two-up hero — find milk / share milk as a balanced, COLORED pair.
+          Replaces the cream-on-cream "01/02" cards (which read flat) with the
+          Village-hub tile palette (blush recipients · peach donors) so the page
+          carries warmth + the two paths get equal weight side by side. The
+          whole tile is the tap target; "Saved" moved to the masthead heart. */}
+      <View style={styles.heroRow}>
+        <TouchableOpacity
+          style={[styles.heroTile, { backgroundColor: '#F7C5CB' }]}
+          activeOpacity={0.9}
+          onPress={() => navigation.navigate('DonorSearchList')}
+          accessibilityRole="button"
+          accessibilityLabel={t('milk.findDonorTitle')}
+        >
+          <LinearGradient
+            colors={['rgba(253,251,246,0.34)', 'rgba(253,251,246,0)']}
+            start={{ x: 0, y: 0 }} end={{ x: 0, y: 0.45 }}
+            style={[StyleSheet.absoluteFillObject, { borderRadius: 18 }]}
+            pointerEvents="none"
+          />
+          <View>
+            <Text style={styles.heroTileTitle}>{t('milk.findDonorTitle')}</Text>
+            <Text style={styles.heroTileSub}>{t('milk.findDonorTileSub')}</Text>
           </View>
-          <Text style={styles.sectionTitleCenter}>{t('milk.findDonorTitle')}</Text>
-          <Text style={styles.sectionBodyCenter}>{t('milk.findDonorBody')}</Text>
-        </View>
-        <View style={styles.browseRow}>
-          <TouchableOpacity
-            style={[styles.primaryBtn, { flex: 1 }]}
-            onPress={() => navigation.navigate('DonorSearchList')}
-            activeOpacity={0.9}
-          >
-            {/* v9 iOS-26 wet-glass top sheen — softens the cinnamon fill so
-                the button reads as a polished pill rather than a flat block. */}
-            <GlassHighlight radius={999} height={14} />
-            <Text style={styles.primaryBtnText}>{t('milk.browseNearby')}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.savedBtn}
-            onPress={() => navigation.navigate('SavedDonors')}
-          >
-            <Text style={styles.savedBtnText}>{t('milk.saved')}</Text>
-          </TouchableOpacity>
-        </View>
-      </V3Card>
+          <View style={styles.heroTileFooter}>
+            <Text style={styles.heroTileCta}>{t('milk.findTileCta')}</Text>
+            <Text style={styles.heroTileArrow}>→</Text>
+          </View>
+        </TouchableOpacity>
 
-      {/* Become a donor — quiet typed numbered list, no rust circles.
-          Inline "02 — LABEL" eyebrow matches section 01 (reference-UI
-          editorial pattern: italic numeral + em-dash + small caps). */}
-      {!donorProfile && <View style={styles.sectionDivider} />}
-      {!donorProfile && (
-        <V3Card style={styles.becomeDonorCard} contentStyle={styles.sectionContent}>
-          <View style={styles.sectionTextCenter}>
-            <View style={styles.eyebrowChipCenter}>
-              <Text style={styles.eyebrowNum}>02</Text>
-              <Text style={styles.eyebrowDash}>—</Text>
-              <Text style={styles.eyebrow}>{t('milk.becomeDonorEyebrow')}</Text>
-            </View>
-            <Text style={styles.sectionTitleCenter}>{t('milk.becomeDonorTitle')}</Text>
-            <Text style={styles.sectionBodyCenter}>
-              {t('milk.becomeDonorSubPre')}
-              <Text style={styles.boldRust}>{t('milk.becomeDonorAmount')}</Text>
-              {t('milk.becomeDonorSubPost')}
+        <TouchableOpacity
+          style={[styles.heroTile, { backgroundColor: '#F3B79C' }]}
+          activeOpacity={0.9}
+          onPress={onShareMilk}
+          accessibilityRole="button"
+          accessibilityLabel={t('milk.becomeDonorTitle')}
+        >
+          <LinearGradient
+            colors={['rgba(253,251,246,0.34)', 'rgba(253,251,246,0)']}
+            start={{ x: 0, y: 0 }} end={{ x: 0, y: 0.45 }}
+            style={[StyleSheet.absoluteFillObject, { borderRadius: 18 }]}
+            pointerEvents="none"
+          />
+          <View>
+            <Text style={styles.heroTileTitle}>{t('milk.becomeDonorTitle')}</Text>
+            <Text style={styles.heroTileSub}>{t('milk.shareTileSub')}</Text>
+          </View>
+          <View style={styles.heroTileFooter}>
+            <Text style={styles.heroTileCta}>
+              {donorProfile ? t('milk.shareTileCtaDonor') : t('milk.shareTileCta')}
             </Text>
+            <Text style={styles.heroTileArrow}>→</Text>
           </View>
-          <View style={styles.stepList}>
-            {(['milk.step1', 'milk.step2', 'milk.step3'] as const).map((stepKey, i) => (
-              <View key={stepKey} style={styles.stepRow2}>
-                <Text style={styles.stepNumInline}>{`0${i + 1}`}</Text>
-                <Text style={styles.stepLabel}>{t(stepKey)}</Text>
-              </View>
-            ))}
-          </View>
-          <TouchableOpacity
-            style={styles.primaryBtn}
-            onPress={() => navigation.navigate('BecomeDonorIntro')}
-          >
-            <Text style={styles.primaryBtnText}>{t('milk.getStarted')}</Text>
-          </TouchableOpacity>
-        </V3Card>
-      )}
+        </TouchableOpacity>
+      </View>
+
+      {/* Trust signal that used to live in the Find-a-donor card body. */}
+      <Text style={styles.trustCaption}>{t('milk.donorTrustCaption')}</Text>
 
       {/* Trust & safety note — italic, quiet. */}
       <Text style={styles.safetyNoteText}>{t('milk.safetyNote')}</Text>
@@ -243,6 +274,7 @@ export default function MilkConnectHomeScreen({ navigation }: Props) {
 
 const styles = StyleSheet.create({
   wrapper: { flex: 1 },
+  pageWash: { position: 'absolute', top: 0, left: 0, right: 0, height: 640 },
   container: { flex: 1, backgroundColor: 'transparent' },
   content: { paddingBottom: 24 },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#F5F0E8' },
@@ -264,7 +296,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   backToVillage: { paddingVertical: 4, paddingRight: 8 },
-  backToVillageText: { fontSize: 14, color: '#C07840', fontFamily: FONTS.bodySemiBold },
+  backToVillageText: { fontSize: 14, color: '#D96C88', fontFamily: FONTS.bodySemiBold },
   headerActions: { flexDirection: 'row', gap: 8 },
   headerIconBtn: {
     width: 40, height: 40, borderRadius: 20,
@@ -290,7 +322,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   eyebrowBar: {
-    width: 22, height: 2, backgroundColor: '#A77349',  // v9 rust-deep
+    width: 22, height: 2, backgroundColor: '#7A4A24',  // v9 rust-deep
     marginRight: 10, borderRadius: 1,
   },
   // Reference-UI inline numbering: italic Playfair numeral + em-dash +
@@ -301,7 +333,7 @@ const styles = StyleSheet.create({
   eyebrowNum: {
     fontSize: 20, lineHeight: 22,
     fontFamily: FONTS.headerItalic, fontStyle: 'italic',
-    color: '#C07840',
+    color: '#D96C88',
     marginRight: 10,
     includeFontPadding: false,
     textAlignVertical: 'center',
@@ -317,7 +349,7 @@ const styles = StyleSheet.create({
   eyebrow: {
     fontSize: 11, lineHeight: 22, letterSpacing: 1.6,
     fontFamily: FONTS.bodySemiBold,
-    color: '#A77349',  // v9 rust-deep
+    color: '#7A4A24',  // v9 rust-deep
     textTransform: 'uppercase',
     includeFontPadding: false,
     textAlignVertical: 'center',
@@ -365,7 +397,7 @@ const styles = StyleSheet.create({
   dashboardStats: { alignItems: 'flex-end' },
   statValue: {
     fontSize: 32, fontFamily: FONTS.headerItalic, fontStyle: 'italic',
-    color: '#C07840', lineHeight: 36,
+    color: '#D96C88', lineHeight: 36,
   },
   statLabel: { fontSize: 11, color: COLORS.textLight, fontFamily: FONTS.bodyMedium, letterSpacing: 0.5 },
   dashboardActions: { flexDirection: 'row', gap: 10 },
@@ -373,26 +405,32 @@ const styles = StyleSheet.create({
   // hairline recipe so they read as siblings (was filled/outline mismatch
   // where the filled side disappeared into the peach card bg).
   dashboardBtn: {
-    flex: 1, backgroundColor: '#EAE0C8', borderRadius: 999,
+    flex: 1, backgroundColor: '#F2E6DD', borderRadius: 999,
     paddingVertical: 12, paddingHorizontal: 16,
     alignItems: 'center', justifyContent: 'center',
-    borderWidth: 1.5, borderColor: '#C07840',
+    borderWidth: 1.5, borderColor: '#D96C88',
   },
   dashboardBtnSecondary: {},  // no-op kept for compatibility w/ inline `[styles.dashboardBtn, styles.dashboardBtnSecondary]` callers
-  dashboardBtnText: { fontSize: 13, fontFamily: FONTS.bodySemiBold, color: '#3D1F0E', letterSpacing: 0.3, textAlign: 'center' },
+  // Primary donor action — filled cinnamon "＋ Add a listing" (the working
+  // create entry; the old paired buttons both pointed at placeholder screens).
+  dashboardBtnPrimary: { backgroundColor: '#D96C88', borderColor: '#D96C88' },
+  dashboardBtnText: { fontSize: 13, fontFamily: FONTS.bodySemiBold, color: '#43260F', letterSpacing: 0.3, textAlign: 'center' },
+  dashboardBtnTextPrimary: { color: '#FFFCF6' },
+  socialCta: { marginTop: 10, alignSelf: 'flex-start' },
+  socialCtaText: { fontSize: 12.5, fontFamily: FONTS.v2_link, color: COLORS.v2_cinnamon, letterSpacing: 0.2 },
 
   // AI Match — cream-on-cream warm card with a single rust accent line on
   // the left edge instead of a full dark fill. Quieter, more editorial.
   matchCard: {
     flexDirection: 'row', alignItems: 'center', gap: 12,
     marginHorizontal: 20, marginTop: 10,
-    paddingVertical: 14, paddingHorizontal: 16, borderRadius: 10,
-    backgroundColor: COLORS.paper,
-    borderWidth: 1, borderColor: 'rgba(150,80,50,0.18)',
+    paddingVertical: 14, paddingHorizontal: 16, borderRadius: 14,
+    backgroundColor: '#FBEFD9',  // soft honey — warms the AI feature row
+    borderWidth: 1, borderColor: 'rgba(212,150,60,0.28)',
   },
   matchAccent: {
     width: 4, height: 36, borderRadius: 2,
-    backgroundColor: COLORS.coco,
+    backgroundColor: '#D96C88',  // cinnamon action accent
   },
   matchTextWrap: { flex: 1 },
   matchTitle: {
@@ -400,7 +438,7 @@ const styles = StyleSheet.create({
     color: COLORS.bark,
   },
   matchSub: { fontSize: 13, color: COLORS.barkSoft, marginTop: 2, lineHeight: 18, fontFamily: FONTS.body },
-  matchArrow: { fontSize: 20, color: '#A77349', fontFamily: FONTS.bodySemiBold },
+  matchArrow: { fontSize: 20, color: '#7A4A24', fontFamily: FONTS.bodySemiBold },
 
   // Spacer between editorial bubbles — replaces the hairline divider now
   // that each section is its own paper-bg card. Pure spacing so adjacent
@@ -416,6 +454,8 @@ const styles = StyleSheet.create({
     paddingTop: 56,
     paddingHorizontal: 22,
     paddingBottom: 18,
+    position: 'relative',
+    overflow: 'hidden',
   },
   mastheadUtility: {
     flexDirection: 'row', alignItems: 'center',
@@ -451,7 +491,7 @@ const styles = StyleSheet.create({
   },
   mastheadTitleItalic: {
     fontFamily: FONTS.v3_display_italic,
-    color: COLORS.v2_salmon,
+    color: '#E27A93', // Milk signature: soft rose-pink
     fontStyle: 'italic',
   },
   mastheadDeck: {
@@ -483,7 +523,7 @@ const styles = StyleSheet.create({
   heroBannerEyebrow: {
     fontSize: 11, letterSpacing: 1.6,
     fontFamily: FONTS.bodySemiBold,
-    color: '#FDFBF6',
+    color: '#FFFCF6',
     textTransform: 'uppercase',
     marginBottom: 6,
     opacity: 0.92,
@@ -491,19 +531,19 @@ const styles = StyleSheet.create({
   heroBannerLead: {
     fontSize: 28, lineHeight: 32,
     fontFamily: FONTS.headerItalic, fontStyle: 'italic',
-    color: '#FDFBF6',
+    color: '#FFFCF6',
     marginBottom: 6,
   },
   heroBannerSub: {
     fontSize: 13, lineHeight: 18, fontFamily: FONTS.body,
-    color: '#FDFBF6',
+    color: '#FFFCF6',
     opacity: 0.88,
     maxWidth: 320,
   },
 
   // Editorial sections — wrapped in a warm cream "bubble" so the whole
   // section (eyebrow chip + title + body + photo + CTAs) reads as one
-  // discrete card lifted off the page cream. `paper` (#FDFAF5) is warmer
+  // discrete card lifted off the page cream. `paper` (#FFFCF6) is warmer
   // than grey — keeps the cream-on-cream rhythm without flattening to a
   // utilitarian neutral. Generous padding + 18px radius matches the hero-
   // card scale in editorial-system.md.
@@ -585,14 +625,14 @@ const styles = StyleSheet.create({
   // so the sheen clips to the pill shape. Shadow dialed from 0.24 → 0.18 so
   // the cinnamon block reads as a polished pill, not a flat orange shout.
   primaryBtn: {
-    backgroundColor: '#C07840', borderRadius: 999,
+    backgroundColor: '#D96C88', borderRadius: 999,
     paddingVertical: 12, paddingHorizontal: 18,
     alignItems: 'center', justifyContent: 'center',
-    shadowColor: '#945A41', shadowOffset: { width: 0, height: 4 },
+    shadowColor: '#D96C88', shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.22, shadowRadius: 10, elevation: 3,
     overflow: 'hidden',
   },
-  primaryBtnText: { fontSize: 15, fontFamily: FONTS.bodySemiBold, color: '#FDFBF6', letterSpacing: 0.3, textAlign: 'center' },
+  primaryBtnText: { fontSize: 15, fontFamily: FONTS.bodySemiBold, color: '#FFFCF6', letterSpacing: 0.3, textAlign: 'center' },
   // Secondary CTA — outline pill in the same yolk-pill rhythm (radius 999)
   // so the two buttons read as a paired set rather than two different shapes.
   savedBtn: {
@@ -600,7 +640,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14, paddingHorizontal: 22, alignItems: 'center',
     borderWidth: 1, borderColor: COLORS.coco,
   },
-  savedBtnText: { fontSize: 15, fontFamily: FONTS.bodySemiBold, color: '#C07840', letterSpacing: 0.3 },
+  savedBtnText: { fontSize: 15, fontFamily: FONTS.bodySemiBold, color: '#D96C88', letterSpacing: 0.3 },
 
   // Become-a-donor — same editorial structure as find-a-donor; V3Card
   // wraps it so it gets the identical immersive recipe (paper bg +
@@ -608,7 +648,7 @@ const styles = StyleSheet.create({
   becomeDonorCard: {
     marginHorizontal: 20,
   },
-  boldRust: { color: '#A77349', fontFamily: FONTS.bodySemiBold },
+  boldRust: { color: '#7A4A24', fontFamily: FONTS.bodySemiBold },
   stepList: { marginBottom: 14, gap: 10 },
   stepRow2: {
     flexDirection: 'row', alignItems: 'center', gap: 12,
@@ -617,7 +657,7 @@ const styles = StyleSheet.create({
   },
   stepNumInline: {
     fontSize: 18, fontFamily: FONTS.headerItalic, fontStyle: 'italic',
-    color: '#C07840', width: 28,
+    color: '#D96C88', width: 28,
   },
   stepLabel: { flex: 1, fontSize: 14, color: COLORS.bark, fontFamily: FONTS.bodyMedium },
 
@@ -627,5 +667,43 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontFamily: FONTS.body, fontStyle: 'italic',
     paddingHorizontal: 32, paddingTop: 18, paddingBottom: 6,
+  },
+
+  // ── Two-up hero tiles — colored find/share paths ───────────────────────
+  // Equal-weight 1×2 tile row (blush recipients · peach donors), the Village-
+  // hub recipe: tinted fill + paper top-sheen (added inline) + warm shadow.
+  heroRow: {
+    flexDirection: 'row', gap: 12,
+    marginHorizontal: 20, marginTop: 14,
+  },
+  heroTile: {
+    flex: 1, minHeight: 158,
+    borderRadius: 18, padding: 16, paddingBottom: 13,
+    overflow: 'hidden', justifyContent: 'space-between',
+    shadowColor: '#7A4A24', shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.20, shadowRadius: 26, elevation: 3,
+  },
+  heroTileTitle: {
+    fontFamily: FONTS.headerBold, fontSize: 21, lineHeight: 23,
+    letterSpacing: -0.6, color: '#43260F',
+  },
+  heroTileSub: {
+    fontFamily: FONTS.body, fontSize: 12, lineHeight: 16,
+    color: '#43260F', opacity: 0.78, marginTop: 7,
+  },
+  heroTileFooter: {
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+    marginTop: 12, paddingTop: 9,
+    borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: 'rgba(61,31,14,0.20)',
+  },
+  heroTileCta: {
+    fontFamily: FONTS.v2_mono, fontSize: 10, letterSpacing: 1.2,
+    textTransform: 'uppercase', color: '#43260F',
+  },
+  heroTileArrow: { fontSize: 16, color: '#43260F', fontFamily: FONTS.bodySemiBold },
+  trustCaption: {
+    fontFamily: FONTS.body, fontSize: 11.5, lineHeight: 16,
+    color: COLORS.textLight, textAlign: 'center',
+    marginHorizontal: 28, marginTop: 12,
   },
 });

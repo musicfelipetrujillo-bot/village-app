@@ -47,7 +47,7 @@ const styles = StyleSheet.create({
   stars: { fontSize: 14, color: COLORS.sand },
   date: { fontSize: 11, color: COLORS.textLight, fontFamily: FONTS.body },
   verifiedBadge: {
-    backgroundColor: '#EEF2E6',
+    backgroundColor: '#F2E6DD',
     borderRadius: 50,
     paddingVertical: 2,
     paddingHorizontal: 8,
@@ -60,5 +60,5 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 8,
   },
-  aiNoteText: { fontSize: 11, color: '#8B6914', lineHeight: 16, fontFamily: FONTS.body },
+  aiNoteText: { fontSize: 11, color: '#E98A6A', lineHeight: 16, fontFamily: FONTS.body },
 });

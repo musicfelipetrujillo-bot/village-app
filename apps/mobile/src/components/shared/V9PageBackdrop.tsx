@@ -27,8 +27,8 @@ import { AtmosphericBees } from './AtmosphericBees';
 // from 30%–62% to 25%–75% so most of every page is true paper, and the
 // edge fade is much softer (5 OKLCH-units of warm tint instead of 20).
 const V9_PAGE_COLORS = [
-  '#FCF7F2', '#FCFAF6', '#FDFBF6',
-  '#FDFBF6', '#FCFAF6', '#FBF5EF', '#FAF1EA',
+  '#FCF7F2', '#FCFAF6', '#FFFCF6',
+  '#FFFCF6', '#FCFAF6', '#FBF5EF', '#FAF1EA',
 ] as const;
 const V9_PAGE_LOCATIONS = [0, 0.12, 0.25, 0.75, 0.88, 0.95, 1] as const;
 

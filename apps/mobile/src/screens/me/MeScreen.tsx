@@ -847,19 +847,19 @@ export default function MeScreen() {
           {devOpen ? (
             <>
               {INTERNAL_AGENTS_ENABLED ? (
-                <DevPill label="AGT" bg="#1C1008" fg="#E6D8C4"
+                <DevPill label="AGT" bg="#43260F" fg="#E6D8C4"
                   onPress={() => { setDevOpen(false); (navigation.getParent() as any)?.navigate('InternalAgents'); }}
                   a11y="Open internal agents console"
                 />
               ) : null}
               {showClinicalReview ? (
-                <DevPill label="CLN" bg="#5C6B3A" fg="#FDFBF6"
+                <DevPill label="CLN" bg="#E98A6A" fg="#FFFCF6"
                   onPress={() => { setDevOpen(false); goClinicalReview(); }}
                   a11y="Open clinical-advisor review dashboard"
                 />
               ) : null}
               {showEventReview ? (
-                <DevPill label="EVT" bg="#C4A35A" fg="#1C1008"
+                <DevPill label="EVT" bg="#E98A6A" fg="#43260F"
                   onPress={() => { setDevOpen(false); goEventReview(); }}
                   a11y="Open event-ingest review dashboard"
                 />
@@ -868,8 +868,8 @@ export default function MeScreen() {
           ) : null}
           <DevPill
             label={devOpen ? '×' : 'DEV'}
-            bg="#2C1A0E"
-            fg="#FDFBF6"
+            bg="#43260F"
+            fg="#FFFCF6"
             onPress={() => setDevOpen((v) => !v)}
             a11y={devOpen ? 'Close dev tools menu' : 'Open dev tools menu'}
           />
@@ -948,7 +948,7 @@ function Section({
       {subtitle ? <Text style={s.sectionSubtitle}>{subtitle}</Text> : null}
       {/* tinted with very-subtle warm paper (#FDF8ED) — Felipe asked for
           "a bit of color tone" but the first pass (#FBF4DE) read too
-          butter-yellow. This is much closer to pure paper #FEFAF6, just
+          butter-yellow. This is much closer to pure paper #FFFCF6, just
           a hint of warmth so the card edge reads against the pink page
           wash without committing to a tinted-paper look. */}
       <V3Card deepShadow tinted="#FDF8ED">{children}</V3Card>
@@ -973,7 +973,7 @@ const s = StyleSheet.create({
     marginBottom: 8,
     // v9 paper-leaning shadow — was 0.10/4y/12r/elev2. Now lifts the
     // masthead off the U-shape backdrop like Home's card recipe.
-    shadowColor: '#6B2E0E',
+    shadowColor: '#43260F',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.20,
     shadowRadius: 22,
@@ -996,12 +996,12 @@ const s = StyleSheet.create({
   },
   eyebrowBar: {
     width: 22, height: 2,
-    backgroundColor: '#A77349',  // v9 rust-deep — unified across surfaces
+    backgroundColor: '#7A4A24',  // v9 rust-deep — unified across surfaces
     marginRight: 10,
   },
   eyebrow: {
     fontSize: 10, fontFamily: FONTS.bodySemiBold,
-    color: '#A77349',
+    color: '#7A4A24',
     letterSpacing: 1.8, textTransform: 'uppercase',
   },
   headerMainRow: {
@@ -1044,7 +1044,7 @@ const s = StyleSheet.create({
     fontStyle: 'italic',
     fontSize: 24,
     lineHeight: 30,
-    color: '#C07840',
+    color: '#D96C88',
   },
   email: {
     fontFamily: FONTS.body,
@@ -1112,7 +1112,7 @@ const s = StyleSheet.create({
   completionCta: {
     fontFamily: FONTS.bodySemiBold,
     fontSize: 12,
-    color: '#C07840',
+    color: '#D96C88',
   },
   progressTrack: {
     height: 6,
@@ -1139,11 +1139,11 @@ const s = StyleSheet.create({
     marginBottom: 10,
   },
   sectionAccentBar: {
-    width: 12, height: 2, backgroundColor: '#A77349', borderRadius: 1,
+    width: 12, height: 2, backgroundColor: '#7A4A24', borderRadius: 1,
   },
   sectionEyebrow: {
     fontSize: 11, fontFamily: FONTS.bodySemiBold, letterSpacing: 2,
-    color: '#A77349', textTransform: 'uppercase',
+    color: '#7A4A24', textTransform: 'uppercase',
   },
   // Kept for legacy callers. New section headings use sectionEyebrow.
   sectionTitle: {
@@ -1169,7 +1169,7 @@ const s = StyleSheet.create({
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: 'rgba(150, 80, 50, 0.22)',
-    shadowColor: '#3D1F0E',
+    shadowColor: '#43260F',
     shadowOffset: { width: 0, height: 14 },
     shadowOpacity: 0.28,
     shadowRadius: 24,
@@ -1219,7 +1219,7 @@ const s = StyleSheet.create({
   crisisCalloutTitle: {
     fontSize: 13,
     fontFamily: FONTS.bodySemiBold,
-    color: '#A77349',
+    color: '#7A4A24',
     marginBottom: 4,
   },
   crisisCalloutBody: {
@@ -1229,7 +1229,7 @@ const s = StyleSheet.create({
   },
   crisisCalloutNumber: {
     fontFamily: FONTS.bodySemiBold,
-    color: '#A77349',
+    color: '#7A4A24',
   },
 
   babyRow: {
@@ -1270,7 +1270,7 @@ const s = StyleSheet.create({
   emptyHint: {
     fontFamily: FONTS.bodySemiBold,
     fontSize: 12,
-    color: '#A77349',
+    color: '#7A4A24',
     marginTop: 6,
   },
 
@@ -1318,7 +1318,7 @@ const s = StyleSheet.create({
   signOutTxt: {
     fontFamily: FONTS.bodySemiBold,
     fontSize: 14,
-    color: '#A77349',
+    color: '#7A4A24',
     textAlign: 'center',
   },
   footer: {

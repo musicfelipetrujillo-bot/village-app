@@ -103,7 +103,7 @@ export default function SavedDashboardScreen({ navigation }: Props) {
       </View>
 
       {loading && (
-        <View style={styles.center}><ActivityIndicator color="#C07840" /></View>
+        <View style={styles.center}><ActivityIndicator color="#D96C88" /></View>
       )}
 
       {!loading && data && data.total === 0 && (
@@ -117,7 +117,7 @@ export default function SavedDashboardScreen({ navigation }: Props) {
       {!loading && data && data.total > 0 && (
         <ScrollView
           contentContainerStyle={styles.list}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#C07840" />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#D96C88" />}
         >
           {/* Videos */}
           {data.videos_count > 0 && (
@@ -300,7 +300,7 @@ const styles = StyleSheet.create({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
 
   emptyWrap: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
-  emptyIcon: { fontSize: 52, color: '#C07840', marginBottom: 12 },
+  emptyIcon: { fontSize: 52, color: '#D96C88', marginBottom: 12 },
   emptyTitle: {
     fontSize: 20, fontFamily: FONTS.headerBold, color: COLORS.bark,
     textAlign: 'center', marginBottom: 8,
@@ -328,7 +328,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3, textTransform: 'uppercase',
   },
   sectionCount: {
-    fontSize: 12, fontFamily: FONTS.bodySemiBold, color: '#C07840',
+    fontSize: 12, fontFamily: FONTS.bodySemiBold, color: '#D96C88',
     backgroundColor: 'rgba(192,120,64,0.10)',
     paddingHorizontal: 8, paddingVertical: 2,
     borderRadius: 999, minWidth: 26, textAlign: 'center',
@@ -357,7 +357,7 @@ const styles = StyleSheet.create({
     marginBottom: 3,
   },
   videoEyebrow: {
-    fontSize: 10, fontFamily: FONTS.bodySemiBold, color: '#A77349',
+    fontSize: 10, fontFamily: FONTS.bodySemiBold, color: '#7A4A24',
     letterSpacing: 1.0,
   },
 
@@ -387,7 +387,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   seeAllText: {
-    fontSize: 13, fontFamily: FONTS.bodySemiBold, color: '#C07840',
+    fontSize: 13, fontFamily: FONTS.bodySemiBold, color: '#D96C88',
   },
 
   footerHint: {

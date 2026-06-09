@@ -30,12 +30,12 @@ import { COLORS, FONTS } from '@utils/constants';
 // Pulled from constants.ts v2_* (which match the v3 brand-kit hexes
 // pixel-for-pixel — verified against the 2026-05-24 design handoff
 // `shared.jsx` BRAND block).
-const PAPER     = COLORS.v2_paper;     // #FDFBF6
-const CREAM     = COLORS.v2_cream;     // #F4ECD8
-const PARCHMENT = COLORS.v2_parchment; // #EAE0C8
-const COCOA     = COLORS.v2_cocoa;     // #3D1F0E
+const PAPER     = COLORS.v2_paper;     // #FFFCF6
+const CREAM     = COLORS.v2_cream;     // #FCF7EF
+const PARCHMENT = COLORS.v2_parchment; // #F2E6DD
+const COCOA     = COLORS.v2_cocoa;     // #43260F
 const WALNUT    = COLORS.v2_walnut;    // #7A4A28
-const CINNAMON  = COLORS.v2_cinnamon;  // #C07840
+const CINNAMON  = COLORS.v2_cinnamon;  // #D96C88
 
 // ─── MenuButton ────────────────────────────────────────────────────────
 // Three-bar hamburger trigger. 36×28 parchment chip with embossed

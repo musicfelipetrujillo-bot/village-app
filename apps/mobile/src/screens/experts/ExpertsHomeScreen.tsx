@@ -3,6 +3,7 @@ import {
   View, Text, StyleSheet, TouchableOpacity, ScrollView,
 } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
+import { LinearGradient } from 'expo-linear-gradient';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import * as Location from 'expo-location';
 import { COLORS, FONTS } from '@utils/constants';
@@ -14,6 +15,7 @@ import { useUserStore, getPreferredRadiusMiles } from '@store/user';
 import { SpecialistCard } from '@components/experts/SpecialistCard';
 import { ExpertsListSkeleton } from '@components/shared/SkeletonLoader';
 import { WarmGlowBackdrop } from '@components/shared/WarmGlowBackdrop';
+import { HoneycombBackdrop } from '@components/shared/HoneycombBackdrop';
 import type { ExpertsStackParamList } from '@/navigation/ExpertsNavigator';
 import type { SpecialtyType } from 'shared/src/types/v1';
 
@@ -127,6 +129,15 @@ export default function ExpertsHomeScreen({ navigation, route }: Props) {
       {/* v3 editorial masthead 2026-05-24 — replaces the KenBurns photo
           header per Felipe. See MilkConnectHomeScreen for the pattern. */}
       <View style={styles.mastheadWrap}>
+        {/* Soft peach hero wash — ties the masthead to the Specialists tile
+            color (Village hub) so the section reads warm + colored. */}
+        <LinearGradient
+          colors={['#F5CBB2', 'rgba(245,203,178,0)']}
+          start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }}
+          style={StyleSheet.absoluteFillObject}
+          pointerEvents="none"
+        />
+        <HoneycombBackdrop accent="#F3B79C" intensity="playful" scene="specialists" />
         <View style={styles.mastheadUtility}>
           <TouchableOpacity
             onPress={() => navigation.getParent()?.navigate('Village' as never)}
@@ -199,6 +210,12 @@ export default function ExpertsHomeScreen({ navigation, route }: Props) {
   return (
     <View style={styles.container}>
       <WarmGlowBackdrop hideClusters />
+      <LinearGradient
+        pointerEvents="none"
+        colors={['rgba(243,183,156,0.38)', 'rgba(243,183,156,0.11)', 'rgba(252,247,239,0)']}
+        locations={[0, 0.45, 1]}
+        style={styles.pageWash}
+      />
       <FlashList
         data={loading ? [] : results}
         keyExtractor={(item) => item.id}
@@ -228,6 +245,7 @@ export default function ExpertsHomeScreen({ navigation, route }: Props) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.cream },
+  pageWash: { position: 'absolute', top: 0, left: 0, right: 0, height: 640 },
 
   // Editorial header — cream-on-cream like Milk Hub. paddingBottom: 0 so
   // the bottom hairline closes the block (per docs/editorial-system.md
@@ -245,12 +263,12 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   backToVillage: { paddingVertical: 4, paddingRight: 8 },
-  backToVillageText: { fontSize: 14, color: '#C07840', fontFamily: FONTS.bodySemiBold },
+  backToVillageText: { fontSize: 14, color: '#D96C88', fontFamily: FONTS.bodySemiBold },
   headerActions: { flexDirection: 'row', gap: 8 },
   savedBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FDFBF6',
+    backgroundColor: '#FFFCF6',
     borderRadius: 50,
     paddingVertical: 6,
     paddingHorizontal: 14,
@@ -268,16 +286,16 @@ const styles = StyleSheet.create({
   },
   eyebrowRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 6 },
   eyebrowBar: {
-    width: 22, height: 2, backgroundColor: '#A77349',  // v9 rust-deep
+    width: 22, height: 2, backgroundColor: '#7A4A24',  // v9 rust-deep
     marginRight: 10, borderRadius: 1,
   },
   // Canonical v9 eyebrow: 11pt, 1.6 letter-spacing, bodySemiBold,
-  // rust-deep `#9A4A2B`, uppercase. Unified across every hub + deep
+  // rust-deep `#7A4A24`, uppercase. Unified across every hub + deep
   // screen so the page-to-page rhythm reads as one voice.
   eyebrow: {
     fontSize: 11, lineHeight: 22, letterSpacing: 1.6,
     fontFamily: FONTS.bodySemiBold,
-    color: '#A77349',
+    color: '#7A4A24',
     textTransform: 'uppercase',
     includeFontPadding: false,
     textAlignVertical: 'center',
@@ -314,6 +332,8 @@ const styles = StyleSheet.create({
     paddingBottom: 18,
     // Negate FlashList contentContainerStyle's paddingHorizontal:16
     marginHorizontal: -16,
+    position: 'relative',
+    overflow: 'hidden',
   },
   mastheadUtility: {
     flexDirection: 'row', alignItems: 'center',
@@ -352,7 +372,7 @@ const styles = StyleSheet.create({
   },
   mastheadTitleItalic: {
     fontFamily: FONTS.v3_display_italic,
-    color: COLORS.v2_salmon,
+    color: '#C2784E', // Specialists signature: caramel / clay
     fontStyle: 'italic',
   },
   mastheadDeck: {
@@ -371,7 +391,7 @@ const styles = StyleSheet.create({
   chipScroll: { flexGrow: 0 },
   chipContent: { paddingHorizontal: 16, paddingTop: 12, paddingBottom: 12, gap: 8, flexDirection: 'row' },
   chip: {
-    backgroundColor: '#FDFBF6',
+    backgroundColor: '#FFFCF6',
     borderWidth: 1.5,
     borderColor: 'rgba(150,80,50,0.18)',
     borderRadius: 50,
@@ -380,7 +400,7 @@ const styles = StyleSheet.create({
   },
   chipActive: { backgroundColor: COLORS.coco, borderColor: COLORS.coco },
   chipText: { fontSize: 12, fontFamily: FONTS.bodyMedium, color: COLORS.barkSoft },
-  chipTextActive: { color: '#FDFBF6' },
+  chipTextActive: { color: '#FFFCF6' },
 
   list: { paddingHorizontal: 16, paddingTop: 0, paddingBottom: 100, gap: 20 },
 

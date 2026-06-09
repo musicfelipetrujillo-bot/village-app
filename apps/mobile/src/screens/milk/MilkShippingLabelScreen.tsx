@@ -156,7 +156,7 @@ export default function MilkShippingLabelScreen({ navigation, route }: Props) {
   if (loading) {
     return (
       <View style={[styles.container, styles.center]}>
-        <ActivityIndicator color="#C07840" />
+        <ActivityIndicator color="#D96C88" />
       </View>
     );
   }
@@ -305,7 +305,7 @@ const styles = StyleSheet.create({
   center: { alignItems: 'center', justifyContent: 'center' },
   scroll: { padding: 20, paddingBottom: 40 },
   back: { paddingVertical: 8, marginBottom: 8 },
-  backLabel: { color: '#C07840', fontSize: 15, fontFamily: FONTS.bodyMedium },
+  backLabel: { color: '#D96C88', fontSize: 15, fontFamily: FONTS.bodyMedium },
   title: { fontSize: 28, fontFamily: FONTS.headerBold, color: COLORS.bark, marginBottom: 8, letterSpacing: -0.4, lineHeight: 34 },
   sub: { fontSize: 14, color: COLORS.barkSoft, lineHeight: 21, marginBottom: 20 },
   section: { fontSize: 15, fontFamily: FONTS.bodySemiBold, color: COLORS.bark, marginTop: 14, marginBottom: 8 },
@@ -319,7 +319,7 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: COLORS.paper, borderRadius: 12, padding: 16, marginTop: 16, marginBottom: 16,
     borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(150,80,50,0.18)',
-    shadowColor: '#6B2E0E', shadowOpacity: 0.22, shadowOffset: { width: 0, height: 8 }, shadowRadius: 22, elevation: 3,
+    shadowColor: '#43260F', shadowOpacity: 0.22, shadowOffset: { width: 0, height: 8 }, shadowRadius: 22, elevation: 3,
   },
   cardRow: { fontSize: 14, color: COLORS.bark, marginBottom: 6 },
   cardKey: { color: COLORS.barkSoft, fontFamily: FONTS.bodyMedium },
@@ -334,13 +334,13 @@ const styles = StyleSheet.create({
   },
   // v9 canonical CTA — rect variant
   cta: {
-    backgroundColor: '#C07840', paddingVertical: 16, borderRadius: 14,
+    backgroundColor: '#D96C88', paddingVertical: 16, borderRadius: 14,
     alignItems: 'center', justifyContent: 'center', marginTop: 8,
-    shadowColor: '#945A41', shadowOffset: { width: 0, height: 4 },
+    shadowColor: '#D96C88', shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.24, shadowRadius: 10, elevation: 3,
   },
-  ctaSecondary: { backgroundColor: 'transparent', borderWidth: 1, borderColor: '#945A41', shadowOpacity: 0, elevation: 0 },
+  ctaSecondary: { backgroundColor: 'transparent', borderWidth: 1, borderColor: '#D96C88', shadowOpacity: 0, elevation: 0 },
   ctaDisabled: { backgroundColor: COLORS.textLight, opacity: 0.45 },
-  ctaLabel: { color: '#FDFBF6', fontSize: 16, fontFamily: FONTS.bodySemiBold },
-  ctaLabelSecondary: { color: '#945A41' },
+  ctaLabel: { color: '#FFFCF6', fontSize: 16, fontFamily: FONTS.bodySemiBold },
+  ctaLabelSecondary: { color: '#D96C88' },
 });

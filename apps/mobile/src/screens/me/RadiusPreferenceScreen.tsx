@@ -69,7 +69,7 @@ export default function RadiusPreferenceScreen({ navigation }: Props) {
         </TouchableOpacity>
         <Text style={s.topTitle}>{t('radius.topTitle')}</Text>
         <View style={s.topSpacer}>
-          {saving ? <ActivityIndicator color="#C07840" /> : null}
+          {saving ? <ActivityIndicator color="#D96C88" /> : null}
         </View>
       </View>
 
@@ -134,7 +134,7 @@ const s = StyleSheet.create({
   topLink: {
     fontFamily: FONTS.bodySemiBold,
     fontSize: 14,
-    color: '#C07840',
+    color: '#D96C88',
   },
   topSpacer: { width: 52, alignItems: 'flex-end' },
 
@@ -142,13 +142,13 @@ const s = StyleSheet.create({
 
   // v9 editorial masthead
   eyebrowRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
-  eyebrowBar: { width: 22, height: 2, backgroundColor: '#A77349', marginRight: 10, borderRadius: 1 },
-  eyebrow: { fontSize: 10, fontFamily: FONTS.bodySemiBold, color: '#A77349', letterSpacing: 1.8, textTransform: 'uppercase' },
+  eyebrowBar: { width: 22, height: 2, backgroundColor: '#7A4A24', marginRight: 10, borderRadius: 1 },
+  eyebrow: { fontSize: 10, fontFamily: FONTS.bodySemiBold, color: '#7A4A24', letterSpacing: 1.8, textTransform: 'uppercase' },
   headerTitle: {
     fontFamily: FONTS.headerBold, fontSize: 32, color: COLORS.bark,
     lineHeight: 38, letterSpacing: -0.5, marginBottom: 4,
   },
-  headerTitleEm: { fontFamily: FONTS.headerItalic, fontStyle: 'italic', color: '#C07840' },
+  headerTitleEm: { fontFamily: FONTS.headerItalic, fontStyle: 'italic', color: '#D96C88' },
   headerRule: {
     height: StyleSheet.hairlineWidth, backgroundColor: 'rgba(61,31,13,0.18)',
     marginTop: 6, marginBottom: 4, width: 48,
@@ -169,7 +169,7 @@ const s = StyleSheet.create({
   currentValue: {
     fontFamily: FONTS.headerBold,
     fontSize: 40,
-    color: '#A77349',
+    color: '#7A4A24',
     marginTop: 6,
   },
 
@@ -195,8 +195,8 @@ const s = StyleSheet.create({
     backgroundColor: COLORS.paper,
   },
   chipActive: {
-    borderColor: '#C07840',                                            // v9 active = cinnamon
-    backgroundColor: '#C07840',
+    borderColor: '#D96C88',                                            // v9 active = cinnamon
+    backgroundColor: '#D96C88',
   },
   chipText: {
     fontFamily: FONTS.bodySemiBold,

@@ -141,7 +141,7 @@ export default function GearMessageDetailScreen({ navigation, route }: Props) {
       </TouchableOpacity>
 
       {loading ? (
-        <View style={styles.center}><ActivityIndicator color="#C07840" /></View>
+        <View style={styles.center}><ActivityIndicator color="#D96C88" /></View>
       ) : (
         <FlatList
           ref={listRef}
@@ -167,7 +167,7 @@ export default function GearMessageDetailScreen({ navigation, route }: Props) {
             return (
               <View style={[styles.bubbleRow, mine ? styles.bubbleRowMine : styles.bubbleRowTheirs]}>
                 <View style={[styles.bubble, mine ? styles.bubbleMine : styles.bubbleTheirs]}>
-                  <Text style={[styles.bubbleText, mine && { color: '#FDFBF6' }]}>{item.body}</Text>
+                  <Text style={[styles.bubbleText, mine && { color: '#FFFCF6' }]}>{item.body}</Text>
                 </View>
               </View>
             );
@@ -216,7 +216,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.paper,
     borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.06)',
   },
-  back: { fontSize: 15, color: '#C07840', fontFamily: FONTS.bodySemiBold },
+  back: { fontSize: 15, color: '#D96C88', fontFamily: FONTS.bodySemiBold },
   titleCol: { flex: 1, alignItems: 'center' },
   title: { fontSize: 16, fontFamily: FONTS.bodySemiBold, color: COLORS.bark },
   sideLabel: { fontSize: 11, color: COLORS.textLight, marginTop: 2, fontFamily: FONTS.body },
@@ -231,7 +231,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.8, textTransform: 'uppercase',
   },
   listingTitle: { fontSize: 13, color: COLORS.bark, fontFamily: FONTS.bodySemiBold, marginTop: 2 },
-  listingCta: { fontSize: 12, color: '#C07840', fontFamily: FONTS.bodySemiBold, marginTop: 3 },
+  listingCta: { fontSize: 12, color: '#D96C88', fontFamily: FONTS.bodySemiBold, marginTop: 3 },
 
   listContent: { paddingHorizontal: 12, paddingTop: 12, paddingBottom: 12, gap: 6 },
   bubbleRow: { flexDirection: 'row' },
@@ -256,10 +256,10 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.bodySemiBold,
     letterSpacing: 1.4,
     textTransform: 'uppercase',
-    color: '#9F5F30',
+    color: '#C25A78',
     marginBottom: 4,
   },
-  systemBody: { fontSize: 14, color: '#3D1F0E', lineHeight: 20, fontFamily: FONTS.body },
+  systemBody: { fontSize: 14, color: '#43260F', lineHeight: 20, fontFamily: FONTS.body },
   // v9 walnut bubble (kit canon, WCAG 7.4:1 with paper text).
   bubbleMine: { backgroundColor: '#7A4A28', borderBottomRightRadius: 4 },
   bubbleTheirs: { backgroundColor: COLORS.paper, borderBottomLeftRadius: 4 },
@@ -283,8 +283,8 @@ const styles = StyleSheet.create({
   },
   sendBtn: {
     width: 44, height: 44, borderRadius: 22,
-    backgroundColor: '#C07840', alignItems: 'center', justifyContent: 'center',
+    backgroundColor: '#D96C88', alignItems: 'center', justifyContent: 'center',
   },
   sendBtnDisabled: { opacity: 0.4 },
-  sendBtnText: { color: '#FDFBF6', fontSize: 22, fontFamily: FONTS.bodySemiBold },
+  sendBtnText: { color: '#FFFCF6', fontSize: 22, fontFamily: FONTS.bodySemiBold },
 });

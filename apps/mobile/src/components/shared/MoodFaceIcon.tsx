@@ -13,7 +13,7 @@
 import React from 'react';
 import Svg, { Path, Circle } from 'react-native-svg';
 
-const COCOA = '#3D1F0E';
+const COCOA = '#43260F';
 const STROKE = 1.9;
 
 export type MoodScore = 1 | 2 | 3 | 4 | 5;

@@ -156,14 +156,14 @@ export function FilterDrawerModal({ visible, filters, onApply, onClose }: Props)
 const styles = StyleSheet.create({
   overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
   sheet: {
-    backgroundColor: '#FDFBF6', borderTopLeftRadius: 24, borderTopRightRadius: 24,
+    backgroundColor: '#FFFCF6', borderTopLeftRadius: 24, borderTopRightRadius: 24,
     paddingHorizontal: 24, paddingBottom: 40, maxHeight: '85%',
   },
   handle: { width: 36, height: 4, borderRadius: 2, backgroundColor: '#E0D5C5', alignSelf: 'center', marginTop: 12, marginBottom: 8 },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 16 },
-  title: { fontSize: 20, fontFamily: FONTS.bodySemiBold, color: '#2C1810' },
+  title: { fontSize: 20, fontFamily: FONTS.bodySemiBold, color: '#43260F' },
   reset: { fontSize: 14, color: COLORS.coco, fontFamily: FONTS.bodySemiBold },
-  sectionLabel: { fontSize: 12, fontFamily: FONTS.bodySemiBold, color: '#9A8070', letterSpacing: 0.8, textTransform: 'uppercase', marginTop: 20, marginBottom: 10 },
+  sectionLabel: { fontSize: 12, fontFamily: FONTS.bodySemiBold, color: '#7A4A24', letterSpacing: 0.8, textTransform: 'uppercase', marginTop: 20, marginBottom: 10 },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   chip: {
     paddingHorizontal: 14, paddingVertical: 8,
@@ -171,14 +171,14 @@ const styles = StyleSheet.create({
     borderWidth: 1.5, borderColor: '#E0D5C5',
   },
   chipActive: { borderColor: COLORS.coco, backgroundColor: COLORS.pinkSoft },
-  chipText: { fontSize: 13, color: '#6B5C52', fontFamily: FONTS.bodyMedium },
+  chipText: { fontSize: 13, color: '#7A4A24', fontFamily: FONTS.bodyMedium },
   chipTextActive: { color: COLORS.coco },
   footer: { flexDirection: 'row', gap: 12, marginTop: 24 },
   cancelBtn: {
-    flex: 1, borderWidth: 1.5, borderColor: '#9A8070',
+    flex: 1, borderWidth: 1.5, borderColor: '#7A4A24',
     borderRadius: 12, paddingVertical: 14, alignItems: 'center',
   },
-  cancelText: { fontSize: 15, color: '#9A8070', fontFamily: FONTS.bodySemiBold },
-  applyBtn: { flex: 2, backgroundColor: '#C07840', borderRadius: 12, paddingVertical: 14, alignItems: 'center' },
-  applyText: { fontSize: 15, color: '#FDFBF6', fontFamily: FONTS.bodySemiBold },
+  cancelText: { fontSize: 15, color: '#7A4A24', fontFamily: FONTS.bodySemiBold },
+  applyBtn: { flex: 2, backgroundColor: '#D96C88', borderRadius: 12, paddingVertical: 14, alignItems: 'center' },
+  applyText: { fontSize: 15, color: '#FFFCF6', fontFamily: FONTS.bodySemiBold },
 });

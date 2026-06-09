@@ -248,7 +248,7 @@ export default function MilkMatchScreen({ navigation }: Props) {
           disabled={loading}
         >
           {loading ? (
-            <ActivityIndicator color="#FDFBF6" />
+            <ActivityIndicator color="#FFFCF6" />
           ) : (
             <Text style={styles.findBtnText}>{matches ? t('milkMatch.ctaRerun') : t('milkMatch.ctaFind')}</Text>
           )}
@@ -267,34 +267,34 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.paper,
     borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.06)',
   },
-  back: { fontSize: 15, color: '#C07840', fontFamily: FONTS.bodyMedium },
-  title: { fontSize: 17, fontFamily: FONTS.bodySemiBold, color: '#2C1810' },
+  back: { fontSize: 15, color: '#D96C88', fontFamily: FONTS.bodyMedium },
+  title: { fontSize: 17, fontFamily: FONTS.bodySemiBold, color: '#43260F' },
 
   intro: { padding: 24, alignItems: 'center' },
   introEmoji: { fontSize: 44, marginBottom: 8 },
-  introTitle: { fontSize: 22, fontFamily: FONTS.bodySemiBold, color: '#2C1810', marginBottom: 6 },
-  introBody: { fontSize: 14, color: '#6B5C52', textAlign: 'center', lineHeight: 21, fontFamily: FONTS.body },
+  introTitle: { fontSize: 22, fontFamily: FONTS.bodySemiBold, color: '#43260F', marginBottom: 6 },
+  introBody: { fontSize: 14, color: '#7A4A24', textAlign: 'center', lineHeight: 21, fontFamily: FONTS.body },
 
   card: {
     marginHorizontal: 16, marginBottom: 12,
     backgroundColor: COLORS.paper, borderRadius: 14, padding: 16,
     borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(150, 80, 50, 0.18)',
-    shadowColor: '#6B2E0E', shadowOffset: { width: 0, height: 8 },
+    shadowColor: '#43260F', shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.22, shadowRadius: 22, elevation: 5,
   },
-  label: { fontSize: 13, fontFamily: FONTS.bodySemiBold, color: '#2C1810', marginBottom: 10 },
+  label: { fontSize: 13, fontFamily: FONTS.bodySemiBold, color: '#43260F', marginBottom: 10 },
   pillRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   pill: {
     paddingHorizontal: 12, paddingVertical: 8, borderRadius: 16,
     backgroundColor: '#F5F0E8', borderWidth: 1.5, borderColor: 'transparent',
   },
   pillActive: { backgroundColor: COLORS.pinkSoft, borderColor: COLORS.coco },
-  pillText: { fontSize: 12, fontFamily: FONTS.bodyMedium, color: '#6B5C52', textTransform: 'capitalize' },
+  pillText: { fontSize: 12, fontFamily: FONTS.bodyMedium, color: '#7A4A24', textTransform: 'capitalize' },
   pillTextActive: { color: COLORS.coco },
 
   matchSection: { marginTop: 16, marginHorizontal: 0 },
   matchHeader: {
-    fontSize: 17, fontFamily: FONTS.bodySemiBold, color: '#2C1810',
+    fontSize: 17, fontFamily: FONTS.bodySemiBold, color: '#43260F',
     marginHorizontal: 16, marginBottom: 12,
   },
   matchWrap: { position: 'relative', marginBottom: 8 },
@@ -303,10 +303,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row', gap: 6, alignItems: 'center',
     backgroundColor: COLORS.coco, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12,
   },
-  matchBadgeRank: { color: '#FDFBF6', fontSize: 11, fontFamily: FONTS.bodySemiBold },
-  matchBadgeScore: { color: '#FDFBF6', fontSize: 10, fontFamily: FONTS.bodyMedium },
+  matchBadgeRank: { color: '#FFFCF6', fontSize: 11, fontFamily: FONTS.bodySemiBold },
+  matchBadgeScore: { color: '#FFFCF6', fontSize: 10, fontFamily: FONTS.bodyMedium },
   matchReason: {
-    fontSize: 13, color: '#6B5C52', fontFamily: FONTS.headerItalic,
+    fontSize: 13, color: '#7A4A24', fontFamily: FONTS.headerItalic,
     marginHorizontal: 24, marginTop: -4, marginBottom: 14,
     lineHeight: 19,
   },
@@ -318,9 +318,9 @@ const styles = StyleSheet.create({
     borderTopWidth: 1, borderTopColor: 'rgba(0,0,0,0.06)',
   },
   findBtn: {
-    backgroundColor: '#C07840', borderRadius: 14,
+    backgroundColor: '#D96C88', borderRadius: 14,
     paddingVertical: 16, alignItems: 'center',
   },
   findBtnDisabled: { opacity: 0.5 },
-  findBtnText: { color: '#FDFBF6', fontSize: 16, fontFamily: FONTS.bodySemiBold },
+  findBtnText: { color: '#FFFCF6', fontSize: 16, fontFamily: FONTS.bodySemiBold },
 });

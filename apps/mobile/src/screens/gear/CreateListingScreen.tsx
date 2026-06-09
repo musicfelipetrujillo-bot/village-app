@@ -17,6 +17,7 @@ import { COLORS, FONTS } from '@utils/constants';
 import { V9PageBackdrop } from '@components/shared/V9PageBackdrop';
 import { useT } from '@/i18n';
 import { supabase } from '@/lib/supabase';
+import { isGearBoostEnabled } from '@/lib/boost';
 import {
   gearApi,
   categoryLabel,
@@ -511,9 +512,18 @@ export default function CreateListingScreen() {
         year_manufactured: yearRequired ? Number(year) : null,
       }).catch(() => {});
 
-      Alert.alert(t('gearCreate.successTitle'), t('gearCreate.successBody'), [
+      // Post-create boost upsell — the highest-intent moment to promote a
+      // fresh listing. Flag-gated (boost ships with the IAP native build).
+      const successButtons: { text: string; onPress: () => void }[] = [
         { text: t('gearCreate.successView'), onPress: () => navigation.replace('GearListingDetail', { id }) },
-      ]);
+      ];
+      if (isGearBoostEnabled()) {
+        successButtons.push({
+          text: t('gearCreate.successBoost'),
+          onPress: () => navigation.replace('BoostListing', { listingId: id, listingTitle: title.trim() }),
+        });
+      }
+      Alert.alert(t('gearCreate.successTitle'), t('gearCreate.successBody'), successButtons);
     } catch (err: any) {
       Alert.alert(t('gearCreate.errCouldNotPost'), err?.message ?? t('gearCreate.errTryAgain'));
     } finally {
@@ -559,7 +569,7 @@ export default function CreateListingScreen() {
             accessibilityLabel={lookupBusy ? t('gearCreate.scanBarcodeA11yBusy') : t('gearCreate.scanBarcodeA11yIdle')}
             accessibilityState={{ busy: lookupBusy, disabled: lookupBusy || visionBusy }}
           >
-            {lookupBusy ? <ActivityIndicator color="#C07840" /> : (
+            {lookupBusy ? <ActivityIndicator color="#D96C88" /> : (
               <>
                 <Text style={styles.quickFillIcon}>📷</Text>
                 <Text style={styles.quickFillText}>{t('gearCreate.scanBarcode')}</Text>
@@ -583,7 +593,7 @@ export default function CreateListingScreen() {
             }
             accessibilityState={{ disabled: images.length === 0, busy: visionBusy }}
           >
-            {visionBusy ? <ActivityIndicator color="#C07840" /> : (
+            {visionBusy ? <ActivityIndicator color="#D96C88" /> : (
               <>
                 <Text style={styles.quickFillIcon}>✨</Text>
                 <Text style={styles.quickFillText}>{t('gearCreate.identifyPhoto')}</Text>
@@ -861,7 +871,7 @@ export default function CreateListingScreen() {
         >
           {submitting ? (
             <View style={styles.submitBusy}>
-              <ActivityIndicator color="#FDFBF6" />
+              <ActivityIndicator color="#FFFCF6" />
               {uploadProgress ? (
                 <Text style={styles.submitProgressText}>
                   {t('gearCreate.uploadingText', { current: uploadProgress.current, total: uploadProgress.total })}
@@ -931,7 +941,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.paper,
     borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.06)',
   },
-  back: { fontSize: 14, color: '#C07840', fontFamily: FONTS.bodySemiBold, minWidth: 50 },
+  back: { fontSize: 14, color: '#D96C88', fontFamily: FONTS.bodySemiBold, minWidth: 50 },
   headerTitle: { fontSize: 17, fontFamily: FONTS.bodySemiBold, color: COLORS.bark },
 
   content: { padding: 16, paddingBottom: 140 },
@@ -941,9 +951,9 @@ const styles = StyleSheet.create({
     padding: 12, marginBottom: 12,
     borderWidth: 1, borderColor: 'rgba(184,92,56,0.3)',
   },
-  prohibitedTitle: { fontSize: 12, fontFamily: FONTS.bodySemiBold, color: '#A77349', marginBottom: 4, letterSpacing: 0.4 },
+  prohibitedTitle: { fontSize: 12, fontFamily: FONTS.bodySemiBold, color: '#7A4A24', marginBottom: 4, letterSpacing: 0.4 },
   prohibitedBody: { fontSize: 12, color: COLORS.barkSoft, lineHeight: 18, fontFamily: FONTS.body },
-  prohibitedLink: { color: '#C07840', fontFamily: FONTS.bodySemiBold, textDecorationLine: 'underline' },
+  prohibitedLink: { color: '#D96C88', fontFamily: FONTS.bodySemiBold, textDecorationLine: 'underline' },
 
   quickFillRow: { flexDirection: 'row', gap: 8, marginTop: 4 },
   quickFillBtn: {
@@ -953,7 +963,7 @@ const styles = StyleSheet.create({
     borderWidth: 1.5, borderColor: 'rgba(184,92,56,0.35)',
   },
   quickFillIcon: { fontSize: 16 },
-  quickFillText: { fontSize: 13, color: '#A77349', fontFamily: FONTS.bodySemiBold },
+  quickFillText: { fontSize: 13, color: '#7A4A24', fontFamily: FONTS.bodySemiBold },
   autofillNote: {
     fontSize: 12, color: COLORS.barkSoft, marginTop: 8,
     fontStyle: 'italic', lineHeight: 17, fontFamily: FONTS.body,
@@ -984,9 +994,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12, paddingVertical: 7, borderRadius: 14,
     borderWidth: 1.5, borderColor: 'rgba(150,80,50,0.18)', backgroundColor: COLORS.paper,
   },
-  chipActive: { backgroundColor: '#C07840', borderColor: '#C07840' },  // v9 CTA = cinnamon
+  chipActive: { backgroundColor: '#D96C88', borderColor: '#D96C88' },  // v9 CTA = cinnamon
   chipText: { fontSize: 12, fontFamily: FONTS.bodySemiBold, color: COLORS.barkSoft },
-  chipTextActive: { color: '#FDFBF6' },                                // v9 no pure white
+  chipTextActive: { color: '#FFFCF6' },                                // v9 no pure white
 
   photoRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   photoWrap: { width: 84, height: 84, borderRadius: 10, overflow: 'hidden', position: 'relative' },
@@ -996,13 +1006,13 @@ const styles = StyleSheet.create({
     width: 22, height: 22, borderRadius: 11,
     backgroundColor: 'rgba(0,0,0,0.6)', alignItems: 'center', justifyContent: 'center',
   },
-  photoRemoveText: { color: '#FDFBF6', fontSize: 16, lineHeight: 18, fontFamily: FONTS.bodySemiBold },
+  photoRemoveText: { color: '#FFFCF6', fontSize: 16, lineHeight: 18, fontFamily: FONTS.bodySemiBold },
   photoAdd: {
     width: 84, height: 84, borderRadius: 10,
     backgroundColor: COLORS.paper, alignItems: 'center', justifyContent: 'center',
     borderWidth: 1.5, borderStyle: 'dashed', borderColor: 'rgba(150,80,50,0.18)',
   },
-  photoAddIcon: { fontSize: 22, color: '#A77349', fontFamily: FONTS.bodySemiBold },
+  photoAddIcon: { fontSize: 22, color: '#7A4A24', fontFamily: FONTS.bodySemiBold },
   photoAddText: { fontSize: 11, color: COLORS.barkSoft, fontFamily: FONTS.bodySemiBold },
 
   // v9 card lift — soft drop so the price toggle reads as a discrete control.
@@ -1010,7 +1020,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     backgroundColor: COLORS.paper, borderRadius: 10, padding: 12,
     borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(150,80,50,0.18)',
-    shadowColor: '#6B2E0E', shadowOpacity: 0.10, shadowOffset: { width: 0, height: 3 }, shadowRadius: 10, elevation: 1,
+    shadowColor: '#43260F', shadowOpacity: 0.10, shadowOffset: { width: 0, height: 3 }, shadowRadius: 10, elevation: 1,
   },
   priceLabel: { fontSize: 14, color: COLORS.bark, fontFamily: FONTS.bodyMedium },
   priceInputRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 8 },
@@ -1032,14 +1042,14 @@ const styles = StyleSheet.create({
   },
   priceHintDot: {
     width: 6, height: 6, borderRadius: 3,
-    backgroundColor: '#D4A880',
+    backgroundColor: '#E98A6A',
   },
   priceHintText: {
     flex: 1,
     fontSize: 12.5, fontFamily: FONTS.body, color: COLORS.bark, lineHeight: 17,
   },
   priceHintCta: {
-    fontFamily: FONTS.bodySemiBold, color: '#945A41',
+    fontFamily: FONTS.bodySemiBold, color: '#D96C88',
   },
 
   locationBtn: {
@@ -1061,12 +1071,12 @@ const styles = StyleSheet.create({
   },
   // v9 canonical CTA
   submitBtn: {
-    backgroundColor: '#C07840', borderRadius: 999,
+    backgroundColor: '#D96C88', borderRadius: 999,
     paddingVertical: 15, alignItems: 'center',
-    shadowColor: '#945A41', shadowOffset: { width: 0, height: 4 },
+    shadowColor: '#D96C88', shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.24, shadowRadius: 10, elevation: 3,
   },
-  submitBtnText: { color: '#FDFBF6', fontSize: 15, fontFamily: FONTS.bodySemiBold, letterSpacing: 0.3 },
+  submitBtnText: { color: '#FFFCF6', fontSize: 15, fontFamily: FONTS.bodySemiBold, letterSpacing: 0.3 },
   submitBusy: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   submitProgressText: { color: COLORS.bark, fontSize: 13, fontFamily: FONTS.bodyMedium },
   uploadTrack: {
@@ -1078,6 +1088,6 @@ const styles = StyleSheet.create({
   },
   uploadFill: {
     height: '100%',
-    backgroundColor: '#C07840',                                        // v9 progress = cinnamon
+    backgroundColor: '#D96C88',                                        // v9 progress = cinnamon
   },
 });

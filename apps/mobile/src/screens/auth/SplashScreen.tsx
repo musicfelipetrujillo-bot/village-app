@@ -78,7 +78,7 @@ export default function SplashScreen({ navigation }: Props) {
 // ─── Brand Kit v2 (villie · May 2026) ──────────────────────────────────────
 // First v2 screen. Tagline switches from Inter Medium tracked-caps to
 // JetBrains Mono 500 amber — the canonical eyebrow/metadata treatment per
-// the brand kit. Background uses v2_cream `#F4ECD8` (the actual canonical
+// the brand kit. Background uses v2_cream `#FCF7EF` (the actual canonical
 // cream, slightly more saturated than v1 `#F5EFE6`). Wordmark asset stays
 // — the existing hi-res PNG IS the canonical wordmark.
 const styles = StyleSheet.create({

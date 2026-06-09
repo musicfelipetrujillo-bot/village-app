@@ -23,9 +23,9 @@ type Props = NativeStackScreenProps<CommunityStackParamList, 'CommunityHome'>;
 
 const ROOM_COLOR_ACCENT: Record<string, string> = {
   rust:  COLORS.coco,
-  olive: '#5C6B3A',
-  brown: '#4A2E1A',
-  cream: '#C4A35A',
+  olive: '#E98A6A',
+  brown: '#43260F',
+  cream: '#E98A6A',
 };
 
 const ROOM_TYPE_LABEL: Record<string, string> = {
@@ -128,7 +128,7 @@ export default function CommunityHomeScreen({ navigation }: Props) {
   if (loading) {
     return (
       <SafeAreaView style={styles.loadingWrap}>
-        <ActivityIndicator color="#C07840" size="large" />
+        <ActivityIndicator color="#D96C88" size="large" />
       </SafeAreaView>
     );
   }
@@ -236,7 +236,7 @@ function RoomCard({ room, busy, onOpen, onLeave, highlighted }: RoomCardProps) {
           accessibilityRole="button"
         >
           {busy
-            ? <ActivityIndicator color="#FDFBF6" />
+            ? <ActivityIndicator color="#FFFCF6" />
             : <Text style={styles.openBtnText}>{room.is_member ? 'Open' : 'Join & open'}</Text>
           }
         </TouchableOpacity>

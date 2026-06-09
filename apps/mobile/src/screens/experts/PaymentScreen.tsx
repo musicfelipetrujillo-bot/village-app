@@ -360,7 +360,7 @@ function PaymentContent({ navigation, route }: Props) {
       <View style={styles.ctaBar}>
         {loading ? (
           <View style={styles.loadingRow}>
-            <ActivityIndicator color="#C07840" />
+            <ActivityIndicator color="#D96C88" />
             <Text style={styles.loadingText}>{t('payment.settingUp')}</Text>
           </View>
         ) : (
@@ -396,11 +396,11 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   backBtn: { marginBottom: 12 },
-  backText: { fontSize: 15, color: '#C07840', fontFamily: FONTS.bodyMedium },
+  backText: { fontSize: 15, color: '#D96C88', fontFamily: FONTS.bodyMedium },
   // v9 editorial masthead
   eyebrowRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
-  eyebrowBar: { width: 22, height: 2, backgroundColor: '#A77349', marginRight: 10, borderRadius: 1 },
-  eyebrow: { fontSize: 10, fontFamily: FONTS.bodySemiBold, color: '#A77349', letterSpacing: 1.8, textTransform: 'uppercase' },
+  eyebrowBar: { width: 22, height: 2, backgroundColor: '#7A4A24', marginRight: 10, borderRadius: 1 },
+  eyebrow: { fontSize: 10, fontFamily: FONTS.bodySemiBold, color: '#7A4A24', letterSpacing: 1.8, textTransform: 'uppercase' },
   title: {
     fontFamily: FONTS.headerBold,
     fontSize: 32,
@@ -409,7 +409,7 @@ const styles = StyleSheet.create({
     letterSpacing: -0.5,
     marginBottom: 6,
   },
-  titleEm: { fontFamily: FONTS.headerItalic, fontStyle: 'italic', color: '#C07840' },
+  titleEm: { fontFamily: FONTS.headerItalic, fontStyle: 'italic', color: '#D96C88' },
   headerRule: {
     height: StyleSheet.hairlineWidth, backgroundColor: 'rgba(61,31,13,0.18)',
     marginTop: 10, width: 48,
@@ -425,7 +425,7 @@ const styles = StyleSheet.create({
     // v9 paper lift
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: 'rgba(150, 80, 50, 0.18)',
-    shadowColor: '#6B2E0E',
+    shadowColor: '#43260F',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.22,
     shadowRadius: 22,
@@ -479,11 +479,11 @@ const styles = StyleSheet.create({
   loadingRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, height: 56 },
   loadingText: { fontSize: 14, color: COLORS.textLight, fontFamily: FONTS.body },
   payBtn: {
-    backgroundColor: '#C07840',
+    backgroundColor: '#D96C88',
     borderRadius: 14,
     paddingVertical: 16,
     alignItems: 'center',
   },
   payBtnDisabled: { opacity: 0.45 },
-  payBtnText: { color: '#FDFBF6', fontSize: 17, fontFamily: FONTS.bodySemiBold },
+  payBtnText: { color: '#FFFCF6', fontSize: 17, fontFamily: FONTS.bodySemiBold },
 });

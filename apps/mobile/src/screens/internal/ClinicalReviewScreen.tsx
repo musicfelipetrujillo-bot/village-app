@@ -452,7 +452,7 @@ const s = StyleSheet.create({
     marginBottom: 10,
   },
   tableBadge: {
-    backgroundColor: '#1C1008',
+    backgroundColor: '#43260F',
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 999,

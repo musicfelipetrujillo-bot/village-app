@@ -110,7 +110,7 @@ export default function SafeMilkHandoffModal({
             accessibilityState={{ disabled: !hasScrolledToEnd || submitting }}
           >
             {submitting ? (
-              <ActivityIndicator color="#FDFBF6" />
+              <ActivityIndicator color="#FFFCF6" />
             ) : (
               <Text style={styles.ctaLabel}>
                 {hasScrolledToEnd ? t('milkSafeHandoff.ctaReady') : t('milkSafeHandoff.ctaScroll')}

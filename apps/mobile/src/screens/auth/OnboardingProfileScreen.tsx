@@ -246,7 +246,7 @@ export default function OnboardingProfileScreen({ navigation, route }: Props) {
           accessibilityState={{ disabled: !canProceed || loading, busy: loading }}
         >
           {loading ? (
-            <ActivityIndicator color="#FDFBF6" />
+            <ActivityIndicator color="#FFFCF6" />
           ) : (
             <Text style={styles.btnText}>
               {step < TOTAL_STEPS - 1 ? t('common.continue') : t('onboarding.enterVillage')}
@@ -316,7 +316,7 @@ const styles = StyleSheet.create({
     padding: 16,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: 'rgba(150,80,50,0.18)',
-    shadowColor: '#6B2E0E',
+    shadowColor: '#43260F',
     shadowOpacity: 0.18,            // gentler than card-grid (0.18) — chips, not heroes
     shadowOffset: { width: 0, height: 6 },
     shadowRadius: 20,
@@ -363,11 +363,11 @@ const styles = StyleSheet.create({
   // Primary CTA — cinnamon (the one spark)
   // v9 canonical CTA — action-deep
   btn: {
-    backgroundColor: '#C07840',
+    backgroundColor: '#D96C88',
     borderRadius: 999,
     paddingVertical: 15,
     alignItems: 'center',
-    shadowColor: '#945A41',
+    shadowColor: '#D96C88',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.24,
     shadowRadius: 10,

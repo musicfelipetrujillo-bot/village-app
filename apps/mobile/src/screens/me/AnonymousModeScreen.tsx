@@ -143,7 +143,7 @@ export default function AnonymousModeScreen({ navigation }: Props) {
 
       <ScrollView
         contentContainerStyle={styles.scroll}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#C07840" />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#D96C88" />}
       >
         <Text style={styles.lead}>{t('anonMode.lead')}</Text>
 
@@ -157,8 +157,8 @@ export default function AnonymousModeScreen({ navigation }: Props) {
             value={enabled}
             onValueChange={onToggle}
             disabled={saving}
-            trackColor={{ false: '#D1C5AC', true: '#C07840' }}
-            thumbColor={enabled ? '#FDFBF6' : '#FDFBF6'}
+            trackColor={{ false: '#D1C5AC', true: '#D96C88' }}
+            thumbColor={enabled ? '#FFFCF6' : '#FFFCF6'}
             accessibilityLabel={t('anonMode.toggleTitle')}
             accessibilityState={{ checked: enabled }}
           />
@@ -168,7 +168,7 @@ export default function AnonymousModeScreen({ navigation }: Props) {
         <Text style={styles.sectionLabel}>{t('anonMode.previewLabel')}</Text>
         <View style={styles.previewCard}>
           {previewBusy && !preview ? (
-            <ActivityIndicator color="#C07840" />
+            <ActivityIndicator color="#D96C88" />
           ) : preview ? (
             <>
               <Text style={styles.previewAlias}>{preview.alias}</Text>
@@ -201,7 +201,7 @@ export default function AnonymousModeScreen({ navigation }: Props) {
 
         {/* Your aliases (collapsed cards) */}
         {identitiesLoading ? (
-          <View style={styles.centerSmall}><ActivityIndicator color="#C07840" /></View>
+          <View style={styles.centerSmall}><ActivityIndicator color="#D96C88" /></View>
         ) : identities.length > 0 ? (
           <>
             <Text style={styles.sectionLabel}>{t('anonMode.yoursLabel')}</Text>
@@ -255,7 +255,7 @@ const styles = StyleSheet.create({
   },
 
   sectionLabel: {
-    fontSize: 11, fontFamily: FONTS.bodySemiBold, color: '#A77349',
+    fontSize: 11, fontFamily: FONTS.bodySemiBold, color: '#7A4A24',
     letterSpacing: 1.2, textTransform: 'uppercase', marginBottom: 10,
   },
 
@@ -267,7 +267,7 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: 'rgba(150,80,50,0.18)',
   },
   previewAlias: {
-    fontSize: 24, fontFamily: FONTS.headerBold, color: '#C07840',
+    fontSize: 24, fontFamily: FONTS.headerBold, color: '#D96C88',
     marginBottom: 4,
   },
   previewHint: {
@@ -280,9 +280,9 @@ const styles = StyleSheet.create({
   regenerateBtn: {
     paddingHorizontal: 18, paddingVertical: 8,
     borderRadius: 999,
-    borderWidth: 1.5, borderColor: '#C07840',
+    borderWidth: 1.5, borderColor: '#D96C88',
   },
-  regenerateText: { fontSize: 12, fontFamily: FONTS.bodySemiBold, color: '#C07840' },
+  regenerateText: { fontSize: 12, fontFamily: FONTS.bodySemiBold, color: '#D96C88' },
 
   howCard: {
     padding: 18, marginBottom: 24,
@@ -304,7 +304,7 @@ const styles = StyleSheet.create({
     borderRadius: 10, marginBottom: 8,
     borderWidth: 1, borderColor: 'rgba(150,80,50,0.18)',
   },
-  identityAlias: { fontSize: 14, fontFamily: FONTS.bodySemiBold, color: '#C07840' },
+  identityAlias: { fontSize: 14, fontFamily: FONTS.bodySemiBold, color: '#D96C88' },
   identityRoom: { fontSize: 12, fontFamily: FONTS.body, color: COLORS.barkSoft },
 
   footerHint: {

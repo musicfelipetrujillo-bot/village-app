@@ -14,7 +14,7 @@
 //
 // ─── Brand Kit v5 (v1) · legacy, still in use ──────────────────────────────
 // Primary (legacy canonical):
-//   pink   #F4CBC2 — soft warm blush. Hero washes, accent surfaces, pill
+//   pink   #F7C5CB — soft warm blush. Hero washes, accent surfaces, pill
 //                     bgs, decorative dot, "i" accent on wordmark.
 //   coco   #AD795B — warm caramel brown. Primary CTA, eyebrow accents,
 //                     mid-priority text, hairline rules, sienna replacement.
@@ -23,9 +23,9 @@
 //
 // Secondary support:
 //   bark   #3D1F0D — primary text (deep warm brown, not black)
-//   sage   #8B9A6B — calm/success accent (sits opposite the pinks)
-//   mauve  #B8909A — soft mid-tone for tags + secondary labels
-//   sand   #D4B896 — warm neutral for inner card surfaces + dividers
+//   sage   #E98A6A — calm/success accent (sits opposite the pinks)
+//   mauve  #F2E6DD — soft mid-tone for tags + secondary labels
+//   sand   #F2E6DD — warm neutral for inner card surfaces + dividers
 //   paper  #FDFAF5 — lifted surface tone for cards
 export const COLORS = {
   // ═══════════════════════════════════════════════════════════════════════
@@ -34,42 +34,54 @@ export const COLORS = {
   // ═══════════════════════════════════════════════════════════════════════
 
   // ─── Surfaces ───
-  v2_cream:       '#F4ECD8',  // page — almost every layout sits on this
-  v2_paper:       '#FDFBF6',  // alt page surface
-  v2_parchment:   '#EAE0C8',  // card bg, "Week 30" surfaces
-  v2_card:        '#FEFAF6',  // pure-white substitute — use instead of #FFFFFF
-  v2_butter:      '#FAD080',  // sunshine honey — card gradients, hero halos
-  v2_marigold:    '#F2C130',  // IG hero pop ("honey" energy)
+  v2_cream:       '#FCF7EF',  // page — almost every layout sits on this
+  v2_paper:       '#FFFCF6',  // alt page surface
+  v2_parchment:   '#F2E6DD',  // card bg, "Week 30" surfaces
+  v2_card:        '#FFFCF6',  // pure-white substitute — use instead of #FFFFFF
+  v2_butter:      '#F4C53C',  // sunshine honey — card gradients, hero halos
+  v2_marigold:    '#F4C53C',  // IG hero pop ("honey" energy)
+
+  // --- V10 Gen Z named tokens (canonical -- see docs/V10_GENZ_REBRAND.md) ---
+  genz_cream:      '#FCF7EF',  // app / page canvas
+  genz_bone:       '#FFFCF6',  // cards, raised surfaces
+  genz_honey:      '#F4C53C',  // bee, sunshine, secondary button
+  genz_rose:       '#D96C88',  // PRIMARY action
+  genz_berry:      '#C25A78',  // deep pink -- pressed CTA, small action text
+  genz_blush:      '#F7C5CB',  // soft tiles, chips, rings, empathy
+  genz_caramel:    '#E98A6A',  // warm chestnut accent, feature tiles
+  genz_clay:       '#F2E6DD',  // dividers, dashed borders, muted warm fills
+  genz_chestnut:   '#43260F',  // primary text, dark tiles
+  genz_softink:    '#7A4A24',  // secondary text, captions, eyebrows
 
   // ─── Action (one cinnamon per screen) ───
-  v2_cinnamon:    '#C07840',  // wordmark, CTA, link, active tab — the one spark
-  v2_cinnamon_dk: '#9F5F30',  // pressed CTA
+  v2_cinnamon:    '#D96C88',  // wordmark, CTA, link, active tab — the one spark
+  v2_cinnamon_dk: '#C25A78',  // pressed CTA
 
   // ─── Support row ───
-  v2_caramel:     '#D4A880',  // italic-name accent, neutral chips, "second spark" fallback
-  v2_blush:       '#F5BEB6',  // empathy moments, "we hear you" cards
-  v2_salmon:      '#EDA8A0',  // Feel chapter pill, soft action chips
+  v2_caramel:     '#E98A6A',  // italic-name accent, neutral chips, "second spark" fallback
+  v2_blush:       '#F7C5CB',  // empathy moments, "we hear you" cards
+  v2_salmon:      '#F7C5CB',  // Feel chapter pill, soft action chips
 
   // ─── Inks (warm-walnut family) ───
-  v2_cocoa:       '#3D1F0E',  // UI headlines, "Good morning" — use instead of #000000
-  v2_walnut:      '#7A4A28',  // IG body, body-text on cream
-  v2_amber:       '#A77349',  // eyebrows, captions, secondary copy
+  v2_cocoa:       '#43260F',  // UI headlines, "Good morning" — use instead of #000000
+  v2_walnut:      '#7A4A24',  // IG body, body-text on cream
+  v2_amber:       '#7A4A24',  // eyebrows, captions, secondary copy
 
   // ─── Reserve (use sparingly) ───
-  v2_sage:        '#D8CEB0',  // cool exhale, "Find moms"
-  v2_moss:        '#606E46',  // Heal chapter pill ONLY
+  v2_sage:        '#F2E6DD',  // cool exhale, "Find moms"
+  v2_moss:        '#E98A6A',  // Heal chapter pill ONLY
   v2_persimmon:   '#E0543B',  // IG ONLY — NEVER in app (use cinnamon for app actions)
 
   // ─── Manual chapter pills · "fresh" preset (in-app default) ───
-  v2_pill_feel:   '#EDA8A0',  // salmon
-  v2_pill_heal:   '#606E46',  // moss
-  v2_pill_feed:   '#FAD080',  // butter
-  v2_pill_sleep:  '#D4A880',  // caramel
-  v2_pill_tips:   '#C07840',  // cinnamon
+  v2_pill_feel:   '#F7C5CB',  // salmon
+  v2_pill_heal:   '#E98A6A',  // moss
+  v2_pill_feed:   '#F4C53C',  // butter
+  v2_pill_sleep:  '#F2E6DD',  // caramel
+  v2_pill_tips:   '#C25A78',  // cinnamon
 
   // ─── Manual chapter sub-palette · "original" preset (alternate, not default) ───
-  v2_feel_orig:   '#D09789',
-  v2_heal_orig:   '#6E7E51',
+  v2_feel_orig:   '#E98A6A',
+  v2_heal_orig:   '#E98A6A',
   v2_feed_orig:   '#C7B39B',
   v2_sleep_orig:  '#A1775F',
   v2_tips_orig:   '#986A50',
@@ -89,62 +101,62 @@ export const COLORS = {
   // Untouched: sage, mauve, sand, pink, paper — v1 hex stays because v2
   // counterparts serve different roles (sage v2 is much lighter; pink v2 is
   // a different blush; no v2 mauve/sand equivalent).
-  pink:         '#F4CBC2',  // hero accent, decorative wash, pill bg (v1)
-  pinkDeep:     '#E5A698',  // pressed/active pink (e.g. selected pill)
+  pink:         '#F7C5CB',  // hero accent, decorative wash, pill bg (v1)
+  pinkDeep:     '#D96C88',  // pressed/active pink (e.g. selected pill)
   pinkSoft:     '#FAE2DB',  // softer wash for surface tints
-  coco:         '#C07840',  // ▲ ROUTED → v2 cinnamon (was #AD795B)
-  cocoDeep:     '#9F5F30',  // ▲ ROUTED → v2 cinnamon dark (was #8B5E40)
-  cocoSoft:     '#D4A880',  // ▲ ROUTED → v2 caramel (was #C99B7C)
-  cream:        '#F4ECD8',  // ▲ ROUTED → v2 cream (was #F5EFE6)
+  coco:         '#D96C88',  // ▲ ROUTED → v2 cinnamon (was #AD795B)
+  cocoDeep:     '#C25A78',  // ▲ ROUTED → v2 cinnamon dark (was #E98A6A)
+  cocoSoft:     '#E98A6A',  // ▲ ROUTED → v2 caramel (was #E98A6A)
+  cream:        '#FCF7EF',  // ▲ ROUTED → v2 cream (was #F5EFE6)
 
   // Secondary support
-  bark:         '#3D1F0E',  // ▲ ROUTED → v2 cocoa (was #3D1F0D, ~identical)
-  barkSoft:     '#7A4A28',  // ▲ ROUTED → v2 walnut (was #5A3520)
-  sienna:       '#C07840',  // ▲ ROUTED → v2 cinnamon (alias of coco)
-  siennaDeep:   '#9F5F30',  // ▲ ROUTED → v2 cinnamon dark
-  sage:         '#8B9A6B',  // calm / success / nature (v1 — v2 sage is a different role)
-  sageDeep:     '#6B7A4B',
-  sageSoft:     '#EEF2E6',  // light sage wash — specialty tiles, success tints
-  mauve:        '#B8909A',  // tags, secondary labels — @deprecated use textLight
-  mauveDeep:    '#9A707A',  // @deprecated use textLight
-  sand:         '#D4B896',  // warm neutral surface
-  sandSoft:     '#EAE0C8',  // ▲ ROUTED → v2 parchment (was #E5D2B8)
-  paper:        '#FEFAF6',  // ▲ ROUTED → v2 card (was #FDFAF5, essentially same)
+  bark:         '#43260F',  // ▲ ROUTED → v2 cocoa (was #3D1F0D, ~identical)
+  barkSoft:     '#7A4A24',  // ▲ ROUTED → v2 walnut (was #7A4A24)
+  sienna:       '#D96C88',  // ▲ ROUTED → v2 cinnamon (alias of coco)
+  siennaDeep:   '#C25A78',  // ▲ ROUTED → v2 cinnamon dark
+  sage:         '#E98A6A',  // calm / success / nature (v1 — v2 sage is a different role)
+  sageDeep:     '#E98A6A',
+  sageSoft:     '#F2E6DD',  // light sage wash — specialty tiles, success tints
+  mauve:        '#F2E6DD',  // tags, secondary labels — @deprecated use textLight
+  mauveDeep:    '#7A4A24',  // @deprecated use textLight
+  sand:         '#F2E6DD',  // warm neutral surface
+  sandSoft:     '#F2E6DD',  // ▲ ROUTED → v2 parchment (was #F2E6DD)
+  paper:        '#FFFCF6',  // ▲ ROUTED → v2 card (was #FDFAF5, essentially same)
   // Functional status signals (not brand — used only for status badges)
   statusAlert:   '#D87530', // orange — active/expiring/time-sensitive states
   statusSuccess: '#2E7D32', // green  — verified/fulfilled/complete states
-  blush:        '#F4CBC2',  // = pink (legacy callers)
-  blushDeep:    '#E5A698',  // = pinkDeep
-  ceramic:      '#F4ECD8',  // ▲ ROUTED → v2 cream (was #F5EFE6)
+  blush:        '#F7C5CB',  // = pink (legacy callers)
+  blushDeep:    '#D96C88',  // = pinkDeep
+  ceramic:      '#FCF7EF',  // ▲ ROUTED → v2 cream (was #F5EFE6)
 
   // ─── Legacy aliases — @deprecated ───────────────────────────────────────
   // These resolve to canonical Brand Kit v5 tokens. New code should use
   // the canonical name directly. Aliases will be removed in a future sweep.
-  rust:         '#C07840',  // ▲ ROUTED → v2 cinnamon (was #AD795B)
-  rustDark:     '#9F5F30',  // ▲ ROUTED → v2 cinnamon dark
-  rustLight:    '#D4A880',  // ▲ ROUTED → v2 caramel
-  diner:        '#C07840',  // ▲ ROUTED → v2 cinnamon
-  dinerDark:    '#9F5F30',  // ▲ ROUTED → v2 cinnamon dark
-  dinerLight:   '#D4A880',  // ▲ ROUTED → v2 caramel
-  brownDeep:    '#3D1F0E',  // ▲ ROUTED → v2 cocoa
-  brownMid:     '#7A4A28',  // ▲ ROUTED → v2 walnut
-  textDark:     '#3D1F0E',  // ▲ ROUTED → v2 cocoa
-  textMid:      '#7A4A28',  // ▲ ROUTED → v2 walnut
-  textLight:    '#A77349',  // ▲ ROUTED → v2 amber (was #9A8070)
-  white:        '#FEFAF6',  // ▲ ROUTED → v2 card (no pure white per brand)
-  cardBg:       '#FEFAF6',  // ▲ ROUTED → v2 card
-  ceramicDeep:  '#EAE0C8',  // ▲ ROUTED → v2 parchment
-  creamDeep:    '#EAE0C8',  // ▲ ROUTED → v2 parchment
+  rust:         '#D96C88',  // ▲ ROUTED → v2 cinnamon (was #AD795B)
+  rustDark:     '#C25A78',  // ▲ ROUTED → v2 cinnamon dark
+  rustLight:    '#E98A6A',  // ▲ ROUTED → v2 caramel
+  diner:        '#D96C88',  // ▲ ROUTED → v2 cinnamon
+  dinerDark:    '#C25A78',  // ▲ ROUTED → v2 cinnamon dark
+  dinerLight:   '#E98A6A',  // ▲ ROUTED → v2 caramel
+  brownDeep:    '#43260F',  // ▲ ROUTED → v2 cocoa
+  brownMid:     '#7A4A24',  // ▲ ROUTED → v2 walnut
+  textDark:     '#43260F',  // ▲ ROUTED → v2 cocoa
+  textMid:      '#7A4A24',  // ▲ ROUTED → v2 walnut
+  textLight:    '#7A4A24',  // ▲ ROUTED → v2 amber (was #7A4A24)
+  white:        '#FFFCF6',  // ▲ ROUTED → v2 card (no pure white per brand)
+  cardBg:       '#FFFCF6',  // ▲ ROUTED → v2 card
+  ceramicDeep:  '#F2E6DD',  // ▲ ROUTED → v2 parchment
+  creamDeep:    '#F2E6DD',  // ▲ ROUTED → v2 parchment
   // ceramic: defined earlier in this block as legacy alias of cream — removed
   // duplicate here (TS1117 fix). The earlier declaration is the canonical one.
-  olive:        '#8B9A6B',  // @deprecated → sage (v1 sage stays, v2 sage is different role)
-  oliveLight:   '#A8B58A',  // @deprecated → no equivalent; use sage
-  lime:         '#A8B58A',  // @deprecated → no equivalent; use sage
-  limeDeep:     '#6B7A4B',  // @deprecated → sageDeep
-  yolk:         '#D4B896',  // @deprecated → sand
+  olive:        '#E98A6A',  // @deprecated → sage (v1 sage stays, v2 sage is different role)
+  oliveLight:   '#F2E6DD',  // @deprecated → no equivalent; use sage
+  lime:         '#F2E6DD',  // @deprecated → no equivalent; use sage
+  limeDeep:     '#E98A6A',  // @deprecated → sageDeep
+  yolk:         '#F2E6DD',  // @deprecated → sand
   yolkDark:     '#B59B7A',  // @deprecated → no equivalent; use sand
-  yolkLight:    '#E5D2B8',  // @deprecated → sandSoft
-  gold:         '#D4B896',  // @deprecated → sand
+  yolkLight:    '#F2E6DD',  // @deprecated → sandSoft
+  gold:         '#F2E6DD',  // @deprecated → sand
 } as const;
 
 export const FONTS = {
@@ -162,14 +174,14 @@ export const FONTS = {
   // below. Flips every screen that uses FONTS.headerBold / headerItalic
   // (51 files) to v3 typography without per-file sweeps. The Playfair
   // 400 Regular on `header` stays — it's used in <2 places.
-  header:       'PlayfairDisplay_400Regular',
-  headerBold:   'PlusJakartaSans_700Bold',                 // ▲ was Playfair 700
-  headerItalic: 'Fraunces_600SemiBold_Italic',             // ▲ was Playfair italic 600
+  header:       'BricolageGrotesque_400Regular',
+  headerBold:   'BricolageGrotesque_700Bold',                 // ▲ was Playfair 700
+  headerItalic: 'Caveat_600SemiBold',             // ▲ was Playfair italic 600
   // ▼ Body family rerouted to Plus Jakarta Sans (v2 canonical body)
-  body:         'PlusJakartaSans_400Regular',   // ▲ was Inter_400Regular
-  bodyMedium:   'PlusJakartaSans_500Medium',    // ▲ was Inter_500Medium
-  bodySemiBold: 'PlusJakartaSans_600SemiBold',  // ▲ was Inter_600SemiBold
-  bodyBold:     'PlusJakartaSans_700Bold',      // ▲ was Inter_700Bold
+  body:         'HankenGrotesk_400Regular',   // ▲ was Inter_400Regular
+  bodyMedium:   'HankenGrotesk_500Medium',    // ▲ was Inter_500Medium
+  bodySemiBold: 'HankenGrotesk_600SemiBold',  // ▲ was Inter_600SemiBold
+  bodyBold:     'HankenGrotesk_700Bold',      // ▲ was Inter_700Bold
 
   // ═══════════════════════════════════════════════════════════════════════
   // v2 brand kit (villie · May 2026) — CANONICAL going forward.
@@ -187,16 +199,16 @@ export const FONTS = {
   // display + Fraunces SemiBold Italic for the per-screen italic
   // flourish. Every screen referencing v2_display* automatically picks
   // up the v3 treatment without per-file edits.
-  v2_display:        'PlusJakartaSans_700Bold',           // ▲ was Playfair 700
-  v2_display_italic: 'Fraunces_600SemiBold_Italic',       // ▲ was Playfair italic
-  v2_display_big:    'PlusJakartaSans_700Bold',           // ▲ was Playfair 800 (no 800 grotesk loaded; 700 reads big enough at large sizes)
-  v2_wordmark:       'Caprasimo_400Regular',              // inline wordmark fallback only
-  v2_body:           'PlusJakartaSans_400Regular',        // body text
-  v2_label:          'PlusJakartaSans_500Medium',         // form labels
-  v2_link:           'PlusJakartaSans_600SemiBold',       // buttons + links
-  v2_bold:           'PlusJakartaSans_700Bold',           // emphasis
-  v2_mono:           'JetBrainsMono_500Medium',           // eyebrows + metadata
-  v2_mono_light:     'JetBrainsMono_400Regular',          // long mono blocks (rare)
+  v2_display:        'BricolageGrotesque_700Bold',           // ▲ was Playfair 700
+  v2_display_italic: 'Caveat_600SemiBold',       // ▲ was Playfair italic
+  v2_display_big:    'BricolageGrotesque_800ExtraBold',           // ▲ was Playfair 800 (no 800 grotesk loaded; 700 reads big enough at large sizes)
+  v2_wordmark:       'Caprasimo_400Regular',              // KEEP current logo — inline wordmark fallback stays Caprasimo (Felipe 2026-05-29: don't adopt kit's Bricolage wordmark)
+  v2_body:           'HankenGrotesk_400Regular',        // body text
+  v2_label:          'HankenGrotesk_500Medium',         // form labels
+  v2_link:           'HankenGrotesk_600SemiBold',       // buttons + links
+  v2_bold:           'HankenGrotesk_700Bold',           // emphasis
+  v2_mono:           'HankenGrotesk_600SemiBold',           // eyebrows + metadata
+  v2_mono_light:     'HankenGrotesk_500Medium',          // long mono blocks (rare)
 
   // ═══════════════════════════════════════════════════════════════════════
   // Brand Kit v3 (villie · May 24, 2026) — grotesk + Fraunces "wonky moment"
@@ -211,8 +223,11 @@ export const FONTS = {
   // tokens above stay live on the production screens until the wider
   // typography sweep ships (separate commit, ~50 mastheads).
   // ═══════════════════════════════════════════════════════════════════════
-  v3_display:        'PlusJakartaSans_700Bold',      // display heads — grotesk modern
-  v3_display_italic: 'Fraunces_600SemiBold_Italic',  // italic accent — "wonky moment"
+  v3_display:        'BricolageGrotesque_700Bold',      // display heads — grotesk modern
+  v3_display_italic: 'Caveat_600SemiBold',
+  // --- V10 Gen Z marker layer (Caveat handwriting) ---
+  v2_script:         'Caveat_400Regular',
+  marker:            'Caveat_400Regular',  // italic accent — "wonky moment"
 } as const;
 
 export const NAV_HEIGHT = 72;

@@ -156,7 +156,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: 4,
   },
-  checkEmoji: { color: '#FDFBF6', fontSize: 42, fontFamily: FONTS.bodySemiBold, lineHeight: 50 },
+  checkEmoji: { color: '#FFFCF6', fontSize: 42, fontFamily: FONTS.bodySemiBold, lineHeight: 50 },
 
   textBlock: { alignItems: 'center', gap: 6 },
   headline: {
@@ -176,7 +176,7 @@ const styles = StyleSheet.create({
     // v9 paper lift
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: 'rgba(150, 80, 50, 0.18)',
-    shadowColor: '#6B2E0E',
+    shadowColor: '#43260F',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.22,
     shadowRadius: 22,
@@ -204,7 +204,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     width: '100%',
   },
-  telehealthBtnText: { color: '#C07840', fontSize: 15, fontFamily: FONTS.bodySemiBold },
+  telehealthBtnText: { color: '#D96C88', fontSize: 15, fontFamily: FONTS.bodySemiBold },
 
   note: {
     fontSize: 12,
@@ -224,10 +224,10 @@ const styles = StyleSheet.create({
     borderTopColor: 'rgba(0,0,0,0.07)',
   },
   doneBtn: {
-    backgroundColor: '#C07840',
+    backgroundColor: '#D96C88',
     borderRadius: 14,
     paddingVertical: 16,
     alignItems: 'center',
   },
-  doneBtnText: { color: '#FDFBF6', fontSize: 16, fontFamily: FONTS.bodySemiBold },
+  doneBtnText: { color: '#FFFCF6', fontSize: 16, fontFamily: FONTS.bodySemiBold },
 });

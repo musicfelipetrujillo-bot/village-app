@@ -29,14 +29,14 @@
 // self-contained and renders identically in iOS Quick Look + Books +
 // any PDF reader).
 const PALETTE = {
-  cream: '#F4ECD8',
-  paper: '#FDFBF6',
-  parchment: '#EAE0C8',
-  cinnamon: '#C07840',
-  salmon: '#EDA8A0',
-  cocoa: '#3D1F0E',
+  cream: '#FCF7EF',
+  paper: '#FFFCF6',
+  parchment: '#F2E6DD',
+  cinnamon: '#D96C88',
+  salmon: '#F7C5CB',
+  cocoa: '#43260F',
   walnut: '#7A4A28',
-  amber: '#A77349',
+  amber: '#7A4A24',
 };
 
 // Display + body type stacks. PDF renderers fall back through these,

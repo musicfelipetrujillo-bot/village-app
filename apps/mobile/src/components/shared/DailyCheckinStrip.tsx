@@ -111,7 +111,7 @@ const styles = StyleSheet.create({
   // hairline rust border (rgba(150,80,50,0.18)) + cocoa-tinted floating
   // shadow for the "lifted off the page" depth Felipe wants.
   strip: {
-    backgroundColor: COLORS.v2_card,                      // #FEFAF6 paper-warm
+    backgroundColor: COLORS.v2_card,                      // #FFFCF6 paper-warm
     borderRadius: 14,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: 'rgba(150,80,50,0.18)',
@@ -126,7 +126,7 @@ const styles = StyleSheet.create({
     gap: 10,
     // Richer floating shadow — was 0.18/14r/elev 4. Bump to 0.22/18r/
     // elev 6 + tighter contact shadow via the inset glow above.
-    shadowColor: '#6B2E0E',
+    shadowColor: '#43260F',
     shadowOpacity: 0.22,
     shadowOffset: { width: 0, height: 10 },
     shadowRadius: 22,
@@ -147,7 +147,7 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.bodySemiBold,
     fontSize: 9,
     letterSpacing: 2.2,
-    color: '#A77349',
+    color: '#7A4A24',
     textTransform: 'uppercase',
     marginBottom: 2,
   },
@@ -155,7 +155,7 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.headerBold,
     fontSize: 13,
     lineHeight: 14,
-    color: '#3D1F0D',
+    color: '#43260F',
     letterSpacing: -0.2,
   },
   arrow: {
@@ -165,7 +165,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.v2_cinnamon,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#945A41',
+    shadowColor: '#D96C88',
     shadowOpacity: 0.42,
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 8,
@@ -194,7 +194,7 @@ const styles = StyleSheet.create({
     height: 52,
     // Cocoa drop shadow — makes the bee hover above the page like
     // she's standing there, not stuck on it.
-    shadowColor: '#6B2E0E',
+    shadowColor: '#43260F',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.32,
     shadowRadius: 10,

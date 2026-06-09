@@ -1,6 +1,17 @@
 import { supabase } from '@/lib/supabase';
 import { getPreferredRadiusMiles } from '@store/user';
 
+/** Optional, donor-PROVIDED social links (migration 075). Self-attested social
+ *  proof — NOT verified by The Village. Stored as handles/URLs the donor typed. */
+export interface SocialLinks {
+  instagram?: string;
+  tiktok?: string;
+  facebook?: string;
+  website?: string;
+}
+
+export type SocialPlatform = keyof SocialLinks;
+
 export interface MilkDonorProfile {
   id: string;
   user_id: string;
@@ -19,8 +30,38 @@ export interface MilkDonorProfile {
   is_verified: boolean;
   stripe_account_id: string | null;
   stripe_onboarding_complete: boolean;
+  // Optional donor-provided social links (migration 075). Optional so older
+  // backends that don't return the column degrade cleanly.
+  social_links?: SocialLinks | null;
   created_at: string;
   updated_at: string;
+}
+
+/** Build a tappable URL from a donor-entered handle/URL for a platform.
+ *  Returns null when empty. Accepts a bare handle (with/without @) or a full URL. */
+export function socialUrl(platform: SocialPlatform, raw?: string | null): string | null {
+  const v = (raw ?? '').trim();
+  if (!v) return null;
+  if (/^https?:\/\//i.test(v)) return v;            // already a full URL
+  const handle = v.replace(/^@+/, '').replace(/^\/+/, '');
+  switch (platform) {
+    case 'instagram': return `https://instagram.com/${handle}`;
+    case 'tiktok':    return `https://tiktok.com/@${handle}`;
+    case 'facebook':  return `https://facebook.com/${handle}`;
+    case 'website':   return `https://${handle}`;
+  }
+}
+
+/** Display label for a donor-entered social value (e.g. "@handle" / domain). */
+export function socialLabel(platform: SocialPlatform, raw?: string | null): string {
+  const v = (raw ?? '').trim();
+  if (!v) return '';
+  if (platform === 'website') return v.replace(/^https?:\/\//i, '').replace(/\/+$/, '');
+  if (/^https?:\/\//i.test(v)) {
+    const tail = v.replace(/^https?:\/\/[^/]+\//i, '').replace(/^@+/, '');
+    return tail ? `@${tail}` : v;
+  }
+  return `@${v.replace(/^@+/, '')}`;
 }
 
 export interface MilkTrustBadge {

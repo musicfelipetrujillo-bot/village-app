@@ -8,15 +8,18 @@ import { FlashList } from '@shopify/flash-list';
 import { useNavigation } from '@react-navigation/native';
 import { COLORS, FONTS } from '@utils/constants';
 import { V9PageBackdrop } from '@components/shared/V9PageBackdrop';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useT } from '@/i18n';
 import { useGearStore } from '@store/gear';
 import {
   gearApi,
   categoryLabel,
   formatPrice,
+  isListingBoosted,
   type MyListingRow,
   type GearStatus,
 } from '@api/gear';
+import { isGearBoostEnabled } from '@/lib/boost';
 
 type TFn = (key: string, params?: Record<string, string | number>) => string;
 
@@ -33,6 +36,7 @@ export default function MyListingsScreen() {
   const navigation = useNavigation<any>();
   const { myListings, fetchMyListings } = useGearStore();
   const [loading, setLoading] = React.useState(false);
+  const boostEnabled = isGearBoostEnabled();
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -81,6 +85,12 @@ export default function MyListingsScreen() {
   return (
     <View style={styles.container}>
       <V9PageBackdrop />
+      <LinearGradient
+        pointerEvents="none"
+        colors={['rgba(244,197,60,0.26)', 'rgba(244,197,60,0.08)', 'rgba(252,247,239,0)']}
+        locations={[0, 0.45, 1]}
+        style={styles.pageWash}
+      />
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} accessibilityLabel={t('myListings.backA11y')}>
           <Text style={styles.back}>{t('myListings.back')}</Text>
@@ -98,15 +108,19 @@ export default function MyListingsScreen() {
           <Row
             row={item}
             t={t}
+            boostEnabled={boostEnabled}
             onOpen={() => navigation.navigate('GearListingDetail', { id: item.id })}
             onMarkSold={() => markSold(item.id)}
             onWithdraw={() => withdraw(item.id)}
             onReactivate={() => reactivate(item.id)}
+            onBoost={() => navigation.navigate('BoostListing', {
+              listingId: item.id, listingTitle: item.title, boostedUntil: item.boosted_until,
+            })}
           />
         )}
         ListEmptyComponent={
           loading ? (
-            <ActivityIndicator color="#C07840" style={{ marginTop: 40 }} />
+            <ActivityIndicator color="#D96C88" style={{ marginTop: 40 }} />
           ) : (
             <View style={styles.empty}>
               <Text style={styles.emptyEmoji}>{t('myListings.emptyEmoji')}</Text>
@@ -133,17 +147,20 @@ export default function MyListingsScreen() {
 }
 
 function Row({
-  row, t, onOpen, onMarkSold, onWithdraw, onReactivate,
+  row, t, boostEnabled, onOpen, onMarkSold, onWithdraw, onReactivate, onBoost,
 }: {
   row: MyListingRow;
   t: TFn;
+  boostEnabled: boolean;
   onOpen: () => void;
   onMarkSold: () => void;
   onWithdraw: () => void;
   onReactivate: () => void;
+  onBoost: () => void;
 }) {
   const sc = STATUS_COLORS[row.status];
   const statusLabel = t(sc.i18nKey);
+  const boosted = isListingBoosted(row.boosted_until);
   return (
     <TouchableOpacity
       style={styles.card}
@@ -163,13 +180,26 @@ function Row({
         <Text style={styles.cat}>{categoryLabel(row.category).toUpperCase()}</Text>
         <Text style={styles.title} numberOfLines={2}>{row.title}</Text>
         <View style={styles.metaRow}>
-          <Text style={[styles.statusPill, { backgroundColor: sc.bg, color: sc.fg }]}>{statusLabel}</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+            <Text style={[styles.statusPill, { backgroundColor: sc.bg, color: sc.fg }]}>{statusLabel}</Text>
+            {boosted && <Text style={styles.boostedPill}>{t('myListings.boostedPill')}</Text>}
+          </View>
           <Text style={styles.price}>
             {formatPrice(row.price_cents, row.is_free, row.currency)}
           </Text>
         </View>
         <Text style={styles.stats}>{t('myListings.stats', { views: row.view_count, saves: row.save_count })}</Text>
         <View style={styles.actions}>
+          {row.status === 'active' && !boosted && boostEnabled && (
+            <TouchableOpacity
+              onPress={onBoost}
+              style={[styles.actionBtn, styles.boostBtn]}
+              accessibilityRole="button"
+              accessibilityLabel={t('myListings.actionBoostA11y')}
+            >
+              <Text style={[styles.actionBtnText, styles.boostBtnText]}>{t('myListings.actionBoost')}</Text>
+            </TouchableOpacity>
+          )}
           {row.status === 'active' && (
             <>
               <TouchableOpacity
@@ -208,15 +238,16 @@ function Row({
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: 'transparent' },
+  pageWash: { position: 'absolute', top: 0, left: 0, right: 0, height: 620 },
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingTop: 56, paddingBottom: 12, paddingHorizontal: 16,
     backgroundColor: COLORS.paper,
     borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.06)',
   },
-  back: { fontSize: 15, color: '#C07840', fontFamily: FONTS.bodySemiBold },
+  back: { fontSize: 15, color: '#D96C88', fontFamily: FONTS.bodySemiBold },
   headerTitle: { fontSize: 17, fontFamily: FONTS.bodySemiBold, color: COLORS.bark },
-  headerLink: { fontSize: 14, color: '#C07840', fontFamily: FONTS.bodySemiBold },
+  headerLink: { fontSize: 14, color: '#D96C88', fontFamily: FONTS.bodySemiBold },
 
   empty: { alignItems: 'center', paddingTop: 80, paddingHorizontal: 32, gap: 8 },
   emptyEmoji: { fontSize: 52, marginBottom: 8 },
@@ -225,16 +256,16 @@ const styles = StyleSheet.create({
     fontSize: 14, color: COLORS.barkSoft, textAlign: 'center', lineHeight: 21, marginBottom: 8, fontFamily: FONTS.body,
   },
   emptyBtn: {
-    marginTop: 8, backgroundColor: '#C07840', borderRadius: 14,
+    marginTop: 8, backgroundColor: '#D96C88', borderRadius: 14,
     paddingHorizontal: 24, paddingVertical: 14,
   },
-  emptyBtnText: { color: '#FDFBF6', fontSize: 15, fontFamily: FONTS.bodySemiBold },
+  emptyBtnText: { color: '#FFFCF6', fontSize: 15, fontFamily: FONTS.bodySemiBold },
 
   card: {
     flexDirection: 'row', backgroundColor: COLORS.paper, borderRadius: 14,
     padding: 8, gap: 12, marginBottom: 12,
     borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(150, 80, 50, 0.18)',
-    shadowColor: '#6B2E0E', shadowOffset: { width: 0, height: 6 },
+    shadowColor: '#43260F', shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.18, shadowRadius: 20, elevation: 3,
   },
   thumb: { width: 88, height: 88, borderRadius: 10, backgroundColor: COLORS.cream },
@@ -252,6 +283,11 @@ const styles = StyleSheet.create({
   },
   price: { fontSize: 14, fontFamily: FONTS.bodySemiBold, color: COLORS.cocoDeep },
   stats: { fontSize: 11, color: COLORS.textLight, marginTop: 4, fontFamily: FONTS.body },
+  boostedPill: {
+    fontSize: 10, fontFamily: FONTS.bodySemiBold, letterSpacing: 0.4,
+    paddingHorizontal: 7, paddingVertical: 2, borderRadius: 4, overflow: 'hidden',
+    backgroundColor: COLORS.v2_marigold, color: COLORS.v2_cocoa,
+  },
 
   actions: { flexDirection: 'row', gap: 10, marginTop: 8 },
   actionBtn: {
@@ -259,4 +295,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10, paddingVertical: 6,
   },
   actionBtnText: { fontSize: 11, fontFamily: FONTS.bodySemiBold, color: COLORS.cocoDeep },
+  boostBtn: { backgroundColor: '#D96C88' },
+  boostBtnText: { color: '#FFFCF6' },
 });

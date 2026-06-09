@@ -211,11 +211,11 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 0, left: 0,
     width: FAB_SIZE, height: FAB_SIZE, borderRadius: FAB_SIZE / 2,
-    backgroundColor: '#C07840',
+    backgroundColor: '#D96C88',
     alignItems: 'center', justifyContent: 'center',
     ...Platform.select({
       ios: {
-        shadowColor: '#6B2E0E',
+        shadowColor: '#43260F',
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.25,
         shadowRadius: 8,
@@ -230,7 +230,7 @@ const styles = StyleSheet.create({
   pulseRing: {
     position: 'absolute',
     width: FAB_SIZE, height: FAB_SIZE, borderRadius: FAB_SIZE / 2,
-    backgroundColor: '#C07840',
+    backgroundColor: '#D96C88',
     // Ring appears behind fab button content via z-index ordering (first child = lowest).
   },
   icon: { fontSize: 26 },

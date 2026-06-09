@@ -166,7 +166,7 @@ export default function ReportListingModal({
             accessibilityState={{ disabled: !canSubmit }}
           >
             {submitting
-              ? <ActivityIndicator color="#FDFBF6" />
+              ? <ActivityIndicator color="#FFFCF6" />
               : <Text style={styles.ctaLabel}>Submit report</Text>}
           </TouchableOpacity>
         </View>

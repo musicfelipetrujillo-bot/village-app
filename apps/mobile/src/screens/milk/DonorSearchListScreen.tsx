@@ -14,6 +14,7 @@ import { FilterDrawerModal } from '@components/milk/FilterDrawerModal';
 import type { MilkFilters } from '@components/milk/FilterDrawerModal';
 import { COLORS, FONTS } from '@utils/constants';
 import { V9PageBackdrop } from '@components/shared/V9PageBackdrop';
+import { LinearGradient } from 'expo-linear-gradient';
 import { getEffectiveCoords } from '@utils/devLocation';
 import { useT } from '@/i18n';
 import type { MilkStackParamList } from '@/navigation/MilkNavigator';
@@ -151,6 +152,12 @@ export default function DonorSearchListScreen({ navigation }: Props) {
   return (
     <View style={styles.container}>
       <V9PageBackdrop />
+      <LinearGradient
+        pointerEvents="none"
+        colors={['rgba(247,197,203,0.36)', 'rgba(247,197,203,0.10)', 'rgba(252,247,239,0)']}
+        locations={[0, 0.45, 1]}
+        style={styles.pageWash}
+      />
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity
@@ -179,7 +186,7 @@ export default function DonorSearchListScreen({ navigation }: Props) {
           placeholder={t('donorSearch.searchPlaceholder')}
           value={search}
           onChangeText={setSearch}
-          placeholderTextColor="#9A8070"
+          placeholderTextColor="#7A4A24"
         />
         <TouchableOpacity
           style={[styles.filterBtn, activeFilterCount > 0 && styles.filterBtnActive]}
@@ -205,7 +212,7 @@ export default function DonorSearchListScreen({ navigation }: Props) {
 
       {loading ? (
         <View style={styles.center}>
-          <ActivityIndicator color="#C07840" size="large" />
+          <ActivityIndicator color="#D96C88" size="large" />
           <Text style={styles.loadingText}>{t('donorSearch.loadingText')}</Text>
         </View>
       ) : (
@@ -247,6 +254,7 @@ export default function DonorSearchListScreen({ navigation }: Props) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: 'transparent' },
+  pageWash: { position: 'absolute', top: 0, left: 0, right: 0, height: 620 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12, padding: 32 },
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
@@ -254,20 +262,20 @@ const styles = StyleSheet.create({
     backgroundColor: '#F5F0E8',
   },
   backBtn: { padding: 4 },
-  backText: { fontSize: 15, color: '#C07840', fontFamily: FONTS.bodySemiBold },
-  headerTitle: { fontSize: 17, fontFamily: FONTS.bodySemiBold, color: '#2C1810' },
+  backText: { fontSize: 15, color: '#D96C88', fontFamily: FONTS.bodySemiBold },
+  headerTitle: { fontSize: 17, fontFamily: FONTS.bodySemiBold, color: '#43260F' },
   mapBtn: {
     backgroundColor: COLORS.paper, borderRadius: 20, paddingHorizontal: 12, paddingVertical: 6,
     borderWidth: 1.5, borderColor: '#E0D5C5',
   },
-  mapBtnText: { fontSize: 13, fontFamily: FONTS.bodySemiBold, color: '#2C1810' },
+  mapBtnText: { fontSize: 13, fontFamily: FONTS.bodySemiBold, color: '#43260F' },
   searchRow: {
     flexDirection: 'row', gap: 10, paddingHorizontal: 16, paddingVertical: 10,
   },
   searchInput: {
     flex: 1, backgroundColor: COLORS.paper, borderRadius: 12,
     paddingHorizontal: 14, paddingVertical: 10,
-    fontSize: 14, color: '#2C1810',
+    fontSize: 14, color: '#43260F',
     borderWidth: 1.5, borderColor: '#E0D5C5', fontFamily: FONTS.body,
   },
   filterBtn: {
@@ -275,17 +283,17 @@ const styles = StyleSheet.create({
     borderWidth: 1.5, borderColor: '#E0D5C5', justifyContent: 'center',
   },
   filterBtnActive: { borderColor: COLORS.coco, backgroundColor: COLORS.pinkSoft },
-  filterBtnText: { fontSize: 13, fontFamily: FONTS.bodySemiBold, color: '#6B5C52' },
+  filterBtnText: { fontSize: 13, fontFamily: FONTS.bodySemiBold, color: '#7A4A24' },
   filterBtnTextActive: { color: COLORS.coco },
-  resultCount: { fontSize: 12, color: '#9A8070', paddingHorizontal: 16, marginBottom: 4, fontFamily: FONTS.bodyMedium },
+  resultCount: { fontSize: 12, color: '#7A4A24', paddingHorizontal: 16, marginBottom: 4, fontFamily: FONTS.bodyMedium },
   list: { paddingBottom: 40, paddingTop: 4 },
-  loadingText: { fontSize: 14, color: '#9A8070', fontFamily: FONTS.bodyMedium },
+  loadingText: { fontSize: 14, color: '#7A4A24', fontFamily: FONTS.bodyMedium },
   errorEmoji: { fontSize: 48 },
-  errorTitle: { fontSize: 20, fontFamily: FONTS.bodySemiBold, color: '#2C1810' },
-  errorBody: { fontSize: 14, color: '#9A8070', textAlign: 'center', lineHeight: 21, fontFamily: FONTS.body },
+  errorTitle: { fontSize: 20, fontFamily: FONTS.bodySemiBold, color: '#43260F' },
+  errorBody: { fontSize: 14, color: '#7A4A24', textAlign: 'center', lineHeight: 21, fontFamily: FONTS.body },
   empty: { alignItems: 'center', paddingTop: 60, gap: 10 },
   emptyEmoji: { fontSize: 48 },
-  emptyTitle: { fontSize: 20, fontFamily: FONTS.bodySemiBold, color: '#2C1810' },
-  emptyBody: { fontSize: 14, color: '#9A8070', textAlign: 'center', lineHeight: 21, fontFamily: FONTS.body },
-  emptyReset: { fontSize: 14, color: '#C07840', fontFamily: FONTS.bodySemiBold, marginTop: 8 },
+  emptyTitle: { fontSize: 20, fontFamily: FONTS.bodySemiBold, color: '#43260F' },
+  emptyBody: { fontSize: 14, color: '#7A4A24', textAlign: 'center', lineHeight: 21, fontFamily: FONTS.body },
+  emptyReset: { fontSize: 14, color: '#D96C88', fontFamily: FONTS.bodySemiBold, marginTop: 8 },
 });

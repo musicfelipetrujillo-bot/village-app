@@ -23,7 +23,10 @@ export interface ManualVideo {
   title: string;
   description: string;
   duration_seconds: number;
-  mux_playback_id: string;
+  mux_playback_id: string | null;
+  // Self-hosted animated HTML clip (Claude Design export). When set, the
+  // player loads this URL in the WebView instead of the Mux player.
+  html_url: string | null;
   thumbnail_url: string;
   poster_url: string | null;
   has_captions_en: boolean;
@@ -115,6 +118,20 @@ export function muxPlayerUrl(playbackId: string, opts?: {
   return `https://player.mux.com/${playbackId}${qs ? `?${qs}` : ''}`;
 }
 
+// Self-hosted manual-video origin. HTML clips + their poster thumbnails are
+// stored in the DB as relative paths (`/manual-videos/...`); we prepend this
+// origin at read time so the same rows work in dev (localhost) and prod (the
+// deployed village website). Absolute URLs (Mux/Pexels) pass through untouched.
+export const MANUAL_VIDEO_ORIGIN =
+  process.env.EXPO_PUBLIC_MANUAL_VIDEO_ORIGIN ?? 'http://localhost:8090';
+
+function absManualUrl<T extends string | null | undefined>(u: T): T {
+  if (typeof u === 'string' && u.startsWith('/manual-videos')) {
+    return `${MANUAL_VIDEO_ORIGIN}${u}` as T;
+  }
+  return u;
+}
+
 // Format duration as "M:SS" for the badge on each thumbnail.
 export function formatDuration(totalSeconds: number): string {
   const s = Math.max(0, Math.floor(totalSeconds));
@@ -134,7 +151,11 @@ export async function listManualVideos(
     p_locale:   locale,
   });
   if (error) throw error;
-  return (data ?? []) as ManualVideo[];
+  return (data ?? []).map((v: ManualVideo) => ({
+    ...v,
+    html_url: absManualUrl(v.html_url),
+    thumbnail_url: absManualUrl(v.thumbnail_url),
+  })) as ManualVideo[];
 }
 
 // ── Manual pieces (Phase 4.5, migration 072) ──────────────────────────────
@@ -190,7 +211,10 @@ export async function listThisWeekManual(
     p_locale: locale,
   });
   if (error) throw error;
-  return (data ?? []) as ManualVideoTile[];
+  return (data ?? []).map((t: ManualVideoTile) => ({
+    ...t,
+    thumbnail_url: absManualUrl(t.thumbnail_url),
+  })) as ManualVideoTile[];
 }
 
 // Fetch one video by id (used by ManualVideoScreen on mount). The list RPC

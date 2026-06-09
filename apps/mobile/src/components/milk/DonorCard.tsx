@@ -149,7 +149,7 @@ const styles = StyleSheet.create({
     marginVertical: 6,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: 'rgba(150,80,50,0.18)',
-    shadowColor: '#6B2E0E',
+    shadowColor: '#43260F',
     shadowOpacity: 0.22,
     shadowOffset: { width: 0, height: 8 },
     shadowRadius: 22,
@@ -166,10 +166,10 @@ const styles = StyleSheet.create({
     fontSize: 10,
     letterSpacing: 1.6,
     fontFamily: FONTS.bodySemiBold,
-    color: '#A77349',                 // v9 eyebrow = amber
+    color: '#E27A93',                 // Milk signature: rose-pink eyebrow
   },
   verifiedBadge: {
-    backgroundColor: '#EEF2E6',
+    backgroundColor: '#F2E6DD',
     borderRadius: 50,
     paddingVertical: 2,
     paddingHorizontal: 7,
@@ -207,7 +207,7 @@ const styles = StyleSheet.create({
   },
   nameLast: {
     fontFamily: FONTS.headerItalic,
-    color: '#C07840',                 // v9 italic accent = cinnamon (one per card)
+    color: '#D96C88',                 // v9 italic accent = cinnamon (one per card)
   },
   location: {
     fontSize: 12,
@@ -217,7 +217,7 @@ const styles = StyleSheet.create({
   },
   heartHit: { paddingLeft: 6, alignSelf: 'flex-start' },
   heart: { fontSize: 22, color: '#C5B8AE' },
-  heartSaved: { color: '#C07840' },   // v9 saved = cinnamon (action state)
+  heartSaved: { color: '#D96C88' },   // v9 saved = cinnamon (action state)
 
   metaRow: {
     flexDirection: 'row',

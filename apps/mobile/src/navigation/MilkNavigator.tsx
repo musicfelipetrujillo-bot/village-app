@@ -30,6 +30,7 @@ import BecomeDonorIntroScreen from '@screens/milk/BecomeDonorIntroScreen';
 import DonorQuestionnaireScreen from '@screens/milk/DonorQuestionnaireScreen';
 import TrustBadgeBuilderScreen from '@screens/milk/TrustBadgeBuilderScreen';
 import CreateListingScreen from '@screens/milk/CreateListingScreen';
+import DonorSocialLinksScreen from '@screens/milk/DonorSocialLinksScreen';
 import StripeOnboardingScreen from '@screens/milk/StripeOnboardingScreen';
 import OnboardingCompleteScreen from '@screens/milk/OnboardingCompleteScreen';
 
@@ -76,6 +77,7 @@ export type MilkStackParamList = {
   // M2 — Donor dashboard
   DonorDashboard: undefined;
   DonorListingManager: undefined;
+  DonorSocialLinks: { donorProfileId: string };
   // M3 — AI Match + Purchase
   MilkMatch: undefined;
   MilkPurchase: { donorProfileId: string; listingId: string };
@@ -116,6 +118,7 @@ export function MilkNavigator() {
       <Stack.Screen name="DonorQuestionnaire" component={DonorQuestionnaireScreen} />
       <Stack.Screen name="TrustBadgeBuilder" component={TrustBadgeBuilderScreen} />
       <Stack.Screen name="CreateListing" component={CreateListingScreen} />
+      <Stack.Screen name="DonorSocialLinks" component={DonorSocialLinksScreen} />
       <Stack.Screen name="StripeOnboarding" component={StripeOnboardingScreen} />
       <Stack.Screen name="OnboardingComplete" component={OnboardingCompleteScreen} />
       {/* M2 */}

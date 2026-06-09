@@ -87,7 +87,7 @@ export default function EditProfileScreen({ navigation }: Props) {
     return (
       <SafeAreaView style={s.safe}>
         <View style={s.centerMsg}>
-          <ActivityIndicator color="#C07840" />
+          <ActivityIndicator color="#D96C88" />
           <Text style={s.emptyText}>{t('editProfile.loadingProfile')}</Text>
         </View>
       </SafeAreaView>
@@ -282,7 +282,7 @@ function EditProfileForm({
           accessibilityState={{ disabled: !dirty || saving }}
         >
           {saving ? (
-            <ActivityIndicator color="#C07840" />
+            <ActivityIndicator color="#D96C88" />
           ) : (
             <Text style={[s.topLink, s.topLinkPrimary, (!dirty) && s.topLinkDisabled]}>{t('editProfile.topSave')}</Text>
           )}
@@ -310,7 +310,7 @@ function EditProfileForm({
             )}
             {avatarUploading ? (
               <View style={s.avatarOverlay}>
-                <ActivityIndicator color="#FDFBF6" />
+                <ActivityIndicator color="#FFFCF6" />
               </View>
             ) : (
               <View style={s.avatarBadge}>
@@ -444,7 +444,7 @@ const s = StyleSheet.create({
   errText: {
     fontFamily: FONTS.body,
     fontSize: 12,
-    color: '#A77349',
+    color: '#7A4A24',
     marginTop: 6,
   },
 
@@ -458,7 +458,7 @@ const s = StyleSheet.create({
     backgroundColor: COLORS.paper,
   },
   stageChipActive: {
-    borderColor: '#C07840',                                            // v9 active = cinnamon
+    borderColor: '#D96C88',                                            // v9 active = cinnamon
     backgroundColor: 'rgba(192,120,64,0.08)',
   },
   stageChipText: {
@@ -466,7 +466,7 @@ const s = StyleSheet.create({
     fontSize: 14,
     color: COLORS.bark,
   },
-  stageChipTextActive: { color: '#3D1F0E' },                           // cocoa ink on cinnamon-tint pill
+  stageChipTextActive: { color: '#43260F' },                           // cocoa ink on cinnamon-tint pill
 
   helper: {
     fontFamily: FONTS.body,
@@ -497,11 +497,11 @@ const s = StyleSheet.create({
   },
   // v9 canonical CTA — cinnamon + action-deep shadow.
   retryBtn: {
-    backgroundColor: '#C07840',
+    backgroundColor: '#D96C88',
     paddingHorizontal: 28,
     paddingVertical: 12,
     borderRadius: 999,
-    shadowColor: '#945A41', shadowOffset: { width: 0, height: 4 },
+    shadowColor: '#D96C88', shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.24, shadowRadius: 10, elevation: 3,
   },
   retryBtnText: {
@@ -521,7 +521,7 @@ const s = StyleSheet.create({
   avatarFallbackText: {
     fontFamily: FONTS.headerBold,
     fontSize: 36,
-    color: '#FDFBF6',
+    color: '#FFFCF6',
   },
   avatarOverlay: {
     position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
@@ -533,11 +533,11 @@ const s = StyleSheet.create({
   avatarBadge: {
     position: 'absolute', right: 0, bottom: 0,
     width: 30, height: 30, borderRadius: 15,
-    backgroundColor: '#C07840',
+    backgroundColor: '#D96C88',
     alignItems: 'center', justifyContent: 'center',
     borderWidth: 2, borderColor: COLORS.cream,
   },
-  avatarBadgeText: { color: '#FDFBF6', fontSize: 14, fontFamily: FONTS.bodySemiBold },
+  avatarBadgeText: { color: '#FFFCF6', fontSize: 14, fontFamily: FONTS.bodySemiBold },
   avatarHint: {
     fontFamily: FONTS.body,
     fontSize: 12,

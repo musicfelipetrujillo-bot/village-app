@@ -80,7 +80,7 @@ export default function MilkOrderConfirmScreen({ navigation, route }: Props) {
             <View style={styles.addressCard}>
               <Text style={styles.addressLabel}>{t('milkOrderConfirm.pickupCardLabel')}</Text>
               {loading ? (
-                <ActivityIndicator color="#C07840" style={{ marginVertical: 12 }} />
+                <ActivityIndicator color="#D96C88" style={{ marginVertical: 12 }} />
               ) : address ? (
                 <>
                   {address.donor_address_line && (
@@ -154,42 +154,42 @@ const styles = StyleSheet.create({
 
   checkCircle: {
     width: 90, height: 90, borderRadius: 45,
-    backgroundColor: '#6B7C3F',
+    backgroundColor: '#E98A6A',
     alignItems: 'center', justifyContent: 'center', marginBottom: 20,
   },
-  checkMark: { fontSize: 48, color: '#FDFBF6', fontFamily: FONTS.bodySemiBold },
+  checkMark: { fontSize: 48, color: '#FFFCF6', fontFamily: FONTS.bodySemiBold },
 
   // v9 — Playfair Bold roman title
-  title: { fontSize: 28, fontFamily: FONTS.headerBold, color: '#2C1810', marginBottom: 6, letterSpacing: -0.5, lineHeight: 34 },
-  subtitle: { fontSize: 15, color: '#6B5C52', textAlign: 'center', marginBottom: 28 },
+  title: { fontSize: 28, fontFamily: FONTS.headerBold, color: '#43260F', marginBottom: 6, letterSpacing: -0.5, lineHeight: 34 },
+  subtitle: { fontSize: 15, color: '#7A4A24', textAlign: 'center', marginBottom: 28 },
 
   summaryCard: {
     width: '100%', backgroundColor: COLORS.paper, borderRadius: 14, padding: 16, marginBottom: 16,
     borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(150, 80, 50, 0.18)',
-    shadowColor: '#6B2E0E', shadowOffset: { width: 0, height: 8 },
+    shadowColor: '#43260F', shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.22, shadowRadius: 22, elevation: 5,
   },
   row: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 8 },
-  key: { fontSize: 13, color: '#9A8070' },
-  val: { fontSize: 14, fontFamily: FONTS.bodyMedium, color: '#2C1810' },
+  key: { fontSize: 13, color: '#7A4A24' },
+  val: { fontSize: 14, fontFamily: FONTS.bodyMedium, color: '#43260F' },
   totalRow: { borderTopWidth: 1, borderTopColor: 'rgba(0,0,0,0.06)', marginTop: 4, paddingTop: 12 },
-  totalKey: { fontSize: 14, fontFamily: FONTS.bodySemiBold, color: '#2C1810' },
+  totalKey: { fontSize: 14, fontFamily: FONTS.bodySemiBold, color: '#43260F' },
   totalVal: { fontSize: 18, fontFamily: FONTS.bodySemiBold, color: COLORS.coco },
 
   addressCard: {
     width: '100%', backgroundColor: COLORS.pinkSoft, borderRadius: 14, padding: 16,
     borderWidth: 1, borderColor: '#F0D9C8', marginBottom: 12,
   },
-  addressLabel: { fontSize: 13, fontFamily: FONTS.bodySemiBold, color: '#A77349', marginBottom: 8 },
-  addressLine: { fontSize: 15, color: '#2C1810', fontFamily: FONTS.bodyMedium, lineHeight: 22 },
-  addressPhone: { fontSize: 14, color: '#2C1810', marginTop: 8, fontFamily: FONTS.bodyMedium },
-  addressFallback: { fontSize: 13, color: '#6B5C52', lineHeight: 19 },
+  addressLabel: { fontSize: 13, fontFamily: FONTS.bodySemiBold, color: '#7A4A24', marginBottom: 8 },
+  addressLine: { fontSize: 15, color: '#43260F', fontFamily: FONTS.bodyMedium, lineHeight: 22 },
+  addressPhone: { fontSize: 14, color: '#43260F', marginTop: 8, fontFamily: FONTS.bodyMedium },
+  addressFallback: { fontSize: 13, color: '#7A4A24', lineHeight: 19 },
 
   smsBanner: {
     width: '100%', backgroundColor: COLORS.paper, padding: 12, borderRadius: 10,
     alignItems: 'center', marginTop: 6,
   },
-  smsBannerText: { fontSize: 12, color: '#9A8070', fontFamily: FONTS.bodyMedium },
+  smsBannerText: { fontSize: 12, color: '#7A4A24', fontFamily: FONTS.bodyMedium },
 
   ctaBar: {
     position: 'absolute', bottom: 0, left: 0, right: 0,
@@ -200,12 +200,12 @@ const styles = StyleSheet.create({
   },
   // v9 canonical CTA — rect variant
   primaryBtn: {
-    backgroundColor: '#C07840', borderRadius: 14,
+    backgroundColor: '#D96C88', borderRadius: 14,
     paddingVertical: 15, alignItems: 'center',
-    shadowColor: '#945A41', shadowOffset: { width: 0, height: 4 },
+    shadowColor: '#D96C88', shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.24, shadowRadius: 10, elevation: 3,
   },
-  primaryBtnText: { color: '#FDFBF6', fontSize: 16, fontFamily: FONTS.bodySemiBold },
+  primaryBtnText: { color: '#FFFCF6', fontSize: 16, fontFamily: FONTS.bodySemiBold },
   secondaryBtn: { paddingVertical: 12, alignItems: 'center' },
-  secondaryBtnText: { fontSize: 14, color: '#9A8070', fontFamily: FONTS.bodyMedium },
+  secondaryBtnText: { fontSize: 14, color: '#7A4A24', fontFamily: FONTS.bodyMedium },
 });

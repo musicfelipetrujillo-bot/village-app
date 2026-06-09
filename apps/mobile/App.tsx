@@ -33,6 +33,24 @@ import {
 // (HomeScreenV3 / VillageHomeScreenV3 / ManualScrollV3) reach for this
 // via FONTS.v3_display_italic.
 import { Fraunces_600SemiBold_Italic } from '@expo-google-fonts/fraunces';
+// ─── Brand Kit V10 (villie · Gen Z · May 2026) ─── new canonical families.
+// See docs/V10_GENZ_REBRAND.md. Bricolage = display ("loud bits"),
+// Hanken = body/UI (retires Plus Jakarta + JetBrains mono), Caveat = the
+// handwritten accent/marginalia layer ("we see you, mom"). FONTS tokens in
+// constants.ts route to these; the legacy families stay loaded through the
+// Phase 2 literal sweep so raw font-name refs keep resolving.
+import {
+  BricolageGrotesque_400Regular,
+  BricolageGrotesque_700Bold,
+  BricolageGrotesque_800ExtraBold,
+} from '@expo-google-fonts/bricolage-grotesque';
+import {
+  HankenGrotesk_400Regular,
+  HankenGrotesk_500Medium,
+  HankenGrotesk_600SemiBold,
+  HankenGrotesk_700Bold,
+} from '@expo-google-fonts/hanken-grotesk';
+import { Caveat_400Regular, Caveat_600SemiBold } from '@expo-google-fonts/caveat';
 import { RootNavigator } from '@/navigation/RootNavigator';
 import { useAuthStore } from '@store/auth';
 import { usePreAuthLanguage } from '@store/preAuthLanguage';
@@ -109,6 +127,16 @@ export default function App() {
     JetBrainsMono_500Medium,
     // Fraunces — v3 italic accent ("wonky moment") on v3 preview screens
     Fraunces_600SemiBold_Italic,
+    // V10 Gen Z — Bricolage (display) · Hanken (body/UI) · Caveat (marker)
+    BricolageGrotesque_400Regular,
+    BricolageGrotesque_700Bold,
+    BricolageGrotesque_800ExtraBold,
+    HankenGrotesk_400Regular,
+    HankenGrotesk_500Medium,
+    HankenGrotesk_600SemiBold,
+    HankenGrotesk_700Bold,
+    Caveat_400Regular,
+    Caveat_600SemiBold,
   });
 
   useEffect(() => {

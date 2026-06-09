@@ -485,7 +485,7 @@ const s = StyleSheet.create({
   rowVWrap: { marginTop: 2 },
   pre: {
     marginTop: 16,
-    backgroundColor: '#1C1008',
+    backgroundColor: '#43260F',
     padding: 12,
     borderRadius: 10,
   },

@@ -331,7 +331,7 @@ export default function RoomChatScreen({ navigation, route }: Props) {
         keyboardVerticalOffset={Platform.OS === 'ios' ? 88 : 0}
       >
         {loading ? (
-          <ActivityIndicator color="#C07840" />
+          <ActivityIndicator color="#D96C88" />
         ) : (
           <FlatList
             ref={listRef}
@@ -397,7 +397,7 @@ export default function RoomChatScreen({ navigation, route }: Props) {
             accessibilityRole="button"
             accessibilityLabel="Send message"
           >
-            {sending ? <ActivityIndicator color="#FDFBF6" /> : <Text style={styles.sendBtnText}>Send</Text>}
+            {sending ? <ActivityIndicator color="#FFFCF6" /> : <Text style={styles.sendBtnText}>Send</Text>}
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
@@ -539,7 +539,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.06)',
     backgroundColor: COLORS.paper,
   },
-  back:               { fontSize: 15, color: '#C07840', fontFamily: FONTS.bodyMedium, paddingRight: 14 },
+  back:               { fontSize: 15, color: '#D96C88', fontFamily: FONTS.bodyMedium, paddingRight: 14 },
   headerTitleWrap:    { flex: 1 },
   headerTitle:        { fontSize: 16, fontFamily: FONTS.bodySemiBold, color: COLORS.bark },
   headerMeta:         { fontSize: 12, color: COLORS.textLight, marginTop: 2 },
@@ -560,7 +560,7 @@ const styles = StyleSheet.create({
   },
   pinnedEmoji:        { fontSize: 16, marginRight: 8 },
   pinnedRowText:      { flex: 1, fontSize: 13, fontFamily: FONTS.bodyMedium, color: COLORS.bark },
-  pinnedRowArrow:     { color: '#A77349', fontSize: 16 },
+  pinnedRowArrow:     { color: '#7A4A24', fontSize: 16 },
 
   chatArea:           { flex: 1 },
   feed:               { padding: 12, flexGrow: 1, justifyContent: 'flex-end' },
@@ -667,7 +667,7 @@ const styles = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
     minWidth: 64,
   },
-  sendBtnText: { color: '#FDFBF6', fontSize: 14, fontFamily: FONTS.bodySemiBold },
+  sendBtnText: { color: '#FFFCF6', fontSize: 14, fontFamily: FONTS.bodySemiBold },
 
   emptyWrap:          { alignItems: 'center', paddingVertical: 40, paddingHorizontal: 24 },
   emptyEmoji:         { fontSize: 44, marginBottom: 12 },

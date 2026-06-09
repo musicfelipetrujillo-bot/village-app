@@ -64,7 +64,7 @@ export default function SavedManualScreen() {
       </View>
 
       {loading && (
-        <View style={styles.center}><ActivityIndicator color="#C07840" /></View>
+        <View style={styles.center}><ActivityIndicator color="#D96C88" /></View>
       )}
 
       {!loading && videos.length === 0 && (
@@ -88,7 +88,7 @@ export default function SavedManualScreen() {
           data={videos}
           keyExtractor={(v) => v.id}
           contentContainerStyle={styles.list}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#C07840" />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#D96C88" />}
           renderItem={({ item }) => (
             <TouchableOpacity
               style={styles.row}
@@ -148,7 +148,7 @@ const styles = StyleSheet.create({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
 
   emptyWrap: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
-  emptyIcon: { fontSize: 52, color: '#C07840', marginBottom: 12 },
+  emptyIcon: { fontSize: 52, color: '#D96C88', marginBottom: 12 },
   emptyTitle: {
     fontSize: 20, fontFamily: FONTS.headerBold, color: COLORS.bark,
     textAlign: 'center', marginBottom: 8,
@@ -158,7 +158,7 @@ const styles = StyleSheet.create({
     textAlign: 'center', lineHeight: 21, marginBottom: 20,
   },
   emptyCta: {
-    backgroundColor: '#C07840', borderRadius: 999,
+    backgroundColor: '#D96C88', borderRadius: 999,
     paddingHorizontal: 24, paddingVertical: 14,
   },
   emptyCtaText: { color: COLORS.paper, fontSize: 14, fontFamily: FONTS.bodySemiBold },
@@ -192,7 +192,7 @@ const styles = StyleSheet.create({
 
   rowMeta: { flex: 1, justifyContent: 'center' },
   rowEyebrow: {
-    fontSize: 10, fontFamily: FONTS.bodySemiBold, color: '#A77349',
+    fontSize: 10, fontFamily: FONTS.bodySemiBold, color: '#7A4A24',
     letterSpacing: 1.2, marginBottom: 4,
   },
   rowTitle: {

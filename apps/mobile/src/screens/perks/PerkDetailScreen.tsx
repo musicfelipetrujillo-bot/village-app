@@ -6,6 +6,7 @@ import {
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { COLORS, FONTS } from '@utils/constants';
 import { V9PageBackdrop } from '@components/shared/V9PageBackdrop';
+import { LinearGradient } from 'expo-linear-gradient';
 import {
   perksApi,
   categoryLabel,
@@ -41,7 +42,7 @@ export default function PerkDetailScreen() {
   if (loading) {
     return (
       <View style={[styles.container, { justifyContent: 'center' }]}>
-        <ActivityIndicator color="#C07840" />
+        <ActivityIndicator color="#D96C88" />
       </View>
     );
   }
@@ -63,6 +64,12 @@ export default function PerkDetailScreen() {
   return (
     <View style={styles.container}>
       <V9PageBackdrop />
+      <LinearGradient
+        pointerEvents="none"
+        colors={['rgba(233,138,106,0.40)', 'rgba(233,138,106,0.12)', 'rgba(252,247,239,0)']}
+        locations={[0, 0.45, 1]}
+        style={styles.pageWash}
+      />
       <Header onBack={() => navigation.goBack()} t={t} />
 
       <ScrollView contentContainerStyle={{ paddingBottom: 120 }}>
@@ -147,13 +154,14 @@ function MetaRow({ label, value }: { label: string; value: string }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: 'transparent' },
+  pageWash: { position: 'absolute', top: 0, left: 0, right: 0, height: 620 },
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingTop: 56, paddingBottom: 12, paddingHorizontal: 16,
     backgroundColor: COLORS.paper,
     borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.06)',
   },
-  back: { fontSize: 15, color: '#C07840', fontFamily: FONTS.bodySemiBold },
+  back: { fontSize: 15, color: '#D96C88', fontFamily: FONTS.bodySemiBold },
   headerTitle: { fontSize: 16, fontFamily: FONTS.bodySemiBold, color: COLORS.bark },
 
   heroBlock: { padding: 20, backgroundColor: COLORS.paper },
@@ -167,8 +175,8 @@ const styles = StyleSheet.create({
   title: { fontSize: 26, fontFamily: FONTS.headerBold, color: COLORS.bark, marginTop: 4, lineHeight: 32, letterSpacing: -0.4 },
   offerBanner: {
     marginTop: 14, alignSelf: 'flex-start',
-    fontSize: 14, fontFamily: FONTS.bodySemiBold, color: '#FDFBF6',
-    backgroundColor: '#C07840', borderRadius: 10,
+    fontSize: 14, fontFamily: FONTS.bodySemiBold, color: '#FFFCF6',
+    backgroundColor: '#D96C88', borderRadius: 10,
     paddingHorizontal: 12, paddingVertical: 6,
   },
 
@@ -187,14 +195,14 @@ const styles = StyleSheet.create({
   metaBlock: {
     marginTop: 20, backgroundColor: COLORS.paper, borderRadius: 12, padding: 14,
     borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(150, 80, 50, 0.18)',
-    shadowColor: '#6B2E0E', shadowOffset: { width: 0, height: 8 },
+    shadowColor: '#43260F', shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.22, shadowRadius: 22, elevation: 5,
   },
   metaRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 6 },
   metaLabel: { fontSize: 12, fontFamily: FONTS.bodySemiBold, color: COLORS.textLight, textTransform: 'uppercase', letterSpacing: 0.5 },
   metaValue: { fontSize: 13, color: COLORS.bark, fontFamily: FONTS.bodyMedium, flexShrink: 1, textAlign: 'right', marginLeft: 12 },
 
-  termsLink: { fontSize: 13, color: '#C07840', fontFamily: FONTS.bodySemiBold, marginTop: 16 },
+  termsLink: { fontSize: 13, color: '#D96C88', fontFamily: FONTS.bodySemiBold, marginTop: 16 },
 
   footer: {
     position: 'absolute', left: 0, right: 0, bottom: 0,
@@ -204,12 +212,12 @@ const styles = StyleSheet.create({
   },
   // v9 canonical CTA
   cta: {
-    backgroundColor: '#C07840', borderRadius: 999,
+    backgroundColor: '#D96C88', borderRadius: 999,
     paddingVertical: 15, alignItems: 'center',
-    shadowColor: '#945A41', shadowOffset: { width: 0, height: 4 },
+    shadowColor: '#D96C88', shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.24, shadowRadius: 10, elevation: 3,
   },
-  ctaText: { color: '#FDFBF6', fontSize: 15, fontFamily: FONTS.bodySemiBold, letterSpacing: 0.3 },
+  ctaText: { color: '#FFFCF6', fontSize: 15, fontFamily: FONTS.bodySemiBold, letterSpacing: 0.3 },
 
   emptyWrap: { alignItems: 'center', paddingVertical: 80 },
   emptyTitle: { fontSize: 17, fontFamily: FONTS.bodySemiBold, color: COLORS.bark, marginBottom: 4 },

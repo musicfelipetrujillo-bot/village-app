@@ -20,6 +20,7 @@ import {
 } from '@api/gear';
 import { GearCardSkeleton } from '@components/shared/SkeletonLoader';
 import { WarmGlowBackdrop } from '@components/shared/WarmGlowBackdrop';
+import { HoneycombBackdrop } from '@components/shared/HoneycombBackdrop';
 
 type TFn = (key: string, params?: Record<string, string | number>) => string;
 
@@ -86,6 +87,15 @@ export default function GearBrowseScreen() {
     /* v3 editorial masthead 2026-05-24 — replaces the KenBurns photo
        header per Felipe. See MilkConnectHomeScreen for the pattern. */
     <View style={styles.mastheadWrap}>
+      {/* Soft honey hero wash — ties the masthead to the Baby Gear tile color
+          (Village hub) so the section reads warm + colored, not cream-on-cream. */}
+      <LinearGradient
+        colors={['#F7DEA2', 'rgba(247,222,162,0)']}
+        start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }}
+        style={StyleSheet.absoluteFillObject}
+        pointerEvents="none"
+      />
+      <HoneycombBackdrop accent="#F4C53C" intensity="subtle" scene="gear" />
       <View style={styles.mastheadUtility}>
         <TouchableOpacity
           onPress={() => navigation.getParent()?.navigate('Village' as never)}
@@ -135,6 +145,12 @@ export default function GearBrowseScreen() {
   return (
     <View style={styles.container}>
       <WarmGlowBackdrop hideClusters />
+      <LinearGradient
+        pointerEvents="none"
+        colors={['rgba(244,197,60,0.26)', 'rgba(244,197,60,0.08)', 'rgba(252,247,239,0)']}
+        locations={[0, 0.45, 1]}
+        style={styles.pageWash}
+      />
       <FlashList
         ListHeaderComponent={
           <>
@@ -215,6 +231,11 @@ function ListingCardView({ listing, onPress, t }: { listing: GearCard; onPress: 
           <Text style={styles.cardImageFallbackText}>{t('gearBrowse.noPhoto')}</Text>
         </View>
       )}
+      {listing.is_boosted && (
+        <View style={styles.boostBadge} pointerEvents="none">
+          <Text style={styles.boostBadgeText}>✦ {t('gearBrowse.boostedBadge')}</Text>
+        </View>
+      )}
       <View style={styles.cardBody}>
         {/* v9 paper-leaning card wash — replaces the stale golden→blush. */}
         <LinearGradient
@@ -256,6 +277,7 @@ function ListingCardView({ listing, onPress, t }: { listing: GearCard; onPress: 
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.cream },
+  pageWash: { position: 'absolute', top: 0, left: 0, right: 0, height: 640 },
   // Editorial header — paddingBottom:0 so the hairline closes the block.
   // No solid bg — sits flush on the page cream so the moodboard's cream-on-
   // cream rhythm carries through.
@@ -269,7 +291,7 @@ const styles = StyleSheet.create({
   backToVillage: { paddingVertical: 4, paddingRight: 8 },
   backToVillageText: { fontSize: 13, color: COLORS.textLight, fontFamily: FONTS.bodyMedium },
   headerActions: { flexDirection: 'row', gap: 16 },
-  headerLink: { fontSize: 13, color: '#C07840', fontFamily: FONTS.bodySemiBold },
+  headerLink: { fontSize: 13, color: '#D96C88', fontFamily: FONTS.bodySemiBold },
 
   // Title block — relative so DecorativeMarks (absolutely positioned)
   // can tuck behind the eyebrow → italic title → sub stack without
@@ -278,12 +300,12 @@ const styles = StyleSheet.create({
   titleBlock: { position: 'relative', paddingTop: 4, paddingBottom: 14 },
   eyebrowRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 6 },
   eyebrowBar: {
-    width: 22, height: 2, backgroundColor: '#A77349',  // v9 rust-deep — unified across app
+    width: 22, height: 2, backgroundColor: '#7A4A24',  // v9 rust-deep — unified across app
     marginRight: 10, borderRadius: 1,
   },
   eyebrow: {
     fontSize: 11, lineHeight: 22, letterSpacing: 1.6,
-    fontFamily: FONTS.bodySemiBold, color: '#A77349',
+    fontFamily: FONTS.bodySemiBold, color: '#7A4A24',
     textTransform: 'uppercase',
     includeFontPadding: false, textAlignVertical: 'center',
   },
@@ -314,6 +336,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 22,
     paddingBottom: 18,
     marginHorizontal: -16,   // negate FlashList paddingHorizontal:16
+    position: 'relative',
+    overflow: 'hidden',
   },
   mastheadUtility: {
     flexDirection: 'row', alignItems: 'center',
@@ -347,7 +371,7 @@ const styles = StyleSheet.create({
   },
   mastheadTitleItalic: {
     fontFamily: FONTS.v3_display_italic,
-    color: COLORS.v2_salmon,
+    color: '#B5811C', // Gear signature: honey-gold
     fontStyle: 'italic',
   },
   mastheadDeck: {
@@ -373,7 +397,7 @@ const styles = StyleSheet.create({
   },
   chipActive: { backgroundColor: COLORS.coco, borderColor: COLORS.coco },
   chipText: { fontSize: 12, fontFamily: FONTS.bodySemiBold, color: COLORS.barkSoft },
-  chipTextActive: { color: '#FDFBF6' },
+  chipTextActive: { color: '#FFFCF6' },
 
   // v9 card lift recipe — paper bg + cocoa drop + rust hairline.
   // (Moved off tan #F2E9C4 — too saturated, fought the page wash and the
@@ -385,24 +409,32 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: 'rgba(150,80,50,0.18)',
-    shadowColor: '#6B2E0E',
+    shadowColor: '#43260F',
     shadowOpacity: 0.22,
     shadowOffset: { width: 0, height: 8 },
     shadowRadius: 22,
     elevation: 3,
   },
   cardImage: { width: '100%', aspectRatio: 16 / 10, backgroundColor: COLORS.cream },
+  boostBadge: {
+    position: 'absolute', top: 10, left: 10,
+    backgroundColor: COLORS.v2_marigold, borderRadius: 7,
+    paddingHorizontal: 9, paddingVertical: 3,
+    shadowColor: '#43260F', shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2, shadowRadius: 4, elevation: 2,
+  },
+  boostBadgeText: { fontSize: 10.5, fontFamily: FONTS.bodySemiBold, color: COLORS.v2_cocoa, letterSpacing: 0.3 },
   cardImageFallback: { alignItems: 'center', justifyContent: 'center' },
   cardImageFallbackText: { color: COLORS.textLight, fontSize: 12, fontFamily: FONTS.bodySemiBold },
   cardBody: { paddingVertical: 14, paddingHorizontal: 16, overflow: 'hidden' },
   cardHeaderRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 },
-  cardCategory: { fontSize: 10, fontFamily: FONTS.bodySemiBold, letterSpacing: 1.6, color: '#A77349' },  // v9 eyebrow = amber
+  cardCategory: { fontSize: 10, fontFamily: FONTS.bodySemiBold, letterSpacing: 1.6, color: '#B5811C' },  // Gear signature: honey-gold eyebrow
   cpscChip: {
-    borderWidth: 1, borderColor: COLORS.sage, borderRadius: 999,
-    paddingHorizontal: 8, paddingVertical: 2,
+    backgroundColor: 'rgba(181,129,28,0.16)', borderRadius: 999,
+    paddingHorizontal: 9, paddingVertical: 3,
   },
   cpscChipText: {
-    fontSize: 9, fontFamily: FONTS.bodySemiBold, color: COLORS.sage, letterSpacing: 0.6,
+    fontSize: 9, fontFamily: FONTS.bodySemiBold, color: '#9A6B12', letterSpacing: 0.6,
   },
   // Italic Playfair title — the editorial hero.
   cardTitle: {
@@ -431,11 +463,11 @@ const styles = StyleSheet.create({
   fab: {
     position: 'absolute', bottom: 90, right: 16,
     flexDirection: 'row', alignItems: 'center', gap: 8,
-    backgroundColor: '#C07840', borderRadius: 28,             // v9 CTA = cinnamon
+    backgroundColor: '#D96C88', borderRadius: 28,             // v9 CTA = cinnamon
     paddingHorizontal: 18, paddingVertical: 13,
-    shadowColor: '#945A41', shadowOpacity: 0.24, shadowRadius: 10, shadowOffset: { width: 0, height: 4 },
+    shadowColor: '#D96C88', shadowOpacity: 0.24, shadowRadius: 10, shadowOffset: { width: 0, height: 4 },
     elevation: 5,
   },
-  fabIcon: { color: '#FDFBF6', fontSize: 20, fontFamily: FONTS.bodySemiBold },
-  fabText: { color: '#FDFBF6', fontSize: 14, fontFamily: FONTS.bodySemiBold, letterSpacing: 0.3 },
+  fabIcon: { color: '#FFFCF6', fontSize: 20, fontFamily: FONTS.bodySemiBold },
+  fabText: { color: '#FFFCF6', fontSize: 14, fontFamily: FONTS.bodySemiBold, letterSpacing: 0.3 },
 });

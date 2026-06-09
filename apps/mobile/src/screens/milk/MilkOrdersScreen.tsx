@@ -13,18 +13,19 @@ import { useUserStore } from '@store/user';
 import { listMyOrders, listReviewableOrders, type MyOrderRow } from '@api/milk';
 import { COLORS, FONTS } from '@utils/constants';
 import { V9PageBackdrop } from '@components/shared/V9PageBackdrop';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useT } from '@/i18n';
 import type { MilkStackParamList } from '@/navigation/MilkNavigator';
 
 type Props = NativeStackScreenProps<MilkStackParamList, 'MilkOrders'>;
 
 const STATUS_COLOR: Record<string, string> = {
-  pending:    '#9A8070',
-  paid:       '#6B7C3F',
+  pending:    '#7A4A24',
+  paid:       '#E98A6A',
   fulfilled:  COLORS.statusSuccess,
   disputed:   COLORS.statusAlert,
-  refunded:   '#9A8070',
-  cancelled:  '#9A8070',
+  refunded:   '#7A4A24',
+  cancelled:  '#7A4A24',
 };
 
 const STATUS_LABEL_KEYS: Record<string, string> = {
@@ -70,6 +71,12 @@ export default function MilkOrdersScreen({ navigation }: Props) {
   return (
     <View style={styles.container}>
       <V9PageBackdrop />
+      <LinearGradient
+        pointerEvents="none"
+        colors={['rgba(247,197,203,0.36)', 'rgba(247,197,203,0.10)', 'rgba(252,247,239,0)']}
+        locations={[0, 0.45, 1]}
+        style={styles.pageWash}
+      />
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
@@ -83,7 +90,7 @@ export default function MilkOrdersScreen({ navigation }: Props) {
       </View>
 
       {loading ? (
-        <View style={styles.center}><ActivityIndicator color="#C07840" /></View>
+        <View style={styles.center}><ActivityIndicator color="#D96C88" /></View>
       ) : (
         <FlashList
           data={orders}
@@ -120,7 +127,7 @@ export default function MilkOrdersScreen({ navigation }: Props) {
                     </Text>
                   </View>
                   <View style={styles.right}>
-                    <View style={[styles.statusPill, { backgroundColor: STATUS_COLOR[item.status] ?? '#9A8070' }]}>
+                    <View style={[styles.statusPill, { backgroundColor: STATUS_COLOR[item.status] ?? '#7A4A24' }]}>
                       <Text style={styles.statusText}>
                         {STATUS_LABEL_KEYS[item.status] ? t(STATUS_LABEL_KEYS[item.status]) : item.status}
                       </Text>
@@ -186,6 +193,7 @@ export default function MilkOrdersScreen({ navigation }: Props) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: 'transparent' },
+  pageWash: { position: 'absolute', top: 0, left: 0, right: 0, height: 620 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
@@ -193,25 +201,25 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.paper,
     borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.06)',
   },
-  back: { fontSize: 15, color: '#C07840', fontFamily: FONTS.bodyMedium },
-  title: { fontSize: 17, fontFamily: FONTS.bodySemiBold, color: '#2C1810' },
+  back: { fontSize: 15, color: '#D96C88', fontFamily: FONTS.bodyMedium },
+  title: { fontSize: 17, fontFamily: FONTS.bodySemiBold, color: '#43260F' },
 
   card: {
     backgroundColor: COLORS.paper, borderRadius: 14, padding: 16, marginBottom: 10,
     borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(150, 80, 50, 0.18)',
-    shadowColor: '#6B2E0E', shadowOffset: { width: 0, height: 8 },
+    shadowColor: '#43260F', shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.22, shadowRadius: 22, elevation: 5,
   },
   cardTop: { flexDirection: 'row', gap: 12, alignItems: 'center' },
   avatar: { width: 52, height: 52, borderRadius: 26 },
   avatarFallback: { backgroundColor: COLORS.coco, alignItems: 'center', justifyContent: 'center' },
-  avatarInitial: { color: '#FDFBF6', fontSize: 20, fontFamily: FONTS.bodySemiBold },
-  donorName: { fontSize: 15, fontFamily: FONTS.bodySemiBold, color: '#2C1810' },
-  meta: { fontSize: 12, color: '#6B5C52', marginTop: 2 },
-  date: { fontSize: 11, color: '#9A8070', marginTop: 2 },
+  avatarInitial: { color: '#FFFCF6', fontSize: 20, fontFamily: FONTS.bodySemiBold },
+  donorName: { fontSize: 15, fontFamily: FONTS.bodySemiBold, color: '#43260F' },
+  meta: { fontSize: 12, color: '#7A4A24', marginTop: 2 },
+  date: { fontSize: 11, color: '#7A4A24', marginTop: 2 },
   right: { alignItems: 'flex-end', gap: 6 },
   statusPill: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 10 },
-  statusText: { color: '#FDFBF6', fontSize: 10, fontFamily: FONTS.bodySemiBold, textTransform: 'uppercase' },
+  statusText: { color: '#FFFCF6', fontSize: 10, fontFamily: FONTS.bodySemiBold, textTransform: 'uppercase' },
   amount: { fontSize: 15, fontFamily: FONTS.bodySemiBold, color: COLORS.coco },
 
   reviewBtn: {
@@ -224,17 +232,17 @@ const styles = StyleSheet.create({
     marginTop: 8, paddingVertical: 9, borderRadius: 10,
     borderWidth: 1, borderColor: 'rgba(150,80,50,0.18)', alignItems: 'center',
   },
-  disputeBtnText: { fontSize: 12, fontFamily: FONTS.bodySemiBold, color: '#6B5C52' },
+  disputeBtnText: { fontSize: 12, fontFamily: FONTS.bodySemiBold, color: '#7A4A24' },
 
   empty: { alignItems: 'center', paddingTop: 80, paddingHorizontal: 32, gap: 8 },
   emptyEmoji: { fontSize: 52, marginBottom: 8 },
-  emptyTitle: { fontSize: 20, fontFamily: FONTS.bodySemiBold, color: '#2C1810', textAlign: 'center' },
+  emptyTitle: { fontSize: 20, fontFamily: FONTS.bodySemiBold, color: '#43260F', textAlign: 'center' },
   emptyBody: {
-    fontSize: 14, color: '#5A3E28', textAlign: 'center', lineHeight: 21, marginBottom: 8,
+    fontSize: 14, color: '#7A4A24', textAlign: 'center', lineHeight: 21, marginBottom: 8,
   },
   emptyBtn: {
-    marginTop: 8, backgroundColor: '#C07840', borderRadius: 14,
+    marginTop: 8, backgroundColor: '#D96C88', borderRadius: 14,
     paddingHorizontal: 24, paddingVertical: 14,
   },
-  emptyBtnText: { color: '#FDFBF6', fontSize: 15, fontFamily: FONTS.bodySemiBold },
+  emptyBtnText: { color: '#FFFCF6', fontSize: 15, fontFamily: FONTS.bodySemiBold },
 });

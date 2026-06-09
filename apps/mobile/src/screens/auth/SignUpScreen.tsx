@@ -225,7 +225,7 @@ export default function SignUpScreen({ navigation, route }: Props) {
             accessibilityState={{ disabled: loading, busy: loading }}
           >
             {loading ? (
-              <ActivityIndicator color="#FDFBF6" />
+              <ActivityIndicator color="#FFFCF6" />
             ) : (
               <Text style={styles.btnText}>{t('signUp.cta')}</Text>
             )}
@@ -332,12 +332,12 @@ const styles = StyleSheet.create({
   // Primary CTA — cinnamon (the one spark)
   // v9 canonical CTA — action-deep (WCAG AA on paper text)
   btn: {
-    backgroundColor: '#C07840',
+    backgroundColor: '#D96C88',
     borderRadius: 999,
     paddingVertical: 15,
     alignItems: 'center',
     marginTop: 8,
-    shadowColor: '#945A41',
+    shadowColor: '#D96C88',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.24,
     shadowRadius: 10,

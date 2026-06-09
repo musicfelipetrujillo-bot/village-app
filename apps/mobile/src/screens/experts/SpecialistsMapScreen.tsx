@@ -28,14 +28,14 @@ type Props = NativeStackScreenProps<ExpertsStackParamList, 'SpecialistsMap'>;
 // Specialty → pin color. Maps to the v2 brand palette so each kind of
 // expert has a distinct read at small marker scale.
 const SPECIALTY_COLOR: Record<string, string> = {
-  ob_gyn: '#3D1F0E',                // cocoa
-  doula: '#EDA8A0',                 // salmon
-  midwife: '#F5BEB6',               // blush
-  lactation_consultant: '#FAD080',  // butter
-  pediatrician: '#D8CEB0',          // sage
-  sleep_coach: '#D4A880',           // caramel
-  pelvic_floor_pt: '#606E46',       // moss
-  perinatal_dietitian: '#A77349',   // amber
+  ob_gyn: '#43260F',                // cocoa
+  doula: '#F7C5CB',                 // salmon
+  midwife: '#F7C5CB',               // blush
+  lactation_consultant: '#F4C53C',  // butter
+  pediatrician: '#F2E6DD',          // sage
+  sleep_coach: '#E98A6A',           // caramel
+  pelvic_floor_pt: '#E98A6A',       // moss
+  perinatal_dietitian: '#7A4A24',   // amber
   ppd_therapist: '#7A4A28',         // walnut
 };
 
@@ -130,7 +130,7 @@ export default function SpecialistsMapScreen({ navigation }: Props) {
       >
         {specialists.map((s) => {
           if (s.lat == null || s.lng == null) return null;
-          const color = SPECIALTY_COLOR[s.specialty] ?? '#9A8070';
+          const color = SPECIALTY_COLOR[s.specialty] ?? '#7A4A24';
           return (
             <Marker
               key={s.id}
@@ -167,7 +167,7 @@ export default function SpecialistsMapScreen({ navigation }: Props) {
       {/* Loading overlay — sits above the map until the first results land */}
       {loading && (
         <View style={styles.loadingOverlay}>
-          <ActivityIndicator color="#C07840" size="large" />
+          <ActivityIndicator color="#D96C88" size="large" />
         </View>
       )}
 
@@ -204,29 +204,29 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingTop: 56, paddingBottom: 12, paddingHorizontal: 16,
-    backgroundColor: '#FDFBF6', zIndex: 10,
+    backgroundColor: '#FFFCF6', zIndex: 10,
     borderBottomWidth: 1, borderBottomColor: '#E8E0D5',
   },
-  backText: { fontSize: 15, color: '#C07840', fontFamily: FONTS.bodySemiBold },
-  headerTitle: { fontSize: 17, fontFamily: FONTS.bodySemiBold, color: '#2C1810' },
-  countText: { fontSize: 13, color: '#A77349', fontFamily: FONTS.bodySemiBold },
+  backText: { fontSize: 15, color: '#D96C88', fontFamily: FONTS.bodySemiBold },
+  headerTitle: { fontSize: 17, fontFamily: FONTS.bodySemiBold, color: '#43260F' },
+  countText: { fontSize: 13, color: '#7A4A24', fontFamily: FONTS.bodySemiBold },
   map: { flex: 1 },
   pin: {
     width: 36, height: 36, borderRadius: 18,
     alignItems: 'center', justifyContent: 'center',
-    borderWidth: 2, borderColor: '#FDFBF6',
-    shadowColor: '#6B2E0E', shadowOpacity: 0.20, shadowRadius: 4, elevation: 4,
+    borderWidth: 2, borderColor: '#FFFCF6',
+    shadowColor: '#43260F', shadowOpacity: 0.20, shadowRadius: 4, elevation: 4,
   },
   pinText: { fontSize: 16 },
   callout: {
     backgroundColor: COLORS.paper, borderRadius: 12, padding: 12,
     minWidth: 180, maxWidth: 220,
-    shadowColor: '#6B2E0E', shadowOpacity: 0.12, shadowRadius: 8,
+    shadowColor: '#43260F', shadowOpacity: 0.12, shadowRadius: 8,
   },
-  calloutName: { fontSize: 14, fontFamily: FONTS.bodySemiBold, color: '#2C1810', marginBottom: 4 },
-  calloutMeta: { fontSize: 12, color: '#A77349', fontFamily: FONTS.bodyMedium, marginBottom: 4 },
-  calloutRating: { fontSize: 12, color: '#6B5C52', fontFamily: FONTS.bodyMedium, marginBottom: 4 },
-  calloutTap: { fontSize: 11, color: '#9A8070', fontFamily: FONTS.body },
+  calloutName: { fontSize: 14, fontFamily: FONTS.bodySemiBold, color: '#43260F', marginBottom: 4 },
+  calloutMeta: { fontSize: 12, color: '#7A4A24', fontFamily: FONTS.bodyMedium, marginBottom: 4 },
+  calloutRating: { fontSize: 12, color: '#7A4A24', fontFamily: FONTS.bodyMedium, marginBottom: 4 },
+  calloutTap: { fontSize: 11, color: '#7A4A24', fontFamily: FONTS.body },
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(245,240,232,0.8)',
@@ -235,13 +235,13 @@ const styles = StyleSheet.create({
   legend: {
     position: 'absolute', top: 120, right: 12,
     backgroundColor: COLORS.paper, borderRadius: 10, padding: 8, gap: 6,
-    shadowColor: '#6B2E0E', shadowOpacity: 0.10, shadowRadius: 4, elevation: 3,
+    shadowColor: '#43260F', shadowOpacity: 0.10, shadowRadius: 4, elevation: 3,
   },
   legendItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   legendDot: { width: 10, height: 10, borderRadius: 5 },
-  legendLabel: { fontSize: 11, color: '#6B5C52', fontFamily: FONTS.bodyMedium },
+  legendLabel: { fontSize: 11, color: '#7A4A24', fontFamily: FONTS.bodyMedium },
   legendMore: {
-    fontSize: 10, color: '#9A8070', fontFamily: FONTS.body,
+    fontSize: 10, color: '#7A4A24', fontFamily: FONTS.body,
     marginTop: 2, fontStyle: 'italic',
   },
   bottomBar: {
@@ -251,8 +251,8 @@ const styles = StyleSheet.create({
     borderTopWidth: 1, borderTopColor: '#E8E0D5',
   },
   listViewBtn: {
-    backgroundColor: '#2C1810', borderRadius: 12,
+    backgroundColor: '#43260F', borderRadius: 12,
     paddingVertical: 14, alignItems: 'center',
   },
-  listViewText: { fontSize: 15, fontFamily: FONTS.bodySemiBold, color: '#FDFBF6' },
+  listViewText: { fontSize: 15, fontFamily: FONTS.bodySemiBold, color: '#FFFCF6' },
 });

@@ -268,7 +268,7 @@ export default function GearLegalDisclosureModal({
                 accessibilityState={{ disabled: !allAcks || submitting }}
               >
                 {submitting
-                  ? <ActivityIndicator color="#FDFBF6" />
+                  ? <ActivityIndicator color="#FFFCF6" />
                   : <Text style={styles.ctaLabel}>Accept and continue</Text>}
               </TouchableOpacity>
             </View>
@@ -324,7 +324,7 @@ const styles = StyleSheet.create({
     marginRight: 12, alignItems: 'center', justifyContent: 'center',
   },
   checkboxChecked: { backgroundColor: COLORS.sage, borderColor: COLORS.sage },
-  checkmark: { color: '#FDFBF6', fontSize: 16, fontFamily: FONTS.bodySemiBold },
+  checkmark: { color: '#FFFCF6', fontSize: 16, fontFamily: FONTS.bodySemiBold },
   ackText: { flex: 1, fontSize: 14, color: COLORS.bark, lineHeight: 21, fontFamily: FONTS.body },
   error: { color: '#B3261E', fontSize: 13, marginTop: 8, fontFamily: FONTS.body },
 
@@ -356,7 +356,7 @@ const styles = StyleSheet.create({
 
   successWrap: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 40 },
   successIcon: {
-    fontSize: 52, color: '#FDFBF6', backgroundColor: COLORS.sage,
+    fontSize: 52, color: '#FFFCF6', backgroundColor: COLORS.sage,
     width: 96, height: 96, borderRadius: 48, textAlign: 'center', lineHeight: 96,
     marginBottom: 20,
   },

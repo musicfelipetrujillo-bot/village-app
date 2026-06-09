@@ -106,7 +106,7 @@ export default function DailyCheckinScreen({ navigation }: Props) {
       </View>
 
       {loading ? (
-        <View style={styles.center}><ActivityIndicator color="#C07840" /></View>
+        <View style={styles.center}><ActivityIndicator color="#D96C88" /></View>
       ) : (
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
           <Text style={styles.heading}>{t('checkin.heading')}</Text>
@@ -128,7 +128,7 @@ export default function DailyCheckinScreen({ navigation }: Props) {
                     <MoodFaceIcon
                       score={opt.score as MoodScore}
                       size={32}
-                      color={mood === opt.score ? '#FDFBF6' : '#3D1F0E'}
+                      color={mood === opt.score ? '#FFFCF6' : '#43260F'}
                     />
                     <Text style={[styles.moodLabel, mood === opt.score && styles.moodLabelActive]}>
                       {moodLabel}
@@ -183,7 +183,7 @@ export default function DailyCheckinScreen({ navigation }: Props) {
             accessibilityLabel={t('checkin.submitA11y')}
           >
             {submitting ? (
-              <ActivityIndicator color="#FDFBF6" />
+              <ActivityIndicator color="#FFFCF6" />
             ) : (
               <Text style={styles.submitText}>{t('checkin.submitText')}</Text>
             )}
@@ -203,7 +203,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.paper,
     borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.06)',
   },
-  back: { fontSize: 15, color: '#C07840', fontFamily: FONTS.bodySemiBold },
+  back: { fontSize: 15, color: '#D96C88', fontFamily: FONTS.bodySemiBold },
   title: { fontSize: 17, fontFamily: FONTS.bodySemiBold, color: COLORS.bark },
 
   content: { padding: 20, paddingBottom: 80 },
@@ -219,10 +219,10 @@ const styles = StyleSheet.create({
     borderWidth: 1.5, borderColor: 'rgba(150,80,50,0.18)',
   },
   // v9 active state — action-deep (matches CTAs, toggle active, week chip)
-  moodChipActive: { backgroundColor: '#C07840', borderColor: '#945A41' },
+  moodChipActive: { backgroundColor: '#D96C88', borderColor: '#D96C88' },
   moodEmoji: { fontSize: 28 },
   moodLabel: { fontSize: 11, fontFamily: FONTS.bodySemiBold, color: COLORS.barkSoft, marginTop: 4 },
-  moodLabelActive: { color: '#FDFBF6' },
+  moodLabelActive: { color: '#FFFCF6' },
 
   sectionLabel: { fontSize: 13, fontFamily: FONTS.bodySemiBold, color: COLORS.bark, marginTop: 20, marginBottom: 8 },
   // `flex:1` on each dot + small gap means the row scales to whatever width is
@@ -242,7 +242,7 @@ const styles = StyleSheet.create({
   },
   dotActive: { backgroundColor: COLORS.sage, borderColor: COLORS.sage },
   dotText: { fontSize: 14, fontFamily: FONTS.bodySemiBold, color: COLORS.barkSoft },
-  dotTextActive: { color: '#FDFBF6' },
+  dotTextActive: { color: '#FFFCF6' },
 
   input: {
     backgroundColor: COLORS.paper, borderRadius: 14, padding: 16,
@@ -260,11 +260,11 @@ const styles = StyleSheet.create({
 
   // v9 canonical CTA — action-deep + cocoa shadow + paper text
   submit: {
-    marginTop: 22, backgroundColor: '#C07840', borderRadius: 999,
+    marginTop: 22, backgroundColor: '#D96C88', borderRadius: 999,
     paddingVertical: 15, alignItems: 'center',
-    shadowColor: '#945A41', shadowOffset: { width: 0, height: 4 },
+    shadowColor: '#D96C88', shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.24, shadowRadius: 10, elevation: 3,
   },
   submitDisabled: { opacity: 0.45 },
-  submitText: { color: '#FDFBF6', fontSize: 15, fontFamily: FONTS.bodySemiBold, letterSpacing: 0.3 },
+  submitText: { color: '#FFFCF6', fontSize: 15, fontFamily: FONTS.bodySemiBold, letterSpacing: 0.3 },
 });

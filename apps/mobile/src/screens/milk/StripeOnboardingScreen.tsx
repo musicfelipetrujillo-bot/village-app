@@ -73,7 +73,7 @@ export default function StripeOnboardingScreen({ route, navigation }: Props) {
   if (loading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator color="#C07840" size="large" />
+        <ActivityIndicator color="#D96C88" size="large" />
         <Text style={styles.loadingText}>{t('stripeOnboarding.loading')}</Text>
       </View>
     );
@@ -94,7 +94,7 @@ export default function StripeOnboardingScreen({ route, navigation }: Props) {
         startInLoadingState
         renderLoading={() => (
           <View style={styles.webviewLoader}>
-            <ActivityIndicator color="#C07840" />
+            <ActivityIndicator color="#D96C88" />
           </View>
         )}
       />
@@ -105,12 +105,12 @@ export default function StripeOnboardingScreen({ route, navigation }: Props) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: 'transparent' },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#F5F0E8', gap: 16 },
-  loadingText: { fontSize: 15, color: '#9A8070', fontFamily: FONTS.bodyMedium },
+  loadingText: { fontSize: 15, color: '#7A4A24', fontFamily: FONTS.bodyMedium },
   header: {
     paddingTop: 56, paddingHorizontal: 20, paddingBottom: 16,
     backgroundColor: COLORS.paper, borderBottomWidth: 1, borderBottomColor: '#E8E0D5',
   },
-  headerTitle: { fontSize: 18, fontFamily: FONTS.bodySemiBold, color: '#2C1810', marginBottom: 4 },
-  headerSub: { fontSize: 12, color: '#9A8070', lineHeight: 17, fontFamily: FONTS.body },
+  headerTitle: { fontSize: 18, fontFamily: FONTS.bodySemiBold, color: '#43260F', marginBottom: 4 },
+  headerSub: { fontSize: 12, color: '#7A4A24', lineHeight: 17, fontFamily: FONTS.body },
   webviewLoader: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center' },
 });

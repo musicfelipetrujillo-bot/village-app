@@ -74,7 +74,7 @@ export function PrimaryCTA({
           clipped by parent overflow:hidden + radius. */}
       <GlassHighlight radius={radius} height={14} />
       {loading ? (
-        <ActivityIndicator color="#FDFBF6" />
+        <ActivityIndicator color="#FFFCF6" />
       ) : (
         <Text style={styles.label}>{label}</Text>
       )}
@@ -84,12 +84,12 @@ export function PrimaryCTA({
 
 const styles = StyleSheet.create({
   base: {
-    backgroundColor: '#C07840',              // kit cinnamon
+    backgroundColor: '#D96C88',              // kit cinnamon
     paddingVertical: 12,
     paddingHorizontal: 18,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#945A41',                  // action-deep tonal shadow
+    shadowColor: '#D96C88',                  // action-deep tonal shadow
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.22,                     // dialed from 0.24 — polished, not aggressive
     shadowRadius: 10,
@@ -101,7 +101,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 15,
     fontFamily: FONTS.bodySemiBold,
-    color: '#FDFBF6',                        // paper white (kit canon, not #FFF)
+    color: '#FFFCF6',                        // paper white (kit canon, not #FFF)
     letterSpacing: 0.3,
     textAlign: 'center',
   },

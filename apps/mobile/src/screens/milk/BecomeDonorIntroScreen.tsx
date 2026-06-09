@@ -142,15 +142,15 @@ export default function BecomeDonorIntroScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: 'transparent', paddingHorizontal: 28 },
   back: { marginTop: 56, marginBottom: 16 },
-  backText: { fontSize: 15, color: '#C07840', fontFamily: FONTS.bodySemiBold },
+  backText: { fontSize: 15, color: '#D96C88', fontFamily: FONTS.bodySemiBold },
   dots: { flexDirection: 'row', gap: 8, marginBottom: 48 },
   dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#E0D5C5' },
   dotActive: { width: 24, backgroundColor: COLORS.coco },
   content: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   markWrap: { width: 96, height: 96, marginBottom: 28, overflow: 'hidden' },
   // v9 — Playfair Bold roman title (was Plus Jakarta SemiBold)
-  title: { fontSize: 28, fontFamily: FONTS.headerBold, color: '#2C1810', textAlign: 'center', marginBottom: 16, lineHeight: 34, letterSpacing: -0.4 },
-  body: { fontSize: 16, color: '#6B5C52', textAlign: 'center', lineHeight: 25, fontFamily: FONTS.body },
+  title: { fontSize: 28, fontFamily: FONTS.headerBold, color: '#43260F', textAlign: 'center', marginBottom: 16, lineHeight: 34, letterSpacing: -0.4 },
+  body: { fontSize: 16, color: '#7A4A24', textAlign: 'center', lineHeight: 25, fontFamily: FONTS.body },
   earningsCard: {
     backgroundColor: COLORS.pinkSoft,
     borderRadius: 16,
@@ -161,12 +161,12 @@ const styles = StyleSheet.create({
     borderColor: '#F0D9C8',
   },
   // v9 — big numbers use Playfair (brand kit: "Big numbers: Playfair 800")
-  earningsNum: { fontSize: 40, fontFamily: FONTS.headerBold, color: '#A77349', marginBottom: 4, letterSpacing: -0.5 },
-  earningsLabel: { fontSize: 13, color: '#9A8070', textAlign: 'center', fontFamily: FONTS.bodyMedium },
+  earningsNum: { fontSize: 26, fontFamily: FONTS.headerBold, color: '#7A4A24', marginBottom: 4, letterSpacing: -0.5 },
+  earningsLabel: { fontSize: 13, color: '#7A4A24', textAlign: 'center', fontFamily: FONTS.bodyMedium },
   footer: { paddingBottom: 48, gap: 12 },
-  nextBtn: { backgroundColor: '#C07840', borderRadius: 14, paddingVertical: 16, alignItems: 'center' },
-  nextBtnText: { fontSize: 16, fontFamily: FONTS.bodySemiBold, color: '#FDFBF6' },
+  nextBtn: { backgroundColor: '#D96C88', borderRadius: 14, paddingVertical: 16, alignItems: 'center' },
+  nextBtnText: { fontSize: 16, fontFamily: FONTS.bodySemiBold, color: '#FFFCF6' },
   prevBtn: { alignItems: 'center', paddingVertical: 8 },
-  prevBtnText: { fontSize: 15, color: '#9A8070', fontFamily: FONTS.bodyMedium },
+  prevBtnText: { fontSize: 15, color: '#7A4A24', fontFamily: FONTS.bodyMedium },
   disabled: { opacity: 0.6 },
 });

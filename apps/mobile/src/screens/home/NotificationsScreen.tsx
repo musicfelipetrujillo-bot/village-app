@@ -123,7 +123,7 @@ export default function NotificationsScreen() {
 
       {loading ? (
         <View style={styles.loadingWrap}>
-          <ActivityIndicator color="#C07840" />
+          <ActivityIndicator color="#D96C88" />
         </View>
       ) : error ? (
         <View style={styles.emptyWrap}>
@@ -197,7 +197,7 @@ const styles = StyleSheet.create({
   headerCenter: { flex: 1, alignItems: 'center' },
   eyebrow: {
     fontSize: 10, fontFamily: FONTS.bodySemiBold, letterSpacing: 1.6,
-    color: '#A77349', textTransform: 'uppercase', marginBottom: 4,
+    color: '#7A4A24', textTransform: 'uppercase', marginBottom: 4,
   },
   title: {
     fontSize: 24, fontFamily: FONTS.headerBold, color: COLORS.bark,
@@ -224,13 +224,13 @@ const styles = StyleSheet.create({
   },
   // v9 canonical CTA — cinnamon + action-deep shadow.
   retryPill: {
-    marginTop: 18, backgroundColor: '#C07840',
+    marginTop: 18, backgroundColor: '#D96C88',
     paddingHorizontal: 24, paddingVertical: 12, borderRadius: 999,
-    shadowColor: '#945A41', shadowOffset: { width: 0, height: 4 },
+    shadowColor: '#D96C88', shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.24, shadowRadius: 10, elevation: 3,
   },
   retryPillText: {
-    color: '#FDFBF6', fontFamily: FONTS.bodySemiBold, fontSize: 14, letterSpacing: 0.3,
+    color: '#FFFCF6', fontFamily: FONTS.bodySemiBold, fontSize: 14, letterSpacing: 0.3,
   },
 
   listContent: { paddingVertical: 8, paddingBottom: 60 },
@@ -268,7 +268,7 @@ const styles = StyleSheet.create({
   },
   unreadDot: {
     width: 8, height: 8, borderRadius: 4,
-    backgroundColor: '#C07840',                                        // v9 unread = cinnamon (action affordance)
+    backgroundColor: '#D96C88',                                        // v9 unread = cinnamon (action affordance)
     marginLeft: 10, marginTop: 16,
   },
 });

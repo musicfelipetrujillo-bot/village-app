@@ -7,6 +7,7 @@ import {
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import { COLORS, FONTS } from '@utils/constants';
 import { V9PageBackdrop } from '@components/shared/V9PageBackdrop';
+import { LinearGradient } from 'expo-linear-gradient';
 import { confirm } from '@utils/haptics';
 import { eventsApi, formatEventWhen, formatDistance, timeUntilLabel, type EventCard, type RsvpStatus } from '@api/events';
 import { useEventsStore } from '@store/events';
@@ -98,7 +99,7 @@ export default function EventDetailScreen() {
   if (loading) {
     return (
       <View style={styles.container}>
-        <ActivityIndicator color="#C07840" style={{ marginTop: 80 }} />
+        <ActivityIndicator color="#D96C88" style={{ marginTop: 80 }} />
       </View>
     );
   }
@@ -118,6 +119,12 @@ export default function EventDetailScreen() {
   return (
     <View style={styles.container}>
       <V9PageBackdrop />
+      <LinearGradient
+        pointerEvents="none"
+        colors={['rgba(247,197,203,0.34)', 'rgba(250,208,128,0.14)', 'rgba(252,247,239,0)']}
+        locations={[0, 0.45, 1]}
+        style={styles.pageWash}
+      />
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} accessibilityLabel={t('eventDetail.backA11y')}>
           <Text style={styles.back}>{t('eventDetail.back')}</Text>
@@ -213,6 +220,7 @@ export default function EventDetailScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: 'transparent' },
+  pageWash: { position: 'absolute', top: 0, left: 0, right: 0, height: 620 },
   notFound: { textAlign: 'center', marginTop: 80, color: COLORS.textLight },
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
@@ -220,11 +228,11 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.paper,
     borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.06)',
   },
-  back: { fontSize: 15, color: '#C07840', fontFamily: FONTS.bodySemiBold },
+  back: { fontSize: 15, color: '#D96C88', fontFamily: FONTS.bodySemiBold },
 
   content: { padding: 20, paddingBottom: 120 },
   badgeRow: { flexDirection: 'row', gap: 8, alignItems: 'center', marginBottom: 8 },
-  badge: { fontSize: 10, fontFamily: FONTS.bodySemiBold, letterSpacing: 1, color: '#A77349', textTransform: 'uppercase' },
+  badge: { fontSize: 10, fontFamily: FONTS.bodySemiBold, letterSpacing: 1, color: '#7A4A24', textTransform: 'uppercase' },
   partner: {
     fontSize: 10, fontFamily: FONTS.bodySemiBold, letterSpacing: 0.8, color: COLORS.sage,
     backgroundColor: 'rgba(92,107,58,0.1)', borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2,
@@ -240,14 +248,14 @@ const styles = StyleSheet.create({
   section: {
     backgroundColor: COLORS.paper, borderRadius: 14, padding: 16, marginTop: 14,
     borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(150, 80, 50, 0.18)',
-    shadowColor: '#6B2E0E', shadowOffset: { width: 0, height: 8 },
+    shadowColor: '#43260F', shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.22, shadowRadius: 22, elevation: 5,
   },
   sectionLabel: { fontSize: 11, fontFamily: FONTS.bodySemiBold, letterSpacing: 1, color: COLORS.textLight, textTransform: 'uppercase' },
   sectionValue: { fontSize: 15, fontFamily: FONTS.bodySemiBold, color: COLORS.bark, marginTop: 4 },
   sectionSubValue: { fontSize: 13, color: COLORS.barkSoft, marginTop: 2 },
   distance: { fontSize: 12, color: COLORS.textLight, marginTop: 4 },
-  countdown: { fontSize: 13, color: '#A77349', fontFamily: FONTS.bodySemiBold, marginTop: 4 },
+  countdown: { fontSize: 13, color: '#7A4A24', fontFamily: FONTS.bodySemiBold, marginTop: 4 },
   description: { fontSize: 14, color: COLORS.barkSoft, lineHeight: 21, marginTop: 6 },
 
   secondaryBtn: {
@@ -279,16 +287,16 @@ const styles = StyleSheet.create({
   // as filled / outline.
   // v9 canonical CTA
   primaryBtn: {
-    backgroundColor: '#C07840', borderRadius: 999,
+    backgroundColor: '#D96C88', borderRadius: 999,
     paddingVertical: 15, alignItems: 'center',
-    shadowColor: '#945A41', shadowOffset: { width: 0, height: 4 },
+    shadowColor: '#D96C88', shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.24, shadowRadius: 10, elevation: 3,
   },
-  primaryBtnText: { color: '#FDFBF6', fontSize: 15, fontFamily: FONTS.bodySemiBold, letterSpacing: 0.3 },
+  primaryBtnText: { color: '#FFFCF6', fontSize: 15, fontFamily: FONTS.bodySemiBold, letterSpacing: 0.3 },
   cancelBtn: {
     backgroundColor: COLORS.paper, borderRadius: 999,
     paddingVertical: 15, alignItems: 'center',
     borderWidth: 1.5, borderColor: COLORS.coco,
   },
-  cancelBtnText: { color: '#C07840', fontSize: 14, fontFamily: FONTS.bodySemiBold },
+  cancelBtnText: { color: '#D96C88', fontSize: 14, fontFamily: FONTS.bodySemiBold },
 });

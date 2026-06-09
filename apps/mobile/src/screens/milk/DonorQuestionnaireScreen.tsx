@@ -300,7 +300,7 @@ export default function DonorQuestionnaireScreen({ navigation }: Props) {
             <View style={styles.coachCard}>
               <Text style={styles.coachLabel}>{t('donorQuestionnaire.coachLabel')}</Text>
               {loadingCoach ? (
-                <ActivityIndicator color="#C07840" size="small" style={{ marginTop: 8 }} />
+                <ActivityIndicator color="#D96C88" size="small" style={{ marginTop: 8 }} />
               ) : coach ? (
                 <>
                   <Text style={styles.coachText}>{coach.acknowledgement}</Text>
@@ -355,35 +355,35 @@ const styles = StyleSheet.create({
     paddingTop: 56, paddingHorizontal: 20, paddingBottom: 12,
   },
   backBtn: { padding: 4 },
-  backText: { fontSize: 15, color: '#C07840', fontFamily: FONTS.bodySemiBold },
-  counter: { fontSize: 13, color: '#9A8070', fontFamily: FONTS.bodySemiBold },
+  backText: { fontSize: 15, color: '#D96C88', fontFamily: FONTS.bodySemiBold },
+  counter: { fontSize: 13, color: '#7A4A24', fontFamily: FONTS.bodySemiBold },
   progressTrack: { height: 4, backgroundColor: '#E0D5C5', marginHorizontal: 20, borderRadius: 2 },
   progressFill: { height: 4, backgroundColor: COLORS.coco, borderRadius: 2 },
   scrollContent: { paddingHorizontal: 24, paddingTop: 28, paddingBottom: 120 },
-  questionText: { fontSize: 20, fontFamily: FONTS.bodySemiBold, color: '#2C1810', lineHeight: 29, marginBottom: 24 },
+  questionText: { fontSize: 20, fontFamily: FONTS.bodySemiBold, color: '#43260F', lineHeight: 29, marginBottom: 24 },
   options: { gap: 10 },
   // v9 card lift — rust hairline + soft cocoa drop.
   optionBtn: {
     backgroundColor: COLORS.paper,
     borderRadius: 12, padding: 16,
     borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(150,80,50,0.18)',
-    shadowColor: '#6B2E0E', shadowOpacity: 0.18, shadowOffset: { width: 0, height: 6 }, shadowRadius: 20, elevation: 2,
+    shadowColor: '#43260F', shadowOpacity: 0.18, shadowOffset: { width: 0, height: 6 }, shadowRadius: 20, elevation: 2,
   },
-  optionSelected: { borderColor: '#C07840', backgroundColor: 'rgba(192,120,64,0.06)', shadowOpacity: 0.22 },
-  optionText: { fontSize: 15, color: '#6B5C52', fontFamily: FONTS.bodyMedium },
-  optionTextSelected: { color: '#3D1F0E', fontFamily: FONTS.bodySemiBold },
+  optionSelected: { borderColor: '#D96C88', backgroundColor: 'rgba(192,120,64,0.06)', shadowOpacity: 0.22 },
+  optionText: { fontSize: 15, color: '#7A4A24', fontFamily: FONTS.bodyMedium },
+  optionTextSelected: { color: '#43260F', fontFamily: FONTS.bodySemiBold },
   // v9: full hairline border + soft drop (side-stripe was a v9 absolute ban).
   coachCard: {
     marginTop: 24, backgroundColor: COLORS.paper,
     borderRadius: 14, padding: 18,
     borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(150,80,50,0.18)',
-    shadowColor: '#6B2E0E', shadowOpacity: 0.22, shadowOffset: { width: 0, height: 8 }, shadowRadius: 22, elevation: 3,
+    shadowColor: '#43260F', shadowOpacity: 0.22, shadowOffset: { width: 0, height: 8 }, shadowRadius: 22, elevation: 3,
   },
-  coachLabel: { fontSize: 11, fontFamily: FONTS.bodySemiBold, color: '#A77349', marginBottom: 8, letterSpacing: 0.8 },
-  coachText: { fontSize: 14, color: '#2C1810', fontFamily: FONTS.bodyMedium, lineHeight: 21, marginBottom: 6 },
-  coachWhy: { fontSize: 13, color: '#6B5C52', lineHeight: 20, fontFamily: FONTS.body },
+  coachLabel: { fontSize: 11, fontFamily: FONTS.bodySemiBold, color: '#7A4A24', marginBottom: 8, letterSpacing: 0.8 },
+  coachText: { fontSize: 14, color: '#43260F', fontFamily: FONTS.bodyMedium, lineHeight: 21, marginBottom: 6 },
+  coachWhy: { fontSize: 13, color: '#7A4A24', lineHeight: 20, fontFamily: FONTS.body },
   coachConcern: { marginTop: 10, backgroundColor: '#FFF9E6', borderRadius: 8, padding: 10 },
-  coachConcernText: { fontSize: 13, color: '#8B6914', lineHeight: 19, fontFamily: FONTS.body },
+  coachConcernText: { fontSize: 13, color: '#E98A6A', lineHeight: 19, fontFamily: FONTS.body },
   footer: {
     position: 'absolute', bottom: 0, left: 0, right: 0,
     flexDirection: 'row', gap: 12,
@@ -393,16 +393,16 @@ const styles = StyleSheet.create({
   },
   prevBtn: {
     paddingVertical: 14, paddingHorizontal: 20,
-    borderRadius: 12, borderWidth: 1.5, borderColor: '#9A8070',
+    borderRadius: 12, borderWidth: 1.5, borderColor: '#7A4A24',
   },
-  prevBtnText: { fontSize: 15, color: '#9A8070', fontFamily: FONTS.bodySemiBold },
+  prevBtnText: { fontSize: 15, color: '#7A4A24', fontFamily: FONTS.bodySemiBold },
   // v9 canonical CTA — cinnamon + action-deep shadow.
   nextBtn: {
-    flex: 1, backgroundColor: '#C07840', borderRadius: 999,
+    flex: 1, backgroundColor: '#D96C88', borderRadius: 999,
     paddingVertical: 14, alignItems: 'center',
-    shadowColor: '#945A41', shadowOffset: { width: 0, height: 4 },
+    shadowColor: '#D96C88', shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.24, shadowRadius: 10, elevation: 3,
   },
-  nextBtnText: { fontSize: 15, fontFamily: FONTS.bodySemiBold, color: '#FDFBF6', letterSpacing: 0.3 },
+  nextBtnText: { fontSize: 15, fontFamily: FONTS.bodySemiBold, color: '#FFFCF6', letterSpacing: 0.3 },
   disabled: { opacity: 0.4 },
 });

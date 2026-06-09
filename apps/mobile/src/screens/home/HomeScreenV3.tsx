@@ -5,7 +5,7 @@
 // MUCH leaner than the current production HomeScreen.tsx:
 //
 //   header → greeting → daily check-in pill → THIS WEEK'S MANUAL hero card
-//   with 5-row chapter TOC → EXPLORE THE VILLAGE 2×2 pillar grid → tab bar
+//   (week-overview summary) → EXPLORE THE VILLAGE 2×2 pillar grid → tab bar
 //
 // No WelcomeCard, no Help card, no Explore card, no quiet-hours strip,
 // no weekly-journey inline checklist. Those were v9 surfaces that the
@@ -22,13 +22,13 @@
 //
 // Reuses the production data hooks (useUserStore profile, useHomeStore
 // babyProfile, navigation) so the preview shows real user state. The
-// 5-row chapter TOC is currently static "this week's subjects" copy
-// from the handoff — wiring it to live milestone_library data is
-// Phase 4.1 (after the layout itself is approved).
+// Manual hero card shows a short week-overview hook pulled from live
+// milestone_library data (weekMilestones), falling back to the current
+// milestone's description.
 
 import React, { useEffect, useRef } from 'react';
 import {
-  View, Text, StyleSheet, TouchableOpacity, Image, Animated,
+  View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Animated,
   StyleProp, ViewStyle,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -37,8 +37,12 @@ import { useNavigation } from '@react-navigation/native';
 import { COLORS, FONTS } from '@utils/constants';
 import { useUserStore } from '@store/user';
 import { useHomeStore } from '@store/home';
+import { usePerksStore } from '@store/perks';
+import { usePicksStore } from '@store/picks';
+import type { PerkCard } from '@api/perks';
+import type { VilliePick } from '@api/picks';
 import { useT } from '@/i18n';
-import { homeApi, type Milestone, type MilestoneCategory } from '@api/home';
+import { homeApi, type Milestone } from '@api/home';
 import { WarmGlowBackdrop } from '@components/shared/WarmGlowBackdrop';
 import { DailyCheckinStrip } from '@components/shared/DailyCheckinStrip';
 import { GlassHighlight } from '@components/shared/GlassHighlight';
@@ -55,39 +59,26 @@ const VILLIE_BEE = require('../../../assets/brand/villie-bee.png');
 // All values pulled from constants.ts v2_* — verified pixel-identical to
 // the handoff `shared.jsx` BRAND block.
 const T = {
-  paper:     COLORS.v2_paper,      // #FDFBF6
-  cream:     COLORS.v2_cream,      // #F4ECD8
-  parchment: COLORS.v2_parchment,  // #EAE0C8
-  butter:    COLORS.v2_butter,     // #FAD080
-  marigold:  COLORS.v2_marigold,   // #F2C130
-  cinnamon:  COLORS.v2_cinnamon,   // #C07840
-  caramel:   COLORS.v2_caramel,    // #D4A880
-  blush:     COLORS.v2_blush,      // #F5BEB6
-  salmon:    COLORS.v2_salmon,     // #EDA8A0
-  sage:      COLORS.v2_sage,       // #D8CEB0
-  moss:      COLORS.v2_moss,       // #606E46
-  cocoa:     COLORS.v2_cocoa,      // #3D1F0E
+  paper:     COLORS.v2_paper,      // #FFFCF6
+  cream:     COLORS.v2_cream,      // #FCF7EF
+  parchment: COLORS.v2_parchment,  // #F2E6DD
+  butter:    COLORS.v2_butter,     // #F4C53C
+  marigold:  COLORS.v2_marigold,   // #F4C53C
+  cinnamon:  COLORS.v2_cinnamon,   // #D96C88
+  caramel:   COLORS.v2_caramel,    // #E98A6A
+  blush:     COLORS.v2_blush,      // #F7C5CB
+  salmon:    COLORS.v2_salmon,     // #F7C5CB
+  sage:      COLORS.v2_sage,       // #F2E6DD
+  moss:      COLORS.v2_moss,       // #E98A6A
+  cocoa:     COLORS.v2_cocoa,      // #43260F
   walnut:    COLORS.v2_walnut,     // #7A4A28
-  amber:     COLORS.v2_amber,      // #A77349
+  amber:     COLORS.v2_amber,      // #7A4A24
   rule:      'rgba(61,31,14,0.13)',
 };
 
 // Wordmark removed 2026-05-24 — editorial masthead is the brand
 // signature on in-app surfaces. Auth screens (Splash/Login/SignUp)
 // retain the wordmark as the identity moment.
-
-// ─── Chapter sub-palette ───────────────────────────────────────────────
-// Matches the CHAPTERS map in the handoff's shared.jsx — used for the
-// 3px color stripe in the TOC rows. Baby chapters here because HomeB's
-// hero card is "Feli's manual" (baby side). Mom chapters apply when
-// the user is in a pre-baby stage — not surfaced in this preview.
-const CHAPTERS: Record<string, { bg: string; fg: string }> = {
-  sleep: { bg: T.caramel,  fg: T.cocoa }, // warm caramel — "milk before bed" (was sage-olive)
-  feed:  { bg: T.butter,   fg: T.cocoa }, // butter
-  grow:  { bg: T.blush,    fg: T.cocoa }, // blush pink
-  care:  { bg: '#F2C0C8',  fg: T.cocoa }, // rose pink
-  wins:  { bg: T.marigold, fg: T.cocoa }, // marigold
-};
 
 // ─── Helpers ───────────────────────────────────────────────────────────
 function greetingForHour(hour: number, lang: 'en' | 'es'): string {
@@ -205,62 +196,47 @@ function HomeGreeting({ firstName, babyName, weekNumber, monthsOld, dateLabel }:
 }
 
 // ─── This week's manual hero card ──────────────────────────────────────
-// Handoff design uses 5 chapter names (Sleep/Feed/Grow/Care/Wins);
-// milestone_library in the DB uses 7 different category names
-// (motor/social/communication/sleep/feeding/sensory/cognitive). This
-// mapping bridges the two so the TOC can pull live per-week copy.
-// Lossy by design — see Phase 4.4 commit notes. Re-seed milestone_library
-// in the handoff vocabulary to retire this map.
-const CHAPTER_TO_CATEGORY: Record<string, MilestoneCategory> = {
-  Sleep: 'sleep',
-  Feed:  'feeding',
-  Grow:  'motor',         // physical growth / pulling up / sitting / crawling
-  Care:  'sensory',       // textures / soothing / what baby's noticing
-  Wins:  'social',        // smiling / stranger awareness / first tiny milestones
-};
-
-// Static placeholder copy — used when milestone_library has no row for
-// the mapped category for the current week. Keeps the screen alive on
-// cold start and on weeks the library hasn't been seeded for.
-const TOC_PLACEHOLDERS: Record<string, string> = {
-  Sleep: 'Separation anxiety wakings',
-  Feed:  "Cluster feeding isn't low supply",
-  Grow:  'Pulling up week',
-  Care:  'Teething, or just fussy?',
-  Wins:  'Burp at the switch',
-};
-
-const TOC_DURATIONS: Record<string, string> = {
-  Sleep: '4′', Feed: '3′', Grow: '5′', Care: '4′', Wins: '2′',
-};
-
-const TOC_CHAPTER_ORDER = ['Sleep', 'Feed', 'Grow', 'Care', 'Wins'] as const;
-
-// Derive a short row sub from a Milestone — prefer title (curated short
-// phrase) over description (full paragraph). Fall back to placeholder
-// when no milestone row matched for this week's category.
-function tocSubFor(chapter: string, milestones: Milestone[]): string {
-  const cat = CHAPTER_TO_CATEGORY[chapter];
-  const hit = milestones.find((m) => m.category === cat);
-  if (hit?.title) return hit.title;
-  return TOC_PLACEHOLDERS[chapter] ?? '';
+// "29th", "1st", "22nd" — ordinal suffix for the week-number title.
+function ordinal(n: number): string {
+  const s = ['th', 'st', 'nd', 'rd'];
+  const v = n % 100;
+  return `${n}${s[(v - 20) % 10] ?? s[v] ?? s[0]}`;
 }
 
-function ManualHeroCard({ babyName, weekNumber, milestones, onPress, onChapterPress }: {
+// A warm, journey-POSITION caption for the progress bar — names where the mom
+// is in baby's first year, in human terms (no developmental claim, so it stays
+// true for every baby and gentle in the fragile early weeks). This is what
+// makes the handwritten line earn its place: it interprets the bar.
+function journeyNote(week: number): string {
+  if (week <= 6)  return 'the fourth trimester';
+  if (week <= 17) return 'the early months';
+  if (week <= 25) return 'almost halfway';
+  if (week <= 34) return 'just past halfway';
+  if (week <= 45) return 'the back half';
+  return 'almost one';
+}
+
+function ManualHeroCard({ babyName, weekNumber, hook, body, onPress }: {
   babyName: string;
   weekNumber: number;
-  /** Live milestones for the current week, mapped to TOC rows via
-   *  CHAPTER_TO_CATEGORY. Empty array falls back to TOC_PLACEHOLDERS. */
-  milestones: Milestone[];
+  /** A SHORT milestone/pain-point teaser (one line, from the week's milestone
+   *  data) — a hook to pull the reader into the Manual, NOT the full summary.
+   *  The per-chapter TOC was removed (it duplicated the Manual tab). */
+  hook: string | null;
+  /** One supporting sentence under the hook (the milestone's description), so
+   *  the card carries real substance instead of a lone headline. */
+  body?: string | null;
   onPress: () => void;
-  /** Tap a specific chapter row → opens Manual tab pre-selected to that
-   *  chapter via route params. Falls back to the card-level `onPress`
-   *  if the row's TouchableOpacity isn't wired through (defensive). */
-  onChapterPress: (chapter: string) => void;
 }) {
   // Hero bg = blush per handoff palette (first slot of the kit's default
   // 3-color palette: [accent, primary, heroBg]).
   const heroBg = T.blush;
+  // Journey progress — clamp so week 1 still shows a sliver and 52 fills.
+  const pct = Math.max(0.04, Math.min(1, weekNumber / 52));
+  // Where the bee perches on the track, and which way its speech bubble opens
+  // (away from the nearer edge) so the bubble never runs off the card.
+  const markerPct = Math.min(0.93, Math.max(0.06, pct));
+  const openLeft = markerPct >= 0.5;
   return (
     <View style={{ marginTop: 22 }}>
       <View style={styles.sectionHead}>
@@ -276,52 +252,64 @@ function ManualHeroCard({ babyName, weekNumber, milestones, onPress, onChapterPr
         <LinearGradient
           colors={['rgba(253,251,246,0.32)', 'rgba(253,251,246,0)']}
           start={{ x: 0, y: 0 }} end={{ x: 0, y: 0.55 }}
-          style={[StyleSheet.absoluteFillObject, { borderRadius: 10 }]}
+          style={[StyleSheet.absoluteFillObject, { borderRadius: 20 }]}
           pointerEvents="none"
         />
-        <GlassHighlight radius={10} height={14} />
-        {/* Marigold halo top-right */}
+        <GlassHighlight radius={20} height={14} />
+        {/* Marigold halo top-right + a villie bee perched on it (personality:
+            the card's resident bee, basking on the honey glow). */}
         <View style={styles.heroHalo} pointerEvents="none" />
+        <CornerBee size={48} rotate={16} style={styles.heroCornerBee} />
 
-        <View style={styles.heroTitleRow}>
-          <Text style={styles.heroTitle}>
-            {babyName}'s <Text style={styles.heroTitleItalic}>manual.</Text>
+        <Text style={styles.heroTitle}>
+          {babyName}'s <Text style={styles.heroTitleItalic}>{ordinal(weekNumber)} week</Text>
+        </Text>
+
+        {/* One milestone hook — a teaser, not the whole week. The pull into
+            the Manual is the curiosity gap + the "what to expect" CTA. */}
+        {hook ? (
+          <>
+            <Text style={styles.heroTag}>✦ MILESTONE</Text>
+            <Text style={styles.heroHook} numberOfLines={2}>{hook}</Text>
+          </>
+        ) : (
+          <Text style={[styles.heroHook, { marginTop: 12 }]} numberOfLines={2}>
+            See what’s changing for {babyName} this week.
           </Text>
-          <Text style={styles.heroMeta}>Wk {weekNumber} · 18′</Text>
+        )}
+
+        {/* Supporting line — the milestone's own description, so the card has
+            body, not just a headline. Hidden when it would duplicate the hook. */}
+        {!!body && body !== hook && (
+          <Text style={styles.heroBody} numberOfLines={2}>{body}</Text>
+        )}
+
+        {/* Journey progress — the bee flies along the 52-week path and, from
+            its spot, "says" where you are in a little speech bubble. Bubble +
+            bee are one object, so the phrase is never stranded on its own. */}
+        <View style={styles.heroProgress}>
+          <View
+            style={[
+              styles.heroBubble,
+              openLeft
+                ? { right: `${(1 - markerPct) * 100}%`, marginRight: -16 }
+                : { left: `${markerPct * 100}%`, marginLeft: -16 },
+            ]}
+          >
+            <Text style={styles.heroBubbleText}>{journeyNote(weekNumber)}</Text>
+            <View style={[styles.heroBubbleTail, openLeft ? { right: 16 } : { left: 16 }]} />
+          </View>
+          <View style={styles.heroProgressTrack}>
+            <View style={[styles.heroProgressFill, { width: `${pct * 100}%` }]} />
+          </View>
+          {/* The bee rides a cream "pin" disc so it reads clearly against the
+              blush card + dark track, like a waypoint token on the path. */}
+          <View style={[styles.heroBeePin, { left: `${markerPct * 100}%` }]}>
+            <CornerBee size={26} rotate={-8} />
+          </View>
         </View>
 
-        <View style={styles.heroToc}>
-          {TOC_CHAPTER_ORDER.map((chapter, i) => {
-            const cc = CHAPTERS[chapter.toLowerCase()];
-            const isLast = i === TOC_CHAPTER_ORDER.length - 1;
-            const num = String(i + 1).padStart(2, '0');
-            const sub = tocSubFor(chapter, milestones);
-            const dur = TOC_DURATIONS[chapter] ?? '';
-            return (
-              // Each row is its own tap target — deep-links to Manual
-              // with this chapter pre-selected via route params. The
-              // parent card's whole-area onPress (line above) is still
-              // active for taps outside the rows (hero title, halo).
-              <TouchableOpacity
-                key={chapter}
-                onPress={() => onChapterPress(chapter)}
-                activeOpacity={0.85}
-                accessibilityRole="button"
-                accessibilityLabel={`${chapter} — ${sub}`}
-                style={[
-                  styles.tocRow,
-                  { borderBottomWidth: isLast ? 0 : StyleSheet.hairlineWidth },
-                ]}
-              >
-                <Text style={styles.tocNum}>{num}</Text>
-                <View style={[styles.tocStripe, { backgroundColor: cc.bg }]} />
-                <Text style={styles.tocChapter} numberOfLines={1}>{chapter}</Text>
-                <Text style={styles.tocSub} numberOfLines={1}>{sub}</Text>
-                <Text style={styles.tocDur}>{dur}</Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
+        <Text style={styles.heroCta}>What to expect →</Text>
       </TouchableOpacity>
     </View>
   );
@@ -333,10 +321,13 @@ function ManualHeroCard({ babyName, weekNumber, milestones, onPress, onChapterPr
 // names per AppNavigator.tsx: Home, Manual, Village, Inbox, Experts,
 // Milk, Gear, Profile. Same fix as commit f662bd7 in VillageHomeV3.
 const VILLAGE_PILLARS = [
-  { label: 'Milk Connect', sub: 'Peer donors',   bg: T.blush,     icon: 'milk',        iconColor: T.cinnamon, route: 'Milk' },
-  { label: 'Specialists',  sub: 'Verified',      bg: T.sage,      icon: 'specialists', iconColor: T.moss,     route: 'Experts' },
-  { label: 'Baby Gear',    sub: 'Hand-me-downs', bg: T.butter,    icon: 'gear',        iconColor: T.walnut,   route: 'Gear' },
-  { label: 'Villie Plans', sub: 'Tue · 9am',     bg: T.parchment, icon: 'plans',       iconColor: T.cinnamon, route: 'Village' },
+  // Warm analogous palette — every card colored so the page isn't stale, but all
+  // sit in one soft pink->honey family at a matched level, so they cohere instead
+  // of sore-thumbing. Cohesion = related hues, not neutral cards.
+  { label: 'Milk Connect', sub: 'Peer donors',   bg: '#F7C5CB', fg: T.cocoa, icon: 'milk',        iconColor: '#43260F', route: 'Milk' },
+  { label: 'Specialists',  sub: 'Verified',      bg: '#F3B79C', fg: T.cocoa, icon: 'specialists', iconColor: '#43260F', route: 'Experts' },
+  { label: 'Baby Gear',    sub: 'Hand-me-downs', bg: '#F4C53C', fg: T.cocoa, icon: 'gear',        iconColor: '#43260F', route: 'Gear' },
+  { label: 'Villie Plans', sub: 'Tue · 9am',     bg: '#EFB2C8', fg: T.cocoa, icon: 'plans',       iconColor: '#43260F', route: 'Village' },
 ] as const;
 
 const PILLAR_ICONS = {
@@ -425,12 +416,99 @@ function VillageStrip({ onPillar, onAll }: { onPillar: (route: string) => void; 
               </Svg>
             </View>
             <View style={{ flex: 1, minWidth: 0 }}>
-              <Text style={styles.pillarLabel} numberOfLines={1}>{p.label}</Text>
-              <Text style={styles.pillarSub} numberOfLines={1}>{p.sub}</Text>
+              <Text style={[styles.pillarLabel, { color: p.fg }]} numberOfLines={1}>{p.label}</Text>
+              <Text style={[styles.pillarSub, { color: p.fg }]} numberOfLines={1}>{p.sub}</Text>
             </View>
           </TouchableOpacity>
         ))}
       </View>
+    </View>
+  );
+}
+
+// ─── Villie's picks & perks ──────────────────────────────────────────────
+// Weekly editorial product picks (villie_picks) + brand-partner perks
+// (brand_deals). Picks build trust (recommendations); perks give tangible
+// value. Both come from stores — real on native, web-dev-seeded in the
+// browser preview. FTC disclosure inline. Pick tile colors are assigned
+// client-side (the data carries no color) from the warm palette.
+const PICK_TINTS = ['#F7C5CB', '#F3B79C', '#EFB2C8', '#FBE3A6'];
+
+function PicksAndPerks({ picks, perks, onSeeAll }: { picks: VilliePick[]; perks: PerkCard[]; onSeeAll: () => void }) {
+  if (picks.length === 0 && perks.length === 0) return null;
+  return (
+    <View style={{ marginTop: 26 }}>
+      <View style={styles.sectionHead}>
+        <Eyebrow>Villie&apos;s picks &amp; perks</Eyebrow>
+        <TouchableOpacity onPress={onSeeAll} accessibilityRole="link">
+          <Text style={styles.sectionLink}>All →</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Picks — weekly editorial carousel (bleeds to screen edges) */}
+      {picks.length > 0 && (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={{ marginHorizontal: -22 }}
+          contentContainerStyle={{ paddingHorizontal: 22, paddingTop: 12, paddingBottom: 4, gap: 12 }}
+        >
+          {picks.map((p, i) => (
+            <TouchableOpacity
+              key={p.id}
+              activeOpacity={0.88}
+              onPress={onSeeAll}
+              accessibilityRole="button"
+              accessibilityLabel={p.name}
+              style={{ width: 132 }}
+            >
+              <View style={{ height: 96, borderRadius: 16, backgroundColor: PICK_TINTS[i % PICK_TINTS.length], alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                {p.image_url
+                  ? <Image source={{ uri: p.image_url }} style={{ width: '100%', height: '100%' }} resizeMode="cover" />
+                  : <Text style={{ fontSize: 42 }}>{p.emoji ?? '🤍'}</Text>}
+              </View>
+              <Text style={{ fontFamily: FONTS.v2_bold, fontSize: 13, color: T.cocoa, marginTop: 8 }} numberOfLines={1}>{p.name}</Text>
+              <Text style={{ fontFamily: FONTS.v2_body, fontSize: 11, lineHeight: 14, color: T.walnut, marginTop: 2 }} numberOfLines={2}>{p.blurb}</Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      )}
+
+      {/* Perks — brand-partner rows (top 2) */}
+      {perks.length > 0 && (
+        <View style={{ marginTop: 14, gap: 8 }}>
+          {perks.slice(0, 2).map((p) => (
+            <TouchableOpacity
+              key={p.id}
+              activeOpacity={0.85}
+              onPress={onSeeAll}
+              accessibilityRole="button"
+              accessibilityLabel={`${p.brand_name}: ${p.discount_label ?? p.title}`}
+              style={{
+                flexDirection: 'row', alignItems: 'center',
+                backgroundColor: T.paper, borderRadius: 14, padding: 12,
+                borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(201,108,120,0.18)',
+              }}
+            >
+              <View style={{ width: 36, height: 36, borderRadius: 10, backgroundColor: T.blush, alignItems: 'center', justifyContent: 'center', marginRight: 12, overflow: 'hidden' }}>
+                {p.brand_logo_url
+                  ? <Image source={{ uri: p.brand_logo_url }} style={{ width: '100%', height: '100%' }} resizeMode="cover" />
+                  : <Text style={{ fontFamily: FONTS.v2_bold, fontSize: 15, color: T.cocoa }}>{p.brand_name.charAt(0)}</Text>}
+              </View>
+              <View style={{ flex: 1, minWidth: 0 }}>
+                <Text style={{ fontFamily: FONTS.v2_bold, fontSize: 13, color: T.cocoa }} numberOfLines={1}>{p.brand_name}</Text>
+                <Text style={{ fontFamily: FONTS.v2_body, fontSize: 11.5, color: T.walnut }} numberOfLines={1}>{p.discount_label ?? p.title}</Text>
+              </View>
+              <Text style={{ fontFamily: FONTS.v2_link, fontSize: 12, color: T.cinnamon }}>Get →</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
+
+      {/* FTC disclosure — required wherever affiliate / partner deals appear */}
+      <Text style={{ fontFamily: FONTS.v2_body, fontSize: 10, lineHeight: 14, color: T.walnut, opacity: 0.75, marginTop: 10 }}>
+        Villie may earn a little when you shop these — we only pick things we&apos;d tell a friend about.
+      </Text>
     </View>
   );
 }
@@ -440,11 +518,24 @@ export default function HomeScreenV3() {
   const navigation = useNavigation<any>();
   const profile = useUserStore((s) => s.profile);
   const babyProfile = useHomeStore((s) => s.babyProfile);
+  const currentMilestone = useHomeStore((s) => s.currentMilestone);
   const _t = useT(); void _t; // reserved for future i18n in subcomponents
   const lang = (profile?.preferred_language ?? 'en') as 'en' | 'es';
 
-  // Greeting data — fall back to "friend" / "your" if we don't have a name yet.
-  const firstName = profile?.full_name?.split(' ')[0] ?? 'friend';
+  // Picks & perks — read from stores. On native these fetch real rows
+  // (villie_picks + brand_deals); the web-dev seed noop's the fetchers so
+  // the browser preview keeps its seeded data.
+  const picks = usePicksStore((s) => s.picks);
+  const fetchPicks = usePicksStore((s) => s.fetchPicks);
+  const perks = usePerksStore((s) => s.perks);
+  const fetchPerks = usePerksStore((s) => s.fetchPerks);
+  useEffect(() => {
+    fetchPicks();
+    fetchPerks();
+  }, [fetchPicks, fetchPerks]);
+
+  // Greeting data — fall back to "Alana" / "your" if we don't have a name yet.
+  const firstName = profile?.full_name?.split(' ')[0] ?? 'Alana';
   const babyName = babyProfile?.baby_name ?? null;
   const weekNumber = babyProfile?.current_week_number ?? null;
   const monthsOld = babyMonthsFromDob(babyProfile?.date_of_birth ?? null);
@@ -452,17 +543,6 @@ export default function HomeScreenV3() {
 
   // Navigation handlers — uses parent tab navigator for cross-tab moves.
   const goManual = () => navigation.navigate('Manual' as never);
-  // Deep-link to Manual tab with a specific chapter pre-selected via
-  // route params. Wired 2026-05-25 UX audit: the TOC rows on the Home
-  // ManualHeroCard previously routed only to the Manual tab home
-  // (any chapter row → same destination), so the user had to manually
-  // switch to the chapter they'd just tapped. Now the row's intent is
-  // honored at the destination.
-  const goManualChapter = (chapter: string) =>
-    navigation.navigate('Manual' as never, {
-      screen: 'ManualHome',
-      params: { audience: 'baby', chapter },
-    } as never);
   // goBell removed 2026-05-24 alongside the header bell.
   const goVillagePillar = (route: string) => {
     // The handoff routes map to existing tab names. "Experts" = experts tab,
@@ -482,14 +562,14 @@ export default function HomeScreenV3() {
   const scrollY = useRef(new Animated.Value(0)).current;
   const [triggerAnim, setTriggerAnim] = React.useState(0);
 
-  // Live week milestones for the Manual hero card TOC. Falls back to
-  // the static TOC_PLACEHOLDERS in tocSubFor when none returned.
+  // Live week milestones — feed the Manual hero card's hook (a short
+  // week-overview line; see the render below). Empty until fetched.
   const [weekMilestones, setWeekMilestones] = React.useState<Milestone[]>([]);
   useFocusEffect(
     React.useCallback(() => {
       setTriggerAnim((n) => n + 1);
       // Only fetch when we have a real week — pre-baby state stays on
-      // placeholder copy. Fire-and-forget; tocSubFor handles empty array.
+      // the fallback summary. Fire-and-forget; empty array is handled.
       if (weekNumber && weekNumber >= 1 && weekNumber <= 52) {
         homeApi.getMilestonesForWeek(weekNumber)
           .then(setWeekMilestones)
@@ -542,9 +622,21 @@ export default function HomeScreenV3() {
         <ManualHeroCard
           babyName={heroBabyName}
           weekNumber={heroWeek}
-          milestones={weekMilestones}
+          hook={
+            // A short hook, not the whole summary: prefer a concrete milestone
+            // title, fall back to the current milestone's one-line description.
+            weekMilestones[0]?.title
+              ?? currentMilestone?.description
+              ?? null
+          }
+          body={
+            // The milestone's description as a supporting line (only when the
+            // hook is the title, so it doesn't echo the hook).
+            weekMilestones[0]?.description
+              ?? currentMilestone?.description
+              ?? null
+          }
           onPress={goManual}
-          onChapterPress={goManualChapter}
         />
 
         {/* V5 Phase 5.1 (2026-05-29) — Mom hero card.
@@ -554,6 +646,8 @@ export default function HomeScreenV3() {
             visually separates from the cinnamon manual hero. Taps land
             on MomHubScreen — see ../home/MomHubScreen.tsx. */}
         <MomHeroCard onPress={() => navigation.navigate('MomHub' as never)} />
+
+        <PicksAndPerks picks={picks} perks={perks} onSeeAll={() => navigation.navigate('PerksList' as never)} />
 
         <VillageStrip onPillar={goVillagePillar} onAll={goVillageAll} />
       </Animated.ScrollView>
@@ -623,8 +717,11 @@ const styles = StyleSheet.create({
 
   // ── This week's manual hero card ──────────────────────────────────────
   heroCard: {
-    marginTop: 12, borderRadius: 10,
-    padding: 14, paddingBottom: 12,
+    // Geometry matched to momCard (radius 20, generous padding) so the two
+    // peer hero cards read as one system. The Manual hero keeps visual
+    // primacy through its saturated blush bg + heavier shadow, not geometry.
+    marginTop: 12, borderRadius: 20,
+    paddingHorizontal: 20, paddingVertical: 18,
     overflow: 'hidden',
     // shadowHero from handoff — warm cocoa-tinted, deeper than shadowSm
     shadowColor: T.walnut,
@@ -643,8 +740,10 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   heroTitle: {
-    fontFamily: FONTS.v3_display, fontSize: 22, lineHeight: 23,
-    color: T.cocoa, letterSpacing: -0.55,
+    // Matched to momTitle (32 / -1.0) so the two peer hero titles balance —
+    // one step (1.25x) below the 40px greeting.
+    fontFamily: FONTS.v3_display, fontSize: 32, lineHeight: 34,
+    color: T.cocoa, letterSpacing: -1.0,
     flexShrink: 1,
   },
   heroTitleItalic: {
@@ -655,33 +754,68 @@ const styles = StyleSheet.create({
     color: T.cocoa, opacity: 0.7,
     letterSpacing: 1.7, textTransform: 'uppercase', fontWeight: '500',
   },
-  heroToc: {
-    marginTop: 10, paddingTop: 8,
-    borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: 'rgba(61,31,14,0.13)',
+  // ── Spacing pass — tighter, even rhythm so the card reads as one block ──
+  heroTag: {
+    alignSelf: 'flex-start', marginTop: 12, overflow: 'hidden',
+    backgroundColor: T.marigold, color: T.cocoa,
+    fontFamily: FONTS.v2_mono, fontSize: 9, letterSpacing: 1.4, fontWeight: '600',
+    paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6,
   },
-  tocRow: {
-    flexDirection: 'row', alignItems: 'center',
-    gap: 10, paddingVertical: 7,
-    borderBottomColor: 'rgba(61,31,14,0.10)',
+  heroHook: {
+    fontFamily: FONTS.v2_bold, fontSize: 15.5, lineHeight: 21,
+    color: T.cocoa, marginTop: 9,
   },
-  tocNum: {
-    fontFamily: FONTS.v2_mono, fontSize: 9.5,
-    color: T.cocoa, opacity: 0.6, letterSpacing: 1.3,
-    width: 16,
+  heroBody: {
+    fontFamily: FONTS.v2_body, fontSize: 13.5, lineHeight: 19,
+    color: T.walnut, marginTop: 5, maxWidth: '92%',
   },
-  tocStripe: { width: 3, height: 18, borderRadius: 2 },
-  tocChapter: {
-    fontFamily: FONTS.v2_bold, fontSize: 12.5, color: T.cocoa,
-    letterSpacing: -0.05, width: 46,
+  heroCornerBee: {
+    position: 'absolute', top: 15, right: 20, opacity: 0.92,
   },
-  tocSub: {
-    flex: 1, minWidth: 0,
-    fontFamily: FONTS.v2_body, fontSize: 12, color: T.cocoa,
-    opacity: 0.78, lineHeight: 15,
+  // Progress block — track + flying bee + the bee's speech bubble. paddingTop
+  // reserves the room the bubble needs to float above the track.
+  heroProgress: {
+    marginTop: 18, paddingTop: 46, position: 'relative',
   },
-  tocDur: {
-    fontFamily: FONTS.v2_mono, fontSize: 9.5,
-    color: T.cocoa, opacity: 0.65, fontWeight: '600', letterSpacing: 0.55,
+  heroProgressTrack: {
+    height: 6, borderRadius: 3,
+    backgroundColor: 'rgba(67,38,15,0.14)', overflow: 'hidden',
+  },
+  heroProgressFill: {
+    height: '100%', borderRadius: 3, backgroundColor: T.walnut,
+  },
+  // Cream pin the bee rides — makes the bee pop off the busy blush card and
+  // reads as a clear "you are here" token on the track.
+  heroBeePin: {
+    position: 'absolute', bottom: -13, marginLeft: -17,
+    width: 34, height: 34, borderRadius: 17,
+    backgroundColor: T.paper,
+    alignItems: 'center', justifyContent: 'center',
+    borderWidth: 1, borderColor: 'rgba(173,121,91,0.20)',
+    shadowColor: T.walnut, shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.22, shadowRadius: 7, elevation: 4,
+  },
+  // The bee's speech bubble — a cream lozenge floating above the pin, with a
+  // small diamond tail dropping toward the bee.
+  heroBubble: {
+    position: 'absolute', bottom: 26,
+    backgroundColor: T.paper, borderRadius: 13,
+    paddingHorizontal: 13, paddingVertical: 6,
+    borderWidth: 1, borderColor: 'rgba(173,121,91,0.18)',
+    shadowColor: T.walnut, shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.20, shadowRadius: 12, elevation: 5,
+  },
+  heroBubbleText: {
+    fontFamily: FONTS.v3_display_italic, fontSize: 17.5, color: T.cocoa,
+  },
+  heroBubbleTail: {
+    position: 'absolute', bottom: -4, width: 10, height: 10,
+    backgroundColor: T.paper, transform: [{ rotate: '45deg' }],
+    borderRightWidth: 1, borderBottomWidth: 1,
+    borderColor: 'rgba(173,121,91,0.18)',
+  },
+  heroCta: {
+    fontFamily: FONTS.v2_link, fontSize: 13, color: T.cinnamon, marginTop: 18,
   },
 
   // ── Village 2×2 pillar grid ───────────────────────────────────────────

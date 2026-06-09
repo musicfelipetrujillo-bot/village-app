@@ -256,7 +256,7 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 28,
     overflow: 'hidden',
     marginBottom: 8,
-    shadowColor: '#4A4E2E',
+    shadowColor: '#E98A6A',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.10,
     shadowRadius: 12,
@@ -282,7 +282,7 @@ const styles = StyleSheet.create({
   },
   eyebrow: {
     fontSize: 10, fontFamily: FONTS.bodySemiBold,
-    color: '#A77349',
+    color: '#7A4A24',
     letterSpacing: 1.8, textTransform: 'uppercase',
   },
   title: {
@@ -310,7 +310,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: 'rgba(150, 80, 50, 0.12)',
-    shadowColor: '#2C1A0E',
+    shadowColor: '#43260F',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.08,
     shadowRadius: 20,
@@ -324,7 +324,7 @@ const styles = StyleSheet.create({
   },
   cardNumInline: {
     fontSize: 28, fontFamily: FONTS.headerItalic, fontStyle: 'italic',
-    color: '#C07840', marginBottom: 4, lineHeight: 30, opacity: 0.75,
+    color: '#D96C88', marginBottom: 4, lineHeight: 30, opacity: 0.75,
   },
   cardTitle: {
     fontSize: 20, fontFamily: FONTS.headerBold,
@@ -337,7 +337,7 @@ const styles = StyleSheet.create({
   },
   cardCta: {
     fontSize: 12, fontFamily: FONTS.bodySemiBold,
-    color: '#C07840', letterSpacing: 0.4,
+    color: '#D96C88', letterSpacing: 0.4,
   },
   // Photo on the RIGHT — square-ish band w/ accent tint behind the image
   // (acts as both fallback and a soft editorial border tone). flexShrink:0

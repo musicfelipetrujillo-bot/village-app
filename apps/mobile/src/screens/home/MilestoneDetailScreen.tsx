@@ -70,7 +70,7 @@ export default function MilestoneDetailScreen() {
 
       <ScrollView contentContainerStyle={styles.content}>
         {loading ? (
-          <ActivityIndicator color="#C07840" style={{ marginTop: 40 }} />
+          <ActivityIndicator color="#D96C88" style={{ marginTop: 40 }} />
         ) : milestones.length === 0 ? (
           <View style={styles.empty}>
             <Text style={styles.emptyText}>{t('milestone.emptyForWeek')}</Text>
@@ -157,7 +157,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.paper,
     borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.06)',
   },
-  back: { fontSize: 15, color: '#C07840', fontFamily: FONTS.bodySemiBold },
+  back: { fontSize: 15, color: '#D96C88', fontFamily: FONTS.bodySemiBold },
   headerTitle: { fontSize: 16, fontFamily: FONTS.bodySemiBold, color: COLORS.bark },
   content: { paddingHorizontal: 20, paddingTop: 16, paddingBottom: 40 },
 
@@ -203,13 +203,13 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: COLORS.paper, borderRadius: 16, padding: 16, marginBottom: 10,
     borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(150, 80, 50, 0.18)',
-    shadowColor: '#6B2E0E', shadowOffset: { width: 0, height: 8 },
+    shadowColor: '#43260F', shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.22, shadowRadius: 22, elevation: 5,
   },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   cardCategory: {
     fontSize: 11, fontFamily: FONTS.bodySemiBold, letterSpacing: 1.4,
-    color: '#A77349', textTransform: 'uppercase',
+    color: '#7A4A24', textTransform: 'uppercase',
   },
   cardEmoji: { fontSize: 18 },
   cardTitle: { fontSize: 16, fontFamily: FONTS.bodySemiBold, color: COLORS.bark, marginTop: 6 },

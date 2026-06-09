@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  Image, ActivityIndicator, Alert, TextInput, Modal, Animated,
+  Image, ActivityIndicator, Alert, TextInput, Modal, Animated, Linking,
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useAuthStore } from '@store/auth';
@@ -10,16 +10,22 @@ import {
   getDonorProfile, getDonorReviews, getDonorActiveListing,
   getDietFlags, getTrustBadge, saveDonor, unsaveDonor, isSaved,
   callTrustNarrative, callDonorQA, getOrCreateThread,
-  recordLegalAcceptance,
+  recordLegalAcceptance, socialUrl, socialLabel,
 } from '@api/milk';
-import type { DonorPublicProfile, MilkReview, MilkListing, MilkTrustBadge , DietFlagKey } from '@api/milk';
+import type { DonorPublicProfile, MilkReview, MilkListing, MilkTrustBadge , DietFlagKey, SocialPlatform } from '@api/milk';
 import { COLORS, FONTS } from '@utils/constants';
 import { V9PageBackdrop } from '@components/shared/V9PageBackdrop';
+import { LinearGradient } from 'expo-linear-gradient';
 import { GlassHighlight } from '@components/shared/GlassHighlight';
 import SafeMilkHandoffModal from '@components/milk/SafeMilkHandoffModal';
 import { useT } from '@/i18n';
 import { useAnalytics } from '@hooks/useAnalytics';
 import type { MilkStackParamList } from '@/navigation/MilkNavigator';
+
+// Brand names for donor-provided social links (proper nouns — not translated).
+const SOCIAL_LABEL: Record<SocialPlatform, string> = {
+  instagram: 'Instagram', tiktok: 'TikTok', facebook: 'Facebook', website: 'Website',
+};
 
 // Cash-only MVP (2026-05-21): Stripe PaymentSheet path is OFF by default.
 // Same posture as V4 Gear — donor/recipient coordinate cash or P2P at handoff.
@@ -50,9 +56,9 @@ function StarRow({ rating, count, t }: { rating: number; count: number; t: T }) 
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
       {[1,2,3,4,5].map((s) => (
-        <Text key={s} style={{ fontSize: 16, color: s <= Math.round(rating) ? '#C4A35A' : '#E0D5C5' }}>★</Text>
+        <Text key={s} style={{ fontSize: 16, color: s <= Math.round(rating) ? '#E98A6A' : '#E0D5C5' }}>★</Text>
       ))}
-      <Text style={{ fontSize: 13, color: '#9A8070', fontFamily: FONTS.bodyMedium }}>
+      <Text style={{ fontSize: 13, color: '#7A4A24', fontFamily: FONTS.bodyMedium }}>
         {Number(rating).toFixed(1)} ({t('donorProfile.reviewsCount', { count })})
       </Text>
     </View>
@@ -158,7 +164,7 @@ export default function DonorProfileScreen({ route, navigation }: Props) {
         >
           <Text style={styles.backText}>← {t('donorProfile.back')}</Text>
         </TouchableOpacity>
-        <ActivityIndicator color="#C07840" size="large" />
+        <ActivityIndicator color="#D96C88" size="large" />
       </View>
     );
   }
@@ -180,6 +186,12 @@ export default function DonorProfileScreen({ route, navigation }: Props) {
   return (
     <View style={styles.container}>
       <V9PageBackdrop />
+      <LinearGradient
+        pointerEvents="none"
+        colors={['rgba(247,197,203,0.36)', 'rgba(247,197,203,0.10)', 'rgba(252,247,239,0)']}
+        locations={[0, 0.45, 1]}
+        style={styles.pageWash}
+      />
       <Animated.ScrollView
         style={{ opacity: fadeAnim }}
         contentContainerStyle={styles.scrollContent}
@@ -240,6 +252,34 @@ export default function DonorProfileScreen({ route, navigation }: Props) {
             <GlassHighlight radius={14} height={16} />
             <Text style={styles.narrativeLabel}>{t('donorProfile.narrativeLabel')}</Text>
             <Text style={styles.narrativeText}>{narrative}</Text>
+          </View>
+        )}
+
+        {/* ── Social links (donor-provided social proof) ── */}
+        {profile.social_links && Object.values(profile.social_links).some(Boolean) && (
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>{t('donorProfile.socialTitle')}</Text>
+            <View style={styles.socialRow}>
+              {(['instagram', 'tiktok', 'facebook', 'website'] as SocialPlatform[]).map((p) => {
+                const url = socialUrl(p, profile.social_links?.[p]);
+                if (!url) return null;
+                return (
+                  <TouchableOpacity
+                    key={p}
+                    style={styles.socialChip}
+                    onPress={() => Linking.openURL(url).catch(() => {})}
+                    accessibilityRole="link"
+                    accessibilityLabel={`${SOCIAL_LABEL[p]} ${socialLabel(p, profile.social_links?.[p])}`}
+                  >
+                    <Text style={styles.socialChipText}>
+                      {SOCIAL_LABEL[p]} · {socialLabel(p, profile.social_links?.[p])}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+            {/* Risk & Compliance: donor-provided, not verified by The Village. */}
+            <Text style={styles.socialDisclaimer}>{t('donorProfile.socialDisclaimer')}</Text>
           </View>
         )}
 
@@ -362,7 +402,7 @@ export default function DonorProfileScreen({ route, navigation }: Props) {
               <View key={review.id} style={styles.reviewCard}>
                 <View style={styles.reviewStars}>
                   {[1,2,3,4,5].map((s) => (
-                    <Text key={s} style={{ fontSize: 12, color: s <= review.rating ? '#C4A35A' : '#E0D5C5' }}>★</Text>
+                    <Text key={s} style={{ fontSize: 12, color: s <= review.rating ? '#E98A6A' : '#E0D5C5' }}>★</Text>
                   ))}
                 </View>
                 {review.body && <Text style={styles.reviewBody}>{review.body}</Text>}
@@ -472,11 +512,11 @@ export default function DonorProfileScreen({ route, navigation }: Props) {
               onChangeText={setQaQuestion}
               multiline
               numberOfLines={3}
-              placeholderTextColor="#9A8070"
+              placeholderTextColor="#7A4A24"
               textAlignVertical="top"
             />
 
-            {qaLoading && <ActivityIndicator color="#C07840" style={{ marginVertical: 12 }} />}
+            {qaLoading && <ActivityIndicator color="#D96C88" style={{ marginVertical: 12 }} />}
 
             {qaAnswer && (
               <View style={styles.qaAnswer}>
@@ -509,6 +549,7 @@ export default function DonorProfileScreen({ route, navigation }: Props) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: 'transparent' },
+  pageWash: { position: 'absolute', top: 0, left: 0, right: 0, height: 620 },
   loadingContainer: { flex: 1, backgroundColor: '#F5F0E8', alignItems: 'center', justifyContent: 'center' },
   scrollContent: { paddingBottom: 160 },
 
@@ -516,7 +557,7 @@ const styles = StyleSheet.create({
   hero: { backgroundColor: COLORS.paper, paddingBottom: 20 },
   backBtn: { paddingTop: 56, paddingHorizontal: 16, paddingBottom: 12 },
   backBtnAbsolute: { position: 'absolute', top: 56, left: 16 },
-  backText: { fontSize: 15, color: '#C07840', fontFamily: FONTS.bodySemiBold },
+  backText: { fontSize: 15, color: '#D96C88', fontFamily: FONTS.bodySemiBold },
   heroContent: { flexDirection: 'row', paddingHorizontal: 20, gap: 16, alignItems: 'flex-start' },
   avatar: { width: 76, height: 76, borderRadius: 38 },
   avatarPlaceholder: {
@@ -530,20 +571,20 @@ const styles = StyleSheet.create({
     marginTop: 18, marginLeft: 20, width: 48,
   },
   heroNameRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  heroName: { fontSize: 22, fontFamily: FONTS.headerItalic, color: '#2C1810', flex: 1, marginRight: 8 },
+  heroName: { fontSize: 22, fontFamily: FONTS.headerItalic, color: '#43260F', flex: 1, marginRight: 8 },
   heart: { fontSize: 26, color: '#C5B8AE' },
   heartSaved: { color: COLORS.coco },
-  heroLocation: { fontSize: 13, color: '#9A8070', fontFamily: FONTS.bodyMedium },
+  heroLocation: { fontSize: 13, color: '#7A4A24', fontFamily: FONTS.bodyMedium },
   badgePill: { alignSelf: 'flex-start', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20 },
-  badgePillText: { fontSize: 11, fontFamily: FONTS.bodySemiBold, color: '#FDFBF6' },
+  badgePillText: { fontSize: 11, fontFamily: FONTS.bodySemiBold, color: '#FFFCF6' },
 
   // AI Narrative — v9: side-stripe was a v9 absolute ban → full cinnamon hairline.
   narrativeCard: {
     margin: 16, backgroundColor: '#FFF9F0', borderRadius: 14, padding: 16,
     borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(192,120,64,0.35)',
   },
-  narrativeLabel: { fontSize: 11, fontFamily: FONTS.bodySemiBold, color: '#A77349', marginBottom: 8, letterSpacing: 0.6 },
-  narrativeText: { fontSize: 14, color: '#2C1810', lineHeight: 22, fontFamily: FONTS.headerItalic },
+  narrativeLabel: { fontSize: 11, fontFamily: FONTS.bodySemiBold, color: '#7A4A24', marginBottom: 8, letterSpacing: 0.6 },
+  narrativeText: { fontSize: 14, color: '#43260F', lineHeight: 22, fontFamily: FONTS.headerItalic },
 
   // Cards — v9 paper lift, cocoa drop matching the rest of the app.
   card: {
@@ -551,80 +592,90 @@ const styles = StyleSheet.create({
     borderRadius: 16, padding: 18,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: 'rgba(150, 80, 50, 0.18)',
-    shadowColor: '#6B2E0E',
+    shadowColor: '#43260F',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.22,
     shadowRadius: 22,
     elevation: 5,
   },
-  cardTitle: { fontSize: 16, fontFamily: FONTS.bodySemiBold, color: '#2C1810', marginBottom: 14 },
+  cardTitle: { fontSize: 16, fontFamily: FONTS.bodySemiBold, color: '#43260F', marginBottom: 14 },
+  socialRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  socialChip: {
+    backgroundColor: COLORS.v2_blush, borderRadius: 999,
+    paddingHorizontal: 12, paddingVertical: 7,
+  },
+  socialChipText: { fontSize: 12.5, fontFamily: FONTS.bodySemiBold, color: COLORS.v2_cocoa },
+  socialDisclaimer: {
+    fontSize: 11.5, lineHeight: 16, color: COLORS.textLight,
+    fontFamily: FONTS.body, marginTop: 12,
+  },
 
   // Badge
   badgeRow: { borderWidth: 1.5, borderRadius: 12, padding: 16, marginBottom: 14, gap: 12 },
   badgeLarge: { alignSelf: 'flex-start', paddingHorizontal: 14, paddingVertical: 6, borderRadius: 20, marginBottom: 8 },
-  badgeLargeText: { fontSize: 14, fontFamily: FONTS.bodySemiBold, color: '#FDFBF6' },
+  badgeLargeText: { fontSize: 14, fontFamily: FONTS.bodySemiBold, color: '#FFFCF6' },
   safetyScore: { gap: 4 },
-  safetyScoreLabel: { fontSize: 11, color: '#9A8070', fontFamily: FONTS.bodySemiBold, textTransform: 'uppercase', letterSpacing: 0.5 },
+  safetyScoreLabel: { fontSize: 11, color: '#7A4A24', fontFamily: FONTS.bodySemiBold, textTransform: 'uppercase', letterSpacing: 0.5 },
   safetyBar: { height: 6, backgroundColor: '#E0D5C5', borderRadius: 3, overflow: 'hidden' },
-  safetyFill: { height: 6, backgroundColor: '#6B7C3F', borderRadius: 3 },
-  safetyScoreNum: { fontSize: 13, color: '#6B7C3F', fontFamily: FONTS.bodySemiBold },
+  safetyFill: { height: 6, backgroundColor: '#E98A6A', borderRadius: 3 },
+  safetyScoreNum: { fontSize: 13, color: '#E98A6A', fontFamily: FONTS.bodySemiBold },
   checklistCompact: { gap: 8 },
   checkRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   checkIcon: { fontSize: 15, color: '#C5B8AE', width: 20, textAlign: 'center' },
-  checkDone: { color: '#6B7C3F' },
-  checkLabel: { fontSize: 13, color: '#2C1810', fontFamily: FONTS.bodyMedium },
-  checkLabelMuted: { color: '#9A8070', fontFamily: FONTS.body },
+  checkDone: { color: '#E98A6A' },
+  checkLabel: { fontSize: 13, color: '#43260F', fontFamily: FONTS.bodyMedium },
+  checkLabelMuted: { color: '#7A4A24', fontFamily: FONTS.body },
 
   // Pricing
   pricingGrid: { flexDirection: 'row', alignItems: 'center', marginBottom: 14 },
   pricingItem: { flex: 1, alignItems: 'center' },
-  pricingValue: { fontSize: 22, fontFamily: FONTS.bodySemiBold, color: '#A77349', marginBottom: 2 },
-  pricingLabel: { fontSize: 11, color: '#9A8070', fontFamily: FONTS.bodyMedium, textTransform: 'uppercase' },
+  pricingValue: { fontSize: 22, fontFamily: FONTS.bodySemiBold, color: '#7A4A24', marginBottom: 2 },
+  pricingLabel: { fontSize: 11, color: '#7A4A24', fontFamily: FONTS.bodyMedium, textTransform: 'uppercase' },
   pricingDivider: { width: 1, height: 36, backgroundColor: '#E0D5C5' },
   fulfillmentRow: { flexDirection: 'row', gap: 8, marginBottom: 10 },
   fulfillmentChip: {
-    backgroundColor: '#F0F4E8', borderRadius: 20,
+    backgroundColor: '#F2E6DD', borderRadius: 20,
     paddingHorizontal: 12, paddingVertical: 6,
   },
-  fulfillmentText: { fontSize: 12, color: '#6B7C3F', fontFamily: FONTS.bodySemiBold },
-  listingNotes: { fontSize: 13, color: '#9A8070', lineHeight: 19, marginTop: 4, fontFamily: FONTS.body },
+  fulfillmentText: { fontSize: 12, color: '#E98A6A', fontFamily: FONTS.bodySemiBold },
+  listingNotes: { fontSize: 13, color: '#7A4A24', lineHeight: 19, marginTop: 4, fontFamily: FONTS.body },
 
   // Diet
   dietFlags: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 12 },
   dietChip: {
-    backgroundColor: '#F0F4E8', borderRadius: 20,
+    backgroundColor: '#F2E6DD', borderRadius: 20,
     paddingHorizontal: 12, paddingVertical: 6,
   },
-  dietChipText: { fontSize: 12, color: '#6B7C3F', fontFamily: FONTS.bodyMedium },
-  dietNone: { fontSize: 14, color: '#9A8070', marginBottom: 10, fontFamily: FONTS.body },
-  medicationStatus: { fontSize: 13, color: '#6B5C52', fontFamily: FONTS.headerItalic },
+  dietChipText: { fontSize: 12, color: '#E98A6A', fontFamily: FONTS.bodyMedium },
+  dietNone: { fontSize: 14, color: '#7A4A24', marginBottom: 10, fontFamily: FONTS.body },
+  medicationStatus: { fontSize: 13, color: '#7A4A24', fontFamily: FONTS.headerItalic },
 
   // Bio
-  bioText: { fontSize: 14, color: '#6B5C52', lineHeight: 22, fontFamily: FONTS.body },
+  bioText: { fontSize: 14, color: '#7A4A24', lineHeight: 22, fontFamily: FONTS.body },
 
   // Reviews
-  noReviews: { fontSize: 14, color: '#9A8070', textAlign: 'center', paddingVertical: 12, fontFamily: FONTS.body },
+  noReviews: { fontSize: 14, color: '#7A4A24', textAlign: 'center', paddingVertical: 12, fontFamily: FONTS.body },
   reviewCard: {
     paddingVertical: 12, borderTopWidth: 1, borderTopColor: '#F0E8E0', gap: 4,
   },
   reviewStars: { flexDirection: 'row', gap: 2 },
-  reviewBody: { fontSize: 14, color: '#2C1810', lineHeight: 21, fontFamily: FONTS.body },
-  reviewDate: { fontSize: 11, color: '#9A8070', fontFamily: FONTS.body },
+  reviewBody: { fontSize: 14, color: '#43260F', lineHeight: 21, fontFamily: FONTS.body },
+  reviewDate: { fontSize: 11, color: '#7A4A24', fontFamily: FONTS.body },
 
   // Disclaimer
   disclaimer: { marginHorizontal: 16, padding: 16, backgroundColor: COLORS.paper, borderRadius: 12 },
-  disclaimerText: { fontSize: 12, color: '#9A8070', lineHeight: 18, textAlign: 'center', fontFamily: FONTS.body },
+  disclaimerText: { fontSize: 12, color: '#7A4A24', lineHeight: 18, textAlign: 'center', fontFamily: FONTS.body },
 
   // Error
-  errorText: { fontSize: 16, color: '#9A8070', marginBottom: 16, fontFamily: FONTS.body },
-  backLink: { fontSize: 15, color: '#C07840', fontFamily: FONTS.bodySemiBold },
+  errorText: { fontSize: 16, color: '#7A4A24', marginBottom: 16, fontFamily: FONTS.body },
+  backLink: { fontSize: 15, color: '#D96C88', fontFamily: FONTS.bodySemiBold },
 
   // Action bar
   actionBar: {
     position: 'absolute', bottom: 0, left: 0, right: 0,
     flexDirection: 'row', gap: 12,
     paddingHorizontal: 16, paddingBottom: 36, paddingTop: 14,
-    backgroundColor: '#FDFBF6', borderTopWidth: 1, borderTopColor: '#E8E0D5',
+    backgroundColor: '#FFFCF6', borderTopWidth: 1, borderTopColor: '#E8E0D5',
   },
   // Phase 2a editorial pass — yolk-pill primary + rust outline
   // secondary, mirroring the rest of the app. Pill radius (999) +
@@ -633,7 +684,7 @@ const styles = StyleSheet.create({
     flex: 1, borderWidth: 1.5, borderColor: COLORS.coco,
     borderRadius: 999, paddingVertical: 14, alignItems: 'center',
   },
-  messageBtnText: { fontSize: 15, color: '#C07840', fontFamily: FONTS.bodySemiBold },
+  messageBtnText: { fontSize: 15, color: '#D96C88', fontFamily: FONTS.bodySemiBold },
   // Solo variant — cash-only MVP renders ONLY the message button (no
   // Stripe-bound Purchase next to it), so the message button takes the full
   // bar width as the primary CTA. Filled cinnamon to match the primary CTA
@@ -649,11 +700,11 @@ const styles = StyleSheet.create({
   // AI Q&A FAB
   qaFab: {
     position: 'absolute', bottom: 110, right: 16,
-    backgroundColor: '#2C1810', borderRadius: 24,
+    backgroundColor: '#43260F', borderRadius: 24,
     paddingHorizontal: 16, paddingVertical: 10,
-    shadowColor: '#6B2E0E', shadowOpacity: 0.25, shadowRadius: 8, elevation: 6,
+    shadowColor: '#43260F', shadowOpacity: 0.25, shadowRadius: 8, elevation: 6,
   },
-  qaFabText: { fontSize: 13, color: '#FDFBF6', fontFamily: FONTS.bodySemiBold },
+  qaFabText: { fontSize: 13, color: '#FFFCF6', fontFamily: FONTS.bodySemiBold },
 
   // Modal
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
@@ -661,26 +712,26 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.paper, borderTopLeftRadius: 24, borderTopRightRadius: 24,
     padding: 28, paddingBottom: 44,
   },
-  modalTitle: { fontSize: 20, fontFamily: FONTS.bodySemiBold, color: '#2C1810', marginBottom: 4 },
-  modalSub: { fontSize: 13, color: '#9A8070', marginBottom: 16, fontFamily: FONTS.body },
+  modalTitle: { fontSize: 20, fontFamily: FONTS.bodySemiBold, color: '#43260F', marginBottom: 4 },
+  modalSub: { fontSize: 13, color: '#7A4A24', marginBottom: 16, fontFamily: FONTS.body },
   qaInput: {
     backgroundColor: '#F5F0E8', borderRadius: 12, padding: 16,
-    fontSize: 14, color: '#2C1810', minHeight: 80, borderWidth: 1.5, borderColor: '#E0D5C5', fontFamily: FONTS.body,
+    fontSize: 14, color: '#43260F', minHeight: 80, borderWidth: 1.5, borderColor: '#E0D5C5', fontFamily: FONTS.body,
   },
   qaAnswer: {
     marginTop: 14, backgroundColor: '#FFF9F0', borderRadius: 12,
     padding: 16,
     borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(192,120,64,0.35)',  // v9: ex side-stripe
   },
-  qaAnswerLabel: { fontSize: 11, fontFamily: FONTS.bodySemiBold, color: '#A77349', marginBottom: 6, letterSpacing: 0.6 },
-  qaAnswerText: { fontSize: 14, color: '#2C1810', lineHeight: 21, fontFamily: FONTS.body },
+  qaAnswerLabel: { fontSize: 11, fontFamily: FONTS.bodySemiBold, color: '#7A4A24', marginBottom: 6, letterSpacing: 0.6 },
+  qaAnswerText: { fontSize: 14, color: '#43260F', lineHeight: 21, fontFamily: FONTS.body },
   modalBtns: { flexDirection: 'row', gap: 12, marginTop: 16 },
   modalClose: {
-    flex: 1, borderWidth: 1.5, borderColor: '#9A8070',
+    flex: 1, borderWidth: 1.5, borderColor: '#7A4A24',
     borderRadius: 12, paddingVertical: 13, alignItems: 'center',
   },
-  modalCloseText: { fontSize: 14, color: '#9A8070', fontFamily: FONTS.bodySemiBold },
-  modalAsk: { flex: 2, backgroundColor: '#C07840', borderRadius: 12, paddingVertical: 13, alignItems: 'center' },
-  modalAskText: { fontSize: 14, color: '#FDFBF6', fontFamily: FONTS.bodySemiBold },
+  modalCloseText: { fontSize: 14, color: '#7A4A24', fontFamily: FONTS.bodySemiBold },
+  modalAsk: { flex: 2, backgroundColor: '#D96C88', borderRadius: 12, paddingVertical: 13, alignItems: 'center' },
+  modalAskText: { fontSize: 14, color: '#FFFCF6', fontFamily: FONTS.bodySemiBold },
   disabled: { opacity: 0.4 },
 });

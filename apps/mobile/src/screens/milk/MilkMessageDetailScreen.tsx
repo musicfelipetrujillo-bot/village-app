@@ -112,7 +112,7 @@ export default function MilkMessageDetailScreen({ navigation, route }: Props) {
       </View>
 
       {loading ? (
-        <View style={styles.center}><ActivityIndicator color="#C07840" /></View>
+        <View style={styles.center}><ActivityIndicator color="#D96C88" /></View>
       ) : (
         <FlatList
           ref={listRef}
@@ -124,7 +124,7 @@ export default function MilkMessageDetailScreen({ navigation, route }: Props) {
             return (
               <View style={[styles.bubbleRow, mine ? styles.bubbleRowMine : styles.bubbleRowTheirs]}>
                 <View style={[styles.bubble, mine ? styles.bubbleMine : styles.bubbleTheirs]}>
-                  <Text style={[styles.bubbleText, mine && { color: '#FDFBF6' }]}>{item.body}</Text>
+                  <Text style={[styles.bubbleText, mine && { color: '#FFFCF6' }]}>{item.body}</Text>
                 </View>
               </View>
             );
@@ -168,8 +168,8 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.paper,
     borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.06)',
   },
-  back: { fontSize: 15, color: '#C07840', fontFamily: FONTS.bodyMedium },
-  title: { flex: 1, fontSize: 16, fontFamily: FONTS.bodySemiBold, color: '#2C1810', textAlign: 'center' },
+  back: { fontSize: 15, color: '#D96C88', fontFamily: FONTS.bodyMedium },
+  title: { flex: 1, fontSize: 16, fontFamily: FONTS.bodySemiBold, color: '#43260F', textAlign: 'center' },
 
   listContent: { paddingHorizontal: 12, paddingTop: 12, paddingBottom: 12, gap: 6 },
   bubbleRow: { flexDirection: 'row' },
@@ -179,10 +179,10 @@ const styles = StyleSheet.create({
   // v9 walnut bubble (kit canon, WCAG 7.4:1 with paper text — readable at 3am).
   bubbleMine: { backgroundColor: '#7A4A28', borderBottomRightRadius: 4 },
   bubbleTheirs: { backgroundColor: COLORS.paper, borderBottomLeftRadius: 4 },
-  bubbleText: { fontSize: 15, color: '#2C1810', lineHeight: 20 },
+  bubbleText: { fontSize: 15, color: '#43260F', lineHeight: 20 },
 
   empty: { alignItems: 'center', paddingTop: 80 },
-  emptyText: { fontSize: 14, color: '#9A8070' },
+  emptyText: { fontSize: 14, color: '#7A4A24' },
 
   composer: {
     flexDirection: 'row', alignItems: 'flex-end', gap: 8,
@@ -193,12 +193,12 @@ const styles = StyleSheet.create({
   input: {
     flex: 1, maxHeight: 120,
     backgroundColor: '#F5F0E8', borderRadius: 22,
-    paddingHorizontal: 16, paddingVertical: 10, fontSize: 15, color: '#2C1810',
+    paddingHorizontal: 16, paddingVertical: 10, fontSize: 15, color: '#43260F',
   },
   sendBtn: {
     width: 44, height: 44, borderRadius: 22,
-    backgroundColor: '#C07840', alignItems: 'center', justifyContent: 'center',
+    backgroundColor: '#D96C88', alignItems: 'center', justifyContent: 'center',
   },
   sendBtnDisabled: { opacity: 0.4 },
-  sendBtnText: { color: '#FDFBF6', fontSize: 22, fontFamily: FONTS.bodySemiBold },
+  sendBtnText: { color: '#FFFCF6', fontSize: 22, fontFamily: FONTS.bodySemiBold },
 });

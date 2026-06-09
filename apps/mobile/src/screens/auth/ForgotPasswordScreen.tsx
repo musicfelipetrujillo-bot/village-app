@@ -113,7 +113,7 @@ export default function ForgotPasswordScreen({ navigation }: Props) {
               accessibilityState={{ disabled: loading, busy: loading }}
             >
               {loading ? (
-                <ActivityIndicator color="#FDFBF6" />
+                <ActivityIndicator color="#FFFCF6" />
               ) : (
                 <Text style={styles.btnText}>{t('forgotPassword.cta')}</Text>
               )}
@@ -129,7 +129,7 @@ export default function ForgotPasswordScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: 'transparent', padding: 28, paddingTop: 60 },
   back: { marginBottom: 18 },
-  backText: { fontSize: 13, color: '#C07840', fontFamily: FONTS.v2_link },
+  backText: { fontSize: 13, color: '#D96C88', fontFamily: FONTS.v2_link },
   // v3 editorial masthead — 16×1.5 walnut bar + JetBrains Mono eyebrow,
   // Plus Jakarta display + salmon italic accent.
   eyebrowRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
@@ -171,12 +171,12 @@ const styles = StyleSheet.create({
   // Primary CTA — cinnamon (the one spark)
   // v9 canonical CTA — action-deep
   btn: {
-    backgroundColor: '#C07840',
+    backgroundColor: '#D96C88',
     borderRadius: 999,
     paddingVertical: 15,
     alignItems: 'center',
     marginTop: 8,
-    shadowColor: '#945A41',
+    shadowColor: '#D96C88',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.24,
     shadowRadius: 10,
@@ -197,7 +197,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: 'rgba(150,80,50,0.18)',
-    shadowColor: '#6B2E0E',
+    shadowColor: '#43260F',
     shadowOpacity: 0.22,
     shadowOffset: { width: 0, height: 8 },
     shadowRadius: 22,

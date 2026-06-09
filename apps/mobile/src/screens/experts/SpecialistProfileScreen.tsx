@@ -2,12 +2,13 @@
 import React, { useEffect, useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  Linking, Alert,
+  Linking, Alert, Image,
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { COLORS, FONTS } from '@utils/constants';
 import { cardLift, cardLiftBorder } from '@utils/cardLift';
 import { V9PageBackdrop } from '@components/shared/V9PageBackdrop';
+import { LinearGradient } from 'expo-linear-gradient';
 import { GlassHighlight } from '@components/shared/GlassHighlight';
 import { useT } from '@/i18n';
 import { useExpertsStore } from '@store/experts';
@@ -77,6 +78,12 @@ export default function SpecialistProfileScreen({ navigation, route }: Props) {
   return (
     <View style={styles.container}>
       <V9PageBackdrop />
+      <LinearGradient
+        pointerEvents="none"
+        colors={['rgba(243,183,156,0.38)', 'rgba(243,183,156,0.11)', 'rgba(252,247,239,0)']}
+        locations={[0, 0.45, 1]}
+        style={styles.pageWash}
+      />
       {/* Back button */}
       <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
         <Text style={styles.backText}>{`← ${t('specialistProfile.back')}`}</Text>
@@ -85,9 +92,18 @@ export default function SpecialistProfileScreen({ navigation, route }: Props) {
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         {/* Hero */}
         <View style={styles.hero}>
-          <View style={styles.avatarCircle}>
-            <Text style={styles.avatarEmoji}>👩‍⚕️</Text>
-          </View>
+          {spec.photo_url ? (
+            <Image
+              source={{ uri: spec.photo_url }}
+              style={styles.avatarCircle}
+              resizeMode="cover"
+              accessibilityIgnoresInvertColors
+            />
+          ) : (
+            <View style={styles.avatarCircle}>
+              <Text style={styles.avatarEmoji}>👩‍⚕️</Text>
+            </View>
+          )}
           <Text style={styles.heroName}>{spec.full_name}</Text>
           <Text style={styles.heroCredentials}>{spec.credentials}</Text>
           {spec.practice_name ? (
@@ -301,10 +317,11 @@ export default function SpecialistProfileScreen({ navigation, route }: Props) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: 'transparent' },
+  pageWash: { position: 'absolute', top: 0, left: 0, right: 0, height: 620 },
   loading: { flex: 1, alignItems: 'center', justifyContent: 'center' },
 
   backBtn: { paddingHorizontal: 20, paddingTop: 56, paddingBottom: 8 },
-  backText: { fontSize: 15, color: '#C07840', fontFamily: FONTS.bodyMedium },
+  backText: { fontSize: 15, color: '#D96C88', fontFamily: FONTS.bodyMedium },
 
   content: { paddingBottom: 100 },
 
@@ -339,8 +356,8 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     paddingHorizontal: 12,
   },
-  badgeGreen: { backgroundColor: '#EEF2E6' },
-  badgeNPI: { backgroundColor: '#EEF2E6' },
+  badgeGreen: { backgroundColor: '#F2E6DD' },
+  badgeNPI: { backgroundColor: '#F2E6DD' },
   badgeText: { fontSize: 11, fontFamily: FONTS.bodyMedium, color: COLORS.barkSoft },
 
   actionBar: {
@@ -375,7 +392,7 @@ const styles = StyleSheet.create({
   stars: { fontSize: 16, color: COLORS.sand },
   ratingNum: { fontSize: 15, fontFamily: FONTS.bodySemiBold, color: COLORS.bark },
   ratingCount: { fontSize: 12, color: COLORS.textLight, fontFamily: FONTS.body },
-  aiSummaryBtn: { fontSize: 12, color: '#A77349', fontFamily: FONTS.bodyMedium },
+  aiSummaryBtn: { fontSize: 12, color: '#7A4A24', fontFamily: FONTS.bodyMedium },
 
   // AI summary — was flat butter-cream that blended into the page wash;
   // now paper-lifted v3 card.
@@ -414,7 +431,7 @@ const styles = StyleSheet.create({
     // v9 paper lift — cocoa drop matching every other v9 surface
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: 'rgba(150, 80, 50, 0.18)',
-    shadowColor: '#6B2E0E',
+    shadowColor: '#43260F',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.22,
     shadowRadius: 22,
@@ -439,7 +456,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontFamily: FONTS.headerItalic,
     fontSize: 20,
-    color: '#C07840',  // v9 rust-deep — unified italic accent
+    color: '#D96C88',  // v9 rust-deep — unified italic accent
     marginBottom: 12,
   },
   writeReviewBtn: {
@@ -450,7 +467,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 12,
   },
-  writeReviewText: { color: '#A77349', fontSize: 14, fontFamily: FONTS.bodyMedium },
+  writeReviewText: { color: '#7A4A24', fontSize: 14, fontFamily: FONTS.bodyMedium },
 
   aiRail: {
     marginHorizontal: 16,
@@ -459,12 +476,12 @@ const styles = StyleSheet.create({
     padding: 16,
     gap: 10,
   },
-  aiRailTitle: { color: '#FDFBF6', fontSize: 14, fontFamily: FONTS.bodySemiBold },
+  aiRailTitle: { color: '#FFFCF6', fontSize: 14, fontFamily: FONTS.bodySemiBold },
   aiRailChip: {
     backgroundColor: 'rgba(255,255,255,0.12)',
     borderRadius: 50,
     paddingVertical: 8,
     paddingHorizontal: 14,
   },
-  aiRailChipText: { color: '#FDFBF6', fontSize: 13, fontFamily: FONTS.bodyMedium },
+  aiRailChipText: { color: '#FFFCF6', fontSize: 13, fontFamily: FONTS.bodyMedium },
 });

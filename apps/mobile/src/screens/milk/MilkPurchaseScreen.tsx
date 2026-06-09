@@ -175,7 +175,7 @@ function PurchaseContent({ navigation, route }: Props) {
   if (loading || !donor || !listing) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator color="#C07840" />
+        <ActivityIndicator color="#D96C88" />
       </View>
     );
   }
@@ -366,8 +366,8 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.paper,
     borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.06)',
   },
-  back: { fontSize: 15, color: '#C07840', fontFamily: FONTS.bodyMedium },
-  title: { fontSize: 17, fontFamily: FONTS.bodySemiBold, color: '#2C1810' },
+  back: { fontSize: 15, color: '#D96C88', fontFamily: FONTS.bodyMedium },
+  title: { fontSize: 17, fontFamily: FONTS.bodySemiBold, color: '#43260F' },
 
   scroll: { flex: 1 },
 
@@ -375,19 +375,19 @@ const styles = StyleSheet.create({
     margin: 16, padding: 16, borderRadius: 12,
     backgroundColor: COLORS.pinkSoft, borderWidth: 1, borderColor: '#F0D9C8',
   },
-  donorName: { fontSize: 17, fontFamily: FONTS.bodySemiBold, color: '#2C1810' },
-  donorMeta: { fontSize: 13, color: '#6B5C52', marginTop: 4 },
+  donorName: { fontSize: 17, fontFamily: FONTS.bodySemiBold, color: '#43260F' },
+  donorMeta: { fontSize: 13, color: '#7A4A24', marginTop: 4 },
 
   card: {
     marginHorizontal: 16, marginBottom: 12,
     backgroundColor: COLORS.paper, borderRadius: 14, padding: 16,
     // v9 paper lift
     borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(150, 80, 50, 0.18)',
-    shadowColor: '#6B2E0E', shadowOffset: { width: 0, height: 8 },
+    shadowColor: '#43260F', shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.22, shadowRadius: 22, elevation: 5,
   },
-  cardTitle: { fontSize: 15, fontFamily: FONTS.bodySemiBold, color: '#2C1810', marginBottom: 4 },
-  cardHelp: { fontSize: 12, color: '#9A8070', marginBottom: 14 },
+  cardTitle: { fontSize: 15, fontFamily: FONTS.bodySemiBold, color: '#43260F', marginBottom: 4 },
+  cardHelp: { fontSize: 12, color: '#7A4A24', marginBottom: 14 },
 
   qtyRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 4 },
   qtyBtn: {
@@ -397,8 +397,8 @@ const styles = StyleSheet.create({
   },
   qtyBtnText: { fontSize: 28, fontFamily: FONTS.bodySemiBold, color: COLORS.coco },
   qtyDisplay: { alignItems: 'center' },
-  qtyValue: { fontSize: 36, fontFamily: FONTS.bodySemiBold, color: '#2C1810' },
-  qtyUnit: { fontSize: 12, color: '#9A8070', fontFamily: FONTS.bodyMedium },
+  qtyValue: { fontSize: 36, fontFamily: FONTS.bodySemiBold, color: '#43260F' },
+  qtyUnit: { fontSize: 12, color: '#7A4A24', fontFamily: FONTS.bodyMedium },
 
   fulfillRow: { flexDirection: 'row', gap: 10, marginTop: 6 },
   fulfillBtn: {
@@ -406,13 +406,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#F5F0E8', borderWidth: 1.5, borderColor: 'transparent',
   },
   fulfillBtnActive: { backgroundColor: COLORS.pinkSoft, borderColor: COLORS.coco },
-  fulfillBtnText: { fontSize: 14, fontFamily: FONTS.bodySemiBold, color: '#6B5C52' },
+  fulfillBtnText: { fontSize: 14, fontFamily: FONTS.bodySemiBold, color: '#7A4A24' },
   fulfillBtnTextActive: { color: COLORS.coco },
-  fulfillSub: { fontSize: 11, color: '#9A8070', marginTop: 4 },
+  fulfillSub: { fontSize: 11, color: '#7A4A24', marginTop: 4 },
 
   notesInput: {
     minHeight: 80, padding: 12, borderRadius: 10,
-    backgroundColor: '#F5F0E8', fontSize: 14, color: '#2C1810',
+    backgroundColor: '#F5F0E8', fontSize: 14, color: '#43260F',
     textAlignVertical: 'top',
   },
 
@@ -424,17 +424,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row', justifyContent: 'space-between',
     paddingVertical: 8,
   },
-  priceKey: { fontSize: 14, color: '#6B5C52' },
-  priceVal: { fontSize: 14, fontFamily: FONTS.bodyMedium, color: '#2C1810' },
+  priceKey: { fontSize: 14, color: '#7A4A24' },
+  priceVal: { fontSize: 14, fontFamily: FONTS.bodyMedium, color: '#43260F' },
   priceTotal: {
     borderTopWidth: 1, borderTopColor: 'rgba(0,0,0,0.07)', marginTop: 6, paddingTop: 12,
   },
-  priceTotalKey: { fontSize: 15, fontFamily: FONTS.bodySemiBold, color: '#2C1810' },
+  priceTotalKey: { fontSize: 15, fontFamily: FONTS.bodySemiBold, color: '#43260F' },
   priceTotalVal: { fontSize: 22, fontFamily: FONTS.bodySemiBold, color: COLORS.coco },
-  priceFooter: { fontSize: 11, color: '#9A8070', marginTop: 8, textAlign: 'center' },
+  priceFooter: { fontSize: 11, color: '#7A4A24', marginTop: 8, textAlign: 'center' },
 
   safetyNote: { marginHorizontal: 16, marginBottom: 12, padding: 12, backgroundColor: COLORS.paper, borderRadius: 10 },
-  safetyText: { fontSize: 12, color: '#9A8070', textAlign: 'center', lineHeight: 18 },
+  safetyText: { fontSize: 12, color: '#7A4A24', textAlign: 'center', lineHeight: 18 },
 
   payBar: {
     position: 'absolute', bottom: 0, left: 0, right: 0,
@@ -443,9 +443,9 @@ const styles = StyleSheet.create({
     borderTopWidth: 1, borderTopColor: 'rgba(0,0,0,0.07)',
   },
   payBtn: {
-    backgroundColor: '#C07840', borderRadius: 14,
+    backgroundColor: '#D96C88', borderRadius: 14,
     paddingVertical: 16, alignItems: 'center',
   },
   payBtnDisabled: { opacity: 0.5 },
-  payBtnText: { color: '#FDFBF6', fontSize: 17, fontFamily: FONTS.bodySemiBold },
+  payBtnText: { color: '#FFFCF6', fontSize: 17, fontFamily: FONTS.bodySemiBold },
 });

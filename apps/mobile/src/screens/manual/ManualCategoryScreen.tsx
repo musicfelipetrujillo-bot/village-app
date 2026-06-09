@@ -58,35 +58,35 @@ type ParamList = {
 // ═══════════════════════════════════════════════════════════════════════
 // V9 palette — exact CSS variable values from the v9 mockup.
 // Use these directly for this screen; do NOT route through COLORS.coco/
-// rust since those resolve to brand-v2 cinnamon (#C07840), which is a
+// rust since those resolve to brand-v2 cinnamon (#D96C88), which is a
 // different shade than the v9 mockup's --coco (#AD795B) / --rust
-// (#B85C38). The screen is meant to look exactly like the mockup.
+// (#D96C88). The screen is meant to look exactly like the mockup.
 // ═══════════════════════════════════════════════════════════════════════
 const V9 = {
-  paper: '#FDFBF6',
+  paper: '#FFFCF6',
   bgPink: '#FAEDE3',
   bgBook: '#FBF3E0',
   bgChart: '#EDE9DC',
   bgCoco: '#F4E2D1',
-  bgSage: '#EBEFD9',
+  bgSage: '#F2E6DD',
 
-  bark: '#3D1F0D',
-  barkSoft: '#5C3F26',
+  bark: '#43260F',
+  barkSoft: '#7A4A24',
 
   // Kit canon (2026-05-16): old rust/rust-deep retired; cinnamon family is the
   // app's canonical warm action color. Token names kept for grep compatibility
   // across the Manual file (60+ refs in masthead + week hero + tile SVG).
-  rust: '#C07840',     // cinnamon (was #B85C38)
-  rustDeep: '#945A41', // action-deep (was #9A4A2B)
-  sage: '#8B9A6B',
-  sageDeep: '#6B7A4B',
+  rust: '#D96C88',     // cinnamon (was #D96C88)
+  rustDeep: '#D96C88', // action-deep (was #7A4A24)
+  sage: '#E98A6A',
+  sageDeep: '#E98A6A',
   coco: '#AD795B',
-  cocoDeep: '#8E5E40',
+  cocoDeep: '#E98A6A',
   sand: '#EADBA8',
-  sandDeep: '#D9C58E',
+  sandDeep: '#F2E6DD',
 
   pink: '#E8C4B6',
-  pinkDeep: '#C99580',
+  pinkDeep: '#E98A6A',
   pinkSoft: '#F2D5C5',
 } as const;
 
@@ -98,7 +98,7 @@ const V9 = {
 // Heal↔Care (moss — body), Nourish↔Feed (amber — gold), Rest↔Sleep
 // (slate — calm), Tips↔Tips (cinnamon — practical).
 //
-// All accent colors verified WCAG AA (≥ 4.5:1) against V9.paper #FDFAF5
+// All accent colors verified WCAG AA (≥ 4.5:1) against V9.paper #FFFCF6
 // for text use. Light bg tints stay well above ~14:1 against V9.bark.
 //
 // Where the theme lands:
@@ -109,13 +109,13 @@ const V9 = {
 //   • Quick Watches — eyebrow + CTA text
 //   • Mom Hacks — eyebrow + CTA text (sage bg stays for the "exhale" cue)
 // ═══════════════════════════════════════════════════════════════════════
-type ChapterTheme = {
+export type ChapterTheme = {
   accent: string;       // primary chapter accent (CTA, eyebrow, italic)
   accentDeep: string;   // darker variant (week eyebrow, CTA text)
   bg: string;           // week hero card background tint
   yolkBg: string;       // week hero decorative yolk
 };
-const CHAPTER_THEME_DEFAULT: ChapterTheme = {
+export const CHAPTER_THEME_DEFAULT: ChapterTheme = {
   accent: V9.rust, accentDeep: V9.rustDeep, bg: V9.bgPink, yolkBg: V9.pink,
 };
 // Kit canon (2026-05-16): chapter colors map to 5 brand palette tokens shared
@@ -123,31 +123,36 @@ const CHAPTER_THEME_DEFAULT: ChapterTheme = {
 // repeat; same for baby. Paired chapters (mom/rest ↔ baby/sleep) intentionally
 // wear the same family — the sister concept reads as the same room.
 //
-//   Feel/Grow    → Salmon   #EDA8A0 (empathy, warmth, expansion)
-//   Heal/Care    → Moss     #606E46 (body, recovery, garden)
-//   Nourish/Feed → Butter   #FAD080 (fuel, halo)
-//   Rest/Sleep   → Sage     #D8CEB0 (kit "cool exhale", quiet drowsy)
-//   Tips/Tips    → Marigold #F2C130 (kit "hero pop", small-wins spark)
-const CHAPTER_THEME: Record<string, ChapterTheme> = {
-  // Feel / Grow — salmon family
-  'mom/feel':   { accent: '#EDA8A0', accentDeep: '#C07A6F', bg: '#FBE3DF', yolkBg: '#F2C8C0' },
-  'baby/grow':  { accent: '#EDA8A0', accentDeep: '#C07A6F', bg: '#FBE3DF', yolkBg: '#F2C8C0' },
-  // Heal / Care — moss family
-  'mom/heal':   { accent: '#606E46', accentDeep: '#4A5736', bg: '#E6EAD0', yolkBg: '#C8D2A8' },
-  'baby/care':  { accent: '#606E46', accentDeep: '#4A5736', bg: '#E6EAD0', yolkBg: '#C8D2A8' },
-  // Nourish / Feed — butter family
-  'mom/nourish':{ accent: '#FAD080', accentDeep: '#C49B4F', bg: '#FDF1D0', yolkBg: '#F5DA9C' },
-  'baby/feed':  { accent: '#FAD080', accentDeep: '#C49B4F', bg: '#FDF1D0', yolkBg: '#F5DA9C' },
-  // Rest / Sleep — sage family ("cool exhale")
-  'mom/rest':   { accent: '#D8CEB0', accentDeep: '#7A7350', bg: '#EEEACE', yolkBg: '#C8C0A0' },
-  'baby/sleep': { accent: '#D8CEB0', accentDeep: '#7A7350', bg: '#EEEACE', yolkBg: '#C8C0A0' },
-  // Tips / Tips — marigold family (kit "hero pop")
-  'mom/tips':   { accent: '#F2C130', accentDeep: '#8A6818', bg: '#FBE890', yolkBg: '#F0D670' },
-  'baby/tips':  { accent: '#F2C130', accentDeep: '#8A6818', bg: '#FBE890', yolkBg: '#F0D670' },
+//   Feel/Grow    → Salmon   #F7C5CB (empathy, warmth, expansion)
+//   Heal/Care    → Moss     #E98A6A (body, recovery, garden)
+//   Nourish/Feed → Butter   #F4C53C (fuel, halo)
+//   Rest/Sleep   → Sage     #F2E6DD (kit "cool exhale", quiet drowsy)
+//   Tips/Tips    → Marigold #F4C53C (kit "hero pop", small-wins spark)
+// Single source of truth shared with the Manual home chips (ManualScrollV3
+// CHIP_TONE). accent = the chapter's deep color (dots/bars + accent text);
+// bg/yolkBg = a light wash of it. Pairing mirrors the home: sleep↔heal,
+// feed↔nourish, grow↔feel, care↔rest, soothe↔tips.
+export const CHAPTER_THEME: Record<string, ChapterTheme> = {
+  // Grow / Feel — rose
+  'baby/grow':  { accent: '#D96C88', accentDeep: '#D96C88', bg: '#FAE2E7', yolkBg: '#FAE2E7' },
+  'mom/feel':   { accent: '#D96C88', accentDeep: '#D96C88', bg: '#FAE2E7', yolkBg: '#FAE2E7' },
+  // Sleep / Heal — terracotta
+  'baby/sleep': { accent: '#C46A45', accentDeep: '#C46A45', bg: '#F0D7C3', yolkBg: '#F0D7C3' },
+  'mom/heal':   { accent: '#C46A45', accentDeep: '#C46A45', bg: '#F0D7C3', yolkBg: '#F0D7C3' },
+  // Feed / Nourish — amber (accentDeep darker so accent text stays legible)
+  'baby/feed':  { accent: '#BE851F', accentDeep: '#9A6A18', bg: '#F7EBCC', yolkBg: '#F7EBCC' },
+  'mom/nourish':{ accent: '#BE851F', accentDeep: '#9A6A18', bg: '#F7EBCC', yolkBg: '#F7EBCC' },
+  // Care / Rest — olive
+  'baby/care':  { accent: '#6F7A43', accentDeep: '#6F7A43', bg: '#EAEDD8', yolkBg: '#EAEDD8' },
+  'mom/rest':   { accent: '#6F7A43', accentDeep: '#6F7A43', bg: '#EAEDD8', yolkBg: '#EAEDD8' },
+  // Soothe / Tips — wine
+  'baby/soothe':{ accent: '#A8466B', accentDeep: '#A8466B', bg: '#F4DDE6', yolkBg: '#F4DDE6' },
+  'mom/tips':   { accent: '#A8466B', accentDeep: '#A8466B', bg: '#F4DDE6', yolkBg: '#F4DDE6' },
+  'baby/tips':  { accent: '#A8466B', accentDeep: '#A8466B', bg: '#F4DDE6', yolkBg: '#F4DDE6' },
 };
 
 // ── Chapter masthead — "[prefix] [italic accent]." ─────────────────────
-const HERO_TITLE: Record<string, { prefix: string; em: string }> = {
+export const HERO_TITLE: Record<string, { prefix: string; em: string }> = {
   'mom/feel':    { prefix: 'Time to',    em: 'feel.'    },
   'mom/heal':    { prefix: 'Time to',    em: 'heal.'    },
   'mom/nourish': { prefix: 'Time to',    em: 'nourish.' },
@@ -157,11 +162,12 @@ const HERO_TITLE: Record<string, { prefix: string; em: string }> = {
   'baby/sleep':  { prefix: 'How they',   em: 'sleep.'   },
   'baby/grow':   { prefix: 'How they',   em: 'grow.'    },
   'baby/care':   { prefix: 'How to',     em: 'care.'    },
+  'baby/soothe': { prefix: 'How to',     em: 'soothe.'  },
   'baby/tips':   { prefix: 'Tiny',       em: 'wins.'    },
 };
 
 // ── Sub-lead — short masthead body under the chapter title ─────────────
-const SUB_LEAD: Record<string, string> = {
+export const SUB_LEAD: Record<string, string> = {
   'mom/feel':    'The hormone hangover, named without the spiral.',
   'mom/heal':    'Lochia, stitches, the slow rebuild — without the panic.',
   'mom/nourish': 'Eat to live through the season, not to optimize.',
@@ -171,10 +177,11 @@ const SUB_LEAD: Record<string, string> = {
   'baby/sleep':  'What is normal at this week. What is not.',
   'baby/grow':   'The leap, the regression, the breakthrough.',
   'baby/care':   'Gas vs colic. Reflux normal or call. Without panic.',
+  'baby/soothe': 'Crying, the witching hour, and what actually calms a baby.',
   'baby/tips':   'The tiny things that change everything.',
 };
 
-const MANUAL_BULLETS: Record<string, string[]> = {
+export const MANUAL_BULLETS: Record<string, string[]> = {
   'mom/feel': [
     'Hormones drop hard at days 3–5. Tears without a reason are normal.',
     'Baby blues lift by week 2. Anything past that, talk to your OB.',
@@ -200,10 +207,11 @@ const MANUAL_BULLETS: Record<string, string[]> = {
   'baby/sleep':  ['Day-night confusion peaks in week 2–3. It passes.', 'Newborns sleep 14–17 hrs in chunks. Not in a row.', 'Always on the back. Firm surface. Nothing in the crib.'],
   'baby/grow':   ['Big leap around week 5. Crying spikes, then settles.', 'Tracking weight, not days. Pediatrician decides "behind."', 'New skill = old sleep regression. Both at once is normal.'],
   'baby/care':   ['Gas: legs curl, eased by burping. Colic: 3+ hrs, 3+ days, 3+ wks.', 'Reflux spit-up is normal. Projectile + weight loss is not.', 'Fever under 3 months: call, do not wait.'],
+  'baby/soothe': ['Crying peaks around weeks 4 to 6, usually evenings, then eases.', "The 5 S's, in order: swaddle, side-hold, shush, swing, suck.", 'Colic is crying 3+ hrs a day, 3+ days a week, 3+ weeks. It passes.'],
   'baby/tips':   ['White noise = vacuum cleaner pitch, not ocean.', 'Swaddle until they fight it. Then sleep sack.', 'Pacifier dipped in breastmilk takes faster.'],
 };
 
-const SPECIALIST_QS: Record<string, string[]> = {
+export const SPECIALIST_QS: Record<string, string[]> = {
   'mom/feel':    ['Is what I am feeling baby blues or PPD?', 'When should I worry about my mood?', 'Can I be screened today?'],
   'mom/heal':    ['Is my bleeding amount normal for this week?', 'When can I expect stitches to fully heal?', 'What activity is safe right now?'],
   'mom/nourish': ['Should I take a postpartum multivitamin?', 'What if I am breastfeeding and not hungry?', 'Any foods to avoid right now?'],
@@ -213,10 +221,11 @@ const SPECIALIST_QS: Record<string, string[]> = {
   'baby/sleep':  ['When should sleep get longer?', 'Is a swaddle still safe?', 'When do I move to a crib?'],
   'baby/grow':   ['Is my baby on track for this week?', 'When is the next leap?', 'How do I know it is a regression?'],
   'baby/care':   ['When is gas actually colic?', 'When should I worry about reflux?', 'What temperature is a real fever?'],
+  'baby/soothe': ['Is this normal crying or colic?', 'When does crying cross into a worry?', 'Could reflux or feeding be part of it?'],
   'baby/tips':   ['Any sleep coach you trust?', 'Best swaddle brand at this age?', 'Pacifier or no pacifier?'],
 };
 
-const MOM_HACKS: Record<string, string[]> = {
+export const MOM_HACKS: Record<string, string[]> = {
   'mom/feel':    ['Step outside for 10 minutes of morning light.', 'Tell one person exactly how you feel today.', 'Stop reading mom Instagram for 48 hours.'],
   'mom/heal':    ['Frozen pads ("padsicles") for the first 3 days.', 'Peri bottle, warm water, before and after.', "Don't stand longer than 20 min in week 1."],
   'mom/nourish': ['Pre-portion snacks at the start of the week.', 'Keep a water bottle in every nursing spot.', 'Smoothie packs in the freezer for ugly mornings.'],
@@ -226,6 +235,7 @@ const MOM_HACKS: Record<string, string[]> = {
   'baby/sleep':  ['White noise the whole nap, not just for 5 min.', 'Wake-windows over schedules in month 1.', 'Same wind-down song every night.'],
   'baby/grow':   ['Tummy time on your chest counts.', 'Track wet diapers, not ounces.', 'Photograph the same outfit every week.'],
   'baby/care':   ['Bicycle legs for gas. Knees-to-chest for colic.', 'Coconut oil on the cradle cap, gentle comb.', 'Cool wet washcloth for teething drool rash.'],
+  'baby/soothe': ['White noise the whole time, as loud as a shower.', 'Motion and sound together beat either one alone.', 'Hand the baby off for ten minutes when you hit your limit.'],
   'baby/tips':   ['Diaper before feed, not after, to avoid spit-up.', 'Onesies that snap from the side at 3 am.', 'Two diaper stations, not one.'],
 };
 
@@ -268,6 +278,12 @@ export default function ManualCategoryScreen() {
 
   // Return to chapter selector — invites the user to explore other chapters.
   const goToChapterList = () => navigation.navigate('ManualHome' as never);
+  // "Explore the manual →" — opens the chapter's full-picture read rather than
+  // bouncing back to ManualHome (the page the user came from to get here).
+  const goToChapterRead = () =>
+    navigation.navigate('ManualChapterRead' as never, {
+      audience, category, label: route.params.label,
+    } as never);
 
   // Share the 3 "Ask your specialist" questions via native share sheet so
   // the user can text/email them to herself, save to notes, or hand them
@@ -528,11 +544,11 @@ export default function ManualCategoryScreen() {
           </View>
           <View style={styles.eyebrowRow}>
             <View style={[styles.eyebrowBar, { backgroundColor: theme.accent }]} />
-            <Text style={[styles.eyebrowText, { color: theme.accent }]}>A field guide</Text>
+            <Text style={[styles.eyebrowText, { color: theme.accentDeep }]}>A field guide</Text>
           </View>
           <View style={styles.titleRow}>
             <Text style={styles.title}>
-              {hero.prefix} <Text style={[styles.italicAccent, { color: theme.accent }]}>{hero.em}</Text>
+              {hero.prefix} <Text style={[styles.italicAccent, { color: theme.accentDeep }]}>{hero.em}</Text>
             </Text>
             <View style={[styles.heartDot, { backgroundColor: theme.accent }]} />
           </View>
@@ -555,10 +571,10 @@ export default function ManualCategoryScreen() {
 
           <View style={styles.eyebrowRow}>
             <View style={[styles.eyebrowBar, { backgroundColor: theme.accent }]} />
-            <Text style={[styles.eyebrowText, { color: theme.accent }]}>The manual</Text>
+            <Text style={[styles.eyebrowText, { color: theme.accentDeep }]}>The manual</Text>
           </View>
           <Text style={styles.bookTitle}>
-            What to actually <Text style={[styles.italicAccent, { color: theme.accent }]}>know.</Text>
+            What to actually <Text style={[styles.italicAccent, { color: theme.accentDeep }]}>know.</Text>
           </Text>
 
           {bullets.map((b, i) => (
@@ -569,12 +585,12 @@ export default function ManualCategoryScreen() {
           ))}
 
           <TouchableOpacity
-            onPress={goToChapterList}
+            onPress={goToChapterRead}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             accessibilityRole="link"
-            accessibilityLabel="Explore other chapters in the manual"
+            accessibilityLabel="Read the full picture for this chapter"
           >
-            <Text style={[styles.bookCta, { color: theme.accent }]}>Explore the manual →</Text>
+            <Text style={[styles.bookCta, { color: theme.accentDeep }]}>Explore the manual →</Text>
           </TouchableOpacity>
           <Text style={styles.folio}>p. {week}</Text>
         </View>
@@ -608,7 +624,7 @@ export default function ManualCategoryScreen() {
               <Text style={[styles.eyebrowText, { color: V9.sageDeep }]}>Ask your specialist</Text>
             </View>
             <Text style={styles.chartTitle}>
-              Bring these <Text style={[styles.italicAccent, { color: theme.accent }]}>three.</Text>
+              Bring these <Text style={[styles.italicAccent, { color: theme.accentDeep }]}>three.</Text>
             </Text>
 
             {questions.map((q, i) => (
@@ -635,7 +651,7 @@ export default function ManualCategoryScreen() {
                 accessibilityRole="button"
                 accessibilityLabel="Share these 3 questions with your provider"
               >
-                <Text style={[styles.cardCtaRust, { color: theme.accent }]}>Share these →</Text>
+                <Text style={[styles.cardCtaRust, { color: theme.accentDeep }]}>Share these →</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -651,10 +667,10 @@ export default function ManualCategoryScreen() {
 
           <View style={styles.eyebrowRow}>
             <View style={[styles.eyebrowBar, { backgroundColor: theme.accent }]} />
-            <Text style={[styles.eyebrowText, { color: theme.accent }]}>Quick watches</Text>
+            <Text style={[styles.eyebrowText, { color: theme.accentDeep }]}>Quick watches</Text>
           </View>
           <Text style={styles.cardTitle}>
-            Two minutes, <Text style={[styles.italicAccent, { color: theme.accent }]}>exactly.</Text>
+            Two minutes, <Text style={[styles.italicAccent, { color: theme.accentDeep }]}>exactly.</Text>
           </Text>
 
           {/* v9 spec: ALWAYS render exactly 3 slots in a row. Real video where
@@ -691,8 +707,8 @@ export default function ManualCategoryScreen() {
               }
               const gradient =
                 i === 0 ? [V9.pinkSoft, V9.pinkDeep] as const
-                : i === 1 ? ['#E5D2BA', V9.coco] as const
-                : ['#D8DEB7', V9.sage] as const;
+                : i === 1 ? ['#F2E6DD', V9.coco] as const
+                : ['#F2E6DD', V9.sage] as const;
               return (
                 <LinearGradient
                   key={`sk-${i}`}
@@ -713,7 +729,7 @@ export default function ManualCategoryScreen() {
             accessibilityRole="button"
             accessibilityLabel={videos[0] ? `Watch ${videos[0].title}` : 'Browse all chapters'}
           >
-            <Text style={[styles.cardCtaRust, { color: theme.accent }]}>Watch the row →</Text>
+            <Text style={[styles.cardCtaRust, { color: theme.accentDeep }]}>Watch the row →</Text>
           </TouchableOpacity>
         </View>
 
@@ -732,10 +748,10 @@ export default function ManualCategoryScreen() {
 
           <View style={styles.eyebrowRow}>
             <View style={[styles.eyebrowBar, { backgroundColor: theme.accent }]} />
-            <Text style={[styles.eyebrowText, { color: theme.accent }]}>Mom hacks &amp; tips</Text>
+            <Text style={[styles.eyebrowText, { color: theme.accentDeep }]}>Mom hacks &amp; tips</Text>
           </View>
           <Text style={styles.cardTitle}>
-            Try one <Text style={[styles.italicAccent, { color: theme.accent }]}>tonight.</Text>
+            Try one <Text style={[styles.italicAccent, { color: theme.accentDeep }]}>tonight.</Text>
           </Text>
 
           <View style={styles.chipStrip}>
@@ -748,12 +764,12 @@ export default function ManualCategoryScreen() {
           </View>
 
           <TouchableOpacity
-            onPress={goToChapterList}
+            onPress={goToChapterRead}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             accessibilityRole="link"
-            accessibilityLabel="Explore other chapters for more hacks"
+            accessibilityLabel="Read the full picture for this chapter"
           >
-            <Text style={[styles.cardCtaRust, { color: theme.accent }]}>More hacks →</Text>
+            <Text style={[styles.cardCtaRust, { color: theme.accentDeep }]}>Read the full picture →</Text>
           </TouchableOpacity>
         </View>
 

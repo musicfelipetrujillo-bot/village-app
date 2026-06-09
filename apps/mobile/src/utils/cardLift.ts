@@ -31,7 +31,7 @@ export const cardLift = {
   // Was the v9 canon (0.22 / offset 10 / radius 22 / elev 6) before V3Card
   // landed; staying in lockstep so all "lifted" surfaces in the app share
   // the same shadow signature.
-  shadowColor: '#6B2E0E',
+  shadowColor: '#43260F',
   shadowOpacity: 0.22,
   shadowOffset: { width: 0, height: 10 },
   shadowRadius: 22,
@@ -40,7 +40,7 @@ export const cardLift = {
 
 export const cardLiftDeep = {
   // Heavier shadow for hero / full-bleed cards (matches V3Card.deepShadow).
-  shadowColor: '#3D1F0E',
+  shadowColor: '#43260F',
   shadowOpacity: 0.28,
   shadowOffset: { width: 0, height: 14 },
   shadowRadius: 24,

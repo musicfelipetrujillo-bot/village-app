@@ -172,8 +172,8 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.cream,
   },
   closeBtn: {
-    backgroundColor: '#C07840', borderRadius: 14,
+    backgroundColor: '#D96C88', borderRadius: 14,
     paddingVertical: 15, alignItems: 'center',
   },
-  closeBtnText: { color: '#FDFBF6', fontSize: 15, fontFamily: FONTS.bodySemiBold, letterSpacing: 0.3 },
+  closeBtnText: { color: '#FFFCF6', fontSize: 15, fontFamily: FONTS.bodySemiBold, letterSpacing: 0.3 },
 });

@@ -64,7 +64,7 @@ export default function RsvpConfirmScreen() {
   };
 
   if (!event) {
-    return <View style={styles.container}><ActivityIndicator color="#C07840" style={{ marginTop: 80 }} /></View>;
+    return <View style={styles.container}><ActivityIndicator color="#D96C88" style={{ marginTop: 80 }} /></View>;
   }
 
   return (
@@ -110,7 +110,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: 'transparent', justifyContent: 'center' },
   content: { paddingHorizontal: 32, alignItems: 'center' },
   checkmark: {
-    fontSize: 54, color: '#A77349', fontFamily: FONTS.bodySemiBold,
+    fontSize: 54, color: '#7A4A24', fontFamily: FONTS.bodySemiBold,
     backgroundColor: '#FDEEE8', width: 96, height: 96, borderRadius: 48,
     textAlign: 'center', lineHeight: 96, marginBottom: 16,
   },
@@ -120,11 +120,11 @@ const styles = StyleSheet.create({
   when: { fontSize: 14, color: COLORS.barkSoft, textAlign: 'center', marginBottom: 28 },
 
   calBtn: {
-    backgroundColor: '#C07840', borderRadius: 14,
+    backgroundColor: '#D96C88', borderRadius: 14,
     paddingHorizontal: 32, paddingVertical: 14,
     marginBottom: 10, width: '100%', alignItems: 'center',
   },
-  calBtnText: { color: '#FDFBF6', fontSize: 15, fontFamily: FONTS.bodySemiBold },
+  calBtnText: { color: '#FFFCF6', fontSize: 15, fontFamily: FONTS.bodySemiBold },
 
   addedBanner: {
     backgroundColor: 'rgba(92,107,58,0.1)', borderRadius: 10,
@@ -138,7 +138,7 @@ const styles = StyleSheet.create({
     width: '100%', alignItems: 'center',
     borderWidth: 1.5, borderColor: COLORS.coco,
   },
-  doneBtnText: { color: '#C07840', fontSize: 14, fontFamily: FONTS.bodySemiBold },
+  doneBtnText: { color: '#D96C88', fontSize: 14, fontFamily: FONTS.bodySemiBold },
 
   closeBtn: { marginTop: 14, paddingVertical: 8 },
   closeBtnText: { color: COLORS.textLight, fontSize: 13, fontFamily: FONTS.bodySemiBold },

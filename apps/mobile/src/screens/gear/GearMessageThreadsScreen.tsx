@@ -12,6 +12,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { COLORS, FONTS } from '@utils/constants';
 import { V9PageBackdrop } from '@components/shared/V9PageBackdrop';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useT } from '@/i18n';
 import { listMyGearThreads, type GearThreadRow } from '@api/gear';
 import type { GearStackParamList } from '@/navigation/GearNavigator';
@@ -59,6 +60,12 @@ export default function GearMessageThreadsScreen({ navigation }: Props) {
   return (
     <View style={styles.container}>
       <V9PageBackdrop />
+      <LinearGradient
+        pointerEvents="none"
+        colors={['rgba(244,197,60,0.26)', 'rgba(244,197,60,0.08)', 'rgba(252,247,239,0)']}
+        locations={[0, 0.45, 1]}
+        style={styles.pageWash}
+      />
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} accessibilityRole="button">
           <Text style={styles.back}>{t('gearInbox.back')}</Text>
@@ -68,7 +75,7 @@ export default function GearMessageThreadsScreen({ navigation }: Props) {
       </View>
 
       {loading ? (
-        <View style={styles.center}><ActivityIndicator color="#C07840" /></View>
+        <View style={styles.center}><ActivityIndicator color="#D96C88" /></View>
       ) : (
         <FlashList
           data={threads}
@@ -142,6 +149,7 @@ export default function GearMessageThreadsScreen({ navigation }: Props) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: 'transparent' },
+  pageWash: { position: 'absolute', top: 0, left: 0, right: 0, height: 620 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
 
   header: {
@@ -150,7 +158,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.paper,
     borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.06)',
   },
-  back: { fontSize: 15, color: '#C07840', fontFamily: FONTS.bodySemiBold },
+  back: { fontSize: 15, color: '#D96C88', fontFamily: FONTS.bodySemiBold },
   title: { fontSize: 17, fontFamily: FONTS.bodySemiBold, color: COLORS.bark },
 
   row: {
@@ -166,12 +174,12 @@ const styles = StyleSheet.create({
   nameRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   name: { fontSize: 15, fontFamily: FONTS.bodySemiBold, color: COLORS.bark, flexShrink: 1 },
   sellerTag: {
-    fontSize: 10, fontFamily: FONTS.bodySemiBold, color: '#FDFBF6',
+    fontSize: 10, fontFamily: FONTS.bodySemiBold, color: '#FFFCF6',
     backgroundColor: COLORS.sage,
     paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6,
   },
   buyerTag: {
-    fontSize: 10, fontFamily: FONTS.bodySemiBold, color: '#FDFBF6',
+    fontSize: 10, fontFamily: FONTS.bodySemiBold, color: '#FFFCF6',
     backgroundColor: COLORS.coco,
     paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6,
   },
@@ -184,15 +192,15 @@ const styles = StyleSheet.create({
     minWidth: 20, height: 20, paddingHorizontal: 6, borderRadius: 10,
     backgroundColor: COLORS.coco, alignItems: 'center', justifyContent: 'center',
   },
-  unreadText: { color: '#FDFBF6', fontSize: 11, fontFamily: FONTS.bodySemiBold },
+  unreadText: { color: '#FFFCF6', fontSize: 11, fontFamily: FONTS.bodySemiBold },
 
   empty: { alignItems: 'center', paddingTop: 80, paddingHorizontal: 32, gap: 10 },
   emptyEmoji: { fontSize: 52 },
   emptyTitle: { fontSize: 20, fontFamily: FONTS.bodySemiBold, color: COLORS.bark },
   emptyBody: { fontSize: 14, color: COLORS.barkSoft, textAlign: 'center', lineHeight: 20, fontFamily: FONTS.body },
   browseBtn: {
-    marginTop: 8, backgroundColor: '#C07840', borderRadius: 14,
+    marginTop: 8, backgroundColor: '#D96C88', borderRadius: 14,
     paddingVertical: 13, paddingHorizontal: 28,
   },
-  browseBtnText: { fontSize: 15, color: '#FDFBF6', fontFamily: FONTS.bodySemiBold },
+  browseBtnText: { fontSize: 15, color: '#FFFCF6', fontFamily: FONTS.bodySemiBold },
 });

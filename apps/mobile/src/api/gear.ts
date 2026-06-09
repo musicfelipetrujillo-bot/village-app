@@ -64,6 +64,9 @@ export interface GearCard {
   pickup_city: string;
   distance_km: number | null;
   is_cpsc_checked: boolean;
+  // Paid-boost flag (migration 074). Optional so old/un-migrated backends that
+  // don't return it degrade cleanly (falsy → no "Boosted" badge, default sort).
+  is_boosted?: boolean;
   cover_image_url: string | null;
   save_count: number;
   created_at: string;
@@ -103,6 +106,9 @@ export interface GearListingDetail {
   // during listing creation. Shown in the detail view as a labeled "Product
   // reference" card alongside the seller's own photos. Migration 064.
   reference_image_url: string | null;
+  // Paid-boost window end (migration 074). Optional for backend-compat. The
+  // owner uses this to see remaining boost time; null/past = not boosted.
+  boosted_until?: string | null;
   view_count: number;
   save_count: number;
   created_at: string;
@@ -124,6 +130,8 @@ export interface MyListingRow {
   save_count: number;
   created_at: string;
   cover_image_url: string | null;
+  // Paid-boost window end (migration 074). Optional for backend-compat.
+  boosted_until?: string | null;
 }
 
 export interface SavedListingRow {
@@ -700,4 +708,63 @@ export async function logGearEvent(
     event_name: eventName,
     properties: properties ?? null,
   });
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Boost — paid listing promotion (migration 074, Gear only)
+// ─────────────────────────────────────────────────────────────────────────────
+// The CLIENT never writes boost state. After Apple validates a purchase, this
+// hands the (listing, store transaction) to the `gear-boost-activate` Edge
+// Function, which verifies the receipt server-side and calls the service-role
+// `activate_gear_boost` RPC. Anti-replay lives in the DB (UNIQUE txn id).
+// See src/lib/boost.ts for the purchase orchestration + feature flag, and
+// docs/V4_GEAR_BOOST_RUNBOOK.md for the Build 14 / RevenueCat wiring.
+
+export interface ActivateGearBoostInput {
+  listing_id: string;
+  /** Store transaction id from the validated purchase (anti-replay key). */
+  platform_transaction_id: string;
+  product_id: string;
+  platform?: 'ios' | 'android';
+  /** 'iap' for a paid purchase; 'pro_perk' for a Pro-member free boost. */
+  source?: 'iap' | 'pro_perk';
+}
+
+export interface ActivateGearBoostResult {
+  ok: boolean;
+  boosted_until: string | null;
+  /** True when the transaction had already been activated (idempotent replay). */
+  already_active?: boolean;
+  error?: string;
+}
+
+/** Activates a boost on the server after a validated store purchase. */
+export async function activateGearBoost(input: ActivateGearBoostInput): Promise<ActivateGearBoostResult> {
+  const { data, error } = await supabase.functions.invoke('gear-boost-activate', {
+    body: {
+      listing_id: input.listing_id,
+      platform_transaction_id: input.platform_transaction_id,
+      product_id: input.product_id,
+      platform: input.platform ?? 'ios',
+      source: input.source ?? 'iap',
+    },
+  });
+  if (error) throw new Error(error.message);
+  return (data ?? { ok: false, boosted_until: null }) as ActivateGearBoostResult;
+}
+
+/** True while the boost window is in the future. Safe on missing/old data. */
+export function isListingBoosted(boostedUntil?: string | null): boolean {
+  if (!boostedUntil) return false;
+  const t = new Date(boostedUntil).getTime();
+  return Number.isFinite(t) && t > Date.now();
+}
+
+/** Human label for remaining boost time, e.g. "5 days left" / "ends today". */
+export function boostRemainingLabel(boostedUntil?: string | null): string | null {
+  if (!isListingBoosted(boostedUntil)) return null;
+  const ms = new Date(boostedUntil as string).getTime() - Date.now();
+  const days = Math.ceil(ms / 86_400_000);
+  if (days <= 1) return 'ends today';
+  return `${days} days left`;
 }

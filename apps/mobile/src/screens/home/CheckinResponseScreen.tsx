@@ -84,7 +84,7 @@ export default function CheckinResponseScreen({ navigation }: Props) {
       </View>
 
       {loading ? (
-        <View style={styles.center}><ActivityIndicator color="#C07840" /></View>
+        <View style={styles.center}><ActivityIndicator color="#D96C88" /></View>
       ) : !row ? (
         <View style={styles.center}>
           <Text style={styles.errorText}>{t('checkin.responseErrorLoad')}</Text>
@@ -172,7 +172,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.paper,
     borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.06)',
   },
-  back: { fontSize: 15, color: '#C07840', fontFamily: FONTS.bodySemiBold },
+  back: { fontSize: 15, color: '#D96C88', fontFamily: FONTS.bodySemiBold },
   title: { fontSize: 17, fontFamily: FONTS.bodySemiBold, color: COLORS.bark },
 
   content: { padding: 20, paddingBottom: 60 },
@@ -183,12 +183,12 @@ const styles = StyleSheet.create({
   crisisCard: {
     backgroundColor: COLORS.pinkSoft, borderRadius: 18, padding: 18, marginBottom: 18,
     borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(154, 74, 43, 0.35)',
-    shadowColor: '#6B2E0E', shadowOffset: { width: 0, height: 8 },
+    shadowColor: '#43260F', shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.22, shadowRadius: 22, elevation: 5,
   },
   crisisEyebrow: {
     fontSize: 11, fontFamily: FONTS.bodySemiBold, letterSpacing: 1.5,
-    color: '#A77349', marginBottom: 6,
+    color: '#7A4A24', marginBottom: 6,
   },
   crisisBody: { fontSize: 14, color: COLORS.bark, lineHeight: 20, marginBottom: 14 },
   resourceRow: {
@@ -199,16 +199,16 @@ const styles = StyleSheet.create({
   resourceName: { fontSize: 14, fontFamily: FONTS.bodySemiBold, color: COLORS.bark },
   resourceDesc: { fontSize: 12, color: COLORS.barkSoft, marginTop: 2 },
   resourceBtn: {
-    backgroundColor: '#C07840', borderRadius: 10,
+    backgroundColor: '#D96C88', borderRadius: 10,
     paddingHorizontal: 14, paddingVertical: 8,
   },
   resourceBtnAlt: { backgroundColor: COLORS.sage },
-  resourceBtnText: { color: '#FDFBF6', fontSize: 13, fontFamily: FONTS.bodySemiBold },
+  resourceBtnText: { color: '#FFFCF6', fontSize: 13, fontFamily: FONTS.bodySemiBold },
 
   replyCard: {
     backgroundColor: COLORS.paper, borderRadius: 18, padding: 18, marginBottom: 14,
     borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(150, 80, 50, 0.18)',
-    shadowColor: '#6B2E0E', shadowOffset: { width: 0, height: 8 },
+    shadowColor: '#43260F', shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.22, shadowRadius: 22, elevation: 5,
   },
   replyEyebrow: {
@@ -227,5 +227,5 @@ const styles = StyleSheet.create({
     marginTop: 8, backgroundColor: COLORS.bark, borderRadius: 14,
     paddingVertical: 14, alignItems: 'center',
   },
-  doneBtnText: { color: '#FDFBF6', fontSize: 14, fontFamily: FONTS.bodySemiBold },
+  doneBtnText: { color: '#FFFCF6', fontSize: 14, fontFamily: FONTS.bodySemiBold },
 });

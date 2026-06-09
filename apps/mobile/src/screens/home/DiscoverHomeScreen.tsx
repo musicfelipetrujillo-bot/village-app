@@ -103,10 +103,10 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingTop: 56, paddingBottom: 12, paddingHorizontal: 16,
-    backgroundColor: '#FDFBF6',
+    backgroundColor: '#FFFCF6',
     borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.06)',
   },
-  back: { fontSize: 15, color: '#C07840', fontFamily: FONTS.bodySemiBold },
+  back: { fontSize: 15, color: '#D96C88', fontFamily: FONTS.bodySemiBold },
   title: { fontSize: 17, fontFamily: FONTS.bodySemiBold, color: COLORS.bark },
 
   content: { padding: 20, paddingBottom: 60 },
@@ -121,7 +121,7 @@ const styles = StyleSheet.create({
     width: '47%', backgroundColor: COLORS.paper, borderRadius: 16, padding: 16,
     minHeight: 130,
     borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(150, 80, 50, 0.18)',
-    shadowColor: '#6B2E0E', shadowOffset: { width: 0, height: 6 },
+    shadowColor: '#43260F', shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.18, shadowRadius: 20, elevation: 3,
   },
   tileIcon: { fontSize: 32, marginBottom: 8 },

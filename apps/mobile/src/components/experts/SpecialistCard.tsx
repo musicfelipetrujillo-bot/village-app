@@ -6,7 +6,7 @@
 // layout (illustration | content | identity) into a stacked feed row that
 // keeps the pattern readable on a phone screen.
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { COLORS, FONTS } from '@utils/constants';
 import { cardLift, cardLiftBorder } from '@utils/cardLift';
 import type { Specialist, SpecialtyType } from 'shared/src/types/v1';
@@ -85,9 +85,18 @@ export function SpecialistCard({ specialist, onPress }: Props) {
       {/* Hero row — illustration block + italic Playfair name with terra
           accent on the surname (the design's italic-em pattern). */}
       <View style={styles.heroRow}>
-        <View style={[styles.illoTile, { backgroundColor: config.bg }]}>
-          <Text style={styles.illoEmoji}>{config.emoji}</Text>
-        </View>
+        {specialist.photo_url ? (
+          <Image
+            source={{ uri: specialist.photo_url }}
+            style={styles.illoTile}
+            resizeMode="cover"
+            accessibilityIgnoresInvertColors
+          />
+        ) : (
+          <View style={[styles.illoTile, { backgroundColor: config.bg }]}>
+            <Text style={styles.illoEmoji}>{config.emoji}</Text>
+          </View>
+        )}
         <View style={styles.nameCol}>
           <Text style={styles.nameLine}>
             <Text style={styles.nameFirst}>{first}</Text>
@@ -171,7 +180,7 @@ const styles = StyleSheet.create({
     fontSize: 10,
     letterSpacing: 1.6,
     fontFamily: FONTS.bodySemiBold,
-    color: COLORS.barkSoft,
+    color: '#C2784E', // Specialists signature: caramel category label
   },
   npiBadge: {
     backgroundColor: COLORS.sageSoft,
@@ -256,16 +265,15 @@ const styles = StyleSheet.create({
   // Terra-bordered credential pill — matches the Concept B chip styling
   // (1px terra border, no fill, small uppercase letterspacing).
   credChip: {
-    borderWidth: 1,
-    borderColor: COLORS.coco,
+    backgroundColor: 'rgba(194,120,78,0.13)',
     borderRadius: 999,
-    paddingVertical: 3,
-    paddingHorizontal: 8,
+    paddingVertical: 4,
+    paddingHorizontal: 9,
   },
   credChipText: {
     fontSize: 10,
     fontFamily: FONTS.bodySemiBold,
-    color: COLORS.coco,
+    color: '#A8632F',
     letterSpacing: 0.6,
   },
 
@@ -282,7 +290,7 @@ const styles = StyleSheet.create({
   },
   // v9 canonical CTA — cinnamon (kit canon).
   bookBtn: {
-    backgroundColor: '#C07840',
+    backgroundColor: '#D96C88',
     borderRadius: 999,
     paddingVertical: 8,
     paddingHorizontal: 14,

@@ -19,6 +19,7 @@ import EventsListScreen from '@screens/events/EventsListScreen';
 import EventDetailScreen from '@screens/events/EventDetailScreen';
 import RsvpConfirmScreen from '@screens/events/RsvpConfirmScreen';
 import MyRsvpsScreen from '@screens/events/MyRsvpsScreen';
+import SavedEventsScreen from '@screens/events/SavedEventsScreen';
 import PerksListScreen from '@screens/perks/PerksListScreen';
 import PerkDetailScreen from '@screens/perks/PerkDetailScreen';
 import PerkClaimScreen from '@screens/perks/PerkClaimScreen';
@@ -38,6 +39,7 @@ export type HomeStackParamList = {
   EventDetail: { id: string };
   RsvpConfirm: { eventId: string };
   MyRsvps: undefined;
+  SavedEvents: undefined;
   PerksList: undefined;
   PerkDetail: { id: string };
   PerkClaim: { id: string };
@@ -63,6 +65,7 @@ export function HomeNavigator() {
       <Stack.Screen name="EventDetail" component={EventDetailScreen} />
       <Stack.Screen name="RsvpConfirm" component={RsvpConfirmScreen} options={{ presentation: 'modal' }} />
       <Stack.Screen name="MyRsvps" component={MyRsvpsScreen} />
+      <Stack.Screen name="SavedEvents" component={SavedEventsScreen} />
       <Stack.Screen name="PerksList" component={PerksListScreen} />
       <Stack.Screen name="PerkDetail" component={PerkDetailScreen} />
       <Stack.Screen name="PerkClaim" component={PerkClaimScreen} options={{ presentation: 'modal' }} />

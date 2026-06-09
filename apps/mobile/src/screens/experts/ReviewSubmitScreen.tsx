@@ -149,7 +149,7 @@ export default function ReviewSubmitScreen({ navigation, route }: Props) {
             accessibilityState={{ disabled: submitting || rating === 0 }}
           >
             {submitting ? (
-              <ActivityIndicator color="#FDFBF6" />
+              <ActivityIndicator color="#FFFCF6" />
             ) : (
               <Text style={styles.submitText}>{t('reviewSubmit.submitCta')}</Text>
             )}
@@ -179,7 +179,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.paper,
   },
   cancelBtn: { width: 60 },
-  cancelText: { fontSize: 15, color: '#A77349', fontFamily: FONTS.bodyMedium },
+  cancelText: { fontSize: 15, color: '#7A4A24', fontFamily: FONTS.bodyMedium },
   headerTitle: {
     fontFamily: FONTS.headerItalic,
     fontSize: 17,
@@ -242,15 +242,15 @@ const styles = StyleSheet.create({
 
   // v9 canonical CTA — rect variant
   submitBtn: {
-    backgroundColor: '#C07840',
+    backgroundColor: '#D96C88',
     borderRadius: 14,
     paddingVertical: 16,
     alignItems: 'center',
-    shadowColor: '#945A41', shadowOffset: { width: 0, height: 4 },
+    shadowColor: '#D96C88', shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.24, shadowRadius: 10, elevation: 3,
   },
   submitBtnDisabled: { opacity: 0.45 },
-  submitText: { color: '#FDFBF6', fontSize: 16, fontFamily: FONTS.bodySemiBold },
+  submitText: { color: '#FFFCF6', fontSize: 16, fontFamily: FONTS.bodySemiBold },
 
   disclaimer: {
     fontSize: 12,

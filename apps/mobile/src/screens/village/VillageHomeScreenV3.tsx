@@ -27,21 +27,22 @@ import Svg, { Path, Circle } from 'react-native-svg';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { COLORS, FONTS } from '@utils/constants';
 import { useUserStore } from '@store/user';
-import { useEventsStore } from '@store/events';
+import { useT } from '@/i18n';
 import { WarmGlowBackdrop } from '@components/shared/WarmGlowBackdrop';
+import { HoneycombBackdrop } from '@components/shared/HoneycombBackdrop';
 
 // ─── Tokens (v3 brand kit) ─────────────────────────────────────────────
 const T = {
-  paper:     COLORS.v2_paper,      // #FDFBF6
-  cream:     COLORS.v2_cream,      // #F4ECD8
-  parchment: COLORS.v2_parchment,  // #EAE0C8
-  butter:    COLORS.v2_butter,     // #FAD080
-  cinnamon:  COLORS.v2_cinnamon,   // #C07840
-  blush:     COLORS.v2_blush,      // #F5BEB6
-  salmon:    COLORS.v2_salmon,     // #EDA8A0
-  sage:      COLORS.v2_sage,       // #D8CEB0
-  moss:      COLORS.v2_moss,       // #606E46
-  cocoa:     COLORS.v2_cocoa,      // #3D1F0E
+  paper:     COLORS.v2_paper,      // #FFFCF6
+  cream:     COLORS.v2_cream,      // #FCF7EF
+  parchment: COLORS.v2_parchment,  // #F2E6DD
+  butter:    COLORS.v2_butter,     // #F4C53C
+  cinnamon:  COLORS.v2_cinnamon,   // #D96C88
+  blush:     COLORS.v2_blush,      // #F7C5CB
+  salmon:    COLORS.v2_salmon,     // #F7C5CB
+  sage:      COLORS.v2_sage,       // #F2E6DD
+  moss:      COLORS.v2_moss,       // #E98A6A
+  cocoa:     COLORS.v2_cocoa,      // #43260F
   walnut:    COLORS.v2_walnut,     // #7A4A28
   rule:      'rgba(61,31,14,0.13)',
 };
@@ -80,57 +81,62 @@ type Vertical = {
 // Gear, Profile. Cross-tab targets must match those exactly.
 const VERTICALS: Vertical[] = [
   { num: '01', title: 'Milk Connect', sub: 'Peer milk, screened moms.',     stat: '8 near you',    bg: T.blush,     route: 'Milk' },
-  { num: '02', title: 'Specialists',  sub: 'OB, doula, lactation, sleep.',  stat: '12 verified',   bg: T.sage,      route: 'Experts' },
+  { num: '02', title: 'Specialists',  sub: 'OB, doula, lactation, sleep.',  stat: '12 verified',   bg: '#F3B79C',   route: 'Experts' },
   { num: '03', title: 'Baby Gear',    sub: 'Hand-me-downs from real moms.', stat: '37 listed',     bg: T.butter,    route: 'Gear' },
-  { num: '04', title: 'Villie Plans', sub: 'Classes, circles, real coffee.',stat: '5 this week',   bg: T.parchment, route: 'Village' },
+  { num: '04', title: 'Villie Plans', sub: 'Classes, circles, real coffee.',stat: '5 this week',   bg: '#EFB2C8',   route: 'Village' },
 ];
 
-// Calendar fallback — static handoff data, used only when the live
-// events store returns nothing (cold start / empty feed). Once
-// useEventsStore.fetchUpcoming resolves with real events, the live
-// rows replace these placeholders via formatPlanRow below.
-// id: null on placeholders → calendar-row tap falls back to "All plans"
-// (full events list) since there's no real event row to drill into.
-const PLACEHOLDER_PLANS: Array<{
-  id: string | null; day: string; date: string; time: string;
-  name: string; loc: string; going: number;
-}> = [
-  { id: null, day: 'TUE', date: '19', time: '9:00 AM',  name: 'Postpartum yoga',        loc: 'Prospect Park · 1.2mi',      going: 12 },
-  { id: null, day: 'THU', date: '21', time: '10:30 AM', name: 'Sensory play, 0–9m',     loc: 'Park Slope library · 0.6mi', going: 8 },
-  { id: null, day: 'SAT', date: '23', time: '10:00 AM', name: 'Stroller walk + coffee', loc: '7th & Smith · 0.9mi',        going: 24 },
-];
+// ─── Stage-aware support ─────────────────────────────────────────────────
+// Replaces the calendar preview (redundant with the Villie Plans tile). Reads
+// the mom's stage and surfaces 3 things moms typically reach for *right now*,
+// each routing into a vertical. Buckets mirror the onboarding stage picker.
+type SupportRoute = 'Experts' | 'Milk' | 'Gear' | 'Manual' | 'Plans';
+type SupportItem = {
+  emoji: string;
+  title: { en: string; es: string };
+  why: { en: string; es: string };
+  route: SupportRoute;
+  specialty?: string;   // when route === 'Experts', pre-selects that specialist chip
+  category?: string;    // when route === 'Manual', deep-links into that chapter (e.g. 'feed')
+  audience?: 'mom' | 'baby'; // Manual chapter audience — defaults to 'baby'
+};
+type StageSupport = { eyebrow: { en: string; es: string }; items: SupportItem[] };
 
-// Format a live EventCard into the calendar row shape used by the
-// render block. Keeps the visual treatment identical between live +
-// placeholder data so the screen never flickers structurally.
-function formatPlanRow(e: { id?: string; starts_at: string; title: string; venue_name: string | null; city: string | null; distance_km: number | null; going_count: number; timezone?: string }, lang: 'en' | 'es') {
-  const d = new Date(e.starts_at);
-  const dayNames = lang === 'es'
-    ? ['DOM','LUN','MAR','MIÉ','JUE','VIE','SÁB']
-    : ['SUN','MON','TUE','WED','THU','FRI','SAT'];
-  const hour12 = d.getHours() % 12 || 12;
-  const ampm = d.getHours() < 12 ? 'AM' : 'PM';
-  const time = `${hour12}:${String(d.getMinutes()).padStart(2, '0')} ${ampm}`;
-  const distance = e.distance_km != null
-    ? ` · ${(e.distance_km * 0.621371).toFixed(1)}mi`
-    : '';
-  const loc = `${e.venue_name ?? e.city ?? 'TBD'}${distance}`;
-  return {
-    id: e.id ?? null,
-    day: dayNames[d.getDay()],
-    date: String(d.getDate()),
-    time,
-    name: e.title,
-    loc,
-    going: e.going_count,
-  };
-}
+const STAGE_SUPPORT: Record<string, StageSupport> = {
+  postpartum_0_6mo: {
+    eyebrow: { en: 'First weeks · what helps now', es: 'Primeras semanas · qué ayuda ahora' },
+    items: [
+      { emoji: '🤱', title: { en: 'Latch & feeding help', es: 'Ayuda con la lactancia' }, why: { en: 'Lactation consults, on demand', es: 'Consultas de lactancia cuando las necesites' }, route: 'Experts', specialty: 'lactation_consultant' },
+      { emoji: '🩺', title: { en: 'Your recovery', es: 'Tu recuperación' }, why: { en: 'The 6-week check, healing, pelvic floor', es: 'El control de 6 semanas, sanar, suelo pélvico' }, route: 'Experts', specialty: 'pelvic_floor_pt' },
+      { emoji: '🌙', title: { en: 'Newborn sleep', es: 'Sueño del recién nacido' }, why: { en: "What's normal this week, what's not", es: 'Qué es normal esta semana y qué no' }, route: 'Manual', category: 'sleep' },
+    ],
+  },
+  postpartum_6_12mo: {
+    eyebrow: { en: '6–12 months · what helps now', es: '6–12 meses · qué ayuda ahora' },
+    items: [
+      { emoji: '🥑', title: { en: 'Starting solids', es: 'Empezar sólidos' }, why: { en: "Purées, BLW, what's safe now", es: 'Papillas, BLW, qué es seguro ahora' }, route: 'Manual', category: 'feed' },
+      { emoji: '🍼', title: { en: 'Gear for movers', es: 'Equipo para bebés activos' }, why: { en: 'High chairs, gates, hand-me-downs', es: 'Sillas altas, rejas, de segunda mano' }, route: 'Gear' },
+      { emoji: '🌙', title: { en: 'Sleep regressions', es: 'Regresiones del sueño' }, why: { en: 'The ~8-month shift, sleep coaches', es: 'El cambio de los ~8 meses, asesores de sueño' }, route: 'Experts', specialty: 'sleep_coach' },
+    ],
+  },
+  postpartum_1yr_plus: {
+    eyebrow: { en: 'Toddler stage · what helps now', es: 'Etapa de niño pequeño · qué ayuda ahora' },
+    items: [
+      { emoji: '🍽️', title: { en: 'Toddler meals', es: 'Comidas del niño' }, why: { en: 'Picky eating, nutrition help', es: 'Alimentación selectiva, ayuda nutricional' }, route: 'Experts', specialty: 'perinatal_dietitian' },
+      { emoji: '☕', title: { en: 'Meetups & playdates', es: 'Encuentros y citas de juego' }, why: { en: 'Moms and babies near you', es: 'Mamás y bebés cerca de ti' }, route: 'Plans' },
+      { emoji: '🧸', title: { en: 'Outgrown gear?', es: '¿Equipo que ya no usan?' }, why: { en: 'Pass it on, find the next size', es: 'Pásalo, encuentra la siguiente talla' }, route: 'Gear' },
+    ],
+  },
+};
+const SUPPORT_FALLBACK = STAGE_SUPPORT.postpartum_0_6mo;
 
 // ─── Screen ────────────────────────────────────────────────────────────
 export default function VillageHomeScreenV3() {
   const navigation = useNavigation<any>();
+  const t = useT();
   const profile = useUserStore((s) => s.profile);
   const lang = (profile?.preferred_language ?? 'en') as 'en' | 'es';
+  const support = STAGE_SUPPORT[profile?.pregnancy_stage ?? ''] ?? SUPPORT_FALLBACK;
 
   // Location line — neighborhood + count are placeholder; wire to
   // `users.zip_code` reverse-geocode + count-in-radius RPC in follow-up.
@@ -141,45 +147,44 @@ export default function VillageHomeScreenV3() {
   const goVertical = (route: string) => {
     navigation.getParent()?.navigate(route as never);
   };
-  // Wired 2026-05-25 nav audit — these were dead handlers / display-only
-  // Views before. Now the calendar plan rows + "All plans →" link route
-  // to the events list within the Village stack; the map-pin button
-  // routes to the donor map (only map surface in the app today) as the
-  // closest sensible destination.
-  const goAllPlans   = () => navigation.navigate('EventsList' as never);
-  const goPlanDetail = (eventId: string) =>
-    navigation.navigate('EventDetail' as never, { id: eventId } as never);
-  const goMap        = () =>
+  // goAllPlans → full events list (Villie Plans tile + stage-aware "Plans" row).
+  // goMap → donor map (only map surface today).
+  const goAllPlans = () => navigation.navigate('EventsList' as never);
+  const goMap      = () =>
     navigation.getParent()?.navigate('Milk' as never, { screen: 'DonorMap' } as never);
+  // Deep-link into the Experts tab with a specialist type pre-selected
+  // (ExpertsHome reads route.params.specialty and pre-checks that chip).
+  const goExpertSpecialty = (specialty: string) =>
+    navigation.getParent()?.navigate('Experts' as never, { screen: 'ExpertsHome', params: { specialty } } as never);
+  // Deep-link into the Manual tab with a specific chapter open (e.g. Feed for
+  // "Starting solids"). Bare navigate('Manual') only lands on the tab's default
+  // chapter, which is the bug behind "Starting solids doesn't take you to Feed".
+  const goManualCategory = (category: string, audience: 'mom' | 'baby' = 'baby') => {
+    const labelKey = `manual.${audience}${category.charAt(0).toUpperCase()}${category.slice(1)}`;
+    navigation.getParent()?.navigate('Manual' as never, {
+      screen: 'ManualCategory',
+      params: { audience, category, label: t(labelKey) },
+    } as never);
+  };
 
   const scrollY = useRef(new Animated.Value(0)).current;
   const [triggerAnim, setTriggerAnim] = useState(0);
 
-  // Live events feed — fetches on focus, falls back to PLACEHOLDER_PLANS
-  // when the store is empty (cold start, no events in radius, or error).
-  const upcomingEvents = useEventsStore((s) => s.upcoming);
-  const fetchUpcoming = useEventsStore((s) => s.fetchUpcoming);
   useFocusEffect(
     React.useCallback(() => {
       setTriggerAnim((n) => n + 1);
-      // Fire-and-forget refresh — store handles its own loading state +
-      // error logging. Cap to 3 so we don't overflow the small preview
-      // list on the page.
-      fetchUpcoming().catch(() => {});
       return () => {};
-    }, [fetchUpcoming]),
+    }, []),
   );
-
-  // Format the live events into row shape; fall back to handoff placeholders
-  // when the store hasn't returned anything yet (or there are no upcoming
-  // events near the user).
-  const planRows = upcomingEvents.length > 0
-    ? upcomingEvents.slice(0, 3).map((e) => formatPlanRow(e, lang))
-    : PLACEHOLDER_PLANS;
 
   return (
     <View style={styles.container}>
       <WarmGlowBackdrop scrollY={scrollY} triggerAnim={triggerAnim} />
+      {/* Honeycomb masthead — the umbrella hub gets the same comb the sub-
+          sections wear, with a "whole hive gathers" bee scene + honey accent.
+          Subtle intensity (vs the Manual's playful) keeps the comb faint +
+          short so it never fights the "here." headline for legibility. */}
+      <HoneycombBackdrop accent="#E0A23E" scene="village" intensity="subtle" topOffset={92} />
       <Animated.ScrollView
         style={{ flex: 1 }}
         contentContainerStyle={styles.scroll}
@@ -259,45 +264,42 @@ export default function VillageHomeScreenV3() {
           ))}
         </View>
 
-        {/* On the calendar */}
+        {/* Stage-aware support — what moms reach for at this stage.
+            Replaces the calendar preview (redundant with Villie Plans). */}
         <View style={{ marginTop: 28 }}>
           <View style={styles.sectionHead}>
-            <Eyebrow>{lang === 'es' ? 'En el calendario' : 'On the calendar'}</Eyebrow>
-            <TouchableOpacity accessibilityRole="link" onPress={goAllPlans}>
-              <Text style={styles.sectionLink}>
-                {lang === 'es' ? 'Todos →' : 'All plans →'}
-              </Text>
-            </TouchableOpacity>
+            <Eyebrow>{support.eyebrow[lang]}</Eyebrow>
           </View>
-          {planRows.map((e, i) => {
-            const isLast = i === planRows.length - 1;
-            // Tappable when we have a real event id from the store;
-            // placeholder rows (no id) tap to the full events list as
-            // the next-best destination. Both routes live in this
-            // Village stack so the back button returns here.
-            const onPress = e.id
-              ? () => goPlanDetail(e.id!)
-              : goAllPlans;
+          {support.items.map((it, i) => {
+            const isLast = i === support.items.length - 1;
+            const onPress = it.route === 'Plans'
+              ? goAllPlans
+              : it.route === 'Experts' && it.specialty
+                ? () => goExpertSpecialty(it.specialty!)
+                : it.route === 'Manual' && it.category
+                  ? () => goManualCategory(it.category!, it.audience)
+                  : () => goVertical(it.route);
             return (
               <TouchableOpacity
-                key={`${e.date}-${i}`}
+                key={it.title.en}
                 onPress={onPress}
                 activeOpacity={0.85}
                 accessibilityRole="button"
-                accessibilityLabel={`${e.name} · ${e.time}`}
+                accessibilityLabel={it.title[lang]}
                 style={[styles.calRow, { borderBottomWidth: isLast ? 0 : StyleSheet.hairlineWidth }]}
               >
-                <View style={styles.calDayBlock}>
-                  <Text style={styles.calDayName}>{e.day}</Text>
-                  <Text style={styles.calDayNum}>{e.date}</Text>
-                </View>
+                <Text style={{ fontSize: 22, marginRight: 14 }}>{it.emoji}</Text>
                 <View style={{ flex: 1, minWidth: 0 }}>
-                  <Text style={styles.calName} numberOfLines={1}>{e.name}</Text>
-                  <Text style={styles.calMeta} numberOfLines={1}>{e.time} · {e.loc}</Text>
+                  <Text style={styles.calName} numberOfLines={1}>{it.title[lang]}</Text>
+                  <Text style={styles.calMeta} numberOfLines={2}>{it.why[lang]}</Text>
                 </View>
-                <Text style={styles.calGoing}>
-                  <Text style={styles.calGoingNum}>{e.going}</Text> {lang === 'es' ? 'van' : 'going'}
-                </Text>
+                <Svg width={14} height={14} viewBox="0 0 24 24">
+                  <Path
+                    d="M5 12h14M13 5l7 7-7 7"
+                    stroke={T.cocoa} strokeWidth={2.2} fill="none"
+                    strokeLinecap="round" strokeLinejoin="round"
+                  />
+                </Svg>
               </TouchableOpacity>
             );
           })}
@@ -358,12 +360,16 @@ const styles = StyleSheet.create({
 
   // ── Headline block ────────────────────────────────────────────────────
   headline: {
-    fontFamily: FONTS.v3_display, fontSize: 44, lineHeight: 44,
+    fontFamily: FONTS.v3_display, fontSize: 44, lineHeight: 52,
     color: T.cocoa, letterSpacing: -1.76,
     marginTop: 14,
   },
+  // Caveat (the script accent) has a much smaller x-height than Bricolage, so
+  // at the same point size it reads visually smaller. Bump it ~25% + nudge the
+  // baseline so "here." matches the weight of "Your backup is" inline.
   headlineItalic: {
     fontFamily: FONTS.v3_display_italic, color: T.salmon,
+    fontSize: 54, lineHeight: 52,
   },
   deck: {
     fontFamily: FONTS.v2_body, fontSize: 14, lineHeight: 20,

@@ -171,6 +171,44 @@ export const eventsApi = {
     if (error) throw new Error(error.message);
     return (data ?? []) as MyRsvpRow[];
   },
+
+  // ── Saved plans (bookmark, separate from RSVP) ─────────────────────────────
+  async saveEvent(eventId: string): Promise<void> {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('Not signed in');
+    const { error } = await supabase
+      .from('event_saves')
+      .upsert({ user_id: user.id, event_id: eventId }, { onConflict: 'user_id,event_id', ignoreDuplicates: true });
+    if (error) throw new Error(error.message);
+  },
+
+  async unsaveEvent(eventId: string): Promise<void> {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('Not signed in');
+    const { error } = await supabase
+      .from('event_saves')
+      .delete()
+      .eq('user_id', user.id)
+      .eq('event_id', eventId);
+    if (error) throw new Error(error.message);
+  },
+
+  async listMySavedEventIds(): Promise<string[]> {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return [];
+    const { data, error } = await supabase
+      .from('event_saves')
+      .select('event_id')
+      .eq('user_id', user.id);
+    if (error) throw new Error(error.message);
+    return (data ?? []).map((r: { event_id: string }) => r.event_id);
+  },
+
+  async listMySavedEvents(): Promise<EventCard[]> {
+    const { data, error } = await supabase.rpc('list_my_saved_events');
+    if (error) throw new Error(error.message);
+    return (data ?? []) as EventCard[];
+  },
 };
 
 // Pure helpers

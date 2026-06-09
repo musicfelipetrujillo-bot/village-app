@@ -166,7 +166,7 @@ export default function WeeklyJourneyScreen() {
   if (loading && !payload) {
     return (
       <View style={[styles.container, styles.center]}>
-        <ActivityIndicator color="#C07840" />
+        <ActivityIndicator color="#D96C88" />
       </View>
     );
   }
@@ -477,7 +477,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.paper,
     borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.06)',
   },
-  headerBack: { fontSize: 15, color: '#C07840', fontFamily: FONTS.bodySemiBold },
+  headerBack: { fontSize: 15, color: '#D96C88', fontFamily: FONTS.bodySemiBold },
   headerTitle: { fontSize: 16, fontFamily: FONTS.bodySemiBold, color: COLORS.bark },
 
   // paddingBottom clears the global Villie FAB.
@@ -492,7 +492,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     paddingHorizontal: 22, paddingTop: 22, paddingBottom: 20,
     borderWidth: 1, borderColor: COLORS.sandSoft,
-    shadowColor: '#6B2E0E', shadowOffset: { width: 0, height: 3 },
+    shadowColor: '#43260F', shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.06, shadowRadius: 10, elevation: 2,
   },
   heroDivider: {
@@ -501,7 +501,7 @@ const styles = StyleSheet.create({
   },
   heroEyebrow: {
     fontSize: 11, fontFamily: FONTS.bodySemiBold, letterSpacing: 2.4,
-    color: '#A77349', textTransform: 'uppercase', marginBottom: 6,
+    color: '#7A4A24', textTransform: 'uppercase', marginBottom: 6,
   },
   heroWeekText: {
     fontFamily: FONTS.headerItalic, fontSize: 44, color: COLORS.bark,
@@ -549,7 +549,7 @@ const styles = StyleSheet.create({
   },
   segmentPillActive: {
     backgroundColor: COLORS.paper,
-    shadowColor: '#6B2E0E', shadowOffset: { width: 0, height: 1 },
+    shadowColor: '#43260F', shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.06, shadowRadius: 2, elevation: 1,
   },
   segmentPillText: {
@@ -574,7 +574,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden', // clip decorative marks that hang past corners
     backgroundColor: COLORS.paper, borderRadius: 10,
     padding: 18,
-    shadowColor: '#6B2E0E',
+    shadowColor: '#43260F',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05, shadowRadius: 8, elevation: 1,
   },
@@ -593,7 +593,7 @@ const styles = StyleSheet.create({
   emojiTokenText: { fontSize: 22 },
   cardCategory: {
     fontSize: 11, fontFamily: FONTS.bodySemiBold, letterSpacing: 1.6,
-    color: '#A77349', textTransform: 'uppercase', marginBottom: 10,
+    color: '#7A4A24', textTransform: 'uppercase', marginBottom: 10,
   },
   stackCardTitle: {
     fontSize: 19, fontFamily: FONTS.bodySemiBold, color: COLORS.bark,
@@ -604,7 +604,7 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.body,
   },
   readMoreText: {
-    fontSize: 13, color: '#A77349', fontFamily: FONTS.bodySemiBold,
+    fontSize: 13, color: '#7A4A24', fontFamily: FONTS.bodySemiBold,
     marginTop: 10,
   },
 
@@ -613,7 +613,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.sage, borderRadius: 10,
     paddingHorizontal: 14, paddingVertical: 9,
   },
-  supportCtaText: { fontSize: 13, color: '#FDFBF6', fontFamily: FONTS.bodySemiBold },
+  supportCtaText: { fontSize: 13, color: '#FFFCF6', fontFamily: FONTS.bodySemiBold },
 
   crisisFooter: {
     marginTop: 12,
@@ -622,7 +622,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14, paddingVertical: 11,
     borderWidth: 1, borderColor: 'rgba(216,117,48,0.22)',
   },
-  crisisFooterText: { fontSize: 13, color: '#C07840', fontFamily: FONTS.bodySemiBold, lineHeight: 18 },
+  crisisFooterText: { fontSize: 13, color: '#D96C88', fontFamily: FONTS.bodySemiBold, lineHeight: 18 },
 
   // To-dos grid
   todosGrid: {
@@ -638,7 +638,7 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(150,80,50,0.18)',  // v9 rust hairline
   },
   todoTileEssential: {
-    borderColor: '#C07840', borderWidth: 1.5,                                    // active essential = cinnamon
+    borderColor: '#D96C88', borderWidth: 1.5,                                    // active essential = cinnamon
   },
   todoTileDone: {
     backgroundColor: COLORS.cream,
@@ -649,12 +649,12 @@ const styles = StyleSheet.create({
   },
   todoCategory: {
     fontSize: 10, fontFamily: FONTS.bodySemiBold, letterSpacing: 1.2,
-    color: '#A77349', textTransform: 'uppercase', flex: 1, marginRight: 6,
+    color: '#7A4A24', textTransform: 'uppercase', flex: 1, marginRight: 6,
   },
   essentialPill: {
     alignSelf: 'flex-start',
     fontSize: 9, fontFamily: FONTS.bodySemiBold, letterSpacing: 1,
-    color: '#A77349', textTransform: 'uppercase',
+    color: '#7A4A24', textTransform: 'uppercase',
     paddingHorizontal: 6, paddingVertical: 2,
     borderRadius: 4,
     backgroundColor: 'rgba(216,117,48,0.10)',
@@ -666,8 +666,8 @@ const styles = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
   },
   // v9 active state — action-deep
-  checkboxChecked: { backgroundColor: '#C07840', borderColor: '#945A41' },
-  checkmark: { color: '#FDFBF6', fontSize: 14, fontFamily: FONTS.bodySemiBold, lineHeight: 16 },
+  checkboxChecked: { backgroundColor: '#D96C88', borderColor: '#D96C88' },
+  checkmark: { color: '#FFFCF6', fontSize: 14, fontFamily: FONTS.bodySemiBold, lineHeight: 16 },
   todoText: {
     fontSize: 13, color: COLORS.bark, lineHeight: 19, fontFamily: FONTS.body,
   },
@@ -689,5 +689,5 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.bodyMedium,
   },
   crisisLink: { alignSelf: 'center', marginTop: 14, paddingVertical: 8, paddingHorizontal: 12 },
-  crisisLinkText: { fontSize: 13, color: '#C07840', fontFamily: FONTS.bodySemiBold },
+  crisisLinkText: { fontSize: 13, color: '#D96C88', fontFamily: FONTS.bodySemiBold },
 });

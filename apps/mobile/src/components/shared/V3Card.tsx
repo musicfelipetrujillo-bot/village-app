@@ -3,9 +3,9 @@
 // Wraps any content with the unified immersive recipe Felipe approved
 // across HomeScreenV3 / ManualScrollV3 / VillageHomeScreenV3:
 //
-//   - Solid paper bg (#FEFAF6 v2_card)
+//   - Solid paper bg (#FFFCF6 v2_card)
 //   - Hairline rust border (rgba(150,80,50,0.18))
-//   - Cocoa-tinted floating shadow (#3D1F0E, lifts off page)
+//   - Cocoa-tinted floating shadow (#43260F, lifts off page)
 //   - Top warm-paper highlight gradient (subtle "light from above")
 //   - iOS-26 wet-glass top sheen via GlassHighlight
 //   - Optional bottom inner shadow for added weight
@@ -95,14 +95,14 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   shadow: {
-    shadowColor: '#6B2E0E',
+    shadowColor: '#43260F',
     shadowOpacity: 0.22,
     shadowOffset: { width: 0, height: 8 },
     shadowRadius: 22,                          // matches Phase C sweep
     elevation: 5,
   },
   shadowDeep: {
-    shadowColor: '#3D1F0E',
+    shadowColor: '#43260F',
     shadowOpacity: 0.28,
     shadowOffset: { width: 0, height: 14 },
     shadowRadius: 24,

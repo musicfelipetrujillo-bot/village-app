@@ -10,6 +10,7 @@ import MyListingsScreen from '@screens/gear/MyListingsScreen';
 import SavedGearScreen from '@screens/gear/SavedGearScreen';
 import GearMessageThreadsScreen from '@screens/gear/GearMessageThreadsScreen';
 import GearMessageDetailScreen from '@screens/gear/GearMessageDetailScreen';
+import BoostListingScreen from '@screens/gear/BoostListingScreen';
 
 export type GearStackParamList = {
   GearBrowse: undefined;
@@ -25,6 +26,7 @@ export type GearStackParamList = {
     otherDisplayName: string;
     isSellerSide: boolean;
   };
+  BoostListing: { listingId: string; listingTitle?: string; boostedUntil?: string | null };
 };
 
 const Stack = createNativeStackNavigator<GearStackParamList>();
@@ -39,6 +41,7 @@ export default function GearNavigator() {
       <Stack.Screen name="SavedGear" component={SavedGearScreen} />
       <Stack.Screen name="GearMessageThreads" component={GearMessageThreadsScreen} />
       <Stack.Screen name="GearMessageDetail" component={GearMessageDetailScreen} />
+      <Stack.Screen name="BoostListing" component={BoostListingScreen} options={{ presentation: 'modal' }} />
     </Stack.Navigator>
   );
 }

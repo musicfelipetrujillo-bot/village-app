@@ -102,7 +102,7 @@ export default function MilkReviewSubmitScreen({ navigation, route }: Props) {
           disabled={rating < 1 || submitting}
         >
           {submitting ? (
-            <ActivityIndicator color="#FDFBF6" />
+            <ActivityIndicator color="#FFFCF6" />
           ) : (
             <Text style={styles.submitBtnText}>{t('milkReview.submitBtn')}</Text>
           )}
@@ -120,38 +120,38 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.paper,
     borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.06)',
   },
-  back: { fontSize: 15, color: '#C07840', fontFamily: FONTS.bodyMedium },
-  title: { fontSize: 17, fontFamily: FONTS.bodySemiBold, color: '#2C1810' },
+  back: { fontSize: 15, color: '#D96C88', fontFamily: FONTS.bodyMedium },
+  title: { fontSize: 17, fontFamily: FONTS.bodySemiBold, color: '#43260F' },
 
   content: { padding: 24, alignItems: 'center' },
-  donorName: { fontSize: 22, fontFamily: FONTS.bodySemiBold, color: '#2C1810', marginTop: 12 },
-  prompt: { fontSize: 14, color: '#6B5C52', marginTop: 8, marginBottom: 28 },
+  donorName: { fontSize: 22, fontFamily: FONTS.bodySemiBold, color: '#43260F', marginTop: 12 },
+  prompt: { fontSize: 14, color: '#7A4A24', marginTop: 8, marginBottom: 28 },
 
   starsRow: { flexDirection: 'row', gap: 6, marginBottom: 12 },
   starBtn: { padding: 4 },
   star: { fontSize: 44, color: '#E5DDD2' },
-  starActive: { color: '#C4A35A' },
+  starActive: { color: '#E98A6A' },
 
-  ratingLabel: { fontSize: 15, fontFamily: FONTS.bodySemiBold, color: '#A77349', marginBottom: 28 },
+  ratingLabel: { fontSize: 15, fontFamily: FONTS.bodySemiBold, color: '#7A4A24', marginBottom: 28 },
 
   // v9 input card lift — rust hairline + soft cocoa drop, so the review
   // surface reads as a confirmed writing space rather than a flat field.
   bodyInput: {
     width: '100%', minHeight: 120,
     backgroundColor: COLORS.paper, borderRadius: 12, padding: 16,
-    fontSize: 15, color: '#2C1810', textAlignVertical: 'top',
+    fontSize: 15, color: '#43260F', textAlignVertical: 'top',
     borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(150,80,50,0.18)',
-    shadowColor: '#6B2E0E', shadowOpacity: 0.18, shadowOffset: { width: 0, height: 6 }, shadowRadius: 20, elevation: 2,
+    shadowColor: '#43260F', shadowOpacity: 0.18, shadowOffset: { width: 0, height: 6 }, shadowRadius: 20, elevation: 2,
   },
-  counter: { alignSelf: 'flex-end', fontSize: 11, color: '#9A8070', marginTop: 6 },
+  counter: { alignSelf: 'flex-end', fontSize: 11, color: '#7A4A24', marginTop: 6 },
 
   // v9 canonical CTA — rect variant
   submitBtn: {
-    width: '100%', backgroundColor: '#C07840', borderRadius: 14,
+    width: '100%', backgroundColor: '#D96C88', borderRadius: 14,
     paddingVertical: 16, alignItems: 'center', marginTop: 24,
-    shadowColor: '#945A41', shadowOffset: { width: 0, height: 4 },
+    shadowColor: '#D96C88', shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.24, shadowRadius: 10, elevation: 3,
   },
   submitBtnDisabled: { opacity: 0.45 },
-  submitBtnText: { color: '#FDFBF6', fontSize: 16, fontFamily: FONTS.bodySemiBold },
+  submitBtnText: { color: '#FFFCF6', fontSize: 16, fontFamily: FONTS.bodySemiBold },
 });

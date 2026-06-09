@@ -383,7 +383,7 @@ function EventCard({
 
 function confStyle(c: string) {
   switch (c) {
-    case 'high':   return { backgroundColor: '#E2EBD2', borderColor: COLORS.sage };
+    case 'high':   return { backgroundColor: '#F2E6DD', borderColor: COLORS.sage };
     case 'medium': return { backgroundColor: '#FFF5DB', borderColor: COLORS.sand };
     case 'low':    return { backgroundColor: '#F7E0DC', borderColor: COLORS.cocoDeep };
     default:       return { backgroundColor: COLORS.cream, borderColor: 'rgba(0,0,0,0.12)' };
@@ -461,7 +461,7 @@ const s = StyleSheet.create({
     marginBottom: 10,
   },
   typeBadge: {
-    backgroundColor: '#1C1008',
+    backgroundColor: '#43260F',
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 999,

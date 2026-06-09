@@ -24,9 +24,9 @@ const DIET_FLAGS: { key: DietFlagKey; labelKey: string; emoji: string }[] = [
 ];
 
 const BADGE_INFO: Record<string, { labelKey: string; color: string; descKey: string }> = {
-  none: { labelKey: 'trustBadge.badgeNoneLabel', color: '#9A8070', descKey: 'trustBadge.badgeNoneDesc' },
+  none: { labelKey: 'trustBadge.badgeNoneLabel', color: '#7A4A24', descKey: 'trustBadge.badgeNoneDesc' },
   basic: { labelKey: 'trustBadge.badgeBasicLabel', color: COLORS.statusAlert, descKey: 'trustBadge.badgeBasicDesc' },
-  verified: { labelKey: 'trustBadge.badgeVerifiedLabel', color: '#6B7C3F', descKey: 'trustBadge.badgeVerifiedDesc' },
+  verified: { labelKey: 'trustBadge.badgeVerifiedLabel', color: '#E98A6A', descKey: 'trustBadge.badgeVerifiedDesc' },
   verified_bloodwork: { labelKey: 'trustBadge.badgeBloodworkLabel', color: COLORS.statusSuccess, descKey: 'trustBadge.badgeBloodworkDesc' },
 };
 
@@ -114,7 +114,7 @@ export default function TrustBadgeBuilderScreen({ route, navigation }: Props) {
   };
 
   if (loading) {
-    return <View style={styles.center}><ActivityIndicator color="#C07840" /></View>;
+    return <View style={styles.center}><ActivityIndicator color="#D96C88" /></View>;
   }
 
   const badgeLevel = (badge?.badge_level ?? 'basic') as keyof typeof BADGE_INFO;
@@ -234,21 +234,21 @@ export default function TrustBadgeBuilderScreen({ route, navigation }: Props) {
               placeholder={t('trustBadge.modalNamePlaceholder')}
               value={medName}
               onChangeText={setMedName}
-              placeholderTextColor="#9A8070"
+              placeholderTextColor="#7A4A24"
             />
             <TextInput
               style={styles.input}
               placeholder={t('trustBadge.modalDosagePlaceholder')}
               value={medDosage}
               onChangeText={setMedDosage}
-              placeholderTextColor="#9A8070"
+              placeholderTextColor="#7A4A24"
             />
             <TextInput
               style={styles.input}
               placeholder={t('trustBadge.modalFreqPlaceholder')}
               value={medFreq}
               onChangeText={setMedFreq}
-              placeholderTextColor="#9A8070"
+              placeholderTextColor="#7A4A24"
             />
             <View style={styles.modalBtns}>
               <TouchableOpacity style={styles.modalCancel} onPress={() => setShowMedModal(false)}>
@@ -273,8 +273,8 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: 'transparent' },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#F5F0E8' },
   content: { padding: 24, paddingTop: 56, paddingBottom: 120 },
-  title: { fontSize: 28, fontFamily: FONTS.headerBold, color: '#2C1810', marginBottom: 8, letterSpacing: -0.4, lineHeight: 34 },
-  subtitle: { fontSize: 14, color: '#6B5C52', lineHeight: 21, marginBottom: 24, fontFamily: FONTS.body },
+  title: { fontSize: 28, fontFamily: FONTS.headerBold, color: '#43260F', marginBottom: 8, letterSpacing: -0.4, lineHeight: 34 },
+  subtitle: { fontSize: 14, color: '#7A4A24', lineHeight: 21, marginBottom: 24, fontFamily: FONTS.body },
 
   // v9 card lift — full hairline + soft cocoa drop. Border color comes from
   // the badge-tier accent at render time (kept dynamic since each tier has
@@ -282,29 +282,29 @@ const styles = StyleSheet.create({
   badgeCard: {
     backgroundColor: COLORS.paper, borderRadius: 14, padding: 20,
     borderWidth: StyleSheet.hairlineWidth, marginBottom: 20,
-    shadowColor: '#6B2E0E', shadowOpacity: 0.22, shadowOffset: { width: 0, height: 8 }, shadowRadius: 22, elevation: 3,
+    shadowColor: '#43260F', shadowOpacity: 0.22, shadowOffset: { width: 0, height: 8 }, shadowRadius: 22, elevation: 3,
   },
   badgePill: {
     alignSelf: 'flex-start', paddingHorizontal: 12, paddingVertical: 5,
     borderRadius: 20, marginBottom: 10,
   },
-  badgePillText: { fontSize: 13, fontFamily: FONTS.bodySemiBold, color: '#FDFBF6' },
-  badgeDesc: { fontSize: 14, color: '#6B5C52', lineHeight: 20, fontFamily: FONTS.body },
+  badgePillText: { fontSize: 13, fontFamily: FONTS.bodySemiBold, color: '#FFFCF6' },
+  badgeDesc: { fontSize: 14, color: '#7A4A24', lineHeight: 20, fontFamily: FONTS.body },
 
   // v9 card lift — checklist needs surface lift to read as a tally surface.
   checklistCard: {
     backgroundColor: COLORS.paper, borderRadius: 14, padding: 16, marginBottom: 24, gap: 12,
     borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(150,80,50,0.18)',
-    shadowColor: '#6B2E0E', shadowOpacity: 0.18, shadowOffset: { width: 0, height: 6 }, shadowRadius: 20, elevation: 2,
+    shadowColor: '#43260F', shadowOpacity: 0.18, shadowOffset: { width: 0, height: 6 }, shadowRadius: 20, elevation: 2,
   },
   checkRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   checkIcon: { fontSize: 18, color: '#C5B8AE', width: 24, textAlign: 'center' },
-  checkDone: { color: '#6B7C3F' },
-  checkLabel: { fontSize: 14, color: '#9A8070', flex: 1, fontFamily: FONTS.body },
-  checkLabelDone: { color: '#2C1810', fontFamily: FONTS.bodyMedium },
+  checkDone: { color: '#E98A6A' },
+  checkLabel: { fontSize: 14, color: '#7A4A24', flex: 1, fontFamily: FONTS.body },
+  checkLabelDone: { color: '#43260F', fontFamily: FONTS.bodyMedium },
 
-  sectionTitle: { fontSize: 17, fontFamily: FONTS.bodySemiBold, color: '#2C1810', marginBottom: 6, marginTop: 8 },
-  sectionSub: { fontSize: 13, color: '#9A8070', marginBottom: 14, lineHeight: 19, fontFamily: FONTS.body },
+  sectionTitle: { fontSize: 17, fontFamily: FONTS.bodySemiBold, color: '#43260F', marginBottom: 6, marginTop: 8 },
+  sectionSub: { fontSize: 13, color: '#7A4A24', marginBottom: 14, lineHeight: 19, fontFamily: FONTS.body },
 
   flagsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 28 },
   flagChip: {
@@ -313,10 +313,10 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.paper, borderRadius: 20,
     borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(150,80,50,0.18)',
   },
-  flagChipActive: { borderColor: '#C07840', backgroundColor: 'rgba(192,120,64,0.08)' },
+  flagChipActive: { borderColor: '#D96C88', backgroundColor: 'rgba(192,120,64,0.08)' },
   flagEmoji: { fontSize: 16 },
-  flagLabel: { fontSize: 13, color: '#6B5C52', fontFamily: FONTS.bodyMedium },
-  flagLabelActive: { color: '#3D1F0E', fontFamily: FONTS.bodySemiBold },
+  flagLabel: { fontSize: 13, color: '#7A4A24', fontFamily: FONTS.bodyMedium },
+  flagLabelActive: { color: '#43260F', fontFamily: FONTS.bodySemiBold },
 
   medRow: {
     flexDirection: 'row', alignItems: 'center',
@@ -324,26 +324,26 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   medInfo: { flex: 1 },
-  medName: { fontSize: 14, fontFamily: FONTS.bodySemiBold, color: '#2C1810' },
-  medDetail: { fontSize: 12, color: '#9A8070', marginTop: 2, fontFamily: FONTS.body },
+  medName: { fontSize: 14, fontFamily: FONTS.bodySemiBold, color: '#43260F' },
+  medDetail: { fontSize: 12, color: '#7A4A24', marginTop: 2, fontFamily: FONTS.body },
   medRemove: { fontSize: 13, color: '#CC4444', fontFamily: FONTS.bodyMedium },
   addMedBtn: {
     borderWidth: 1.5, borderColor: COLORS.coco, borderRadius: 10, borderStyle: 'dashed',
     paddingVertical: 12, alignItems: 'center', marginBottom: 24,
   },
-  addMedText: { fontSize: 14, color: '#A77349', fontFamily: FONTS.bodySemiBold },
+  addMedText: { fontSize: 14, color: '#7A4A24', fontFamily: FONTS.bodySemiBold },
 
   bloodworkCard: {
-    backgroundColor: '#F0F4E8', borderRadius: 14, padding: 20,
-    borderWidth: 1, borderColor: '#D4DDB8',
+    backgroundColor: '#F2E6DD', borderRadius: 14, padding: 20,
+    borderWidth: 1, borderColor: '#F2E6DD',
   },
-  bloodworkTitle: { fontSize: 16, fontFamily: FONTS.bodySemiBold, color: '#2C1810', marginBottom: 8 },
-  bloodworkBody: { fontSize: 13, color: '#6B5C52', lineHeight: 20, marginBottom: 14, fontFamily: FONTS.body },
+  bloodworkTitle: { fontSize: 16, fontFamily: FONTS.bodySemiBold, color: '#43260F', marginBottom: 8 },
+  bloodworkBody: { fontSize: 13, color: '#7A4A24', lineHeight: 20, marginBottom: 14, fontFamily: FONTS.body },
   bloodworkBtn: {
-    alignSelf: 'flex-start', backgroundColor: '#6B7C3F',
+    alignSelf: 'flex-start', backgroundColor: '#E98A6A',
     paddingHorizontal: 18, paddingVertical: 10, borderRadius: 10,
   },
-  bloodworkBtnText: { fontSize: 13, fontFamily: FONTS.bodySemiBold, color: '#FDFBF6' },
+  bloodworkBtnText: { fontSize: 13, fontFamily: FONTS.bodySemiBold, color: '#FFFCF6' },
 
   footer: {
     position: 'absolute', bottom: 0, left: 0, right: 0,
@@ -352,27 +352,27 @@ const styles = StyleSheet.create({
   },
   // v9 canonical CTA — rect variant
   continueBtn: {
-    backgroundColor: '#C07840', borderRadius: 14, paddingVertical: 16, alignItems: 'center',
-    shadowColor: '#945A41', shadowOffset: { width: 0, height: 4 },
+    backgroundColor: '#D96C88', borderRadius: 14, paddingVertical: 16, alignItems: 'center',
+    shadowColor: '#D96C88', shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.24, shadowRadius: 10, elevation: 3,
   },
-  continueBtnText: { fontSize: 16, fontFamily: FONTS.bodySemiBold, color: '#FDFBF6' },
+  continueBtnText: { fontSize: 16, fontFamily: FONTS.bodySemiBold, color: '#FFFCF6' },
   disabled: { opacity: 0.45 },
 
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
   modalCard: { backgroundColor: COLORS.paper, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 28, paddingBottom: 40 },
-  modalTitle: { fontSize: 20, fontFamily: FONTS.bodySemiBold, color: '#2C1810', marginBottom: 20 },
+  modalTitle: { fontSize: 20, fontFamily: FONTS.bodySemiBold, color: '#43260F', marginBottom: 20 },
   input: {
     borderWidth: 1.5, borderColor: '#E0D5C5', borderRadius: 10,
     paddingHorizontal: 14, paddingVertical: 12, fontSize: 15,
-    color: '#2C1810', marginBottom: 12, fontFamily: FONTS.body,
+    color: '#43260F', marginBottom: 12, fontFamily: FONTS.body,
   },
   modalBtns: { flexDirection: 'row', gap: 12, marginTop: 8 },
   modalCancel: {
-    flex: 1, borderWidth: 1.5, borderColor: '#9A8070',
+    flex: 1, borderWidth: 1.5, borderColor: '#7A4A24',
     borderRadius: 10, paddingVertical: 12, alignItems: 'center',
   },
-  modalCancelText: { fontSize: 15, color: '#9A8070', fontFamily: FONTS.bodySemiBold },
-  modalAdd: { flex: 1, backgroundColor: '#C07840', borderRadius: 10, paddingVertical: 12, alignItems: 'center' },
-  modalAddText: { fontSize: 15, color: '#FDFBF6', fontFamily: FONTS.bodySemiBold },
+  modalCancelText: { fontSize: 15, color: '#7A4A24', fontFamily: FONTS.bodySemiBold },
+  modalAdd: { flex: 1, backgroundColor: '#D96C88', borderRadius: 10, paddingVertical: 12, alignItems: 'center' },
+  modalAddText: { fontSize: 15, color: '#FFFCF6', fontFamily: FONTS.bodySemiBold },
 });
