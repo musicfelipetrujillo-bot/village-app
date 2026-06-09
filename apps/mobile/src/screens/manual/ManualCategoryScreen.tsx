@@ -677,19 +677,32 @@ export default function ManualCategoryScreen() {
             Two minutes, <Text style={[styles.italicAccent, { color: theme.accentDeep }]}>exactly.</Text>
           </Text>
 
-          {/* v9 spec: ALWAYS render exactly 3 slots in a row. Real video where
-              videos[i] exists; gradient placeholder otherwise. This keeps the
-              row layout intact when the DB has 0/1/2 videos (without this, a
-              single thumb would stretch to 100% via flex:1). */}
-          <View style={styles.vidStrip}>
-            {[0, 1, 2].map((i) => {
-              const v = videos[i];
-              if (v) {
-                return (
+          {videos.length > 0 ? (
+            <>
+              {/* Play-all — starts the chapter playlist from the top. */}
+              <TouchableOpacity
+                onPress={watchFirstVideo}
+                style={[styles.playAllRow, { borderColor: theme.accent }]}
+                activeOpacity={0.85}
+                accessibilityRole="button"
+                accessibilityLabel={`Play all ${videos.length} videos in this chapter`}
+              >
+                <View style={[styles.playAllIcon, { backgroundColor: theme.accent }]}>
+                  <Text style={styles.playAllGlyph}>▶</Text>
+                </View>
+                <Text style={styles.playAllText}>Play all · {videos.length}</Text>
+                <Text style={[styles.playAllDur, { color: theme.accentDeep }]}>
+                  {formatDuration(videos.reduce((s, v) => s + v.duration_seconds, 0))}
+                </Text>
+              </TouchableOpacity>
+
+              {/* Full clip list — thumbnail, title, duration, watched state. */}
+              <View style={styles.clipList}>
+                {videos.map((v, i) => (
                   <TouchableOpacity
                     key={v.id}
-                    style={styles.vidThumb}
-                    activeOpacity={0.9}
+                    style={[styles.clipRow, i > 0 && styles.clipRowDivider]}
+                    activeOpacity={0.7}
                     onPress={() => onCardPress(v)}
                     accessibilityRole="button"
                     accessibilityLabel={t('manual.videoCardA11y', {
@@ -697,44 +710,27 @@ export default function ManualCategoryScreen() {
                       duration: formatDuration(v.duration_seconds),
                     })}
                   >
-                    <Image source={{ uri: v.thumbnail_url }} style={StyleSheet.absoluteFill as any} resizeMode="cover" />
-                    <View style={styles.vidDuration}>
-                      <Text style={styles.vidDurationText}>{formatDuration(v.duration_seconds)}</Text>
-                    </View>
-                    {v.is_watched && (
-                      <View style={styles.vidWatched}>
-                        <Text style={styles.vidWatchedText}>{t('manual.watched')}</Text>
+                    <View style={styles.clipThumb}>
+                      <Image source={{ uri: v.thumbnail_url }} style={StyleSheet.absoluteFill as any} resizeMode="cover" />
+                      <View style={styles.clipThumbPlay}>
+                        <Text style={styles.clipThumbGlyph}>▶</Text>
                       </View>
-                    )}
+                    </View>
+                    <View style={styles.clipBody}>
+                      <Text style={styles.clipTitle} numberOfLines={2}>{v.title}</Text>
+                      <Text style={styles.clipMeta}>
+                        {formatDuration(v.duration_seconds)}
+                        {v.is_watched ? `  ·  ✓ ${t('manual.watched')}` : ''}
+                      </Text>
+                    </View>
+                    <Text style={[styles.clipChevron, { color: theme.accentDeep }]}>›</Text>
                   </TouchableOpacity>
-                );
-              }
-              const gradient =
-                i === 0 ? [V9.pinkSoft, V9.pinkDeep] as const
-                : i === 1 ? ['#F2E6DD', V9.coco] as const
-                : ['#F2E6DD', V9.sage] as const;
-              return (
-                <LinearGradient
-                  key={`sk-${i}`}
-                  colors={gradient as unknown as readonly [string, string, ...string[]]}
-                  start={{ x: 0.15, y: 0 }}
-                  end={{ x: 0.85, y: 1 }}
-                  style={styles.vidThumb}
-                >
-                  <Text style={styles.vidPlaceholderGlyph}>▷</Text>
-                </LinearGradient>
-              );
-            })}
-          </View>
-
-          <TouchableOpacity
-            onPress={watchFirstVideo}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            accessibilityRole="button"
-            accessibilityLabel={videos.length ? `Play all ${videos.length} videos in this chapter` : 'Browse all chapters'}
-          >
-            <Text style={[styles.cardCtaRust, { color: theme.accentDeep }]}>Watch the row →</Text>
-          </TouchableOpacity>
+                ))}
+              </View>
+            </>
+          ) : (
+            <Text style={styles.clipEmpty}>New clips are on the way.</Text>
+          )}
         </View>
 
         {/* ─── CARD 5 · Mom Hacks ─── */}
@@ -1155,6 +1151,50 @@ const styles = StyleSheet.create({
   vidWatchedText: {
     color: V9.paper, fontSize: 8, fontFamily: FONTS.bodySemiBold,
     letterSpacing: 0.4, textTransform: 'uppercase',
+  },
+
+  // ── Quick-watch clip list (organized: thumbnail + title + meta) ──────
+  playAllRow: {
+    flexDirection: 'row', alignItems: 'center', gap: 10,
+    marginTop: 10, marginBottom: 4,
+    paddingVertical: 9, paddingHorizontal: 12,
+    borderRadius: 12, borderWidth: 1,
+    backgroundColor: 'rgba(255,252,246,0.7)',
+    zIndex: 2,
+  },
+  playAllIcon: {
+    width: 28, height: 28, borderRadius: 14,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  playAllGlyph: { color: V9.paper, fontSize: 11, marginLeft: 2 },
+  playAllText: { flex: 1, fontSize: 14, fontFamily: FONTS.bodySemiBold, color: V9.bark, letterSpacing: 0.2 },
+  playAllDur: { fontSize: 11, fontFamily: FONTS.bodySemiBold, letterSpacing: 0.8, textTransform: 'uppercase' },
+
+  clipList: { marginTop: 8, zIndex: 2 },
+  clipRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 10 },
+  clipRowDivider: { borderTopWidth: 1, borderTopColor: 'rgba(61,31,13,0.10)' },
+  clipThumb: {
+    width: 56, height: 56, borderRadius: 10, overflow: 'hidden',
+    backgroundColor: 'rgba(61,31,13,0.06)',
+    borderWidth: 1, borderColor: 'rgba(61,31,13,0.08)',
+    alignItems: 'center', justifyContent: 'center',
+  },
+  clipThumbPlay: {
+    width: 24, height: 24, borderRadius: 12,
+    backgroundColor: 'rgba(0,0,0,0.42)',
+    alignItems: 'center', justifyContent: 'center',
+  },
+  clipThumbGlyph: { color: '#fff', fontSize: 9, marginLeft: 1.5 },
+  clipBody: { flex: 1 },
+  clipTitle: { fontSize: 14.5, fontFamily: FONTS.bodySemiBold, color: V9.bark, lineHeight: 19 },
+  clipMeta: {
+    fontSize: 11, fontFamily: FONTS.bodySemiBold, color: V9.barkSoft,
+    letterSpacing: 0.4, textTransform: 'uppercase', marginTop: 3,
+  },
+  clipChevron: { fontSize: 22, fontFamily: FONTS.bodySemiBold, opacity: 0.7, marginLeft: 2 },
+  clipEmpty: {
+    marginTop: 12, fontSize: 13, fontFamily: FONTS.body, color: V9.barkSoft,
+    fontStyle: 'italic', zIndex: 2,
   },
 
   // ── Mom Hacks ────────────────────────────────────────────────────────
