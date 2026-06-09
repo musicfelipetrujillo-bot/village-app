@@ -93,6 +93,10 @@ export default function ManualVideoScreen() {
         if (cancelled) return;
         setVideo(v);
         setSaved(v?.is_saved ?? false);
+        // HTML animation clips are authored portrait (1080×1920) to fill the
+        // screen, so open them fullscreen by default. Mux videos keep the
+        // inline player (they carry their own fullscreen control).
+        if (v?.html_url) setFullscreen(true);
         screenMountedAtRef.current = Date.now();
         // View event — fires on screen-load (not actual <video> play). Pairs
         // with manual_video_saved + manual_video_shared so the "of X who saw
@@ -177,6 +181,8 @@ export default function ManualVideoScreen() {
   const localHtml =
     video && !forceRemote ? getLocalClipHtml(video.html_url) : null;
   const usingLocal = !!localHtml;
+  // HTML clips are portrait animations; Mux videos are landscape.
+  const isHtmlClip = !!video?.html_url;
 
   // Mount health-check for local clips: a JS error inside the WebView can leave
   // an empty #root WITHOUT firing onError. We poll for ~3s; if React never
@@ -303,7 +309,7 @@ export default function ManualVideoScreen() {
 
       {!loading && video && (playerUrl || usingLocal) && (
         <ScrollView contentContainerStyle={styles.scroll}>
-          <View style={styles.videoFrame}>
+          <View style={[styles.videoFrame, isHtmlClip && styles.videoFramePortrait]}>
             {!fullscreen && renderPlayer('inline')}
             {/* Expand to fullscreen */}
             <TouchableOpacity
@@ -459,6 +465,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#000',
     position: 'relative',
   },
+  // Portrait clips (1080×1920) — show a tall frame so the inline preview isn't
+  // a letterboxed sliver. (Clips also auto-open fullscreen on load.)
+  videoFramePortrait: { aspectRatio: 9 / 16 },
   videoView: { width: '100%', height: '100%', backgroundColor: '#000' },
 
   // Expand-to-fullscreen control on the inline frame (bottom-right).
