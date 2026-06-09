@@ -203,6 +203,7 @@ export const FONTS = {
   v2_display_italic: 'Caveat_600SemiBold',       // ▲ was Playfair italic
   v2_display_big:    'BricolageGrotesque_800ExtraBold',           // ▲ was Playfair 800 (no 800 grotesk loaded; 700 reads big enough at large sizes)
   v2_wordmark:       'Caprasimo_400Regular',              // KEEP current logo — inline wordmark fallback stays Caprasimo (Felipe 2026-05-29: don't adopt kit's Bricolage wordmark)
+  v2_light:          'HankenGrotesk_300Light',          // refined light subtitles
   v2_body:           'HankenGrotesk_400Regular',        // body text
   v2_label:          'HankenGrotesk_500Medium',         // form labels
   v2_link:           'HankenGrotesk_600SemiBold',       // buttons + links

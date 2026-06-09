@@ -273,7 +273,7 @@ function ManualHeroCard({ babyName, weekNumber, hook, body, onPress }: {
             <Text style={styles.heroHook} numberOfLines={2}>{hook}</Text>
           </>
         ) : (
-          <Text style={[styles.heroHook, { marginTop: 12 }]} numberOfLines={2}>
+          <Text style={styles.heroSub} numberOfLines={2}>
             See what’s changing for {babyName} this week.
           </Text>
         )}
@@ -764,6 +764,12 @@ const styles = StyleSheet.create({
   heroHook: {
     fontFamily: FONTS.v2_bold, fontSize: 15.5, lineHeight: 21,
     color: T.cocoa, marginTop: 9,
+  },
+  // Subtitle on the "This week's manual" card — light weight (not italic; the
+  // screen already carries plenty of italic) for a more refined feel.
+  heroSub: {
+    fontFamily: FONTS.v2_light, fontSize: 16, lineHeight: 23,
+    color: T.cocoa, letterSpacing: 0.1, marginTop: 12,
   },
   heroBody: {
     fontFamily: FONTS.v2_body, fontSize: 13.5, lineHeight: 19,
