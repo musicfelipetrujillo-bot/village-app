@@ -488,9 +488,11 @@ export default function ManualVideoScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#000' },
+  // Cream (matches the clips' own background) so the brief flash while a clip's
+  // WebView paints reads warm, not black.
+  container: { flex: 1, backgroundColor: '#F4EEE6' },
   center: { ...StyleSheet.absoluteFillObject, alignItems: 'center', justifyContent: 'center' },
-  webview: { ...StyleSheet.absoluteFillObject, backgroundColor: '#000' },
+  webview: { ...StyleSheet.absoluteFillObject, backgroundColor: '#F4EEE6' },
 
   errorTitle: { fontSize: 18, fontFamily: FONTS.headerBold, color: COLORS.paper, marginBottom: 8, textAlign: 'center' },
   errorBody: { fontSize: 13, fontFamily: FONTS.body, color: COLORS.paper, opacity: 0.85, textAlign: 'center', marginBottom: 20 },
