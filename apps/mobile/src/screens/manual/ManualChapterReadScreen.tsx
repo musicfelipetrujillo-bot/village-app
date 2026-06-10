@@ -162,7 +162,7 @@ export default function ManualChapterReadScreen() {
               <Text style={[styles.eyebrowText, { color: theme.accentDeep }]}>The read</Text>
             </View>
             <Text style={styles.bookTitle}>
-              {feature.h} <Text style={[styles.titleEm, { color: theme.accentDeep, fontSize: 27 }]}>{feature.em}</Text>
+              {feature.h} <Text style={[styles.titleEm, { color: theme.accentDeep, fontSize: 31 }]}>{feature.em}</Text>
             </Text>
             <Text style={styles.bookBody}>
               <Text style={styles.bookLeadIn}>{leadIn}</Text>{restBody}
@@ -179,7 +179,7 @@ export default function ManualChapterReadScreen() {
               <Text style={[styles.eyebrowText, { color: theme.accentDeep }]}>The essentials</Text>
             </View>
             <Text style={styles.cardTitle}>
-              Three things to <Text style={[styles.titleEm, { color: theme.accentDeep, fontSize: 27 }]}>know.</Text>
+              Three things to <Text style={[styles.titleEm, { color: theme.accentDeep, fontSize: 31 }]}>know.</Text>
             </Text>
             {bullets.map((b, i) => (
               <View key={i} style={[styles.row, i > 0 && styles.rowDivider]}>
@@ -198,7 +198,7 @@ export default function ManualChapterReadScreen() {
             </View>
             <View style={styles.chartCard}>
               <Text style={styles.cardTitle}>
-                Bring these <Text style={[styles.titleEm, { color: C.sageDeep, fontSize: 27 }]}>three.</Text>
+                Bring these <Text style={[styles.titleEm, { color: C.sageDeep, fontSize: 31 }]}>three.</Text>
               </Text>
               {questions.map((q, i) => (
                 <View key={i} style={[styles.qRow, i < questions.length - 1 && styles.qRowDivider]}>
@@ -230,7 +230,7 @@ export default function ManualChapterReadScreen() {
               <Text style={[styles.eyebrowText, { color: theme.accentDeep }]}>Try this</Text>
             </View>
             <Text style={styles.cardTitle}>
-              Try one <Text style={[styles.titleEm, { color: theme.accentDeep, fontSize: 27 }]}>tonight.</Text>
+              Try one <Text style={[styles.titleEm, { color: theme.accentDeep, fontSize: 31 }]}>tonight.</Text>
             </Text>
             {hacks.map((h, i) => (
               <View key={i} style={[styles.hackRow, i > 0 && styles.rowDivider]}>
@@ -276,11 +276,18 @@ const styles = StyleSheet.create({
     position: 'absolute', top: 2, right: -6, width: 70, height: 70,
     opacity: 0.55, transform: [{ rotate: '14deg' }],
   },
-  eyebrowRow: { flexDirection: 'row', alignItems: 'center', zIndex: 2 },
-  eyebrowBar: { width: 16, height: 1, marginRight: 8 },
+  // Editorial kicker chip — a small tinted pill with an accent dot + label,
+  // so each section reads as an intentional header rather than plain text.
+  eyebrowRow: {
+    flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start',
+    paddingLeft: 8, paddingRight: 11, paddingVertical: 5,
+    borderRadius: 8, backgroundColor: 'rgba(67,38,15,0.055)',
+    marginBottom: 4, zIndex: 2,
+  },
+  eyebrowBar: { width: 6, height: 6, borderRadius: 3, marginRight: 7 },
   eyebrowText: {
-    fontSize: 10, fontFamily: FONTS.bodySemiBold,
-    letterSpacing: 1.8, textTransform: 'uppercase',
+    fontSize: 10.5, fontFamily: FONTS.bodyBold,
+    letterSpacing: 1.7, textTransform: 'uppercase',
   },
   titleRow: { flexDirection: 'row', alignItems: 'flex-end', flexWrap: 'wrap', marginTop: 8 },
   title: {
@@ -301,7 +308,7 @@ const styles = StyleSheet.create({
   bookSpine: { position: 'absolute', left: 0, top: 0, bottom: 0, width: 4, zIndex: 2 },
   bookSpineHighlight: { position: 'absolute', left: 4, top: 0, bottom: 0, width: 2, backgroundColor: 'rgba(173,121,91,0.22)', zIndex: 1 },
   bookYolkRing: { position: 'absolute', top: -24, right: -24, width: 78, height: 78, borderRadius: 39, borderWidth: 1.6, opacity: 0.38, zIndex: 0 },
-  bookTitle: { fontFamily: FONTS.headerBold, fontSize: 26, lineHeight: 30, letterSpacing: -0.5, color: C.bark, marginTop: 8, marginBottom: 12, zIndex: 2 },
+  bookTitle: { fontFamily: FONTS.headerBold, fontSize: 28, lineHeight: 33, letterSpacing: -0.6, color: C.bark, marginTop: 10, marginBottom: 13, zIndex: 2 },
   bookBody: { fontSize: 15.5, lineHeight: 25, color: C.bark, fontFamily: FONTS.body, zIndex: 2 },
   bookLeadIn: { fontFamily: FONTS.bodySemiBold, color: C.bark },
   folio: { position: 'absolute', bottom: 9, right: 16, fontFamily: FONTS.headerItalic, fontStyle: 'italic', fontSize: 12, opacity: 0.7, zIndex: 2 },
@@ -311,7 +318,7 @@ const styles = StyleSheet.create({
     backgroundColor: C.paper, borderRadius: 18, padding: 18, marginBottom: 16,
     borderWidth: 1, borderColor: 'rgba(173,121,91,0.16)', ...cardShadow, shadowOpacity: 0.16,
   },
-  cardTitle: { fontFamily: FONTS.headerBold, fontSize: 26, lineHeight: 30, letterSpacing: -0.5, color: C.bark, marginTop: 8, marginBottom: 8 },
+  cardTitle: { fontFamily: FONTS.headerBold, fontSize: 28, lineHeight: 33, letterSpacing: -0.6, color: C.bark, marginTop: 10, marginBottom: 10 },
   row: { flexDirection: 'row', alignItems: 'flex-start', paddingVertical: 9 },
   rowDivider: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: 'rgba(173,121,91,0.16)' },
   rowNum: { fontFamily: FONTS.headerItalic, fontStyle: 'italic', fontSize: 16, width: 26, marginTop: 1 },
