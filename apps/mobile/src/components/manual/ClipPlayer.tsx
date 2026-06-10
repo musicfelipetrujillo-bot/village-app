@@ -255,7 +255,7 @@ export default function ClipPlayer({ clips, startIndex = 0, onClose }: ClipPlaye
   const translateX = useRef(new Animated.Value(0)).current;
   const translateY = useRef(new Animated.Value(0)).current;
   const axisRef = useRef<null | 'x' | 'y'>(null);
-  const { height: screenH } = Dimensions.get('window');
+  const { width: screenW, height: screenH } = Dimensions.get('window');
   const navRef = useRef({ hasPrev: false, hasNext: false });
   navRef.current = { hasPrev, hasNext };
   const panResponder = useRef(
@@ -285,9 +285,21 @@ export default function ClipPlayer({ clips, startIndex = 0, onClose }: ClipPlaye
         if (axis === 'x') {
           const goNext = (g.dx < -90 || g.vx < -0.5) && navRef.current.hasNext;
           const goPrev = (g.dx > 90 || g.vx > 0.5) && navRef.current.hasPrev;
-          if (goNext) setIndex((i) => i + 1);
-          else if (goPrev) setIndex((i) => i - 1);
-          Animated.spring(translateX, { toValue: 0, useNativeDriver: true, speed: 18, bounciness: 0 }).start();
+          if (goNext || goPrev) {
+            // Real slide: finish sliding the current clip off-screen, swap to
+            // the next one, drop it just off the opposite edge, then slide it
+            // in. (No more bounce-back-then-pop.)
+            const dir = goNext ? -1 : 1;
+            Animated.timing(translateX, { toValue: dir * screenW, duration: 160, useNativeDriver: true })
+              .start(() => {
+                setIndex((i) => i + (goNext ? 1 : -1));
+                translateX.setValue(-dir * screenW);
+                Animated.spring(translateX, { toValue: 0, useNativeDriver: true, speed: 14, bounciness: 0 }).start();
+              });
+          } else {
+            // Not far enough — settle back to center.
+            Animated.spring(translateX, { toValue: 0, useNativeDriver: true, speed: 18, bounciness: 2 }).start();
+          }
           return;
         }
         Animated.spring(translateX, { toValue: 0, useNativeDriver: true }).start();
@@ -440,11 +452,11 @@ export default function ClipPlayer({ clips, startIndex = 0, onClose }: ClipPlaye
 }
 
 const styles = StyleSheet.create({
-  // Cream (matches the clips' own background) so the brief flash while a clip's
-  // WebView paints reads warm, not black.
-  container: { flex: 1, backgroundColor: '#F4EEE6' },
+  // Neutral near-white — not the harsh black flash, not the warm/brown cream.
+  // Only seen during load + the slide transition; clips fill it once painted.
+  container: { flex: 1, backgroundColor: '#F7F6F4' },
   center: { ...StyleSheet.absoluteFillObject, alignItems: 'center', justifyContent: 'center' },
-  webview: { ...StyleSheet.absoluteFillObject, backgroundColor: '#F4EEE6' },
+  webview: { ...StyleSheet.absoluteFillObject, backgroundColor: '#F7F6F4' },
 
   errorTitle: { fontSize: 18, fontFamily: FONTS.headerBold, color: COLORS.paper, marginBottom: 8, textAlign: 'center' },
   errorBody: { fontSize: 13, fontFamily: FONTS.body, color: COLORS.paper, opacity: 0.85, textAlign: 'center', marginBottom: 20 },
