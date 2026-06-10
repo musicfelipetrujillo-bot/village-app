@@ -782,7 +782,7 @@ const styles = StyleSheet.create({
   // Progress block — track + flying bee + the bee's speech bubble. paddingTop
   // reserves the room the bubble needs to float above the track.
   heroProgress: {
-    marginTop: 18, paddingTop: 46, position: 'relative',
+    marginTop: 30, paddingTop: 46, position: 'relative',
   },
   heroProgressTrack: {
     height: 6, borderRadius: 3,
