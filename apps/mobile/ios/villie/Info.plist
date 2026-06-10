@@ -60,18 +60,10 @@
     <string>Add events you RSVP to your calendar.</string>
     <key>NSCameraUsageDescription</key>
     <string>Allow villie to access your camera to take listing photos and scan product barcodes.</string>
-    <key>NSContactsUsageDescription</key>
-    <string>Share villie with contacts you choose.</string>
     <key>NSFaceIDUsageDescription</key>
     <string>Allow $(PRODUCT_NAME) to access your Face ID biometric data.</string>
-    <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-    <string>villie uses your location to find nearby donors, specialists, and events.</string>
-    <key>NSLocationAlwaysUsageDescription</key>
-    <string>villie uses your location to find nearby donors, specialists, and events.</string>
     <key>NSLocationWhenInUseUsageDescription</key>
     <string>villie uses your location to find nearby donors, specialists, and events.</string>
-    <key>NSMicrophoneUsageDescription</key>
-    <string>Only used if you record video when listing an item.</string>
     <key>NSPhotoLibraryAddUsageDescription</key>
     <string>Save photos you take in villie to your library.</string>
     <key>NSPhotoLibraryUsageDescription</key>
