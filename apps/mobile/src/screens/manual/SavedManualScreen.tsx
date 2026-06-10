@@ -89,16 +89,20 @@ export default function SavedManualScreen() {
           keyExtractor={(v) => v.id}
           contentContainerStyle={styles.list}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#D96C88" />}
-          renderItem={({ item }) => (
+          renderItem={({ item, index }) => (
             <TouchableOpacity
               style={styles.row}
               accessibilityRole="button"
               accessibilityLabel={`${item.title}, ${formatDuration(item.duration_seconds)}`}
               onPress={() =>
+                // Play the whole saved list as a (cross-chapter) playlist,
+                // starting at the tapped clip.
                 navigation.navigate('ManualVideo', {
                   audience: item.audience,
                   category: item.category,
                   videoId:  item.id,
+                  clips: videos.map((v) => ({ id: v.id, audience: v.audience, category: v.category })),
+                  playlistIndex: index,
                 })
               }
             >

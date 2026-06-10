@@ -869,8 +869,12 @@ export default function ManualScrollV3() {
   const firstVideo: ManualVideo | undefined = chapterVideos[0];
 
   const openVideo = (video: ManualVideo) => {
+    // Play the chapter's videos as a playlist, starting at the tapped clip.
+    const ids = chapterVideos.map((v) => v.id);
+    const idx = Math.max(0, ids.indexOf(video.id));
     navigation.navigate('ManualVideo' as never, {
       audience: who, category: chapter.cat, videoId: video.id,
+      playlist: ids, playlistIndex: idx,
     } as never);
   };
 
