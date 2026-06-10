@@ -4,6 +4,16 @@ import { supabase } from '@/lib/supabase';
 
 export type Gender = 'female' | 'male' | 'nonbinary' | 'unknown';
 export type FeedingMethod = 'breastfed' | 'formula' | 'combo' | 'pumped';
+// V5 Playbook personalization prefs (migration 091). Values mirror the mobile
+// PbSleep / PbFeed / PbSolids unions in ManualScrollV3.
+export type PbSleepPref = 'cosleep' | 'training' | 'mixed';
+export type PbFeedPref = 'breast' | 'formula' | 'mixed';
+export type PbSolidsPref = 'notyet' | 'starting' | 'going';
+export interface PlaybookPrefs {
+  pb_sleep_pref?: PbSleepPref | null;
+  pb_feed_pref?: PbFeedPref | null;
+  pb_solids_pref?: PbSolidsPref | null;
+}
 export type MilestoneCategory =
   | 'motor' | 'social' | 'communication' | 'sleep' | 'feeding' | 'sensory' | 'cognitive';
 
@@ -19,6 +29,9 @@ export interface BabyProfile {
   corrected_age_offset_days: number | null;
   feeding_method: FeedingMethod | null;
   current_week_number: number;
+  pb_sleep_pref?: PbSleepPref | null;
+  pb_feed_pref?: PbFeedPref | null;
+  pb_solids_pref?: PbSolidsPref | null;
   created_at: string;
   updated_at: string;
 }
@@ -84,7 +97,27 @@ export const homeApi = {
       .eq('user_id', user.id)
       .maybeSingle();
     if (error) throw new Error(error.message);
-    return (data as BabyProfile | null) ?? null;
+    if (!data) return null;
+    // The view (frozen `bp.*`) predates the 091 Playbook-pref columns, so merge
+    // them via a small direct read of the base table (RLS owner-only protects it).
+    const { data: prefs } = await supabase
+      .from('baby_profiles')
+      .select('pb_sleep_pref, pb_feed_pref, pb_solids_pref')
+      .eq('user_id', user.id)
+      .maybeSingle();
+    return { ...(data as object), ...(prefs ?? {}) } as BabyProfile;
+  },
+
+  // V5 5.2 — persist the Playbook tune prefs (sleep/feed/solids). Pure UPDATE on
+  // the caller's own row; no-op if they don't have a baby profile yet.
+  async updateBabyPlaybookPrefs(prefs: PlaybookPrefs): Promise<void> {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('Not signed in');
+    const { error } = await supabase
+      .from('baby_profiles')
+      .update(prefs)
+      .eq('user_id', user.id);
+    if (error) throw new Error(error.message);
   },
 
   async upsertBabyProfile(input: BabyProfileInput): Promise<BabyProfile> {

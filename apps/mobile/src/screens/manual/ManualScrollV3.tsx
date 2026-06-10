@@ -39,6 +39,7 @@ import { COLORS, FONTS } from '@utils/constants';
 import { useT } from '@/i18n';
 import { useUserStore } from '@store/user';
 import { useHomeStore } from '@store/home';
+import { homeApi } from '@/api/home';
 import {
   MenuButton, MenuPanel, MenuGroup, MenuItem, MENU_ICONS,
 } from '@components/shared/HamburgerMenu';
@@ -694,6 +695,31 @@ export default function ManualScrollV3() {
   const [pbSleep, setPbSleep] = useState<PbSleep>('mixed');
   const [pbFeed, setPbFeed] = useState<PbFeed>('breast');
   const [pbSolids, setPbSolids] = useState<PbSolids>('notyet');
+
+  // V5 5.2 — Playbook prefs now persist on the baby profile (migration 091).
+  // Hydrate once when the profile loads (NULL = unset → keep the UI default),
+  // then write each tune change through so it survives restarts.
+  const pbHydratedRef = useRef(false);
+  useEffect(() => {
+    if (pbHydratedRef.current || !babyProfile) return;
+    pbHydratedRef.current = true;
+    if (babyProfile.pb_sleep_pref) setPbSleep(babyProfile.pb_sleep_pref);
+    if (babyProfile.pb_feed_pref) setPbFeed(babyProfile.pb_feed_pref);
+    if (babyProfile.pb_solids_pref) setPbSolids(babyProfile.pb_solids_pref);
+  }, [babyProfile]);
+  const persistPbPref = (
+    patch: Partial<{ pb_sleep_pref: PbSleep; pb_feed_pref: PbFeed; pb_solids_pref: PbSolids }>,
+  ) => {
+    homeApi.updateBabyPlaybookPrefs(patch)
+      .then(() => {
+        const cur = useHomeStore.getState().babyProfile;
+        if (cur) useHomeStore.getState().setBabyProfile({ ...cur, ...patch });
+      })
+      .catch(() => {}); // best-effort; local state already reflects the choice
+  };
+  const onSetPbSleep = (k: PbSleep) => { setPbSleep(k); persistPbPref({ pb_sleep_pref: k }); };
+  const onSetPbFeed = (k: PbFeed) => { setPbFeed(k); persistPbPref({ pb_feed_pref: k }); };
+  const onSetPbSolids = (k: PbSolids) => { setPbSolids(k); persistPbPref({ pb_solids_pref: k }); };
   const [tuneOpen, setTuneOpen] = useState(false);
   // Quick-log preview state (local until 5.2 wires the real Baby Check-in DB).
   const [logOpen, setLogOpen] = useState<null | 'sleep' | 'feed'>(null);
@@ -1252,7 +1278,7 @@ export default function ManualScrollV3() {
                   {PB_SLEEP_OPTS.map((o) => {
                     const on = pbSleep === o.key;
                     return (
-                      <TouchableOpacity key={o.key} onPress={() => setPbSleep(o.key)} activeOpacity={0.85}
+                      <TouchableOpacity key={o.key} onPress={() => onSetPbSleep(o.key)} activeOpacity={0.85}
                         accessibilityRole="button" accessibilityState={{ selected: on }}
                         style={[styles.pbChip, on && styles.pbChipOn]}>
                         <Text style={[styles.pbChipText, on && styles.pbChipTextOn]}>{lang === 'es' ? o.es : o.en}</Text>
@@ -1265,7 +1291,7 @@ export default function ManualScrollV3() {
                   {PB_FEED_OPTS.map((o) => {
                     const on = pbFeed === o.key;
                     return (
-                      <TouchableOpacity key={o.key} onPress={() => setPbFeed(o.key)} activeOpacity={0.85}
+                      <TouchableOpacity key={o.key} onPress={() => onSetPbFeed(o.key)} activeOpacity={0.85}
                         accessibilityRole="button" accessibilityState={{ selected: on }}
                         style={[styles.pbChip, on && styles.pbChipOn]}>
                         <Text style={[styles.pbChipText, on && styles.pbChipTextOn]}>{lang === 'es' ? o.es : o.en}</Text>
@@ -1278,7 +1304,7 @@ export default function ManualScrollV3() {
                   {PB_SOLIDS_OPTS.map((o) => {
                     const on = pbSolids === o.key;
                     return (
-                      <TouchableOpacity key={o.key} onPress={() => setPbSolids(o.key)} activeOpacity={0.85}
+                      <TouchableOpacity key={o.key} onPress={() => onSetPbSolids(o.key)} activeOpacity={0.85}
                         accessibilityRole="button" accessibilityState={{ selected: on }}
                         style={[styles.pbChip, on && styles.pbChipOn]}>
                         <Text style={[styles.pbChipText, on && styles.pbChipTextOn]}>{lang === 'es' ? o.es : o.en}</Text>
