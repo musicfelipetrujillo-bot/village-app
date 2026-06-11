@@ -6,6 +6,10 @@
 // the left side to go back. The shop "link sticker" stays tappable (nested
 // touchable wins over the tap-to-advance zone).
 //
+// Each card uses a DIFFERENT color from the brand palette (intro = ink, content
+// cards cycle rose/honey/caramel, closer = blush) — matching the design kit's
+// Week-1 SwipeChapter, so the deck reads colorful like real IG stories.
+//
 // Content is REAL per-chapter copy (intro + the chapter's "essentials" + a tip),
 // pulled from the existing ManualCategoryScreen constants. The parent re-keys
 // this component per chapter, so it remounts fresh (card 0) on chip change.
@@ -14,6 +18,7 @@ import {
   View, Text, StyleSheet, Pressable, TouchableOpacity, Animated, Linking, Image,
   type GestureResponderEvent,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { FONTS } from '@utils/constants';
 import { MANUAL_ESSENTIALS, MOM_HACKS, SUB_LEAD } from '@screens/manual/ManualCategoryScreen';
 import type { ManualAudience } from '@/api/manual';
@@ -21,21 +26,22 @@ import type { ManualAudience } from '@/api/manual';
 const VILLIE_BEE = require('../../../assets/brand/villie-bee.png');
 const STORY_MS = 5000; // how long each card plays before auto-advancing
 
-// Saturated chapter accents (deeper than the pale band washes) so the cards
-// read bold like the design. fg = text color, sub = the handwritten accent.
-const ACCENT: Record<string, { bg: string; fg: string; sub: string }> = {
-  sleep:   { bg: '#C9824E', fg: '#FFFCF6', sub: '#FBE3C4' },
-  feed:    { bg: '#E0A52E', fg: '#43260F', sub: '#7A4A14' },
-  grow:    { bg: '#D96C88', fg: '#FFFCF6', sub: '#FBE0E6' },
-  care:    { bg: '#7E8B4E', fg: '#FFFCF6', sub: '#EAEFCF' },
-  soothe:  { bg: '#C25A78', fg: '#FFFCF6', sub: '#F6D6E2' },
-  feel:    { bg: '#D96C88', fg: '#FFFCF6', sub: '#FBE0E6' },
-  heal:    { bg: '#C9824E', fg: '#FFFCF6', sub: '#FBE3C4' },
-  nourish: { bg: '#E0A52E', fg: '#43260F', sub: '#7A4A14' },
-  rest:    { bg: '#7E8B4E', fg: '#FFFCF6', sub: '#EAEFCF' },
-  tips:    { bg: '#C25A78', fg: '#FFFCF6', sub: '#F6D6E2' },
+// Brand-palette card schemes (matched to the design kit's Week-1 CB map).
+// grad = 2-stop background, fg = text, sub = handwritten accent, track/fill = bars.
+type Scheme = { grad: [string, string]; fg: string; sub: string; track: string };
+const SCHEMES: Record<string, Scheme> = {
+  ink:     { grad: ['#4A2E18', '#2E1C0F'], fg: '#FCF6EE', sub: '#F2C84B', track: 'rgba(255,255,255,0.4)' },
+  rose:    { grad: ['#D44E72', '#B43E60'], fg: '#FFFFFF', sub: '#F2C84B', track: 'rgba(255,255,255,0.4)' },
+  honey:   { grad: ['#F2C84B', '#E3B23A'], fg: '#3D2817', sub: '#A23E5E', track: 'rgba(67,38,15,0.22)' },
+  caramel: { grad: ['#C8814A', '#A8693A'], fg: '#FCF6EE', sub: '#FCE9CF', track: 'rgba(255,255,255,0.4)' },
+  blush:   { grad: ['#F7CDD3', '#EFB3BE'], fg: '#C25A78', sub: '#3D2817', track: 'rgba(67,38,15,0.22)' },
 };
-const DEFAULT_ACCENT = { bg: '#D96C88', fg: '#FFFCF6', sub: '#FBE0E6' };
+// intro = ink, closer = blush, content cards cycle rose → honey → caramel.
+function schemeFor(i: number, n: number): Scheme {
+  if (i === 0) return SCHEMES.ink;
+  if (i === n - 1) return SCHEMES.blush;
+  return [SCHEMES.rose, SCHEMES.honey, SCHEMES.caramel][(i - 1) % 3];
+}
 
 type ShopLink = { label: string; url: string };
 type Card = {
@@ -69,7 +75,6 @@ function buildDeck(audience: ManualAudience, category: string, chapter: string):
 export default function ManualSwipeDeck({
   chapter, category, audience = 'baby',
 }: { chapter: string; category: string; audience?: ManualAudience }) {
-  const accent = ACCENT[category] ?? DEFAULT_ACCENT;
   const deck = useMemo(() => buildDeck(audience, category, chapter), [audience, category, chapter]);
   const [idx, setIdx] = useState(0);
   const [cardW, setCardW] = useState(0);
@@ -87,6 +92,7 @@ export default function ManualSwipeDeck({
   }, [idx, deck.length, progress]);
 
   const card = deck[idx] ?? deck[0];
+  const scheme = schemeFor(idx, deck.length);
 
   // Tap right 70% → next (faster); tap left 30% → previous.
   const onTapCard = (e: GestureResponderEvent) => {
@@ -103,18 +109,18 @@ export default function ManualSwipeDeck({
         accessibilityRole="adjustable"
         accessibilityLabel={`Card ${idx + 1} of ${deck.length}. Tap right to advance, left to go back.`}
       >
-        <View style={[styles.card, { backgroundColor: accent.bg }]}>
+        <LinearGradient colors={scheme.grad} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={styles.card}>
           <View style={styles.cardCircle} pointerEvents="none" />
 
           {/* IG-story segmented progress bars */}
           <View style={styles.bars}>
             {deck.map((_, i) => (
-              <View key={i} style={styles.barTrack}>
+              <View key={i} style={[styles.barTrack, { backgroundColor: scheme.track }]}>
                 <Animated.View
                   style={[
                     styles.barFill,
                     {
-                      backgroundColor: accent.fg,
+                      backgroundColor: scheme.fg,
                       width:
                         i < idx
                           ? '100%'
@@ -129,13 +135,13 @@ export default function ManualSwipeDeck({
           </View>
 
           <View style={styles.cardTop}>
-            <Text style={[styles.cardCount, { color: accent.fg }]}>CARD {idx + 1} OF {deck.length}</Text>
+            <Text style={[styles.cardCount, { color: scheme.fg }]}>CARD {idx + 1} OF {deck.length}</Text>
             <Image source={VILLIE_BEE} style={styles.bee} resizeMode="contain" />
           </View>
 
-          <Text style={[styles.cardTitle, { color: accent.fg }]} numberOfLines={3}>{card.title}</Text>
-          {!!card.sub && <Text style={[styles.cardSub, { color: accent.sub }]} numberOfLines={2}>{card.sub}</Text>}
-          {!!card.body && <Text style={[styles.cardBody, { color: accent.fg }]} numberOfLines={6}>{card.body}</Text>}
+          <Text style={[styles.cardTitle, { color: scheme.fg }]} numberOfLines={3}>{card.title}</Text>
+          {!!card.sub && <Text style={[styles.cardSub, { color: scheme.sub }]} numberOfLines={2}>{card.sub}</Text>}
+          {!!card.body && <Text style={[styles.cardBody, { color: scheme.fg }]} numberOfLines={6}>{card.body}</Text>}
 
           {/* IG-story-style link sticker — nested touchable wins over tap-to-advance */}
           {!!card.shop && (
@@ -146,13 +152,13 @@ export default function ManualSwipeDeck({
               accessibilityRole="link"
               accessibilityLabel={card.shop.label}
             >
-              <View style={[styles.stickerDot, { backgroundColor: accent.bg }]}>
-                <Text style={[styles.stickerGlyph, { color: accent.fg }]}>↗</Text>
+              <View style={[styles.stickerDot, { backgroundColor: scheme.grad[0] }]}>
+                <Text style={[styles.stickerGlyph, { color: scheme.fg }]}>↗</Text>
               </View>
               <Text style={styles.stickerText}>{card.shop.label}</Text>
             </TouchableOpacity>
           )}
-        </View>
+        </LinearGradient>
       </Pressable>
     </View>
   );
@@ -171,7 +177,7 @@ const styles = StyleSheet.create({
   },
   // progress bars
   bars: { flexDirection: 'row', gap: 5, marginBottom: 14 },
-  barTrack: { flex: 1, height: 3, borderRadius: 999, backgroundColor: 'rgba(255,255,255,0.4)', overflow: 'hidden' },
+  barTrack: { flex: 1, height: 3, borderRadius: 999, overflow: 'hidden' },
   barFill: { height: '100%', borderRadius: 999 },
 
   cardTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
