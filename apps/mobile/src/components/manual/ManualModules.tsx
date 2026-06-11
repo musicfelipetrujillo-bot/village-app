@@ -1,0 +1,245 @@
+// ManualModules — the repeatable below-deck content for a Manual chapter:
+//   01 Checklist  →  02 Article/Expert  →  03 Infographic
+// Driven entirely by a CategoryContent (manualWeekContent), so every week +
+// category renders the same structure. The infographic switches on `kind`.
+import React, { useState } from 'react';
+import { View, Text, StyleSheet } from 'react-native';
+import { TouchableOpacity } from 'react-native';
+import { FONTS } from '@utils/constants';
+import type { CategoryContent, Checklist, Article, Info } from '@/manual/manualWeekContent';
+
+const INK = '#43260F';
+const INKSOFT = '#7A5A3A';
+const LABEL = '#A8794A';
+const CREAM = '#FFFCF6';
+const HAIR = 'rgba(67,38,15,0.07)';
+const ACCENT = '#C9824E';
+const ROSE = '#D96C88';
+const HONEY = '#F2C84B';
+const BERRY = '#C25A78';
+
+function ModuleLabel({ n, type }: { n: string; type: string }) {
+  return (
+    <View style={s.modLabel}>
+      <Text style={s.modN}>{n}</Text>
+      <Text style={s.modT}>{type.toUpperCase()}</Text>
+    </View>
+  );
+}
+
+function ChecklistModule({ data }: { data: Checklist }) {
+  const [done, setDone] = useState<Record<number, boolean>>({});
+  return (
+    <View>
+      <ModuleLabel n="01" type="Do · checklist" />
+      <Text style={s.panelTitle}>{data.title}</Text>
+      <View style={s.panel}>
+        {data.items.map((it, i) => {
+          const on = !!done[i];
+          return (
+            <TouchableOpacity
+              key={i}
+              style={[s.ci, i > 0 && s.ciBorder]}
+              activeOpacity={0.7}
+              onPress={() => setDone((d) => ({ ...d, [i]: !d[i] }))}
+              accessibilityRole="checkbox"
+              accessibilityState={{ checked: on }}
+              accessibilityLabel={it.label}
+            >
+              <View style={[s.bx, on && s.bxOn]}>{on && <Text style={s.bxCheck}>✓</Text>}</View>
+              <Text style={s.ciText}>
+                <Text style={[s.ciLabel, on && s.ciLabelOn]}>{it.label}</Text>
+                {it.note ? <Text style={s.ciNote}>  — {it.note}</Text> : null}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+    </View>
+  );
+}
+
+function ArticleModule({ data }: { data: Article }) {
+  return (
+    <View>
+      <ModuleLabel n="02" type="Read · expert" />
+      <View style={s.tip}>
+        <Text style={s.tipQ}>{data.question}</Text>
+        <Text style={s.tipA}>“{data.answer}”</Text>
+        <View style={s.tipBy}>
+          <View style={s.tipAv}><Text style={{ fontSize: 18 }}>{data.emoji}</Text></View>
+          <View style={{ flex: 1 }}>
+            <Text style={s.tipName}>{data.name}</Text>
+            <Text style={s.tipRole}>{data.role}</Text>
+          </View>
+          <View style={s.verified}><Text style={s.verifiedT}>verified</Text></View>
+        </View>
+      </View>
+    </View>
+  );
+}
+
+const STORAGE_ICON: Record<string, string> = { counter: '🌡️', fridge: '🧊', freezer: '❄️' };
+
+function InfographicModule({ data }: { data: Info }) {
+  return (
+    <View>
+      <ModuleLabel n="03" type="Know · infographic" />
+      <View style={s.info}>
+        <Text style={s.infoTitle}>{data.title}</Text>
+
+        {data.kind === 'wakewindows' && (
+          <View>
+            {data.rows.map((r, i) => (
+              <View key={i} style={s.ww}>
+                <Text style={[s.wwAge, r.now && s.wwAgeNow]}>{r.age}{r.now ? ' · now' : ''}</Text>
+                <View style={s.wwTrack}>
+                  <View style={[s.wwFill, { width: `${r.pct}%` }, r.now && s.wwFillNow]} />
+                </View>
+                <Text style={[s.wwVal, r.now && s.wwValNow]}>{r.val}</Text>
+              </View>
+            ))}
+          </View>
+        )}
+
+        {data.kind === 'milkstorage' && (
+          <View style={s.cols}>
+            {data.cols.map((c, i) => (
+              <View key={i} style={s.col}>
+                <Text style={s.colIcon}>{STORAGE_ICON[c.icon] ?? '•'}</Text>
+                <Text style={s.colV}>{c.v}</Text>
+                <Text style={s.colU}>{c.u}</Text>
+                <Text style={s.colW}>{c.w}</Text>
+              </View>
+            ))}
+          </View>
+        )}
+
+        {data.kind === 'milestones' && (
+          <View>
+            {data.items.map((m, i) => (
+              <View key={i} style={s.ms}>
+                <View style={[s.msDot, m.now && s.msDotNow]} />
+                <Text style={[s.msAge, m.now && s.msAgeNow]}>{m.age}</Text>
+                <Text style={s.msLabel}>{m.label}</Text>
+              </View>
+            ))}
+          </View>
+        )}
+
+        {data.kind === 'diapercolor' && (
+          <View>
+            {data.cols.map((c, i) => (
+              <View key={i} style={s.dc}>
+                <View style={[s.dcSwatch, { backgroundColor: c.sw }]} />
+                <View style={{ flex: 1 }}>
+                  <Text style={s.dcDay}>{c.d}</Text>
+                  <Text style={s.dcDesc}>{c.ds}</Text>
+                </View>
+              </View>
+            ))}
+          </View>
+        )}
+
+        {data.kind === 'fives' && (
+          <View style={s.fives}>
+            {data.items.map((f, i) => (
+              <View key={i} style={s.five}>
+                <View style={s.fiveNum}><Text style={s.fiveNumT}>{i + 1}</Text></View>
+                <Text style={s.fiveLabel}>{f}</Text>
+              </View>
+            ))}
+          </View>
+        )}
+
+        <Text style={s.infoFoot}>{data.foot}</Text>
+      </View>
+    </View>
+  );
+}
+
+export default function ManualModules({ content }: { content: CategoryContent }) {
+  return (
+    <View style={s.wrap}>
+      <ChecklistModule data={content.checklist} />
+      <ArticleModule data={content.article} />
+      {content.info && <InfographicModule data={content.info} />}
+    </View>
+  );
+}
+
+const s = StyleSheet.create({
+  wrap: { marginTop: 26, gap: 26, paddingHorizontal: 20 },
+
+  modLabel: { flexDirection: 'row', alignItems: 'center', gap: 9, marginBottom: 10 },
+  modN: { fontFamily: FONTS.headerBold, fontSize: 14, color: ACCENT },
+  modT: { fontFamily: FONTS.bodyBold, fontSize: 11, letterSpacing: 1.6, color: LABEL },
+
+  // checklist
+  panelTitle: { fontFamily: FONTS.headerBold, fontSize: 24, letterSpacing: -0.4, color: INK, marginBottom: 12 },
+  panel: { backgroundColor: CREAM, borderRadius: 20, borderWidth: 1, borderColor: HAIR, overflow: 'hidden' },
+  ci: { flexDirection: 'row', alignItems: 'center', gap: 13, paddingVertical: 14, paddingHorizontal: 18 },
+  ciBorder: { borderTopWidth: 1, borderTopColor: HAIR },
+  bx: { width: 25, height: 25, borderRadius: 8, borderWidth: 2, borderColor: 'rgba(67,38,15,0.22)', alignItems: 'center', justifyContent: 'center' },
+  bxOn: { backgroundColor: ACCENT, borderColor: ACCENT },
+  bxCheck: { color: '#fff', fontSize: 13, fontWeight: '800' },
+  ciText: { flex: 1, lineHeight: 21 },
+  ciLabel: { fontFamily: FONTS.bodySemiBold, fontSize: 15.5, color: INK },
+  ciLabelOn: { textDecorationLine: 'line-through', color: ACCENT },
+  ciNote: { fontFamily: FONTS.body, fontSize: 13, color: INKSOFT },
+
+  // article / expert
+  tip: { backgroundColor: '#FBEFE2', borderRadius: 20, borderWidth: 1, borderColor: HAIR, padding: 20 },
+  tipQ: { fontFamily: FONTS.headerBold, fontSize: 20, letterSpacing: -0.3, color: INK },
+  tipA: { fontFamily: FONTS.body, fontSize: 15, lineHeight: 22, color: INK, marginTop: 10 },
+  tipBy: { flexDirection: 'row', alignItems: 'center', gap: 11, marginTop: 16 },
+  tipAv: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#F7CDD3', alignItems: 'center', justifyContent: 'center' },
+  tipName: { fontFamily: FONTS.bodyBold, fontSize: 14, color: INK },
+  tipRole: { fontFamily: FONTS.body, fontSize: 12, color: INKSOFT },
+  verified: { backgroundColor: HONEY, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 5 },
+  verifiedT: { fontFamily: FONTS.bodyBold, fontSize: 11, color: INK },
+
+  // infographic shell
+  info: { backgroundColor: CREAM, borderRadius: 20, borderWidth: 1, borderColor: HAIR, padding: 20 },
+  infoTitle: { fontFamily: FONTS.headerBold, fontSize: 20, letterSpacing: -0.3, color: INK, marginBottom: 14 },
+  infoFoot: { fontFamily: FONTS.body, fontSize: 12.5, lineHeight: 18, color: INKSOFT, marginTop: 8, paddingTop: 12, borderTopWidth: 1, borderTopColor: HAIR },
+
+  // wake windows
+  ww: { flexDirection: 'row', alignItems: 'center', gap: 11, marginBottom: 13 },
+  wwAge: { width: 118, fontFamily: FONTS.bodySemiBold, fontSize: 13, color: INKSOFT },
+  wwAgeNow: { color: INK },
+  wwTrack: { flex: 1, height: 16, borderRadius: 999, backgroundColor: 'rgba(67,38,15,0.08)', overflow: 'hidden' },
+  wwFill: { height: '100%', borderRadius: 999, backgroundColor: ACCENT },
+  wwFillNow: { backgroundColor: ROSE },
+  wwVal: { width: 78, textAlign: 'right', fontFamily: FONTS.bodyBold, fontSize: 12.5, color: INK },
+  wwValNow: { color: ROSE },
+
+  // milk storage (3 columns)
+  cols: { flexDirection: 'row', gap: 10 },
+  col: { flex: 1, backgroundColor: 'rgba(67,38,15,0.04)', borderRadius: 16, paddingVertical: 16, alignItems: 'center' },
+  colIcon: { fontSize: 22, marginBottom: 6 },
+  colV: { fontFamily: FONTS.headerBold, fontSize: 30, color: INK, lineHeight: 32 },
+  colU: { fontFamily: FONTS.bodySemiBold, fontSize: 12, color: INKSOFT },
+  colW: { fontFamily: FONTS.bodyBold, fontSize: 12, color: ACCENT, marginTop: 6, letterSpacing: 0.4 },
+
+  // milestones
+  ms: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 9 },
+  msDot: { width: 11, height: 11, borderRadius: 6, backgroundColor: 'rgba(67,38,15,0.2)' },
+  msDotNow: { backgroundColor: ROSE },
+  msAge: { width: 56, fontFamily: FONTS.bodyBold, fontSize: 12.5, color: INKSOFT },
+  msAgeNow: { color: ROSE },
+  msLabel: { flex: 1, fontFamily: FONTS.bodySemiBold, fontSize: 15, color: INK },
+
+  // diaper color
+  dc: { flexDirection: 'row', alignItems: 'center', gap: 13, paddingVertical: 9 },
+  dcSwatch: { width: 34, height: 34, borderRadius: 10, borderWidth: 1, borderColor: HAIR },
+  dcDay: { fontFamily: FONTS.bodyBold, fontSize: 14, color: INK },
+  dcDesc: { fontFamily: FONTS.body, fontSize: 13, color: INKSOFT },
+
+  // 5 S's
+  fives: { gap: 10 },
+  five: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  fiveNum: { width: 28, height: 28, borderRadius: 999, backgroundColor: 'rgba(217,108,136,0.14)', alignItems: 'center', justifyContent: 'center' },
+  fiveNumT: { fontFamily: FONTS.headerBold, fontSize: 13, color: BERRY },
+  fiveLabel: { fontFamily: FONTS.bodySemiBold, fontSize: 16, color: INK },
+});

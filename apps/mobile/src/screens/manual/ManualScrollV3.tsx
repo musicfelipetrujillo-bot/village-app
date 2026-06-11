@@ -41,6 +41,8 @@ import { useUserStore } from '@store/user';
 import { useHomeStore } from '@store/home';
 import { homeApi } from '@/api/home';
 import ManualSwipeDeck from '@/components/manual/ManualSwipeDeck';
+import ManualModules from '@/components/manual/ManualModules';
+import { getManualContent } from '@/manual/manualWeekContent';
 import {
   MenuButton, MenuPanel, MenuGroup, MenuItem, MENU_ICONS,
 } from '@components/shared/HamburgerMenu';
@@ -741,6 +743,9 @@ export default function ManualScrollV3() {
   const doneCount = 2;
   const remaining = 5 - doneCount;
   const week = Math.max(1, babyProfile?.current_week_number ?? 1);
+  // Manual baseline content for the selected (week, category) — drives both the
+  // story deck and the below-deck modules (checklist → article → infographic).
+  const manualContent = getManualContent(week, chapter.cat);
   const ownerName = who === 'baby' ? (babyProfile?.baby_name ?? 'Baby') : 'Your';
 
   // Hamburger menu state (same recipe as ManualCategoryScreen)
@@ -1362,224 +1367,12 @@ export default function ManualScrollV3() {
             it resets to card 1 when the chapter chip changes.
             (Design-samples-first: card content is illustrative for now.) */}
         <View style={{ paddingHorizontal: 20 }}>
-          <ManualSwipeDeck key={chapter.cat} chapter={chapter.ch} category={chapter.cat} audience={who} />
+          <ManualSwipeDeck key={chapter.cat} story={manualContent?.story ?? []} />
         </View>
 
-        {/* TONIGHT'S PLAN CHECKLIST — sits below the chapter band so the
-            page opens with editorial context (Sleep · week 1 of 52) and
-            then drops a sleep-deprived mom into something she can DO
-            right now. Compact recipe (smaller title, tighter rows,
-            slimmer checkbox) so it doesn't dominate the viewport. */}
-        {(() => {
-          const dbChecklist = chapterPieces.find((p) => p.kind === 'checklist');
-          const checklistPiece: Piece | undefined = dbChecklist
-            ? {
-                kind: 'checklist',
-                num: dbChecklist.num,
-                title: dbChecklist.title,
-                steps: dbChecklist.steps ?? [],
-              }
-            : (PIECES_BY_CHAPTER[chapter.ch] ?? []).find((p) => p.kind === 'checklist');
-          if (!checklistPiece) return null;
-          return (
-            <TouchableOpacity
-              onPress={() => openPieceOverlay(checklistPiece)}
-              activeOpacity={0.85}
-              style={styles.checklistSection}
-            >
-              <ChecklistPiece
-                piece={checklistPiece as Extract<Piece, { kind: 'checklist' }>}
-                accentBg={chapter.bg}
-                accentFg={chapter.fg}
-              />
-            </TouchableOpacity>
-          );
-        })()}
-
-        {/* ─── PIECE STREAM (Phase 4.2) ───────────────────────────────
-            4 mixed pieces per chapter — video, article, illustration,
-            checklist — rendered inline so the chapter scrolls to its
-            own end without a detail-screen detour. Tap a video or
-            article to open ManualCategoryScreen for the production
-            read experience (full Mux player + article body) until 4.3
-            wires individual piece detail screens. */}
-        <View style={styles.streamWrap}>
-          {/* Phase 4.5 — prefer DB-authored pieces when the bucket has
-              any rows; fall back to the hand-authored PIECES_BY_CHAPTER
-              otherwise. Bucket-by-bucket rollout: as clinical-advisor
-              authoring lands, the DB rows automatically take over.
-              We map ManualPiece → Piece so the existing render branches
-              stay unchanged. The video kind always comes from
-              PIECES_BY_CHAPTER (videos live in manual_videos, not
-              manual_pieces) — it gets prepended below so the canonical
-              "watch → read → see → do" cadence is preserved. */}
-          {(() => {
-            const fallback = PIECES_BY_CHAPTER[chapter.ch] ?? [];
-            const videoPiece = fallback.find((p) => p.kind === 'video');
-            const fallbackNonVideo = fallback.filter((p) => p.kind !== 'video');
-            // Phase 4.6 swap: checklist now renders at the TOP of the page,
-            // so drop it from the inline stream to avoid double-rendering.
-            const dbNonVideo: Piece[] = chapterPieces
-              .filter((p) => p.kind === 'article' || p.kind === 'illustration')
-              .map((p): Piece => {
-                if (p.kind === 'article') {
-                  return {
-                    kind: 'article', num: p.num, title: p.title,
-                    dur: p.dur ?? '3 min read', excerpt: p.excerpt ?? '',
-                  };
-                }
-                return {
-                  kind: 'illustration', num: p.num, title: p.title,
-                  caption: p.caption ?? '',
-                };
-              });
-            const nonVideo = dbNonVideo.length > 0
-              ? dbNonVideo
-              : fallbackNonVideo.filter((p) => p.kind !== 'checklist');
-            return [videoPiece, ...nonVideo].filter((x): x is Piece => Boolean(x));
-          })().map((p, i) => {
-            if (p.kind === 'video') {
-              // Phase 4.3 — prefer the real first video in this chapter's
-              // Mux bucket. Hand-authored copy survives as the fallback so
-              // unseeded chapters still render a complete card.
-              const real = firstVideo;
-              const heroTitle = real?.title ?? p.title;
-              const heroDur = real
-                ? formatDuration(real.duration_seconds)
-                : p.dur;
-              const heroByline = real
-                ? (real.is_watched
-                    ? (lang === 'es' ? 'Visto' : 'Watched')
-                    : p.expert)
-                : p.expert;
-              // Real clip → play it; otherwise non-pressable (the old
-              // tap-to-open-chapter fallback was removed with the swipe deck).
-              const onPress = real ? () => openVideo(real) : undefined;
-              return (
-                <View key={`${chapter.ch}-${i}`} style={styles.pieceVideoWrap}>
-                  <PieceLabel kind="video" num={p.num} />
-                  <V3Card pressable={onPress} contentStyle={{ overflow: 'hidden' }}>
-                    {/* Hero — real Mux thumb if present, else chapter tint */}
-                    <View style={[
-                      styles.pieceVideoHero,
-                      { backgroundColor: chapter.bg },
-                    ]}>
-                      {real?.thumbnail_url ? (
-                        <Image
-                          source={{ uri: real.thumbnail_url }}
-                          style={StyleSheet.absoluteFillObject as any}
-                          resizeMode="cover"
-                        />
-                      ) : null}
-                      {/* Top→bottom wash: lightens top, darkens bottom for
-                          legibility of the play button + duration pill */}
-                      <LinearGradient
-                        colors={['rgba(253,251,246,0.28)', 'rgba(61,31,14,0.32)']}
-                        start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }}
-                        style={StyleSheet.absoluteFillObject}
-                        pointerEvents="none"
-                      />
-                      <View style={styles.pieceVideoPlay}>
-                        <Svg width={22} height={22} viewBox="0 0 24 24">
-                          <Path d="M7 4 L21 12 L7 20 Z" fill={T.cocoa} />
-                        </Svg>
-                      </View>
-                      <View style={styles.pieceVideoDur}>
-                        <Text style={styles.pieceVideoDurText}>{heroDur}</Text>
-                      </View>
-                    </View>
-                    <View style={styles.pieceVideoBody}>
-                      <Text style={styles.pieceVideoTitle}>{heroTitle}</Text>
-                      <Text style={styles.pieceVideoExpert}>{heroByline}</Text>
-                    </View>
-                  </V3Card>
-                </View>
-              );
-            }
-            if (p.kind === 'article') {
-              return (
-                <TouchableOpacity
-                  key={`${chapter.ch}-${i}`}
-                  onPress={() => openPieceOverlay(p)}
-                  activeOpacity={0.85}
-                  style={styles.pieceCardWrap}
-                >
-                  <PieceLabel kind="article" num={p.num} />
-                  <V3Card contentStyle={styles.pieceArticleCard}>
-                    <Text style={styles.pieceArticleTitle}>{p.title}</Text>
-                    <Text style={styles.pieceArticleExcerpt}>{p.excerpt}</Text>
-                    <Text style={styles.pieceArticleCta}>
-                      {lang === 'es' ? `Continuar · ${p.dur} →` : `Continue · ${p.dur} →`}
-                    </Text>
-                  </V3Card>
-                </TouchableOpacity>
-              );
-            }
-            if (p.kind === 'illustration') {
-              const rows: { age: string; range: string; pct: number; color: string; current?: boolean }[] = [
-                { age: '0–3 mo',  range: '60–90 min',  pct: 0.30, color: CHAPTER_BG_BY_NAME.Feed },
-                { age: '3–6 mo',  range: '90–120 min', pct: 0.42, color: CHAPTER_BG_BY_NAME.Feel },
-                { age: '6–9 mo',  range: '2–3 hr',     pct: 0.62, color: chapter.bg, current: true },
-                { age: '9–12 mo', range: '3–4 hr',     pct: 0.78, color: CHAPTER_BG_BY_NAME.Heal },
-                { age: '12+ mo',  range: '4–5 hr',     pct: 1.0,  color: CHAPTER_BG_BY_NAME.Tips },
-              ];
-              return (
-                <TouchableOpacity
-                  key={`${chapter.ch}-${i}`}
-                  onPress={() => openPieceOverlay(p)}
-                  activeOpacity={0.85}
-                  style={styles.pieceCardWrap}
-                >
-                  <PieceLabel kind="illustration" num={p.num} />
-                  <Text style={styles.pieceArticleTitleSmall}>{p.title}</Text>
-                  <V3Card contentStyle={styles.illustrationCardInner}>
-                    {rows.map((r, j) => (
-                      <View
-                        key={r.age}
-                        style={[
-                          styles.illustrationRow,
-                          j < rows.length - 1 ? styles.illustrationRowDivider : null,
-                        ]}
-                      >
-                        <Text style={[
-                          styles.illustrationAge,
-                          r.current ? styles.illustrationAgeCurrent : null,
-                        ]}>{r.age}</Text>
-                        <View style={styles.illustrationTrack}>
-                          <View style={[styles.illustrationFill, {
-                            width: `${r.pct * 100}%`, backgroundColor: r.color,
-                          }]} />
-                        </View>
-                        <Text style={[
-                          styles.illustrationRange,
-                          r.current ? styles.illustrationRangeCurrent : null,
-                        ]}>{r.range}</Text>
-                      </View>
-                    ))}
-                  </V3Card>
-                  <Text style={styles.illustrationCaption}>{p.caption}</Text>
-                </TouchableOpacity>
-              );
-            }
-            if (p.kind === 'checklist') {
-              return (
-                <TouchableOpacity
-                  key={`${chapter.ch}-${i}`}
-                  onPress={() => openPieceOverlay(p)}
-                  activeOpacity={0.85}
-                  style={styles.pieceSection}
-                >
-                  <ChecklistPiece
-                    piece={p}
-                    accentBg={chapter.bg}
-                    accentFg={chapter.fg}
-                  />
-                </TouchableOpacity>
-              );
-            }
-            return null;
-          })}
-        </View>
+        {/* Below-deck modules: checklist → article/video → infographic —
+            the repeatable Manual baseline, driven by manualWeekContent. */}
+        {manualContent && <ManualModules content={manualContent} />}
 
         {/* WEEK PROGRESS BANNER — Phase 4.6 swap: moved to bottom 2026-05-28.
             Reads as a quiet "how am I doing this week" status check after
