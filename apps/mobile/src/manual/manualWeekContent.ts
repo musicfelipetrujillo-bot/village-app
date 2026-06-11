@@ -57,7 +57,7 @@ const CARTERS_GOWN = 'https://www.carters.com/p/baby-2-pack-constellation-purely
 const CONTRAST_CARDS = 'https://www.amazon.com/dp/B0DHH7LGZT'; // high-contrast books + tummy-time mirror
 const FRIDA_POSTPARTUM = 'https://www.amazon.com/dp/B0CZSD8YZV'; // Frida Mom postpartum essentials kit
 
-const cover = (eyebrow: string, title: string, body: string): StoryCard => ({ color: 'ink', eyebrow, title, body });
+const cover = (eyebrow: string, title: string, body: string): StoryCard => ({ color: 'blush', eyebrow, title, body });
 const close = (eyebrow: string, title: string, say: string, body: string): StoryCard => ({ color: 'blush', eyebrow, title, say, body });
 
 // ─────────────────────────────────────────────────────────────
