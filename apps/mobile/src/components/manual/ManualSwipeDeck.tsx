@@ -1,23 +1,25 @@
-// ManualSwipeDeck — Instagram-Stories-style swipe deck for a Manual chapter.
+// ManualSwipeDeck — Instagram-Stories-style auto-playing deck for a Manual chapter.
 //
 // Sits at the top of the Manual home (where the tap-to-open chapter band was).
-// The user swipes through a short, digestible deck for the selected chapter;
-// the rest of the chapter's content keeps scrolling below it in one scroll.
+// Cards AUTO-ADVANCE like IG stories: each fills a segmented progress bar over
+// STORY_MS, then moves to the next. Tap the right side to skip forward faster,
+// the left side to go back. The shop "link sticker" stays tappable (nested
+// touchable wins over the tap-to-advance zone).
 //
-// Content is REAL per-chapter copy (intro + the chapter's "essentials" + a
-// tip), pulled from the existing ManualCategoryScreen constants. Shop links are
-// embedded on cards as IG-story-style "link stickers" (a small tappable chip),
-// not a full-width button.
-import React, { useMemo, useRef, useState } from 'react';
+// Content is REAL per-chapter copy (intro + the chapter's "essentials" + a tip),
+// pulled from the existing ManualCategoryScreen constants. The parent re-keys
+// this component per chapter, so it remounts fresh (card 0) on chip change.
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity, Linking, Image,
-  type NativeSyntheticEvent, type NativeScrollEvent,
+  View, Text, StyleSheet, Pressable, TouchableOpacity, Animated, Linking, Image,
+  type GestureResponderEvent,
 } from 'react-native';
 import { FONTS } from '@utils/constants';
 import { MANUAL_ESSENTIALS, MOM_HACKS, SUB_LEAD } from '@screens/manual/ManualCategoryScreen';
 import type { ManualAudience } from '@/api/manual';
 
 const VILLIE_BEE = require('../../../assets/brand/villie-bee.png');
+const STORY_MS = 5000; // how long each card plays before auto-advancing
 
 // Saturated chapter accents (deeper than the pale band washes) so the cards
 // read bold like the design. fg = text color, sub = the handwritten accent.
@@ -37,7 +39,6 @@ const DEFAULT_ACCENT = { bg: '#D96C88', fg: '#FFFCF6', sub: '#FBE0E6' };
 
 type ShopLink = { label: string; url: string };
 type Card = {
-  thumb: string;
   tag: string;
   title: string;
   sub?: string;       // handwritten accent line (intro / closer)
@@ -53,14 +54,12 @@ function buildDeck(audience: ManualAudience, category: string, chapter: string):
   const lead = SUB_LEAD[key] ?? 'swipe through →';
 
   const cards: Card[] = [
-    { thumb: 'intro', tag: chapter, title: chapter, sub: lead },
-    ...essentials.map((e, i) => ({ thumb: `0${i + 1}`, tag: 'the basics', title: e.title, body: e.body })),
+    { tag: chapter, title: chapter, sub: lead },
+    ...essentials.map((e) => ({ tag: 'the basics', title: e.title, body: e.body })),
   ];
-  if (hacks[0]) cards.push({ thumb: 'tonight', tag: 'try tonight', title: 'One small thing', body: hacks[0] });
-  // Shop card — the link sticker is the shoppable affordance (sample destination
-  // for now; wires to real perks/products in a follow-up).
+  if (hacks[0]) cards.push({ tag: 'try tonight', title: 'One small thing', body: hacks[0] });
   cards.push({
-    thumb: 'shop', tag: 'village picks', title: 'What actually helps',
+    tag: 'village picks', title: 'What actually helps',
     body: 'Hand-picked by the village — the few things worth it this week.',
     shop: { label: 'Shop the picks', url: 'https://villieapp.com' },
   });
@@ -72,64 +71,89 @@ export default function ManualSwipeDeck({
 }: { chapter: string; category: string; audience?: ManualAudience }) {
   const accent = ACCENT[category] ?? DEFAULT_ACCENT;
   const deck = useMemo(() => buildDeck(audience, category, chapter), [audience, category, chapter]);
-  const [w, setW] = useState(0);
   const [idx, setIdx] = useState(0);
-  const scrollRef = useRef<ScrollView>(null);
+  const [cardW, setCardW] = useState(0);
+  const progress = useRef(new Animated.Value(0)).current;
 
-  const onScrollEnd = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
-    if (w > 0) setIdx(Math.round(e.nativeEvent.contentOffset.x / w));
+  // Auto-advance: animate the active segment, then move to the next card.
+  // Stops on the last card. Re-runs whenever idx changes (incl. via tap).
+  useEffect(() => {
+    progress.setValue(0);
+    const anim = Animated.timing(progress, { toValue: 1, duration: STORY_MS, useNativeDriver: false });
+    anim.start(({ finished }) => {
+      if (finished) setIdx((i) => (i < deck.length - 1 ? i + 1 : i));
+    });
+    return () => anim.stop();
+  }, [idx, deck.length, progress]);
+
+  const card = deck[idx] ?? deck[0];
+
+  // Tap right 70% → next (faster); tap left 30% → previous.
+  const onTapCard = (e: GestureResponderEvent) => {
+    const x = e.nativeEvent.locationX;
+    if (cardW > 0 && x < cardW * 0.3) setIdx((i) => Math.max(0, i - 1));
+    else setIdx((i) => Math.min(deck.length - 1, i + 1));
   };
 
   return (
-    <View style={styles.wrap} onLayout={(e) => setW(e.nativeEvent.layout.width)}>
-      {w > 0 && (
-        <ScrollView
-          ref={scrollRef}
-          horizontal
-          pagingEnabled
-          showsHorizontalScrollIndicator={false}
-          onMomentumScrollEnd={onScrollEnd}
-        >
-          {deck.map((card, i) => (
-            <View key={i} style={{ width: w }}>
-              <View style={[styles.card, { backgroundColor: accent.bg }]}>
-                <View style={styles.cardCircle} pointerEvents="none" />
-                <View style={styles.cardTop}>
-                  <Text style={[styles.cardCount, { color: accent.fg }]}>CARD {i + 1} OF {deck.length}</Text>
-                  <Image source={VILLIE_BEE} style={styles.bee} resizeMode="contain" />
-                </View>
+    <View style={styles.wrap}>
+      <Pressable
+        onPress={onTapCard}
+        onLayout={(e) => setCardW(e.nativeEvent.layout.width)}
+        accessibilityRole="adjustable"
+        accessibilityLabel={`Card ${idx + 1} of ${deck.length}. Tap right to advance, left to go back.`}
+      >
+        <View style={[styles.card, { backgroundColor: accent.bg }]}>
+          <View style={styles.cardCircle} pointerEvents="none" />
 
-                <Text style={[styles.cardTitle, { color: accent.fg }]}>{card.title}</Text>
-                {!!card.sub && <Text style={[styles.cardSub, { color: accent.sub }]}>{card.sub}</Text>}
-                {!!card.body && <Text style={[styles.cardBody, { color: accent.fg }]}>{card.body}</Text>}
-
-                {/* IG-story-style link sticker */}
-                {!!card.shop && (
-                  <TouchableOpacity
-                    style={styles.sticker}
-                    activeOpacity={0.85}
-                    onPress={() => Linking.openURL(card.shop!.url).catch(() => {})}
-                    accessibilityRole="link"
-                    accessibilityLabel={card.shop.label}
-                  >
-                    <View style={[styles.stickerDot, { backgroundColor: accent.bg }]}>
-                      <Text style={[styles.stickerGlyph, { color: accent.fg }]}>↗</Text>
-                    </View>
-                    <Text style={styles.stickerText}>{card.shop.label}</Text>
-                  </TouchableOpacity>
-                )}
+          {/* IG-story segmented progress bars */}
+          <View style={styles.bars}>
+            {deck.map((_, i) => (
+              <View key={i} style={styles.barTrack}>
+                <Animated.View
+                  style={[
+                    styles.barFill,
+                    {
+                      backgroundColor: accent.fg,
+                      width:
+                        i < idx
+                          ? '100%'
+                          : i === idx
+                          ? progress.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] })
+                          : '0%',
+                    },
+                  ]}
+                />
               </View>
-            </View>
-          ))}
-        </ScrollView>
-      )}
+            ))}
+          </View>
 
-      {/* Dot pagination */}
-      <View style={styles.dots}>
-        {deck.map((_, i) => (
-          <View key={i} style={[styles.dot, i === idx && [styles.dotOn, { backgroundColor: accent.bg }]]} />
-        ))}
-      </View>
+          <View style={styles.cardTop}>
+            <Text style={[styles.cardCount, { color: accent.fg }]}>CARD {idx + 1} OF {deck.length}</Text>
+            <Image source={VILLIE_BEE} style={styles.bee} resizeMode="contain" />
+          </View>
+
+          <Text style={[styles.cardTitle, { color: accent.fg }]} numberOfLines={3}>{card.title}</Text>
+          {!!card.sub && <Text style={[styles.cardSub, { color: accent.sub }]} numberOfLines={2}>{card.sub}</Text>}
+          {!!card.body && <Text style={[styles.cardBody, { color: accent.fg }]} numberOfLines={6}>{card.body}</Text>}
+
+          {/* IG-story-style link sticker — nested touchable wins over tap-to-advance */}
+          {!!card.shop && (
+            <TouchableOpacity
+              style={styles.sticker}
+              activeOpacity={0.85}
+              onPress={() => Linking.openURL(card.shop!.url).catch(() => {})}
+              accessibilityRole="link"
+              accessibilityLabel={card.shop.label}
+            >
+              <View style={[styles.stickerDot, { backgroundColor: accent.bg }]}>
+                <Text style={[styles.stickerGlyph, { color: accent.fg }]}>↗</Text>
+              </View>
+              <Text style={styles.stickerText}>{card.shop.label}</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      </Pressable>
     </View>
   );
 }
@@ -137,7 +161,7 @@ export default function ManualSwipeDeck({
 const styles = StyleSheet.create({
   wrap: { marginTop: 14 },
   card: {
-    borderRadius: 26, paddingHorizontal: 24, paddingTop: 22, paddingBottom: 26,
+    borderRadius: 26, paddingHorizontal: 24, paddingTop: 16, paddingBottom: 26,
     aspectRatio: 4 / 5, overflow: 'hidden',
     shadowColor: '#43260F', shadowOpacity: 0.22, shadowOffset: { width: 0, height: 16 }, shadowRadius: 30, elevation: 6,
   },
@@ -145,6 +169,11 @@ const styles = StyleSheet.create({
     position: 'absolute', bottom: -38, right: -30, width: 150, height: 150,
     borderRadius: 75, backgroundColor: 'rgba(255,255,255,0.12)',
   },
+  // progress bars
+  bars: { flexDirection: 'row', gap: 5, marginBottom: 14 },
+  barTrack: { flex: 1, height: 3, borderRadius: 999, backgroundColor: 'rgba(255,255,255,0.4)', overflow: 'hidden' },
+  barFill: { height: '100%', borderRadius: 999 },
+
   cardTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   cardCount: { fontFamily: FONTS.bodyBold, fontSize: 11, letterSpacing: 1.8, opacity: 0.85 },
   bee: { width: 32, height: 32 },
@@ -161,8 +190,4 @@ const styles = StyleSheet.create({
   stickerDot: { width: 26, height: 26, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
   stickerGlyph: { fontSize: 14, fontWeight: '800' },
   stickerText: { fontFamily: FONTS.bodyBold, fontSize: 14, color: '#43260F', letterSpacing: 0.2 },
-
-  dots: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 7, marginTop: 16 },
-  dot: { width: 7, height: 7, borderRadius: 999, backgroundColor: 'rgba(67,38,15,0.22)' },
-  dotOn: { width: 22 },
 });
