@@ -554,7 +554,9 @@ export default function HomeScreenV3() {
 
   // Hero requires a baby profile to render with personalized data; in
   // pre-baby state we fall back to a placeholder name.
-  const heroBabyName = babyName ?? 'Your';
+  // TEMP demo default 'Jackson' (was 'Your') — real fix is setting
+  // baby_profiles.baby_name in the profile; revert before broad launch.
+  const heroBabyName = babyName ?? 'Jackson';
   const heroWeek = weekNumber ?? 1;
 
   // Atmospheric backdrop — bees + warm gradient. scrollY drives the

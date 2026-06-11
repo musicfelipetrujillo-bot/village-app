@@ -27,6 +27,16 @@ const SCHEMES: Record<CardColor, Scheme> = {
   blush:   { grad: ['#F7CDD3', '#EFB3BE'], fg: '#C25A78', sub: '#3D2817', track: 'rgba(67,38,15,0.22)' },
 };
 
+// Color rhythm by POSITION (design logic): soft blush bookends to open and
+// close, with the middle cards cycling rose → honey → caramel → ink. Holds a
+// consistent, pleasant sequence regardless of card count, and never opens or
+// ends on the dark ink card.
+const MIDDLE: CardColor[] = ['rose', 'honey', 'caramel', 'ink'];
+function schemeForIndex(i: number, n: number): Scheme {
+  if (i === 0 || i === n - 1) return SCHEMES.blush;
+  return SCHEMES[MIDDLE[(i - 1) % MIDDLE.length]];
+}
+
 export default function ManualSwipeDeck({ story }: { story: StoryCard[] }) {
   const deck = story.length ? story : [];
   const [idx, setIdx] = useState(0);
@@ -47,7 +57,7 @@ export default function ManualSwipeDeck({ story }: { story: StoryCard[] }) {
 
   if (!deck.length) return null;
   const card = deck[idx] ?? deck[0];
-  const scheme = SCHEMES[card.color] ?? SCHEMES.rose;
+  const scheme = schemeForIndex(idx, deck.length);
 
   // Tap right 70% → next (faster); tap left 30% → previous.
   const onTapCard = (e: GestureResponderEvent) => {
