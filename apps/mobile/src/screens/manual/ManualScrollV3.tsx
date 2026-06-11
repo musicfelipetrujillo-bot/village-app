@@ -91,6 +91,16 @@ const BABY_CHAPTERS: ChapterMeta[] = [
   // Soothe dropped 2026-06-10 — its content folded into Sleep + Care.
 ];
 
+// Week 0 (before baby) uses a prep-oriented pill set — Hospital leads, then the
+// nursery / feeding / care setup. 'hospital' has no CHIP_TONE entry, so its
+// active chip falls back to cinnamon — giving week 0 a deliberately distinct look.
+const WEEK0_CHAPTERS: ChapterMeta[] = [
+  { ch: 'Hospital', cat: 'hospital', bg: '#E7E0D2', fg: T.cocoa },
+  { ch: 'Sleep', cat: 'sleep', bg: '#F0D7C3', fg: T.cocoa },
+  { ch: 'Feed',  cat: 'feed',  bg: '#F7EBCC', fg: T.cocoa },
+  { ch: 'Care',  cat: 'care',  bg: '#EAEDD8', fg: T.cocoa },
+];
+
 const MOM_CHAPTERS: ChapterMeta[] = [
   { ch: 'Feel',    cat: 'feel',    bg: '#FAE2E7', fg: T.cocoa },  // light rose
   { ch: 'Heal',    cat: 'heal',    bg: '#F0D7C3', fg: T.cocoa },  // light terracotta
@@ -688,7 +698,10 @@ export default function ManualScrollV3() {
   // The chip list and DB queries always run against the baby chapters now.
   // MOM_CHAPTERS is kept defined above for the eventual "Phase 2 — restore
   // Mom Manual as a tertiary track" optionality the voice memo flagged.
-  const list = BABY_CHAPTERS;
+  // Week 0 shows the prep pills (Hospital · Sleep · Feed · Care); week 1+ shows
+  // the baby chapters (Sleep · Feed · Grow · Care).
+  const week = Math.max(0, babyProfile?.current_week_number ?? 1);
+  const list = week === 0 ? WEEK0_CHAPTERS : BABY_CHAPTERS;
   // The DB API still takes a ManualAudience ('mom' | 'baby') — pin to baby.
   const who: ManualAudience = 'baby';
   const [chapter, setChapter] = useState<ChapterMeta>(initialChapter);
@@ -741,9 +754,8 @@ export default function ManualScrollV3() {
 
   // Static for the preview — wire to user progress in Phase 4.2.
   const doneCount = 2;
-  const totalChapters = BABY_CHAPTERS.length;
+  const totalChapters = list.length;
   const remaining = totalChapters - doneCount;
-  const week = Math.max(1, babyProfile?.current_week_number ?? 1);
   // Manual baseline content for the selected (week, category) — drives both the
   // story deck and the below-deck modules (checklist → article → infographic).
   const manualContent = getManualContent(week, chapter.cat);
