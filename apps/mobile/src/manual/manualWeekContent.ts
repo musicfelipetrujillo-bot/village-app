@@ -48,6 +48,10 @@ export type CategoryContent = {
 const PLACEHOLDER_URL = 'https://villieapp.com';
 const SHOP = PLACEHOLDER_URL;
 
+// Real brand links (add affiliate params here once partnerships are signed).
+// Stripped the ad-click tracking (gclid/utm/gbraid) — those are session-specific.
+const KYTE_SWADDLE = 'https://kytebaby.com/products/swaddle-bag-in-silly-goose-0-5?variant=43190058025071';
+
 const cover = (eyebrow: string, title: string, body: string): StoryCard => ({ color: 'ink', eyebrow, title, body });
 const close = (eyebrow: string, title: string, say: string, body: string): StoryCard => ({ color: 'blush', eyebrow, title, say, body });
 
@@ -59,7 +63,7 @@ const WEEK_1: Record<string, CategoryContent> = {
     label: 'Sleep',
     story: [
       cover('this week', 'Sleep is\nsurvival.', "no schedule yet — and that's exactly right. here's what actually helps."),
-      { color: 'rose', eyebrow: 'the swaddle', title: 'Swaddle\nright.', say: 'arms up or down', body: 'snug around the chest, loose at the hips so they can bend. some babies sleep best arms-up — and some hate it. follow your baby.', link: { kind: 'shop', label: 'Easy swaddles to try', url: SHOP } },
+      { color: 'rose', eyebrow: 'the swaddle', title: 'Swaddle\nright.', say: 'arms up or down', body: 'snug around the chest, loose at the hips so they can bend. some babies sleep best arms-up — and some hate it. follow your baby.', link: { kind: 'shop', label: 'Easy swaddles to try', url: KYTE_SWADDLE } },
       { color: 'honey', eyebrow: 'safe sleep', title: 'Bare is\nbest.', say: 'back, firm, empty', body: 'baby on their back, on a firm flat surface, nothing else in there — every sleep, every time. it never changes.', link: { kind: 'learn', label: 'Safe-sleep basics', url: SHOP } },
       { color: 'caramel', eyebrow: 'timing', title: '45-min\nwindows.', say: 'catch the cues', body: 'newborns can only stay up ~45–60 min. yawns, red eyebrows, zoning out → put them down before the overtired cry.' },
       close('keep going', 'Drowsy,\nnot asleep.', 'let her practice', "scroll for this week's sleep guide ↓"),
@@ -184,7 +188,7 @@ const WEEK_0: Record<string, CategoryContent> = {
     story: [
       cover('before baby', 'Sleep,\nready.', "the safe-sleep setup, before baby's first night."),
       { color: 'rose', eyebrow: 'safest is simple', title: 'Bare is\nbest.', say: 'firm, flat, empty', body: 'a breathable mattress, a fitted sheet, and nothing else in the crib or bassinet.', link: { kind: 'learn', label: 'Safe sleep 101', url: SHOP } },
-      { color: 'honey', eyebrow: "you'll want these", title: 'Swaddles\n×3–5.', say: "what's a swaddle?", body: "snug wraps that calm the startle reflex and stretch sleep. get a few — newborns blow through them.", link: { kind: 'shop', label: 'Starter swaddles', url: SHOP } },
+      { color: 'honey', eyebrow: "you'll want these", title: 'Swaddles\n×3–5.', say: "what's a swaddle?", body: "snug wraps that calm the startle reflex and stretch sleep. get a few — newborns blow through them.", link: { kind: 'shop', label: 'Starter swaddles', url: KYTE_SWADDLE } },
       { color: 'caramel', eyebrow: 'peace of mind', title: 'White noise\n+ monitor.', say: 'rest, too', body: 'steady white noise mimics the womb; a monitor lets you actually sleep when baby does.', link: { kind: 'shop', label: 'Sleep essentials', url: SHOP } },
       close('ready', 'Rest\neasy.', "nursery's ready", 'scroll for the full sleep list ↓'),
     ],
