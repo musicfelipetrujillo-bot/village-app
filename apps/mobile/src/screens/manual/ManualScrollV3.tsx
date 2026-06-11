@@ -1362,7 +1362,7 @@ export default function ManualScrollV3() {
             it resets to card 1 when the chapter chip changes.
             (Design-samples-first: card content is illustrative for now.) */}
         <View style={{ paddingHorizontal: 20 }}>
-          <ManualSwipeDeck key={chapter.cat} chapter={chapter.ch} category={chapter.cat} />
+          <ManualSwipeDeck key={chapter.cat} chapter={chapter.ch} category={chapter.cat} audience={who} />
         </View>
 
         {/* TONIGHT'S PLAN CHECKLIST — sits below the chapter band so the

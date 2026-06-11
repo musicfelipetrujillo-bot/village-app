@@ -1,20 +1,21 @@
 // ManualSwipeDeck — Instagram-Stories-style swipe deck for a Manual chapter.
 //
-// Replaces the old "tap to open chapter" band on the Manual home: the user
-// swipes horizontally through a short deck of cards (intro → basics → tip →
-// shop → closer) instead of navigating into a separate chapter screen. Matches
-// the design kit's SwipeChapter template (card N/M + bee, dot pagination, the
-// thumbnail strip, a tappable shop link).
+// Sits at the top of the Manual home (where the tap-to-open chapter band was).
+// The user swipes through a short, digestible deck for the selected chapter;
+// the rest of the chapter's content keeps scrolling below it in one scroll.
 //
-// PHASE: design-samples-first. The card CONTENT here is illustrative/hardcoded
-// so we can nail the look + interaction; real per-chapter content (and real
-// shop/affiliate links) get wired in a follow-up.
+// Content is REAL per-chapter copy (intro + the chapter's "essentials" + a
+// tip), pulled from the existing ManualCategoryScreen constants. Shop links are
+// embedded on cards as IG-story-style "link stickers" (a small tappable chip),
+// not a full-width button.
 import React, { useMemo, useRef, useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity, Linking, Image,
   type NativeSyntheticEvent, type NativeScrollEvent,
 } from 'react-native';
 import { FONTS } from '@utils/constants';
+import { MANUAL_ESSENTIALS, MOM_HACKS, SUB_LEAD } from '@screens/manual/ManualCategoryScreen';
+import type { ManualAudience } from '@/api/manual';
 
 const VILLIE_BEE = require('../../../assets/brand/villie-bee.png');
 
@@ -34,48 +35,49 @@ const ACCENT: Record<string, { bg: string; fg: string; sub: string }> = {
 };
 const DEFAULT_ACCENT = { bg: '#D96C88', fg: '#FFFCF6', sub: '#FBE0E6' };
 
-type Card =
-  | { kind: 'intro'; tag: string; title: string; sub: string }
-  | { kind: 'list'; tag: string; title: string; items: string[] }
-  | { kind: 'tip'; tag: string; title: string; body: string }
-  | { kind: 'shop'; tag: string; title: string; product: string; link: string }
-  | { kind: 'closer'; tag: string; title: string; sub: string };
-
-// SAMPLE deck (illustrative). One light touch of chapter context in the intro;
-// the rest is placeholder copy to demo the swipe experience.
-function buildDeck(chapter: string): Card[] {
-  return [
-    { kind: 'intro', tag: 'intro', title: `${chapter}.`, sub: 'swipe through →' },
-    { kind: 'list', tag: 'the basics', title: "What's normal this week", items: [
-      'A short, reassuring point you can read in a glance',
-      'Another quick one — clear, not clinical',
-      'One more, so it feels handled',
-    ] },
-    { kind: 'tip', tag: 'try tonight', title: 'One small thing', body:
-      'A calm, specific tip you can actually do tonight — one step, no pressure.' },
-    { kind: 'shop', tag: 'village picks', title: 'What actually helps', product:
-      'A sample product moms swear by', link: 'https://villieapp.com' },
-    { kind: 'closer', tag: "you're set", title: "That's the week.", sub: 'more next week ✨' },
-  ];
-}
-
-const THUMB_LABEL: Record<Card['kind'], string> = {
-  intro: 'intro', list: 'basics', tip: 'tonight', shop: 'shop', closer: 'set',
+type ShopLink = { label: string; url: string };
+type Card = {
+  thumb: string;
+  tag: string;
+  title: string;
+  sub?: string;       // handwritten accent line (intro / closer)
+  body?: string;      // paragraph (tip / essential body)
+  shop?: ShopLink;    // embedded IG-story-style link sticker
 };
 
-export default function ManualSwipeDeck({ chapter, category }: { chapter: string; category: string }) {
+// Build a real-copy deck from the chapter's existing content.
+function buildDeck(audience: ManualAudience, category: string, chapter: string): Card[] {
+  const key = `${audience}/${category}`;
+  const essentials = MANUAL_ESSENTIALS[key] ?? [];
+  const hacks = MOM_HACKS[key] ?? [];
+  const lead = SUB_LEAD[key] ?? 'swipe through →';
+
+  const cards: Card[] = [
+    { thumb: 'intro', tag: chapter, title: chapter, sub: lead },
+    ...essentials.map((e, i) => ({ thumb: `0${i + 1}`, tag: 'the basics', title: e.title, body: e.body })),
+  ];
+  if (hacks[0]) cards.push({ thumb: 'tonight', tag: 'try tonight', title: 'One small thing', body: hacks[0] });
+  // Shop card — the link sticker is the shoppable affordance (sample destination
+  // for now; wires to real perks/products in a follow-up).
+  cards.push({
+    thumb: 'shop', tag: 'village picks', title: 'What actually helps',
+    body: 'Hand-picked by the village — the few things worth it this week.',
+    shop: { label: 'Shop the picks', url: 'https://villieapp.com' },
+  });
+  return cards;
+}
+
+export default function ManualSwipeDeck({
+  chapter, category, audience = 'baby',
+}: { chapter: string; category: string; audience?: ManualAudience }) {
   const accent = ACCENT[category] ?? DEFAULT_ACCENT;
-  const deck = useMemo(() => buildDeck(chapter), [chapter]);
+  const deck = useMemo(() => buildDeck(audience, category, chapter), [audience, category, chapter]);
   const [w, setW] = useState(0);
   const [idx, setIdx] = useState(0);
   const scrollRef = useRef<ScrollView>(null);
 
   const onScrollEnd = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
     if (w > 0) setIdx(Math.round(e.nativeEvent.contentOffset.x / w));
-  };
-  const goTo = (i: number) => {
-    if (w > 0) scrollRef.current?.scrollTo({ x: i * w, animated: true });
-    setIdx(i);
   };
 
   return (
@@ -98,39 +100,23 @@ export default function ManualSwipeDeck({ chapter, category }: { chapter: string
                 </View>
 
                 <Text style={[styles.cardTitle, { color: accent.fg }]}>{card.title}</Text>
-                {'sub' in card && !!card.sub && (
-                  <Text style={[styles.cardSub, { color: accent.sub }]}>{card.sub}</Text>
-                )}
+                {!!card.sub && <Text style={[styles.cardSub, { color: accent.sub }]}>{card.sub}</Text>}
+                {!!card.body && <Text style={[styles.cardBody, { color: accent.fg }]}>{card.body}</Text>}
 
-                {card.kind === 'list' && (
-                  <View style={styles.list}>
-                    {card.items.map((it, j) => (
-                      <View key={j} style={styles.listRow}>
-                        <View style={[styles.check, { backgroundColor: accent.sub }]}>
-                          <Text style={[styles.checkGlyph, { color: accent.bg }]}>✓</Text>
-                        </View>
-                        <Text style={[styles.listText, { color: accent.fg }]}>{it}</Text>
-                      </View>
-                    ))}
-                  </View>
-                )}
-
-                {card.kind === 'tip' && (
-                  <Text style={[styles.tipBody, { color: accent.fg }]}>{card.body}</Text>
-                )}
-
-                {card.kind === 'shop' && (
-                  <View style={styles.shopBlock}>
-                    <Text style={[styles.shopProduct, { color: accent.fg }]}>{card.product}</Text>
-                    <TouchableOpacity
-                      style={[styles.shopBtn, { backgroundColor: accent.fg }]}
-                      onPress={() => Linking.openURL(card.link).catch(() => {})}
-                      accessibilityRole="link"
-                      accessibilityLabel={`Shop ${card.product}`}
-                    >
-                      <Text style={[styles.shopBtnText, { color: accent.bg }]}>Shop this →</Text>
-                    </TouchableOpacity>
-                  </View>
+                {/* IG-story-style link sticker */}
+                {!!card.shop && (
+                  <TouchableOpacity
+                    style={styles.sticker}
+                    activeOpacity={0.85}
+                    onPress={() => Linking.openURL(card.shop!.url).catch(() => {})}
+                    accessibilityRole="link"
+                    accessibilityLabel={card.shop.label}
+                  >
+                    <View style={[styles.stickerDot, { backgroundColor: accent.bg }]}>
+                      <Text style={[styles.stickerGlyph, { color: accent.fg }]}>↗</Text>
+                    </View>
+                    <Text style={styles.stickerText}>{card.shop.label}</Text>
+                  </TouchableOpacity>
                 )}
               </View>
             </View>
@@ -143,26 +129,6 @@ export default function ManualSwipeDeck({ chapter, category }: { chapter: string
         {deck.map((_, i) => (
           <View key={i} style={[styles.dot, i === idx && [styles.dotOn, { backgroundColor: accent.bg }]]} />
         ))}
-      </View>
-
-      {/* The full set — mini thumbnails, tap to jump */}
-      <View style={styles.thumbs}>
-        {deck.map((card, i) => {
-          const on = i === idx;
-          return (
-            <TouchableOpacity
-              key={i}
-              style={[styles.thumb, { backgroundColor: accent.bg }, on && { borderColor: '#43260F', borderWidth: 2 }]}
-              activeOpacity={0.85}
-              onPress={() => goTo(i)}
-              accessibilityRole="button"
-              accessibilityLabel={`Card ${i + 1}: ${THUMB_LABEL[card.kind]}`}
-            >
-              <Text style={[styles.thumbNum, { color: accent.fg }]}>{i + 1}</Text>
-              <Text style={[styles.thumbLabel, { color: accent.fg }]} numberOfLines={1}>{THUMB_LABEL[card.kind]}</Text>
-            </TouchableOpacity>
-          );
-        })}
       </View>
     </View>
   );
@@ -182,28 +148,21 @@ const styles = StyleSheet.create({
   cardTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   cardCount: { fontFamily: FONTS.bodyBold, fontSize: 11, letterSpacing: 1.8, opacity: 0.85 },
   bee: { width: 32, height: 32 },
-  cardTitle: { fontFamily: FONTS.headerBold, fontSize: 38, lineHeight: 40, letterSpacing: -0.8, marginTop: 16 },
-  cardSub: { fontFamily: FONTS.headerItalic, fontStyle: 'italic', fontSize: 26, lineHeight: 28, marginTop: 4 },
-  list: { marginTop: 20, gap: 13 },
-  listRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  check: { width: 24, height: 24, borderRadius: 7, alignItems: 'center', justifyContent: 'center' },
-  checkGlyph: { fontSize: 13, fontWeight: '800' },
-  listText: { flex: 1, fontFamily: FONTS.bodySemiBold, fontSize: 16, lineHeight: 21 },
-  tipBody: { fontFamily: FONTS.body, fontSize: 17, lineHeight: 25, marginTop: 18, opacity: 0.95 },
-  shopBlock: { marginTop: 20 },
-  shopProduct: { fontFamily: FONTS.bodySemiBold, fontSize: 17, lineHeight: 23, marginBottom: 16 },
-  shopBtn: { alignSelf: 'flex-start', borderRadius: 999, paddingHorizontal: 20, paddingVertical: 12 },
-  shopBtnText: { fontFamily: FONTS.bodyBold, fontSize: 15, letterSpacing: 0.2 },
+  cardTitle: { fontFamily: FONTS.headerBold, fontSize: 34, lineHeight: 37, letterSpacing: -0.7, marginTop: 16 },
+  cardSub: { fontFamily: FONTS.headerItalic, fontStyle: 'italic', fontSize: 26, lineHeight: 28, marginTop: 6 },
+  cardBody: { fontFamily: FONTS.body, fontSize: 16, lineHeight: 23, marginTop: 14, opacity: 0.96 },
+
+  // IG-story link sticker
+  sticker: {
+    alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: 9,
+    marginTop: 18, backgroundColor: 'rgba(255,255,255,0.96)', borderRadius: 13,
+    paddingLeft: 6, paddingRight: 14, paddingVertical: 6,
+  },
+  stickerDot: { width: 26, height: 26, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
+  stickerGlyph: { fontSize: 14, fontWeight: '800' },
+  stickerText: { fontFamily: FONTS.bodyBold, fontSize: 14, color: '#43260F', letterSpacing: 0.2 },
 
   dots: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 7, marginTop: 16 },
   dot: { width: 7, height: 7, borderRadius: 999, backgroundColor: 'rgba(67,38,15,0.22)' },
   dotOn: { width: 22 },
-
-  thumbs: { flexDirection: 'row', gap: 9, marginTop: 18 },
-  thumb: {
-    flex: 1, aspectRatio: 4 / 5, borderRadius: 13, padding: 9,
-    justifyContent: 'space-between', borderWidth: 1, borderColor: 'rgba(67,38,15,0.08)',
-  },
-  thumbNum: { fontFamily: FONTS.bodyBold, fontSize: 10, opacity: 0.8 },
-  thumbLabel: { fontFamily: FONTS.headerBold, fontSize: 12 },
 });
