@@ -88,7 +88,7 @@ const BABY_CHAPTERS: ChapterMeta[] = [
   { ch: 'Feed',  cat: 'feed',  bg: '#F7EBCC', fg: T.cocoa },   // light amber
   { ch: 'Grow',  cat: 'grow',  bg: '#FAE2E7', fg: T.cocoa },   // light rose
   { ch: 'Care',  cat: 'care',  bg: '#EAEDD8', fg: T.cocoa },   // light olive
-  { ch: 'Soothe', cat: 'soothe', bg: '#F4DDE6', fg: T.cocoa }, // light wine
+  // Soothe dropped 2026-06-10 — its content folded into Sleep + Care.
 ];
 
 const MOM_CHAPTERS: ChapterMeta[] = [
@@ -741,7 +741,8 @@ export default function ManualScrollV3() {
 
   // Static for the preview — wire to user progress in Phase 4.2.
   const doneCount = 2;
-  const remaining = 5 - doneCount;
+  const totalChapters = BABY_CHAPTERS.length;
+  const remaining = totalChapters - doneCount;
   const week = Math.max(1, babyProfile?.current_week_number ?? 1);
   // Manual baseline content for the selected (week, category) — drives both the
   // story deck and the below-deck modules (checklist → article → infographic).
@@ -1004,7 +1005,7 @@ export default function ManualScrollV3() {
 
         {/* Progress bar — 3px cinnamon fill */}
         <View style={styles.progressTrack}>
-          <View style={[styles.progressFill, { width: `${(doneCount / 5) * 100}%` }]} />
+          <View style={[styles.progressFill, { width: `${(doneCount / totalChapters) * 100}%` }]} />
         </View>
 
         {/* Manual / Playbook toggle — embossed parchment track.
@@ -1400,10 +1401,10 @@ export default function ManualScrollV3() {
               </Text>
               <Text style={styles.weekBannerEyebrow}>{lang === 'es' ? 'Tu semana' : 'Your week'}</Text>
             </View>
-            <Text style={styles.weekBannerCount}>{doneCount} / 5</Text>
+            <Text style={styles.weekBannerCount}>{doneCount} / {totalChapters}</Text>
           </View>
           <View style={styles.weekBannerProgress}>
-            <View style={[styles.weekBannerFill, { width: `${(doneCount / 5) * 100}%` }]} />
+            <View style={[styles.weekBannerFill, { width: `${(doneCount / totalChapters) * 100}%` }]} />
           </View>
         </View>
           </>

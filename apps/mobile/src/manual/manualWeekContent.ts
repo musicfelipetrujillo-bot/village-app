@@ -1,15 +1,19 @@
 // manualWeekContent.ts — the compact, repeatable Manual baseline.
 //
-// Ported from the Week 0 + Week 1 design kit. Every category follows the SAME
-// template so adding a new week is just filling in data:
-//   story[]  → the IG-story swipe deck (each card carries its own palette color)
+// Authored from the real pain points a new mom hits in week 0–1 (not generic
+// filler). Every category follows the SAME template so adding a week = data:
+//   story[]   → the IG-story swipe deck (each card carries its own palette color)
 //   checklist → "This week's {category}" list
-//   article  → expert Q&A (the "article/video" slot — video added sparingly later)
-//   info?    → one glanceable infographic (absent on some weeks, e.g. Week 0)
+//   article   → expert Q&A (the "article/video" slot — video added sparingly)
+//   info?     → one glanceable infographic
 //
-// Category note: Week 0 is "before baby" (hospital/sleep/feed/care/soothe — no
-// grow, plus a hospital prep set). The app's chips are sleep/feed/grow/care/
-// soothe, so getManualContent() falls back to Week 1 for anything a week lacks.
+// LINKS: every `link.url` below is a PLACEHOLDER (PLACEHOLDER_URL). The labels
+// describe the product/guide so Felipe can hand back the real brand/affiliate
+// URLs — see the "LINKS TO WIRE" list at the bottom. Swap per-link `url` then.
+//
+// Categories: Week 1 = sleep/feed/grow/care (Soothe was dropped — its content
+// folds into Sleep + Care). Week 0 = before-baby prep (hospital/sleep/feed/care);
+// it gets its own distinct pills + reachability in a follow-up.
 
 export type CardColor = 'ink' | 'rose' | 'honey' | 'caramel' | 'blush';
 export type StoryLink = { kind: 'shop' | 'learn'; label: string; url: string };
@@ -40,32 +44,36 @@ export type CategoryContent = {
   info?: Info;
 };
 
-const SHOP = 'https://villieapp.com';
+// TODO(links): replace per-link once brand/affiliate URLs are provided.
+const PLACEHOLDER_URL = 'https://villieapp.com';
+const SHOP = PLACEHOLDER_URL;
 
-// helpers to keep the data terse + consistent with the kit's cover()/close()
 const cover = (eyebrow: string, title: string, body: string): StoryCard => ({ color: 'ink', eyebrow, title, body });
 const close = (eyebrow: string, title: string, say: string, body: string): StoryCard => ({ color: 'blush', eyebrow, title, say, body });
 
 // ─────────────────────────────────────────────────────────────
-// WEEK 1 — sleep / feed / grow / care / soothe (matches the chips)
+// WEEK 1 — sleep / feed / grow / care  (the postpartum baseline)
 // ─────────────────────────────────────────────────────────────
 const WEEK_1: Record<string, CategoryContent> = {
   sleep: {
     label: 'Sleep',
     story: [
-      cover('this week', 'Sleep is\nchaos.', "newborn sleep has no schedule yet — and that's exactly right."),
-      { color: 'rose', eyebrow: 'tiny windows', title: '45 min\nawake.', say: 'then back down', body: 'newborns last only ~45–60 min before overtired. see the chart below.', link: { kind: 'learn', label: 'Spot sleepy cues', url: SHOP } },
-      { color: 'honey', eyebrow: 'day = night', title: 'Mixed-up\nclock.', say: 'it flips by ~week 6', body: 'bright + busy by day, dark + boring by night teaches baby the difference.' },
-      { color: 'caramel', eyebrow: 'still true', title: 'Bare\ncrib.', say: 'back, firm, empty', body: "safe sleep doesn't change — baby on their back, nothing else in there.", link: { kind: 'learn', label: 'Safe sleep', url: SHOP } },
-      close('keep going', 'Follow\nbaby.', 'one day at a time', "scroll for this week's sleep guide ↓"),
+      cover('this week', 'Sleep is\nsurvival.', "no schedule yet — and that's exactly right. here's what actually helps."),
+      { color: 'rose', eyebrow: 'the swaddle', title: 'Swaddle\nright.', say: 'arms up or down', body: 'snug around the chest, loose at the hips so they can bend. some babies sleep best arms-up — and some hate it. follow your baby.', link: { kind: 'shop', label: 'Easy swaddles to try', url: SHOP } },
+      { color: 'honey', eyebrow: 'safe sleep', title: 'Bare is\nbest.', say: 'back, firm, empty', body: 'baby on their back, on a firm flat surface, nothing else in there — every sleep, every time. it never changes.', link: { kind: 'learn', label: 'Safe-sleep basics', url: SHOP } },
+      { color: 'caramel', eyebrow: 'timing', title: '45-min\nwindows.', say: 'catch the cues', body: 'newborns can only stay up ~45–60 min. yawns, red eyebrows, zoning out → put them down before the overtired cry.' },
+      close('keep going', 'Drowsy,\nnot asleep.', 'let her practice', "scroll for this week's sleep guide ↓"),
     ],
     checklist: { title: "This week's sleep", items: [
-      { label: 'Swaddle for every sleep' }, { label: 'Watch sleepy cues', note: 'yawns, red eyebrows, zoning out' },
-      { label: 'Aim ~45–60 min wake windows' }, { label: 'White noise for naps too' },
-      { label: '14–17 hrs total a day is normal' }, { label: 'Room-share, not bed-share' },
+      { label: 'Swaddle for sleep', note: 'arms up or down — follow your baby' },
+      { label: 'Always on the back, firm flat surface' },
+      { label: 'Aim ~45–60 min wake windows' },
+      { label: 'Put down drowsy, not fully asleep' },
+      { label: 'White noise for naps too' },
+      { label: 'Room-share, not bed-share', note: 'first 6 months' },
     ] },
-    article: { question: 'Why is baby up all night?', emoji: '🩺', name: 'Dr. Priya Nair, MD', role: 'pediatrician · villie expert',
-      answer: "Newborns don't have a body clock yet — they truly can't tell day from night. Keep nights dark and dull; it sorts itself out by around six weeks." },
+    article: { question: 'How do I swaddle — and what if she hates it?', emoji: '🩺', name: 'Dr. Priya Nair, MD', role: 'pediatrician · villie expert',
+      answer: "Lay the blanket as a diamond, fold the top corner, one arm down and wrap snug across, then the other — tight at the chest, loose at the hips. If she fights it, try arms-up or a zip sleep sack; some babies just sleep better unswaddled, and that's completely fine." },
     info: { kind: 'wakewindows', title: 'Wake windows by age', rows: [
       { age: 'Newborn', val: '45–60 min', pct: 30, now: true }, { age: '1–2 months', val: '60–90 min', pct: 48 },
       { age: '3–4 months', val: '75–120 min', pct: 68 }, { age: '5–6 months', val: '2–2.5 hrs', pct: 88 },
@@ -75,19 +83,22 @@ const WEEK_1: Record<string, CategoryContent> = {
   feed: {
     label: 'Feed',
     story: [
-      cover('this week', 'Feed, round\nthe clock.', '8–12 feeds a day right now — yes, really that many.'),
-      { color: 'rose', eyebrow: "what's normal", title: 'Cluster\nfeeds.', say: 'exhaustion, not failure', body: 'back-to-back evening feeds build your supply. completely normal.', link: { kind: 'learn', label: 'Why so often?', url: SHOP } },
-      { color: 'honey', eyebrow: 'the real sign', title: 'Count wet\ndiapers.', say: '6+ a day by day 5', body: "diapers tell you baby's getting enough — not the ounces." },
-      { color: 'caramel', eyebrow: 'pumping?', title: 'Milk\nstorage.', say: 'the 4-4-4 rule', body: 'room temp 4 hrs · fridge 4 days · freezer 6 months. full chart below.', link: { kind: 'shop', label: 'Shop storage bags', url: SHOP } },
+      cover('this week', 'Feed, round\nthe clock.', "8–12 feeds a day. it's relentless — and it's exactly right."),
+      { color: 'rose', eyebrow: 'the latch', title: 'A deep\nlatch.', say: 'tug, not pinch', body: 'wide-open mouth, chin pressed in, more areola below than above. it should tug — not pinch. pain means break the seal and re-latch.', link: { kind: 'learn', label: 'Latch help (video)', url: SHOP } },
+      { color: 'honey', eyebrow: 'bringing milk in', title: 'Colostrum\nfirst.', say: 'tiny = enough', body: 'the first days are thick golden colostrum in drops — exactly enough for her tummy. nurse or pump 8–12× a day to bring your full supply in.', link: { kind: 'learn', label: 'Pumping 101', url: SHOP } },
+      { color: 'caramel', eyebrow: 'storing milk', title: 'Pitcher\nmethod.', say: "what's a storage bag?", body: "pool the day's pumped milk in one covered pitcher in the fridge, then portion into bottles — less washing. storage bags are pre-sterilized pouches you freeze flat to save room.", link: { kind: 'shop', label: 'Milk storage bags', url: SHOP } },
       close('keep going', "You're\nfeeding her.", "that's everything", "scroll for this week's feed guide ↓"),
     ],
     checklist: { title: "This week's feed", items: [
-      { label: '8–12 feeds per 24 hrs' }, { label: '6+ wet & 3+ dirty diapers', note: 'by day 5' },
-      { label: 'Burp after each feed' }, { label: 'Wake to feed if >4 hrs', note: 'in these early days' },
-      { label: 'Watch for a deep latch' }, { label: 'Track sides/times if it helps' },
+      { label: '8–12 feeds per 24 hrs' },
+      { label: 'Deep latch — a tug, never a pinch' },
+      { label: '6+ wet & 3+ dirty diapers', note: 'by day 5 = she’s getting enough' },
+      { label: 'Burp after every feed', note: 'upright, gentle pats between the shoulders' },
+      { label: 'Nurse/pump 8–12× to build supply', note: 'even small colostrum counts' },
+      { label: 'Never give water', note: 'breastmilk or formula only before 6 months — water is dangerous for newborns' },
     ] },
-    article: { question: 'Is baby eating enough?', emoji: '👩🏽‍⚕️', name: 'Dana Reyes, IBCLC', role: 'lactation consultant · villie expert',
-      answer: "Count wet diapers, not ounces — six or more a day by the end of week one means baby is getting plenty. That's your real reassurance." },
+    article: { question: 'Is she latched right — and getting enough?', emoji: '👩🏽‍⚕️', name: 'Dana Reyes, IBCLC', role: 'lactation consultant · villie expert',
+      answer: "A good latch tugs but doesn't pinch — wide-open mouth, chin buried in the breast. And you measure 'enough' by output, not ounces: six or more wet diapers a day by the end of week one means she's getting plenty. Count diapers, not minutes." },
     info: { kind: 'milkstorage', title: 'How long does breast milk keep?', cols: [
       { icon: 'counter', v: '4', u: 'hours', w: 'Counter' }, { icon: 'fridge', v: '4', u: 'days', w: 'Fridge' }, { icon: 'freezer', v: '6', u: 'months', w: 'Freezer' },
     ], foot: 'The easy "4-4-4" rule. Thawed milk: use within 24 hrs and never refreeze.' },
@@ -97,16 +108,21 @@ const WEEK_1: Record<string, CategoryContent> = {
     label: 'Grow',
     story: [
       cover('this week', 'Hello,\nworld.', 'baby sees ~8–12 inches — about your face at feeding distance.'),
-      { color: 'rose', eyebrow: 'tiny doses', title: 'Tummy\ntime.', say: '2–3 min, a few times', body: 'start tiny — even a minute on your chest counts as tummy time.', link: { kind: 'learn', label: 'How to start', url: SHOP } },
-      { color: 'honey', eyebrow: 'high contrast', title: 'Black &\nwhite.', say: 'easiest to see', body: 'newborns love bold contrast — cards, books, and your face most of all.', link: { kind: 'shop', label: 'Shop contrast cards', url: SHOP } },
+      { color: 'rose', eyebrow: 'tummy time', title: 'Start\ntiny.', say: '2–3 min, a few times', body: 'even a minute chest-to-chest counts. it builds the neck and shoulders and heads off a flat spot. always awake and watched.', link: { kind: 'learn', label: 'Tummy time, day one', url: SHOP } },
+      { color: 'honey', eyebrow: 'flat-head prevention', title: 'Rotate\nthe head.', say: 'switch it up', body: 'alternate which way she faces each sleep, and the arm you feed from. lots of tummy time + less time flat = a round head.' },
+      { color: 'caramel', eyebrow: 'connect', title: 'Talk &\nsing.', say: 'narrate everything', body: 'your face and voice are the best toy there is. hold her close and talk through your day — this is how language begins.', link: { kind: 'shop', label: 'High-contrast cards', url: SHOP } },
       close('keep going', 'Just\nbe near.', "you're their world", "scroll for this week's grow guide ↓"),
     ],
     checklist: { title: "This week's grow", items: [
-      { label: 'Tummy time 2–3 min', note: 'a few times a day, awake & watched' }, { label: 'Hold baby 8–12 in from your face' },
-      { label: 'Talk + sing constantly' }, { label: 'High-contrast cards' }, { label: 'Skin-to-skin daily' },
+      { label: 'Tummy time 2–3 min', note: 'a few times a day, awake & watched' },
+      { label: 'Rotate head position each sleep', note: 'prevents flat spots' },
+      { label: 'Hold baby 8–12 in from your face' },
+      { label: 'Talk + sing constantly' },
+      { label: 'Skin-to-skin daily' },
+      { label: 'Alternate the arm you feed from' },
     ] },
-    article: { question: 'Can my newborn even see me?', emoji: '👁️', name: 'Dr. Priya Nair, MD', role: 'pediatrician · villie expert',
-      answer: "At a week old, baby focuses best at about 8–12 inches — exactly the distance to your face when feeding. They're studying you more than anything else." },
+    article: { question: 'When do I start tummy time — and how much?', emoji: '🤸', name: 'Dr. Priya Nair, MD', role: 'pediatrician · villie expert',
+      answer: "Start day one — a minute or two lying on your chest counts. Build to a few short sessions a day, always awake and supervised. It's the single best thing you can do for neck strength and to prevent a flat spot." },
     info: { kind: 'milestones', title: "What's coming next", items: [
       { age: 'now', label: 'Focuses on faces', now: true }, { age: '~6 wks', label: 'First social smile' }, { age: '2 mo', label: 'Coos & gurgles' }, { age: '3 mo', label: 'Holds head up' },
     ], foot: "Every baby's timing is their own — these are typical ranges, not deadlines." },
@@ -115,112 +131,105 @@ const WEEK_1: Record<string, CategoryContent> = {
   care: {
     label: 'Care',
     story: [
-      cover('this week', 'Sponge\nbaths only.', 'until the cord stump falls off — keep it clean and dry.'),
-      { color: 'rose', eyebrow: 'cord care', title: 'Keep it\ndry.', say: 'falls off in 1–3 wks', body: 'fold the diaper below it, let it air out, and no tub baths yet.', link: { kind: 'learn', label: 'Cord care', url: SHOP } },
-      { color: 'honey', eyebrow: 'diapers', title: '10+ a\nday.', say: 'newborns go a lot', body: 'stock up — and change often to stay ahead of diaper rash.', link: { kind: 'shop', label: 'Shop newborn diapers', url: SHOP } },
+      cover('this week', 'Sponge\nbaths only.', 'until the cord falls off — keep baby clean, dry, and supported.'),
+      { color: 'rose', eyebrow: 'cord care', title: 'Keep it\ndry.', say: 'falls off in 1–3 wks', body: 'fold the diaper below the stump, let it air out, no tub baths yet. red, swollen, or smelly → call your provider.', link: { kind: 'learn', label: 'Cord care (video)', url: SHOP } },
+      { color: 'honey', eyebrow: 'holding', title: 'Support\nthe head.', say: 'every pick-up', body: "her neck can't hold yet — one hand behind the head and neck, every single time, until she lifts it herself around 3–4 months.", link: { kind: 'learn', label: 'How to hold & burp', url: SHOP } },
+      { color: 'caramel', eyebrow: 'diapers', title: '10+ a\nday.', say: 'change often', body: 'change every feed and when soiled to stay ahead of rash. pro tip: zip or magnetic onesies make 3am changes so much easier.', link: { kind: 'shop', label: 'Easy-change onesies', url: SHOP } },
       close('keep going', 'Gentle\ndoes it.', 'soft & slow', "scroll for this week's care guide ↓"),
     ],
     checklist: { title: "This week's care", items: [
-      { label: 'Sponge baths only', note: 'no tub until the cord heals' }, { label: 'Keep the cord stump dry & exposed' },
-      { label: 'Change diapers ~10× a day' }, { label: 'Fragrance-free wipes + cream' }, { label: "File nails — don't cut yet" }, { label: 'Watch for diaper rash' },
+      { label: 'Sponge baths only', note: 'no tub until the cord heals' },
+      { label: 'Keep the cord stump dry & exposed' },
+      { label: 'Support head & neck on every hold' },
+      { label: 'Change diapers ~10×/day', note: 'stay ahead of rash' },
+      { label: 'Rotate which way baby’s head faces', note: 'helps prevent a flat spot' },
+      { label: 'Zip/magnetic onesies for night changes' },
+      { label: 'Stock a diaper caddy', note: 'diapers, wipes, cream, a spare onesie' },
     ] },
-    article: { question: 'How do I care for the cord stump?', emoji: '🩹', name: 'Dr. Marcus Hill, MD', role: 'pediatrician · villie expert',
-      answer: 'Keep it dry and open to air, fold the diaper down below it, and let it fall off on its own. Call us if the surrounding skin gets red, swollen, or smelly.' },
+    article: { question: 'How do I bathe her — and care for the cord?', emoji: '🛁', name: 'Dr. Marcus Hill, MD', role: 'pediatrician · villie expert',
+      answer: "Until the cord drops off (usually 1–3 weeks), stick to sponge baths: warm room, damp cloth, wash the face and folds, pat dry. Keep the stump dry and open to air, fold the diaper below it, and let it fall off on its own. Redness, swelling, or a foul smell means call us." },
     info: { kind: 'diapercolor', title: 'Diaper decoder', cols: [
       { sw: '#2E1C0F', d: 'Day 1–2', ds: 'Black & tarry (meconium)' }, { sw: '#6E7A45', d: 'Day 3–4', ds: 'Greenish — transitioning' }, { sw: '#E3B23A', d: 'Day 5+', ds: 'Yellow & seedy — normal' },
     ], foot: 'Red, white, or chalky-grey? Snap a photo and call your provider.' },
   },
-
-  soothe: {
-    label: 'Soothe',
-    story: [
-      cover('this week', 'The witching\nhour.', 'evening fussiness is real — and it peaks around six weeks.'),
-      { color: 'rose', eyebrow: 'the magic', title: "5 S's,\non repeat.", say: 'swaddle · shush · sway', body: 'stack them together — swaddle, side, shush, swing, suck.', link: { kind: 'learn', label: "The 5 S's", url: SHOP } },
-      { color: 'honey', eyebrow: "it's ok", title: 'Contact\nnaps.', say: 'baby just wants you', body: "being held to sleep is normal newborn stuff — not a habit you're breaking.", link: { kind: 'shop', label: 'Shop a wrap', url: SHOP } },
-      close('keep going', 'This\npasses.', "you're doing great", "scroll for this week's soothe guide ↓"),
-    ],
-    checklist: { title: "This week's soothe", items: [
-      { label: 'Swaddle + white noise + motion' }, { label: 'Offer a pacifier' }, { label: 'Wear baby in the evenings' },
-      { label: 'Check basics first', note: 'hunger, diaper, temperature' }, { label: 'Tag-team with a partner' }, { label: "It's ok to put baby down safely & breathe" },
-    ] },
-    article: { question: 'Why does baby cry every evening?', emoji: '🍼', name: 'Dr. Priya Nair, MD', role: 'pediatrician · villie expert',
-      answer: "Evening fussiness peaks around six weeks and then fades — it's normal newborn crying, not something you caused. Run the 5 S's, and tap out when you need to." },
-    info: { kind: 'fives', title: "The 5 S's", items: ['Swaddle', 'Side', 'Shush', 'Swing', 'Suck'], foot: 'Stack them together — most newborns calm within minutes.' },
-  },
 };
 
 // ─────────────────────────────────────────────────────────────
-// WEEK 0 — before baby (hospital/sleep/feed/care/soothe; no infographics)
+// WEEK 0 — before baby (prep). Distinct pills + reachability TBD;
+// kept here so the data exists. (Soothe removed.)
 // ─────────────────────────────────────────────────────────────
 const WEEK_0: Record<string, CategoryContent> = {
+  hospital: {
+    label: 'Hospital',
+    story: [
+      cover('before baby', 'Before baby\narrives.', 'the week-0 must-dos: pack the bag, install the seat, prep your kit.'),
+      { color: 'rose', eyebrow: 'by week 36', title: 'Hospital\nbag.', say: 'packed & by the door', body: "have it ready weeks early — babies don't read calendars. the short list moms actually use is below.", link: { kind: 'learn', label: 'What to pack (video)', url: SHOP } },
+      { color: 'honey', eyebrow: 'do it early', title: 'Car\nseat.', say: 'installed + checked', body: 'install by week 36 — most seats are put in wrong the first time. many fire stations inspect it free.', link: { kind: 'learn', label: 'Car-seat install (video)', url: SHOP } },
+      { color: 'caramel', eyebrow: 'for you, mama', title: 'Postpartum\nkit.', say: 'recovery at home', body: 'pads, peri bottle, witch-hazel, comfy high-waist undies, stool softener — set up your recovery before you need it.', link: { kind: 'shop', label: 'Postpartum recovery kit', url: SHOP } },
+      close('ready', "You're set,\nmama.", 'deep breath', 'scroll for the full prep list ↓'),
+    ],
+    checklist: { title: 'Hospital bag & go-home', items: [
+      { label: 'Robe + 2 nursing bras' }, { label: 'Going-home outfit', note: "loose, comfy — you'll still look pregnant" },
+      { label: 'Toiletries + lip balm' }, { label: 'Long phone charger', note: 'hospital outlets are never close' },
+      { label: 'Snacks + refillable water' }, { label: "Baby's coming-home outfit + hat" },
+      { label: 'Car seat — installed & inspected', note: 'by week 36' }, { label: 'Insurance card + photo ID' },
+      { label: 'Postpartum kit for home', note: 'pads, peri bottle, witch-hazel, stool softener' },
+    ] },
+    article: { question: 'When do I install the car seat?', emoji: '🚗', name: 'Officer Maya Cole', role: 'certified car-seat technician',
+      answer: 'Install and get your seat checked by week 36 — most are installed wrong the first time, and many fire stations and hospitals inspect them free. Do it before discharge, not in the parking lot.' },
+  },
+
   sleep: {
     label: 'Sleep',
     story: [
       cover('before baby', 'Sleep,\nready.', "the safe-sleep setup, before baby's first night."),
-      { color: 'rose', eyebrow: 'safest is simple', title: 'Bare is\nbest.', say: 'firm, flat, empty', body: 'a breathable mattress, a fitted sheet, and nothing else in the crib.', link: { kind: 'learn', label: 'Safe sleep 101', url: SHOP } },
-      { color: 'honey', eyebrow: "you'll want these", title: 'Swaddles\n×3–5.', say: 'what are these?', body: "snug wraps that calm baby's startle reflex and stretch sleep.", link: { kind: 'learn', label: "What's a swaddle?", url: SHOP } },
-      { color: 'caramel', eyebrow: 'peace of mind', title: 'Monitor.', say: 'see & hear baby', body: 'a camera or audio monitor so you can actually rest, too.', link: { kind: 'shop', label: 'Shop monitors', url: SHOP } },
+      { color: 'rose', eyebrow: 'safest is simple', title: 'Bare is\nbest.', say: 'firm, flat, empty', body: 'a breathable mattress, a fitted sheet, and nothing else in the crib or bassinet.', link: { kind: 'learn', label: 'Safe sleep 101', url: SHOP } },
+      { color: 'honey', eyebrow: "you'll want these", title: 'Swaddles\n×3–5.', say: "what's a swaddle?", body: "snug wraps that calm the startle reflex and stretch sleep. get a few — newborns blow through them.", link: { kind: 'shop', label: 'Starter swaddles', url: SHOP } },
+      { color: 'caramel', eyebrow: 'peace of mind', title: 'White noise\n+ monitor.', say: 'rest, too', body: 'steady white noise mimics the womb; a monitor lets you actually sleep when baby does.', link: { kind: 'shop', label: 'Sleep essentials', url: SHOP } },
       close('ready', 'Rest\neasy.', "nursery's ready", 'scroll for the full sleep list ↓'),
     ],
     checklist: { title: 'Sleep setup', items: [
       { label: 'Bassinet or crib + breathable mattress' }, { label: '2–3 fitted sheets' }, { label: '3–5 swaddles' },
-      { label: 'Sleep sacks', note: 'for later — not the newborn days' }, { label: 'White noise machine' }, { label: 'Baby monitor / camera' }, { label: 'Blackout curtains' },
+      { label: 'White noise machine' }, { label: 'Baby monitor / camera' }, { label: 'Blackout curtains' },
     ] },
     article: { question: "What's actually safe in the crib?", emoji: '🩺', name: 'Dr. Priya Nair, MD', role: 'pediatrician · villie expert',
-      answer: 'For the first year, baby sleeps safest alone, on their back, on a firm flat surface — no bumpers, blankets, or stuffed animals.' },
+      answer: 'For the first year: baby alone, on their back, on a firm flat surface — no bumpers, blankets, pillows, or stuffed animals. A sleep sack instead of a loose blanket once they outgrow the swaddle.' },
   },
 
   feed: {
     label: 'Feed',
     story: [
       cover('before baby', 'Feed,\nprepped.', 'ready for breast, bottle, or both — whatever happens.'),
-      { color: 'rose', eyebrow: 'even if breastfeeding', title: 'Have bottles\nready.', say: 'plans change', body: 'feeding rarely goes exactly to plan; a few bottles take the panic out.', link: { kind: 'learn', label: "Why, if I'm nursing?", url: SHOP } },
-      { color: 'honey', eyebrow: 'if breastfeeding', title: 'Nipple-like\nbottles.', say: 'ease the switch', body: 'wide, slow-flow nipples help breastfed babies move back and forth.', link: { kind: 'shop', label: 'Shop these bottles', url: SHOP } },
-      { color: 'caramel', eyebrow: 'for the leaks', title: 'Nursing\npads.', say: 'washable + disposable', body: 'your milk comes in fast — pads save every shirt you own.', link: { kind: 'shop', label: 'Shop nursing pads', url: SHOP } },
+      { color: 'rose', eyebrow: 'even if nursing', title: 'Have bottles\nready.', say: 'plans change', body: 'latch trouble, low supply, a NICU stay — a few bottles mean a hard night never becomes an emergency.', link: { kind: 'shop', label: 'Starter bottles', url: SHOP } },
+      { color: 'honey', eyebrow: 'bring milk in', title: 'Pump +\npads.', say: 'colostrum first', body: 'a pump helps establish supply (8–12×/day); leak pads save every shirt once your milk comes in.', link: { kind: 'shop', label: 'Pump + leak pads', url: SHOP } },
+      { color: 'caramel', eyebrow: 'storing milk', title: 'Storage\nbags.', say: 'even if you don’t overproduce', body: "pre-sterilized pouches that freeze flat — handy for any pumped milk, not just a big stash. pair with the pitcher method.", link: { kind: 'shop', label: 'Milk storage bags', url: SHOP } },
       close('ready', 'Ready\neither way.', "you've got options", 'scroll for the full feed list ↓'),
     ],
     checklist: { title: 'Feed setup', items: [
       { label: '3–4 bottles', note: 'wide neck, slow-flow nipple' }, { label: 'Bottle brush + drying rack' }, { label: 'Bottle washer / sterilizer' },
-      { label: 'Nursing or milk pads', note: 'washable + disposable' }, { label: 'Burp cloths ×10' }, { label: 'Nursing pillow' },
-      { label: 'Breast pump', note: 'check your insurance first' }, { label: 'Milk storage bags' }, { label: 'Small pack of formula', note: 'just in case' },
+      { label: 'Breast pump', note: 'check your insurance first — often free' }, { label: 'Milk storage bags' }, { label: 'Nursing / leak pads', note: 'washable + disposable' },
+      { label: 'Burp cloths ×10' }, { label: 'Nursing pillow' }, { label: 'Small pack of formula', note: 'just in case' },
     ] },
-    article: { question: "Bottles even if I'm breastfeeding?", emoji: '👩🏽‍⚕️', name: 'Dana Reyes, IBCLC', role: 'lactation consultant · villie expert',
-      answer: "Yes — have a few bottles and a small pack of formula on hand. Feeding doesn't always go to plan, and being ready takes the panic out of those first hard nights." },
+    article: { question: 'How often should I pump to bring milk in?', emoji: '👩🏽‍⚕️', name: 'Dana Reyes, IBCLC', role: 'lactation consultant · villie expert',
+      answer: 'In the early days, empty the breast 8–12 times in 24 hours — that frequency is the signal that builds your supply. Those first drops are colostrum; tiny amounts are exactly right. Have storage bags ready for whatever you pump.' },
   },
 
   care: {
     label: 'Care',
     story: [
-      cover('before baby', 'Care,\nset up.', 'bath station, grooming kit, gentle everything.'),
-      { color: 'rose', eyebrow: 'bath night', title: 'Tub +\ntowels.', say: 'two hooded towels', body: 'a baby tub and soft hooded towels make first baths calm, not chaos.', link: { kind: 'shop', label: 'Shop bath set', url: SHOP } },
-      { color: 'honey', eyebrow: 'newborn skin', title: 'Fragrance-\nfree.', say: 'wash + lotion', body: 'newborn skin is thin and reactive — skip the fragrance and dyes.', link: { kind: 'learn', label: 'Why fragrance-free?', url: SHOP } },
-      { color: 'caramel', eyebrow: 'wash before', title: 'Gentle\ndetergent.', say: 'free & clear', body: 'wash all clothes, swaddles & sheets before baby comes home.', link: { kind: 'shop', label: 'Shop detergent', url: SHOP } },
+      cover('before baby', 'Care,\nset up.', 'bath station, diaper caddy, gentle everything.'),
+      { color: 'rose', eyebrow: 'bath night', title: 'Tub +\ntowels.', say: 'two hooded towels', body: 'a contoured newborn tub and soft hooded towels make first baths calm, not chaos.', link: { kind: 'shop', label: 'Newborn bath set', url: SHOP } },
+      { color: 'honey', eyebrow: 'night changes', title: 'Easy\nonesies.', say: 'zip or open-bottom', body: "skip the over-the-head snaps — zip or magnetic onesies and open-bottom gowns make 3am diaper changes painless.", link: { kind: 'shop', label: 'Easy-change onesies', url: SHOP } },
+      { color: 'caramel', eyebrow: 'stock the caddy', title: 'Diaper\ncaddy.', say: 'one on each floor', body: 'diapers, wipes, cream, a spare onesie, burp cloth — a stocked caddy means you never get caught mid-blowout.', link: { kind: 'shop', label: 'Diaper caddy essentials', url: SHOP } },
       close('ready', 'All\nset.', "nursery's clean", 'scroll for the full care list ↓'),
     ],
     checklist: { title: 'Care & bath setup', items: [
-      { label: 'Baby bathtub' }, { label: '2–3 hooded towels' }, { label: 'Fragrance-free baby wash' }, { label: 'Fragrance-free lotion' },
-      { label: 'Free & clear laundry detergent' }, { label: 'Nail file + clippers' }, { label: 'Digital thermometer' },
-      { label: 'Diapers', note: 'newborn + size 1' }, { label: 'Wipes + diaper cream' }, { label: 'Soft washcloths' },
+      { label: 'Baby bathtub + 2 hooded towels' }, { label: 'Fragrance-free baby wash + lotion' }, { label: 'Free & clear laundry detergent', note: 'wash everything before baby comes home' },
+      { label: 'Nail file + clippers' }, { label: 'Digital thermometer' }, { label: 'Diapers', note: 'newborn + size 1' },
+      { label: 'Wipes + diaper cream' }, { label: 'Easy-change onesies', note: 'zip / magnetic / open-bottom' }, { label: 'Diaper caddy', note: 'stocked, one per floor' },
     ] },
-    article: { question: 'Do I really need special detergent?', emoji: '🧴', name: 'Dr. Lena Ortiz', role: 'pediatric dermatologist',
-      answer: 'Wash everything that touches baby — clothes, swaddles, sheets — in a fragrance- and dye-free detergent before they arrive. It heads off most newborn skin irritation.' },
-  },
-
-  soothe: {
-    label: 'Soothe',
-    story: [
-      cover('before baby', 'Soothe,\nready.', 'everything you need to settle a fussy newborn.'),
-      { color: 'rose', eyebrow: 'the magic', title: 'The\n5 S’s.', say: 'swaddle · side · shush · swing · suck', body: 'five moves that recreate the womb and calm almost any baby.', link: { kind: 'learn', label: "The 5 S's", url: SHOP } },
-      { color: 'honey', eyebrow: 'for fussy nights', title: 'Pacifiers\n×2.', say: 'try a couple shapes', body: 'not every baby likes the same one — have a few options ready.', link: { kind: 'shop', label: 'Shop pacifiers', url: SHOP } },
-      { color: 'caramel', eyebrow: 'contact naps', title: 'Carrier\nor wrap.', say: 'hands free, baby close', body: 'wear baby to soothe — and still get a moment for yourself.', link: { kind: 'shop', label: 'Shop carriers', url: SHOP } },
-      close('ready', 'Calm,\ncovered.', "you've got tools", 'scroll for the full soothe list ↓'),
-    ],
-    checklist: { title: 'Soothe kit', items: [
-      { label: 'Pacifiers', note: '2 shapes to test' }, { label: 'Baby carrier or wrap' }, { label: 'Swaddles', note: 'shared with Sleep' },
-      { label: 'White noise machine', note: 'shared with Sleep' }, { label: 'Swing or bouncer', note: 'optional' }, { label: 'Gripe water / gas drops', note: 'ask your pediatrician' },
-    ] },
-    article: { question: 'How do I calm a crying newborn?', emoji: '🍼', name: 'Dr. Priya Nair, MD', role: 'pediatrician · villie expert',
-      answer: 'Babies settle fastest with rhythm — motion, white noise, and snugness recreate the womb. When in doubt: swaddle, sway, and shush.' },
+    article: { question: 'What makes night diaper changes easier?', emoji: '🧴', name: 'Dr. Lena Ortiz', role: 'pediatric dermatologist',
+      answer: 'Choose zip, magnetic, or open-bottom onesies so you never have to pull anything over a sleepy baby’s head, and keep a fully stocked diaper caddy within arm’s reach. And wash everything that touches baby in a fragrance- and dye-free detergent first.' },
   },
 };
 
@@ -229,9 +238,29 @@ const WEEKS: Record<number, Record<string, CategoryContent>> = { 0: WEEK_0, 1: W
 /**
  * Resolve the Manual content for a given week + category. Falls back to the
  * nearest seeded week (Week 1 is the canonical baseline), then to Week 1's
- * version of the category, so the app's fixed chips always render something.
+ * version of the category, so the app's chips always render something.
  */
 export function getManualContent(week: number, category: string): CategoryContent | null {
   const w = WEEKS[week] ?? WEEKS[1];
   return w?.[category] ?? WEEK_1[category] ?? WEEK_0[category] ?? null;
 }
+
+/*
+LINKS TO WIRE (send me the brand/affiliate URL for each; I'll swap the per-link `url`):
+  WEEK 1
+    sleep  · "Easy swaddles to try"      (swaddle brand)
+    sleep  · "Safe-sleep basics"         (guide/video)
+    feed   · "Latch help (video)"        (guide/video)
+    feed   · "Pumping 101"               (guide/video)
+    feed   · "Milk storage bags"         (storage-bag brand)
+    grow   · "Tummy time, day one"       (guide/video)
+    grow   · "High-contrast cards"       (brand)
+    care   · "Cord care (video)"         (guide/video)
+    care   · "How to hold & burp"        (guide/video)
+    care   · "Easy-change onesies"       (onesie brand — zip/magnetic)
+  WEEK 0
+    hospital · "What to pack (video)", "Car-seat install (video)", "Postpartum recovery kit"
+    sleep    · "Safe sleep 101", "Starter swaddles", "Sleep essentials"
+    feed     · "Starter bottles", "Pump + leak pads", "Milk storage bags"
+    care     · "Newborn bath set", "Easy-change onesies", "Diaper caddy essentials"
+*/
