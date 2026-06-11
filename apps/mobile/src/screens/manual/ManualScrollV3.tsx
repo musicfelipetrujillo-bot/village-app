@@ -40,6 +40,7 @@ import { useT } from '@/i18n';
 import { useUserStore } from '@store/user';
 import { useHomeStore } from '@store/home';
 import { homeApi } from '@/api/home';
+import ManualSwipeDeck from '@/components/manual/ManualSwipeDeck';
 import {
   MenuButton, MenuPanel, MenuGroup, MenuItem, MENU_ICONS,
 } from '@components/shared/HamburgerMenu';
@@ -731,15 +732,10 @@ export default function ManualScrollV3() {
   // Manual ↔ Playbook ↔ Manual lands them back where they were.
   const switchView = (next: ManualView) => setView(next);
 
-  // Tap-to-jump: chip click sets selected chapter (and could scroll
-  // band into view; deferred). Tap chapter band to open full chapter
-  // screen (existing ManualCategoryScreen).
+  // Chip click selects the chapter; the swipe deck below re-keys to it.
+  // (Tap-to-open-chapter → ManualCategory was removed 2026-06-10 in favor of
+  // the inline Stories-style ManualSwipeDeck.)
   const switchChapter = (next: ChapterMeta) => setChapter(next);
-  const openSelectedChapter = () => {
-    navigation.navigate('ManualCategory' as never, {
-      audience: who, category: chapter.cat, label: chapter.ch,
-    } as never);
-  };
 
   // Static for the preview — wire to user progress in Phase 4.2.
   const doneCount = 2;
@@ -1360,51 +1356,13 @@ export default function ManualScrollV3() {
           </View>
         </View>
 
-        {/* COLORED CHAPTER BAND — full-width identity surface with depth.
-            Re-promoted to lead position 2026-05-29 per Felipe — the chapter
-            band sets the editorial context for the page; "Tonight's plan"
-            sits below as the actionable beat.
-            Three-layer lift recipe (Felipe: "more depth, looks paper thin"):
-            1. Inner top highlight gradient — light from above
-            2. Cocoa-tinted floating shadow — band hovers off the page
-            3. Hairline cocoa edge at top + bottom — band has thickness */}
-        <View style={styles.chapterBandShadowWrap} pointerEvents="box-none">
-          <TouchableOpacity
-            activeOpacity={0.92}
-            onPress={openSelectedChapter}
-            style={[styles.chapterBand, { backgroundColor: chapter.bg }]}
-          >
-          {/* Top warm-paper highlight — "light hitting it from above" */}
-          <LinearGradient
-            colors={['rgba(253,251,246,0.38)', 'rgba(253,251,246,0)']}
-            start={{ x: 0, y: 0 }} end={{ x: 0, y: 0.55 }}
-            style={StyleSheet.absoluteFillObject}
-            pointerEvents="none"
-          />
-          {/* iOS-26 wet-glass sheen — same recipe as the daily check-in
-              card so the band reads with the same immersive depth, not
-              flat color slab. */}
-          <GlassHighlight radius={0} height={14} />
-          {/* Bottom inner shadow — subtle inset so the lower edge has weight */}
-          <LinearGradient
-            colors={['rgba(61,31,14,0)', 'rgba(61,31,14,0.12)']}
-            start={{ x: 0, y: 0.7 }} end={{ x: 0, y: 1 }}
-            style={StyleSheet.absoluteFillObject}
-            pointerEvents="none"
-          />
-          <Eyebrow color={T.cocoa}>
-            {chapter.ch} · {lang === 'es' ? `semana ${week} de 52` : `week ${week} of 52`}
-          </Eyebrow>
-          <Text style={styles.bandHeadline}>
-            {chapter.ch}<Text style={styles.bandHeadlineDot}>.</Text>
-          </Text>
-          <Text style={styles.bandSub}>{CHAPTER_INTRO[chapter.ch] ?? ''}</Text>
-          <View style={styles.bandCta}>
-            <Text style={styles.bandCtaText}>
-              {lang === 'es' ? 'Abrir capítulo' : 'Open chapter'} →
-            </Text>
-          </View>
-          </TouchableOpacity>
+        {/* SWIPE DECK — replaces the old tap-to-open chapter band. The user
+            swipes through a short Stories-style deck for the selected chapter
+            instead of navigating into a separate screen. Keyed by category so
+            it resets to card 1 when the chapter chip changes.
+            (Design-samples-first: card content is illustrative for now.) */}
+        <View style={{ paddingHorizontal: 20 }}>
+          <ManualSwipeDeck key={chapter.cat} chapter={chapter.ch} category={chapter.cat} />
         </View>
 
         {/* TONIGHT'S PLAN CHECKLIST — sits below the chapter band so the
@@ -1494,9 +1452,9 @@ export default function ManualScrollV3() {
                     ? (lang === 'es' ? 'Visto' : 'Watched')
                     : p.expert)
                 : p.expert;
-              const onPress = real
-                ? () => openVideo(real)
-                : openSelectedChapter;
+              // Real clip → play it; otherwise non-pressable (the old
+              // tap-to-open-chapter fallback was removed with the swipe deck).
+              const onPress = real ? () => openVideo(real) : undefined;
               return (
                 <View key={`${chapter.ch}-${i}`} style={styles.pieceVideoWrap}>
                   <PieceLabel kind="video" num={p.num} />
