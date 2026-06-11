@@ -52,6 +52,8 @@ const SHOP = PLACEHOLDER_URL;
 // Stripped the ad-click tracking (gclid/utm/gbraid) — those are session-specific.
 const KYTE_SWADDLE = 'https://kytebaby.com/products/swaddle-bag-in-silly-goose-0-5?variant=43190058025071';
 const HATCH_SOUND = 'https://www.target.com/p/hatch-baby-sleep-bundle-home-38-travel-sound-machines-includes-hatch-baby-and-portable-hatch-go-putty/-/A-94909740';
+const MOMCOZY_BAGS = 'https://www.amazon.com/dp/B09R4PVYG8'; // add Amazon Associates tag (?tag=…) once enrolled
+const CARTERS_GOWN = 'https://www.carters.com/p/baby-2-pack-constellation-purelysoft-sleeper-gowns-yellow-cream/197233775093';
 
 const cover = (eyebrow: string, title: string, body: string): StoryCard => ({ color: 'ink', eyebrow, title, body });
 const close = (eyebrow: string, title: string, say: string, body: string): StoryCard => ({ color: 'blush', eyebrow, title, say, body });
@@ -92,7 +94,7 @@ const WEEK_1: Record<string, CategoryContent> = {
       cover('this week', 'Feed, round\nthe clock.', "8–12 feeds a day. it's relentless — and it's exactly right."),
       { color: 'rose', eyebrow: 'the latch', title: 'A deep\nlatch.', say: 'tug, not pinch', body: 'wide-open mouth, chin pressed in, more areola below than above. it should tug — not pinch. pain means break the seal and re-latch.', link: { kind: 'learn', label: 'Latch help (video)', url: SHOP } },
       { color: 'honey', eyebrow: 'bringing milk in', title: 'Colostrum\nfirst.', say: 'tiny = enough', body: 'the first days are thick golden colostrum in drops — exactly enough for her tummy. nurse or pump 8–12× a day to bring your full supply in.', link: { kind: 'learn', label: 'Pumping 101', url: SHOP } },
-      { color: 'caramel', eyebrow: 'storing milk', title: 'Pitcher\nmethod.', say: "what's a storage bag?", body: "pool the day's pumped milk in one covered pitcher in the fridge, then portion into bottles — less washing. storage bags are pre-sterilized pouches you freeze flat to save room.", link: { kind: 'shop', label: 'Milk storage bags', url: SHOP } },
+      { color: 'caramel', eyebrow: 'storing milk', title: 'Pitcher\nmethod.', say: "what's a storage bag?", body: "pool the day's pumped milk in one covered pitcher in the fridge, then portion into bottles — less washing. storage bags are pre-sterilized pouches you freeze flat to save room.", link: { kind: 'shop', label: 'Milk storage bags', url: MOMCOZY_BAGS } },
       close('keep going', "You're\nfeeding her.", "that's everything", "scroll for this week's feed guide ↓"),
     ],
     checklist: { title: "This week's feed", items: [
@@ -140,7 +142,7 @@ const WEEK_1: Record<string, CategoryContent> = {
       cover('this week', 'Sponge\nbaths only.', 'until the cord falls off — keep baby clean, dry, and supported.'),
       { color: 'rose', eyebrow: 'cord care', title: 'Keep it\ndry.', say: 'falls off in 1–3 wks', body: 'fold the diaper below the stump, let it air out, no tub baths yet. red, swollen, or smelly → call your provider.', link: { kind: 'learn', label: 'Cord care (video)', url: SHOP } },
       { color: 'honey', eyebrow: 'holding', title: 'Support\nthe head.', say: 'every pick-up', body: "her neck can't hold yet — one hand behind the head and neck, every single time, until she lifts it herself around 3–4 months.", link: { kind: 'learn', label: 'How to hold & burp', url: SHOP } },
-      { color: 'caramel', eyebrow: 'diapers', title: '10+ a\nday.', say: 'change often', body: 'change every feed and when soiled to stay ahead of rash. pro tip: zip or magnetic onesies make 3am changes so much easier.', link: { kind: 'shop', label: 'Easy-change onesies', url: SHOP } },
+      { color: 'caramel', eyebrow: 'diapers', title: '10+ a\nday.', say: 'change often', body: 'change every feed and when soiled to stay ahead of rash. pro tip: zip or magnetic onesies make 3am changes so much easier.', link: { kind: 'shop', label: 'Easy-change onesies', url: CARTERS_GOWN } },
       close('keep going', 'Gentle\ndoes it.', 'soft & slow', "scroll for this week's care guide ↓"),
     ],
     checklist: { title: "This week's care", items: [
@@ -208,7 +210,7 @@ const WEEK_0: Record<string, CategoryContent> = {
       cover('before baby', 'Feed,\nprepped.', 'ready for breast, bottle, or both — whatever happens.'),
       { color: 'rose', eyebrow: 'even if nursing', title: 'Have bottles\nready.', say: 'plans change', body: 'latch trouble, low supply, a NICU stay — a few bottles mean a hard night never becomes an emergency.', link: { kind: 'shop', label: 'Starter bottles', url: SHOP } },
       { color: 'honey', eyebrow: 'bring milk in', title: 'Pump +\npads.', say: 'colostrum first', body: 'a pump helps establish supply (8–12×/day); leak pads save every shirt once your milk comes in.', link: { kind: 'shop', label: 'Pump + leak pads', url: SHOP } },
-      { color: 'caramel', eyebrow: 'storing milk', title: 'Storage\nbags.', say: 'even if you don’t overproduce', body: "pre-sterilized pouches that freeze flat — handy for any pumped milk, not just a big stash. pair with the pitcher method.", link: { kind: 'shop', label: 'Milk storage bags', url: SHOP } },
+      { color: 'caramel', eyebrow: 'storing milk', title: 'Storage\nbags.', say: 'even if you don’t overproduce', body: "pre-sterilized pouches that freeze flat — handy for any pumped milk, not just a big stash. pair with the pitcher method.", link: { kind: 'shop', label: 'Milk storage bags', url: MOMCOZY_BAGS } },
       close('ready', 'Ready\neither way.', "you've got options", 'scroll for the full feed list ↓'),
     ],
     checklist: { title: 'Feed setup', items: [
@@ -225,7 +227,7 @@ const WEEK_0: Record<string, CategoryContent> = {
     story: [
       cover('before baby', 'Care,\nset up.', 'bath station, diaper caddy, gentle everything.'),
       { color: 'rose', eyebrow: 'bath night', title: 'Tub +\ntowels.', say: 'two hooded towels', body: 'a contoured newborn tub and soft hooded towels make first baths calm, not chaos.', link: { kind: 'shop', label: 'Newborn bath set', url: SHOP } },
-      { color: 'honey', eyebrow: 'night changes', title: 'Easy\nonesies.', say: 'zip or open-bottom', body: "skip the over-the-head snaps — zip or magnetic onesies and open-bottom gowns make 3am diaper changes painless.", link: { kind: 'shop', label: 'Easy-change onesies', url: SHOP } },
+      { color: 'honey', eyebrow: 'night changes', title: 'Easy\nonesies.', say: 'zip or open-bottom', body: "skip the over-the-head snaps — zip or magnetic onesies and open-bottom gowns make 3am diaper changes painless.", link: { kind: 'shop', label: 'Easy-change onesies', url: CARTERS_GOWN } },
       { color: 'caramel', eyebrow: 'stock the caddy', title: 'Diaper\ncaddy.', say: 'one on each floor', body: 'diapers, wipes, cream, a spare onesie, burp cloth — a stocked caddy means you never get caught mid-blowout.', link: { kind: 'shop', label: 'Diaper caddy essentials', url: SHOP } },
       close('ready', 'All\nset.', "nursery's clean", 'scroll for the full care list ↓'),
     ],
