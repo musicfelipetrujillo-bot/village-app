@@ -54,6 +54,8 @@ const KYTE_SWADDLE = 'https://kytebaby.com/products/swaddle-bag-in-silly-goose-0
 const HATCH_SOUND = 'https://www.target.com/p/hatch-baby-sleep-bundle-home-38-travel-sound-machines-includes-hatch-baby-and-portable-hatch-go-putty/-/A-94909740';
 const MOMCOZY_BAGS = 'https://www.amazon.com/dp/B09R4PVYG8'; // add Amazon Associates tag (?tag=…) once enrolled
 const CARTERS_GOWN = 'https://www.carters.com/p/baby-2-pack-constellation-purelysoft-sleeper-gowns-yellow-cream/197233775093';
+const CONTRAST_CARDS = 'https://www.amazon.com/dp/B0DHH7LGZT'; // high-contrast books + tummy-time mirror
+const FRIDA_POSTPARTUM = 'https://www.amazon.com/dp/B0CZSD8YZV'; // Frida Mom postpartum essentials kit
 
 const cover = (eyebrow: string, title: string, body: string): StoryCard => ({ color: 'ink', eyebrow, title, body });
 const close = (eyebrow: string, title: string, say: string, body: string): StoryCard => ({ color: 'blush', eyebrow, title, say, body });
@@ -118,7 +120,7 @@ const WEEK_1: Record<string, CategoryContent> = {
       cover('this week', 'Hello,\nworld.', 'baby sees ~8–12 inches — about your face at feeding distance.'),
       { color: 'rose', eyebrow: 'tummy time', title: 'Start\ntiny.', say: '2–3 min, a few times', body: 'even a minute chest-to-chest counts. it builds the neck and shoulders and heads off a flat spot. always awake and watched.', link: { kind: 'learn', label: 'Tummy time, day one', url: SHOP } },
       { color: 'honey', eyebrow: 'flat-head prevention', title: 'Rotate\nthe head.', say: 'switch it up', body: 'alternate which way she faces each sleep, and the arm you feed from. lots of tummy time + less time flat = a round head.' },
-      { color: 'caramel', eyebrow: 'connect', title: 'Talk &\nsing.', say: 'narrate everything', body: 'your face and voice are the best toy there is. hold her close and talk through your day — this is how language begins.', link: { kind: 'shop', label: 'High-contrast cards', url: SHOP } },
+      { color: 'caramel', eyebrow: 'connect', title: 'Talk &\nsing.', say: 'narrate everything', body: 'your face and voice are the best toy there is. hold her close and talk through your day — this is how language begins.', link: { kind: 'shop', label: 'High-contrast cards', url: CONTRAST_CARDS } },
       close('keep going', 'Just\nbe near.', "you're their world", "scroll for this week's grow guide ↓"),
     ],
     checklist: { title: "This week's grow", items: [
@@ -173,7 +175,7 @@ const WEEK_0: Record<string, CategoryContent> = {
       cover('before baby', 'Before baby\narrives.', 'the week-0 must-dos: pack the bag, install the seat, prep your kit.'),
       { color: 'rose', eyebrow: 'by week 36', title: 'Hospital\nbag.', say: 'packed & by the door', body: "have it ready weeks early — babies don't read calendars. the short list moms actually use is below.", link: { kind: 'learn', label: 'What to pack (video)', url: SHOP } },
       { color: 'honey', eyebrow: 'do it early', title: 'Car\nseat.', say: 'installed + checked', body: 'install by week 36 — most seats are put in wrong the first time. many fire stations inspect it free.', link: { kind: 'learn', label: 'Car-seat install (video)', url: SHOP } },
-      { color: 'caramel', eyebrow: 'for you, mama', title: 'Postpartum\nkit.', say: 'recovery at home', body: 'pads, peri bottle, witch-hazel, comfy high-waist undies, stool softener — set up your recovery before you need it.', link: { kind: 'shop', label: 'Postpartum recovery kit', url: SHOP } },
+      { color: 'caramel', eyebrow: 'for you, mama', title: 'Postpartum\nkit.', say: 'recovery at home', body: 'pads, peri bottle, witch-hazel, comfy high-waist undies, stool softener — set up your recovery before you need it.', link: { kind: 'shop', label: 'Postpartum recovery kit', url: FRIDA_POSTPARTUM } },
       close('ready', "You're set,\nmama.", 'deep breath', 'scroll for the full prep list ↓'),
     ],
     checklist: { title: 'Hospital bag & go-home', items: [
