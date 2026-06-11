@@ -57,7 +57,7 @@ const CARTERS_GOWN = 'https://www.carters.com/p/baby-2-pack-constellation-purely
 const CONTRAST_CARDS = 'https://www.amazon.com/dp/B0DHH7LGZT'; // high-contrast books + tummy-time mirror
 const FRIDA_POSTPARTUM = 'https://www.amazon.com/dp/B0CZSD8YZV'; // Frida Mom postpartum essentials kit
 
-const cover = (eyebrow: string, title: string, body: string): StoryCard => ({ color: 'blush', eyebrow, title, body });
+const cover = (eyebrow: string, title: string, say: string, body: string): StoryCard => ({ color: 'blush', eyebrow, title, say, body });
 const close = (eyebrow: string, title: string, say: string, body: string): StoryCard => ({ color: 'blush', eyebrow, title, say, body });
 
 // ─────────────────────────────────────────────────────────────
@@ -67,7 +67,7 @@ const WEEK_1: Record<string, CategoryContent> = {
   sleep: {
     label: 'Sleep',
     story: [
-      cover('this week', 'Sleep is\nsurvival.', "no schedule yet — and that's exactly right. here's what actually helps."),
+      cover('this week', 'Sleep is\nsurvival.', 'breathe, mama', "no schedule yet — and that's exactly right. here's what actually helps."),
       { color: 'rose', eyebrow: 'the swaddle', title: 'Swaddle\nright.', say: 'arms up or down', body: 'snug around the chest, loose at the hips so they can bend. some babies sleep best arms-up — and some hate it. follow your baby.', link: { kind: 'shop', label: 'Easy swaddles to try', url: KYTE_SWADDLE } },
       { color: 'honey', eyebrow: 'safe sleep', title: 'Bare is\nbest.', say: 'back, firm, empty', body: 'baby on their back, on a firm flat surface, nothing else in there — every sleep, every time. it never changes.', link: { kind: 'learn', label: 'Safe-sleep basics', url: SHOP } },
       { color: 'caramel', eyebrow: 'timing', title: '45-min\nwindows.', say: 'catch the cues', body: 'newborns can only stay up ~45–60 min. yawns, red eyebrows, zoning out → put them down before the overtired cry.' },
@@ -93,7 +93,7 @@ const WEEK_1: Record<string, CategoryContent> = {
   feed: {
     label: 'Feed',
     story: [
-      cover('this week', 'Feed, round\nthe clock.', "8–12 feeds a day. it's relentless — and it's exactly right."),
+      cover('this week', 'Feed, round\nthe clock.', "you're enough", "8–12 feeds a day. it's relentless — and it's exactly right."),
       { color: 'rose', eyebrow: 'the latch', title: 'A deep\nlatch.', say: 'tug, not pinch', body: 'wide-open mouth, chin pressed in, more areola below than above. it should tug — not pinch. pain means break the seal and re-latch.', link: { kind: 'learn', label: 'Latch help (video)', url: SHOP } },
       { color: 'honey', eyebrow: 'bringing milk in', title: 'Colostrum\nfirst.', say: 'tiny = enough', body: 'the first days are thick golden colostrum in drops — exactly enough for her tummy. nurse or pump 8–12× a day to bring your full supply in.', link: { kind: 'learn', label: 'Pumping 101', url: SHOP } },
       { color: 'caramel', eyebrow: 'storing milk', title: 'Pitcher\nmethod.', say: "what's a storage bag?", body: "pool the day's pumped milk in one covered pitcher in the fridge, then portion into bottles — less washing. storage bags are pre-sterilized pouches you freeze flat to save room.", link: { kind: 'shop', label: 'Milk storage bags', url: MOMCOZY_BAGS } },
@@ -117,7 +117,7 @@ const WEEK_1: Record<string, CategoryContent> = {
   grow: {
     label: 'Grow',
     story: [
-      cover('this week', 'Hello,\nworld.', 'baby sees ~8–12 inches — about your face at feeding distance.'),
+      cover('this week', 'Hello,\nworld.', 'hi, little one', 'baby sees ~8–12 inches — about your face at feeding distance.'),
       { color: 'rose', eyebrow: 'tummy time', title: 'Start\ntiny.', say: '2–3 min, a few times', body: 'even a minute chest-to-chest counts. it builds the neck and shoulders and heads off a flat spot. always awake and watched.', link: { kind: 'learn', label: 'Tummy time, day one', url: SHOP } },
       { color: 'honey', eyebrow: 'flat-head prevention', title: 'Rotate\nthe head.', say: 'switch it up', body: 'alternate which way she faces each sleep, and the arm you feed from. lots of tummy time + less time flat = a round head.' },
       { color: 'caramel', eyebrow: 'connect', title: 'Talk &\nsing.', say: 'narrate everything', body: 'your face and voice are the best toy there is. hold her close and talk through your day — this is how language begins.', link: { kind: 'shop', label: 'High-contrast cards', url: CONTRAST_CARDS } },
@@ -141,7 +141,7 @@ const WEEK_1: Record<string, CategoryContent> = {
   care: {
     label: 'Care',
     story: [
-      cover('this week', 'Sponge\nbaths only.', 'until the cord falls off — keep baby clean, dry, and supported.'),
+      cover('this week', 'Sponge\nbaths only.', 'gentle is the goal', 'until the cord falls off — keep baby clean, dry, and supported.'),
       { color: 'rose', eyebrow: 'cord care', title: 'Keep it\ndry.', say: 'falls off in 1–3 wks', body: 'fold the diaper below the stump, let it air out, no tub baths yet. red, swollen, or smelly → call your provider.', link: { kind: 'learn', label: 'Cord care (video)', url: SHOP } },
       { color: 'honey', eyebrow: 'holding', title: 'Support\nthe head.', say: 'every pick-up', body: "her neck can't hold yet — one hand behind the head and neck, every single time, until she lifts it herself around 3–4 months.", link: { kind: 'learn', label: 'How to hold & burp', url: SHOP } },
       { color: 'caramel', eyebrow: 'diapers', title: '10+ a\nday.', say: 'change often', body: 'change every feed and when soiled to stay ahead of rash. pro tip: zip or magnetic onesies make 3am changes so much easier.', link: { kind: 'shop', label: 'Easy-change onesies', url: CARTERS_GOWN } },
@@ -172,7 +172,7 @@ const WEEK_0: Record<string, CategoryContent> = {
   hospital: {
     label: 'Hospital',
     story: [
-      cover('before baby', 'Before baby\narrives.', 'the week-0 must-dos: pack the bag, install the seat, prep your kit.'),
+      cover('before baby', 'Before baby\narrives.', 'almost time', 'the week-0 must-dos: pack the bag, install the seat, prep your kit.'),
       { color: 'rose', eyebrow: 'by week 36', title: 'Hospital\nbag.', say: 'packed & by the door', body: "have it ready weeks early — babies don't read calendars. the short list moms actually use is below.", link: { kind: 'learn', label: 'What to pack (video)', url: SHOP } },
       { color: 'honey', eyebrow: 'do it early', title: 'Car\nseat.', say: 'installed + checked', body: 'install by week 36 — most seats are put in wrong the first time. many fire stations inspect it free.', link: { kind: 'learn', label: 'Car-seat install (video)', url: SHOP } },
       { color: 'caramel', eyebrow: 'for you, mama', title: 'Postpartum\nkit.', say: 'recovery at home', body: 'pads, peri bottle, witch-hazel, comfy high-waist undies, stool softener — set up your recovery before you need it.', link: { kind: 'shop', label: 'Postpartum recovery kit', url: FRIDA_POSTPARTUM } },
@@ -192,7 +192,7 @@ const WEEK_0: Record<string, CategoryContent> = {
   sleep: {
     label: 'Sleep',
     story: [
-      cover('before baby', 'Sleep,\nready.', "the safe-sleep setup, before baby's first night."),
+      cover('before baby', 'Sleep,\nready.', 'nest it out', "the safe-sleep setup, before baby's first night."),
       { color: 'rose', eyebrow: 'safest is simple', title: 'Bare is\nbest.', say: 'firm, flat, empty', body: 'a breathable mattress, a fitted sheet, and nothing else in the crib or bassinet.', link: { kind: 'learn', label: 'Safe sleep 101', url: SHOP } },
       { color: 'honey', eyebrow: "you'll want these", title: 'Swaddles\n×3–5.', say: "what's a swaddle?", body: "snug wraps that calm the startle reflex and stretch sleep. get a few — newborns blow through them.", link: { kind: 'shop', label: 'Starter swaddles', url: KYTE_SWADDLE } },
       { color: 'caramel', eyebrow: 'peace of mind', title: 'White noise\n+ monitor.', say: 'rest, too', body: 'steady white noise mimics the womb; a monitor lets you actually sleep when baby does.', link: { kind: 'shop', label: 'Sound machines', url: HATCH_SOUND } },
@@ -209,7 +209,7 @@ const WEEK_0: Record<string, CategoryContent> = {
   feed: {
     label: 'Feed',
     story: [
-      cover('before baby', 'Feed,\nprepped.', 'ready for breast, bottle, or both — whatever happens.'),
+      cover('before baby', 'Feed,\nprepped.', 'be ready', 'ready for breast, bottle, or both — whatever happens.'),
       { color: 'rose', eyebrow: 'even if nursing', title: 'Have bottles\nready.', say: 'plans change', body: 'latch trouble, low supply, a NICU stay — a few bottles mean a hard night never becomes an emergency.', link: { kind: 'shop', label: 'Starter bottles', url: SHOP } },
       { color: 'honey', eyebrow: 'bring milk in', title: 'Pump +\npads.', say: 'colostrum first', body: 'a pump helps establish supply (8–12×/day); leak pads save every shirt once your milk comes in.', link: { kind: 'shop', label: 'Pump + leak pads', url: SHOP } },
       { color: 'caramel', eyebrow: 'storing milk', title: 'Storage\nbags.', say: 'even if you don’t overproduce', body: "pre-sterilized pouches that freeze flat — handy for any pumped milk, not just a big stash. pair with the pitcher method.", link: { kind: 'shop', label: 'Milk storage bags', url: MOMCOZY_BAGS } },
@@ -227,7 +227,7 @@ const WEEK_0: Record<string, CategoryContent> = {
   care: {
     label: 'Care',
     story: [
-      cover('before baby', 'Care,\nset up.', 'bath station, diaper caddy, gentle everything.'),
+      cover('before baby', 'Care,\nset up.', 'set the scene', 'bath station, diaper caddy, gentle everything.'),
       { color: 'rose', eyebrow: 'bath night', title: 'Tub +\ntowels.', say: 'two hooded towels', body: 'a contoured newborn tub and soft hooded towels make first baths calm, not chaos.', link: { kind: 'shop', label: 'Newborn bath set', url: SHOP } },
       { color: 'honey', eyebrow: 'night changes', title: 'Easy\nonesies.', say: 'zip or open-bottom', body: "skip the over-the-head snaps — zip or magnetic onesies and open-bottom gowns make 3am diaper changes painless.", link: { kind: 'shop', label: 'Easy-change onesies', url: CARTERS_GOWN } },
       { color: 'caramel', eyebrow: 'stock the caddy', title: 'Diaper\ncaddy.', say: 'one on each floor', body: 'diapers, wipes, cream, a spare onesie, burp cloth — a stocked caddy means you never get caught mid-blowout.', link: { kind: 'shop', label: 'Diaper caddy essentials', url: SHOP } },
