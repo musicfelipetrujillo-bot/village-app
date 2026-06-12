@@ -1380,7 +1380,7 @@ export default function ManualScrollV3() {
             it resets to card 1 when the chapter chip changes.
             (Design-samples-first: card content is illustrative for now.) */}
         <View style={{ paddingHorizontal: 20 }}>
-          <ManualSwipeDeck key={chapter.cat} story={manualContent?.story ?? []} />
+          <ManualSwipeDeck key={chapter.cat} story={manualContent?.story ?? []} category={chapter.cat} />
         </View>
 
         {/* Below-deck modules: checklist → article/video → infographic —

@@ -12,32 +12,57 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { FONTS } from '@utils/constants';
-import type { StoryCard, CardColor } from '@/manual/manualWeekContent';
+import type { StoryCard } from '@/manual/manualWeekContent';
 
 const VILLIE_BEE = require('../../../assets/brand/villie-bee.png');
 const STORY_MS = 5000; // how long each card plays before auto-advancing
 
-// Brand-palette card schemes (matched to the design kit's Week-1 CB map).
+// Each category wears its OWN monochromatic palette (tints → deep shades of the
+// chapter's hue) so the deck color matches the selected chip. Index 0 is the
+// lightest tint — it opens AND closes the deck (soft bookends); the middle cards
+// step through progressively deeper shades of the same hue.
 type Scheme = { grad: [string, string]; fg: string; sub: string; track: string };
-const SCHEMES: Record<CardColor, Scheme> = {
-  ink:     { grad: ['#4A2E18', '#2E1C0F'], fg: '#FCF6EE', sub: '#F2C84B', track: 'rgba(255,255,255,0.4)' },
-  rose:    { grad: ['#D44E72', '#B43E60'], fg: '#FFFFFF', sub: '#F2C84B', track: 'rgba(255,255,255,0.4)' },
-  honey:   { grad: ['#F2C84B', '#E3B23A'], fg: '#3D2817', sub: '#A23E5E', track: 'rgba(67,38,15,0.22)' },
-  caramel: { grad: ['#C8814A', '#A8693A'], fg: '#FCF6EE', sub: '#FCE9CF', track: 'rgba(255,255,255,0.4)' },
-  blush:   { grad: ['#F7CDD3', '#EFB3BE'], fg: '#C25A78', sub: '#3D2817', track: 'rgba(67,38,15,0.22)' },
+const PALETTES: Record<string, Scheme[]> = {
+  sleep: [ // terracotta / clay
+    { grad: ['#F3DFC9', '#ECCFB2'], fg: '#5A3A1E', sub: '#B5763E', track: 'rgba(90,58,30,0.18)' },
+    { grad: ['#E0A878', '#D4945F'], fg: '#FFF9F2', sub: '#FBE7CF', track: 'rgba(255,255,255,0.4)' },
+    { grad: ['#CE8550', '#BE743E'], fg: '#FFF9F2', sub: '#FBE7CF', track: 'rgba(255,255,255,0.4)' },
+    { grad: ['#A85F33', '#8E4E28'], fg: '#FFF9F2', sub: '#F4D9BE', track: 'rgba(255,255,255,0.4)' },
+  ],
+  feed: [ // amber / honey
+    { grad: ['#F7E7BE', '#F2DCA4'], fg: '#5A4012', sub: '#A87A18', track: 'rgba(90,64,18,0.18)' },
+    { grad: ['#EFC85C', '#E8B83C'], fg: '#43300A', sub: '#7A560F', track: 'rgba(67,48,10,0.22)' },
+    { grad: ['#E0A52E', '#CE9220'], fg: '#43300A', sub: '#FBE9BE', track: 'rgba(67,48,10,0.22)' },
+    { grad: ['#C0801A', '#A66C12'], fg: '#FFFBF0', sub: '#F6E2B0', track: 'rgba(255,255,255,0.4)' },
+  ],
+  grow: [ // rose / pink
+    { grad: ['#F9D7DF', '#F3C2CE'], fg: '#7A2E47', sub: '#C25A78', track: 'rgba(122,46,71,0.16)' },
+    { grad: ['#EC9DB1', '#E588A0'], fg: '#FFFFFF', sub: '#FCE2E8', track: 'rgba(255,255,255,0.4)' },
+    { grad: ['#DE6E8C', '#D45878'], fg: '#FFFFFF', sub: '#FCE2E8', track: 'rgba(255,255,255,0.4)' },
+    { grad: ['#C24E72', '#A8405E'], fg: '#FFFFFF', sub: '#F7D2DD', track: 'rgba(255,255,255,0.4)' },
+  ],
+  care: [ // olive / sage
+    { grad: ['#E4E7C8', '#D8DCB4'], fg: '#3F4516', sub: '#6E7A45', track: 'rgba(63,69,22,0.16)' },
+    { grad: ['#BFC987', '#AEB970'], fg: '#33400F', sub: '#56612E', track: 'rgba(51,64,15,0.2)' },
+    { grad: ['#97A65A', '#849447'], fg: '#FBFCEF', sub: '#EAEFCF', track: 'rgba(255,255,255,0.4)' },
+    { grad: ['#74823F', '#616E33'], fg: '#FBFCEF', sub: '#EAEFCF', track: 'rgba(255,255,255,0.4)' },
+  ],
+  hospital: [ // warm taupe / cinnamon (Week 0)
+    { grad: ['#EAE0D0', '#DFD3BF'], fg: '#4A3A28', sub: '#8A6A48', track: 'rgba(74,58,40,0.16)' },
+    { grad: ['#CDA982', '#BE966B'], fg: '#FFFBF4', sub: '#F2E0CC', track: 'rgba(255,255,255,0.4)' },
+    { grad: ['#B07F52', '#9C6C42'], fg: '#FFFBF4', sub: '#F2E0CC', track: 'rgba(255,255,255,0.4)' },
+    { grad: ['#8A5E38', '#734C2C'], fg: '#FFFBF4', sub: '#EAD6BE', track: 'rgba(255,255,255,0.4)' },
+  ],
 };
+const DEFAULT_PALETTE = PALETTES.grow;
 
-// Color rhythm by POSITION (design logic): soft blush bookends to open and
-// close, with the middle cards cycling rose → honey → caramel → ink. Holds a
-// consistent, pleasant sequence regardless of card count, and never opens or
-// ends on the dark ink card.
-const MIDDLE: CardColor[] = ['rose', 'honey', 'caramel', 'ink'];
-function schemeForIndex(i: number, n: number): Scheme {
-  if (i === 0 || i === n - 1) return SCHEMES.blush;
-  return SCHEMES[MIDDLE[(i - 1) % MIDDLE.length]];
+function schemeForIndex(category: string, i: number, n: number): Scheme {
+  const pal = PALETTES[category] ?? DEFAULT_PALETTE;
+  if (i === 0 || i === n - 1) return pal[0];
+  return pal[1 + ((i - 1) % (pal.length - 1))];
 }
 
-export default function ManualSwipeDeck({ story }: { story: StoryCard[] }) {
+export default function ManualSwipeDeck({ story, category }: { story: StoryCard[]; category: string }) {
   const deck = story.length ? story : [];
   const [idx, setIdx] = useState(0);
   const [cardW, setCardW] = useState(0);
@@ -57,7 +82,7 @@ export default function ManualSwipeDeck({ story }: { story: StoryCard[] }) {
 
   if (!deck.length) return null;
   const card = deck[idx] ?? deck[0];
-  const scheme = schemeForIndex(idx, deck.length);
+  const scheme = schemeForIndex(category, idx, deck.length);
 
   // Tap right 70% → next (faster); tap left 30% → previous.
   const onTapCard = (e: GestureResponderEvent) => {
