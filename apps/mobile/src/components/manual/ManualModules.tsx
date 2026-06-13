@@ -5,6 +5,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Share } from 'react-native';
 import { TouchableOpacity } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { FONTS } from '@utils/constants';
 import type { CategoryContent, Checklist, Article, Info } from '@/manual/manualWeekContent';
 
@@ -18,7 +19,6 @@ const CREAM = '#FFFCF6';
 const HAIR = 'rgba(67,38,15,0.07)';
 const ACCENT = '#C9824E';
 const ROSE = '#D96C88';
-const HONEY = '#F2C84B';
 const BERRY = '#C25A78';
 
 function ModuleLabel({ n, type }: { n: string; type: string }) {
@@ -66,18 +66,28 @@ function ArticleModule({ data }: { data: Article }) {
   return (
     <View>
       <ModuleLabel n="02" type="Read · expert" />
-      <View style={s.tip}>
+      <LinearGradient colors={['#FCEFE0', '#F4DEC8']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.tip}>
+        <Text style={s.tipAsk}>A mom asked…</Text>
         <Text style={s.tipQ}>{data.question}</Text>
-        <Text style={s.tipA}>“{data.answer}”</Text>
+        <View style={s.tipQuoteRow}>
+          <Text style={s.quoteMark}>“</Text>
+          <Text style={s.tipA}>{data.answer}</Text>
+        </View>
+        <View style={s.tipDivider} />
         <View style={s.tipBy}>
-          <View style={s.tipAv}><Text style={{ fontSize: 18 }}>{data.emoji}</Text></View>
+          <View style={s.tipAvRing}>
+            <View style={s.tipAv}><Text style={{ fontSize: 19 }}>{data.emoji}</Text></View>
+          </View>
           <View style={{ flex: 1 }}>
             <Text style={s.tipName}>{data.name}</Text>
             <Text style={s.tipRole}>{data.role}</Text>
           </View>
-          <View style={s.verified}><Text style={s.verifiedT}>verified</Text></View>
+          <View style={s.verified}>
+            <Text style={s.verifiedCheck}>✓</Text>
+            <Text style={s.verifiedT}>Verified</Text>
+          </View>
         </View>
-      </View>
+      </LinearGradient>
     </View>
   );
 }
@@ -225,16 +235,26 @@ const s = StyleSheet.create({
   ciLabelOn: { textDecorationLine: 'line-through', color: ACCENT },
   ciNote: { fontFamily: FONTS.body, fontSize: 13, color: INKSOFT },
 
-  // article / expert
-  tip: { backgroundColor: '#FBEFE2', borderRadius: 20, borderWidth: 1, borderColor: HAIR, padding: 20 },
-  tipQ: { fontFamily: FONTS.headerBold, fontSize: 20, letterSpacing: -0.3, color: INK },
-  tipA: { fontFamily: FONTS.body, fontSize: 15, lineHeight: 22, color: INK, marginTop: 10 },
-  tipBy: { flexDirection: 'row', alignItems: 'center', gap: 11, marginTop: 16 },
-  tipAv: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#F7CDD3', alignItems: 'center', justifyContent: 'center' },
-  tipName: { fontFamily: FONTS.bodyBold, fontSize: 14, color: INK },
-  tipRole: { fontFamily: FONTS.body, fontSize: 12, color: INKSOFT },
-  verified: { backgroundColor: HONEY, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 5 },
-  verifiedT: { fontFamily: FONTS.bodyBold, fontSize: 11, color: INK },
+  // article / expert (editorial pull-quote card)
+  tip: {
+    borderRadius: 22, borderWidth: 1, borderColor: 'rgba(190,133,31,0.20)',
+    paddingHorizontal: 22, paddingTop: 16, paddingBottom: 18, overflow: 'hidden',
+    shadowColor: '#43260F', shadowOpacity: 0.1, shadowOffset: { width: 0, height: 10 }, shadowRadius: 22, elevation: 2,
+  },
+  tipAsk: { fontFamily: FONTS.bodyBold, fontSize: 11, letterSpacing: 1.4, textTransform: 'uppercase', color: ACCENT, marginBottom: 6 },
+  tipQ: { fontFamily: FONTS.headerBold, fontSize: 22, lineHeight: 26, letterSpacing: -0.4, color: INK },
+  tipQuoteRow: { flexDirection: 'row', marginTop: 12 },
+  quoteMark: { fontFamily: FONTS.headerBold, fontSize: 46, lineHeight: 42, color: ACCENT, width: 28, marginTop: -4 },
+  tipA: { flex: 1, fontFamily: FONTS.body, fontSize: 15.5, lineHeight: 24, color: INK },
+  tipDivider: { height: 1, backgroundColor: 'rgba(67,38,15,0.1)', marginTop: 16 },
+  tipBy: { flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 14 },
+  tipAvRing: { width: 46, height: 46, borderRadius: 23, borderWidth: 1.5, borderColor: ACCENT, alignItems: 'center', justifyContent: 'center' },
+  tipAv: { width: 38, height: 38, borderRadius: 19, backgroundColor: '#F7CDD3', alignItems: 'center', justifyContent: 'center' },
+  tipName: { fontFamily: FONTS.bodyBold, fontSize: 14.5, color: INK },
+  tipRole: { fontFamily: FONTS.body, fontSize: 12, color: INKSOFT, marginTop: 1 },
+  verified: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: 'rgba(111,122,67,0.14)', borderRadius: 999, paddingHorizontal: 9, paddingVertical: 5 },
+  verifiedCheck: { fontSize: 10, fontWeight: '800', color: SAGE },
+  verifiedT: { fontFamily: FONTS.bodyBold, fontSize: 11, color: SAGE },
 
   // infographic shell
   info: { backgroundColor: CREAM, borderRadius: 20, borderWidth: 1, borderColor: HAIR, padding: 20 },
