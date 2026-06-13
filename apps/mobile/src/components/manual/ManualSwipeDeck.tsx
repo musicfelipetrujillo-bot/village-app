@@ -23,7 +23,7 @@ const STORY_MS = 5000; // how long each card plays before auto-advancing
 function HoneycombCorner({ color }: { color: string }) {
   const r = 16;
   const SQ3 = Math.sqrt(3);
-  const COLS = 9;
+  const COLS = 12;
   const ROWS = 7;
   const maxX = (COLS - 1) * (r * 1.5);
   const maxY = (ROWS - 1) * (r * SQ3);
@@ -46,12 +46,12 @@ function HoneycombCorner({ color }: { color: string }) {
   const op = (cx: number, cy: number) => {
     const dx = (maxX - cx) / maxX; // 0 at right → 1 at left
     const dy = cy / maxY;          // 0 at top → 1 at bottom
-    const d = dx * 0.72 + dy * 0.28; // horizontal-weighted: fades harder to the left
-    return Math.max(0.03, 0.24 * Math.pow(1 - d, 1.5));
+    const d = dx * 0.74 + dy * 0.26; // horizontal-weighted: fades harder to the left
+    return Math.max(0.04, 0.25 * Math.pow(1 - d, 1.9));
   };
   return (
     <View style={styles.combCorner} pointerEvents="none">
-      <Svg width={210} height={200} viewBox="0 0 210 200">
+      <Svg width={280} height={200} viewBox="0 0 280 200">
         {cells.map((c, i) => (
           <Polygon key={i} points={hex(c.cx, c.cy)} fill="none" stroke={color} strokeWidth={1.3} strokeOpacity={op(c.cx, c.cy)} />
         ))}
