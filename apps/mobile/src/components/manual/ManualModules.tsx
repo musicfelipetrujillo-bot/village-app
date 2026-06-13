@@ -3,10 +3,13 @@
 // Driven entirely by a CategoryContent (manualWeekContent), so every week +
 // category renders the same structure. The infographic switches on `kind`.
 import React, { useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Share } from 'react-native';
 import { TouchableOpacity } from 'react-native';
 import { FONTS } from '@utils/constants';
 import type { CategoryContent, Checklist, Article, Info } from '@/manual/manualWeekContent';
+
+const SAGE = '#6F7A43';
+const SAGE_BG = '#EAEDD8';
 
 const INK = '#43260F';
 const INKSOFT = '#7A5A3A';
@@ -158,12 +161,46 @@ function InfographicModule({ data }: { data: Info }) {
   );
 }
 
+function AskSpecialistModule({ questions }: { questions: string[] }) {
+  const onShare = () => {
+    Share.share({
+      message: 'Questions for my next visit:\n\n' + questions.map((q, i) => `${i + 1}. ${q}`).join('\n'),
+    }).catch(() => {});
+  };
+  return (
+    <View>
+      <ModuleLabel n="04" type="Ask · your specialist" />
+      <View style={s.chart}>
+        <Text style={s.chartLead}>Bring these three</Text>
+        {questions.map((q, i) => (
+          <View key={i} style={s.qRow}>
+            <Text style={s.qNum}>{i + 1}</Text>
+            <Text style={s.qText}>{q}</Text>
+          </View>
+        ))}
+        <TouchableOpacity
+          style={s.shareBtn}
+          activeOpacity={0.7}
+          onPress={onShare}
+          accessibilityRole="button"
+          accessibilityLabel="Share these questions with your provider"
+        >
+          <Text style={s.shareTxt}>Share with your provider →</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+}
+
 export default function ManualModules({ content }: { content: CategoryContent }) {
   return (
     <View style={s.wrap}>
       <ChecklistModule data={content.checklist} />
       <ArticleModule data={content.article} />
       {content.info && <InfographicModule data={content.info} />}
+      {content.specialistQs && content.specialistQs.length > 0 && (
+        <AskSpecialistModule questions={content.specialistQs} />
+      )}
     </View>
   );
 }
@@ -235,6 +272,15 @@ const s = StyleSheet.create({
   dcSwatch: { width: 34, height: 34, borderRadius: 10, borderWidth: 1, borderColor: HAIR },
   dcDay: { fontFamily: FONTS.bodyBold, fontSize: 14, color: INK },
   dcDesc: { fontFamily: FONTS.body, fontSize: 13, color: INKSOFT },
+
+  // Ask your specialist (sage "clinical chart" card)
+  chart: { backgroundColor: SAGE_BG, borderRadius: 20, borderWidth: 1, borderColor: 'rgba(63,69,22,0.12)', padding: 20 },
+  chartLead: { fontFamily: FONTS.bodyBold, fontSize: 12, letterSpacing: 1.4, textTransform: 'uppercase', color: SAGE, marginBottom: 12 },
+  qRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, paddingVertical: 8 },
+  qNum: { fontFamily: FONTS.headerBold, fontSize: 15, color: SAGE, width: 16 },
+  qText: { flex: 1, fontFamily: FONTS.bodySemiBold, fontSize: 15, lineHeight: 21, color: INK },
+  shareBtn: { marginTop: 12, alignSelf: 'flex-start', borderWidth: 1.5, borderColor: SAGE, borderRadius: 999, paddingHorizontal: 16, paddingVertical: 9 },
+  shareTxt: { fontFamily: FONTS.bodyBold, fontSize: 13.5, color: SAGE },
 
   // 5 S's
   fives: { gap: 10 },

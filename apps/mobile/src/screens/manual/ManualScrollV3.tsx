@@ -706,6 +706,15 @@ export default function ManualScrollV3() {
   const who: ManualAudience = 'baby';
   const [chapter, setChapter] = useState<ChapterMeta>(initialChapter);
 
+  // Honor a deep-linked chapter (e.g. a Village tile → Manual) even when this
+  // screen is already mounted — initialChapter only covers the first mount.
+  useEffect(() => {
+    const ch = (route.params as { chapter?: string } | undefined)?.chapter;
+    if (!ch) return;
+    const match = list.find((c) => c.ch === ch);
+    if (match) setChapter(match);
+  }, [route.params, list]);
+
   // Playbook preview preferences (local-only until 5.2/5.3 wire the real
   // engine). The sample plan + plays react to these live.
   const [pbSleep, setPbSleep] = useState<PbSleep>('mixed');

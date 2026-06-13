@@ -114,7 +114,6 @@ const STAGE_SUPPORT: Record<string, StageSupport> = {
   postpartum_6_12mo: {
     eyebrow: { en: '6–12 months · what helps now', es: '6–12 meses · qué ayuda ahora' },
     items: [
-      { emoji: '🥑', title: { en: 'Starting solids', es: 'Empezar sólidos' }, why: { en: "Purées, BLW, what's safe now", es: 'Papillas, BLW, qué es seguro ahora' }, route: 'Manual', category: 'feed' },
       { emoji: '🍼', title: { en: 'Gear for movers', es: 'Equipo para bebés activos' }, why: { en: 'High chairs, gates, hand-me-downs', es: 'Sillas altas, rejas, de segunda mano' }, route: 'Gear' },
       { emoji: '🌙', title: { en: 'Sleep regressions', es: 'Regresiones del sueño' }, why: { en: 'The ~8-month shift, sleep coaches', es: 'El cambio de los ~8 meses, asesores de sueño' }, route: 'Experts', specialty: 'sleep_coach' },
     ],
@@ -160,10 +159,12 @@ export default function VillageHomeScreenV3() {
   // "Starting solids"). Bare navigate('Manual') only lands on the tab's default
   // chapter, which is the bug behind "Starting solids doesn't take you to Feed".
   const goManualCategory = (category: string, audience: 'mom' | 'baby' = 'baby') => {
-    const labelKey = `manual.${audience}${category.charAt(0).toUpperCase()}${category.slice(1)}`;
+    // Unified Manual experience: open the new week-gated Manual home at this
+    // chapter (the legacy ManualCategory topic screen is no longer routed to).
+    const chapter = category.charAt(0).toUpperCase() + category.slice(1);
     navigation.getParent()?.navigate('Manual' as never, {
-      screen: 'ManualCategory',
-      params: { audience, category, label: t(labelKey) },
+      screen: 'ManualHome',
+      params: { chapter, audience },
     } as never);
   };
 

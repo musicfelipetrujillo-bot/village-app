@@ -42,6 +42,7 @@ export type CategoryContent = {
   checklist: Checklist;
   article: Article;
   info?: Info;
+  specialistQs?: string[];   // "Ask your specialist — bring these three"
 };
 
 // TODO(links): replace per-link once brand/affiliate URLs are provided.
@@ -243,6 +244,22 @@ const WEEK_0: Record<string, CategoryContent> = {
   },
 };
 
+// "Ask your specialist — bring these three" questions, ported from the legacy
+// topic screen. Attached to the resolved content by getManualContent so they
+// render as the 4th below-deck module.
+const SPECIALIST_QS_W1: Record<string, string[]> = {
+  sleep: ['When should sleep get longer?', 'Is a swaddle still safe?', 'When do I move to a crib?'],
+  feed:  ['Is my baby getting enough?', 'How do I know my latch is right?', 'Should I be pumping yet?'],
+  grow:  ['Is my baby on track for this week?', 'When is the next leap?', 'How do I know it’s a regression?'],
+  care:  ['What temperature counts as a real fever?', 'When should I worry about the cord stump?', 'Is this spit-up or reflux?'],
+};
+const SPECIALIST_QS_W0: Record<string, string[]> = {
+  hospital: ['When in labor should I head to the hospital?', 'Can we do skin-to-skin right away?', 'What are my pain-relief options?'],
+  sleep:    ['Bassinet or crib to start?', 'How do I set up safe sleep?', 'Do I need a sleep sack yet?'],
+  feed:     ['Should I take a breastfeeding class?', 'What pump does my insurance cover?', 'How much formula should I keep on hand?'],
+  care:     ['What bath products are safe for a newborn?', 'How often will I really change diapers?', 'What belongs in a diaper caddy?'],
+};
+
 const WEEKS: Record<number, Record<string, CategoryContent>> = { 0: WEEK_0, 1: WEEK_1 };
 
 /**
@@ -252,7 +269,11 @@ const WEEKS: Record<number, Record<string, CategoryContent>> = { 0: WEEK_0, 1: W
  */
 export function getManualContent(week: number, category: string): CategoryContent | null {
   const w = WEEKS[week] ?? WEEKS[1];
-  return w?.[category] ?? WEEK_1[category] ?? WEEK_0[category] ?? null;
+  const content = w?.[category] ?? WEEK_1[category] ?? WEEK_0[category] ?? null;
+  if (!content) return null;
+  const qs = (week === 0 ? SPECIALIST_QS_W0 : SPECIALIST_QS_W1)[category]
+    ?? SPECIALIST_QS_W1[category] ?? SPECIALIST_QS_W0[category];
+  return qs ? { ...content, specialistQs: qs } : content;
 }
 
 /*
