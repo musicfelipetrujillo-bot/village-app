@@ -47,7 +47,7 @@ function HoneycombCorner({ color }: { color: string }) {
     const dx = (maxX - cx) / maxX; // 0 at right → 1 at left
     const dy = cy / maxY;          // 0 at top → 1 at bottom
     const d = dx * 0.74 + dy * 0.26; // horizontal-weighted: fades harder to the left
-    return Math.max(0.04, 0.25 * Math.pow(1 - d, 1.9));
+    return Math.max(0.03, 0.26 * Math.pow(1 - d, 2.6));
   };
   return (
     <View style={styles.combCorner} pointerEvents="none">
