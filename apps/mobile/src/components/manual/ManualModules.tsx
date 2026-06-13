@@ -3,7 +3,7 @@
 // Driven entirely by a CategoryContent (manualWeekContent), so every week +
 // category renders the same structure. The infographic switches on `kind`.
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Share } from 'react-native';
+import { View, Text, StyleSheet, Share, ScrollView } from 'react-native';
 import { TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { FONTS } from '@utils/constants';
@@ -63,32 +63,69 @@ function ChecklistModule({ data }: { data: Checklist }) {
   );
 }
 
-function ArticleModule({ data }: { data: Article }) {
+function ExpertCard({ data }: { data: Article }) {
+  return (
+    <LinearGradient colors={['#FCEFE0', '#F4DEC8']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.tip}>
+      <Text style={s.tipAsk}>A mom asked…</Text>
+      <Text style={s.tipQ}>{data.question}</Text>
+      <View style={s.tipQuoteRow}>
+        <Text style={s.quoteMark}>“</Text>
+        <Text style={s.tipA}>{data.answer}</Text>
+      </View>
+      <View style={s.tipDivider} />
+      <View style={s.tipBy}>
+        <View style={s.tipAvRing}>
+          <View style={s.tipAv}><Text style={{ fontSize: 19 }}>{data.emoji}</Text></View>
+        </View>
+        <View style={{ flex: 1 }}>
+          <Text style={s.tipName}>{data.name}</Text>
+          <Text style={s.tipRole}>{data.role}</Text>
+        </View>
+        <View style={s.verified}>
+          <Text style={s.verifiedCheck}>✓</Text>
+          <Text style={s.verifiedT}>Verified</Text>
+        </View>
+      </View>
+    </LinearGradient>
+  );
+}
+
+// Swipeable expert cards (3–4 per chapter). Full-width paging + dots.
+function ArticleModule({ articles }: { articles: Article[] }) {
+  const [w, setW] = useState(0);
+  const [idx, setIdx] = useState(0);
+  if (!articles.length) return null;
   return (
     <View>
       <ModuleLabel n="02" type="Read · expert" />
-      <LinearGradient colors={['#FCEFE0', '#F4DEC8']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.tip}>
-        <Text style={s.tipAsk}>A mom asked…</Text>
-        <Text style={s.tipQ}>{data.question}</Text>
-        <View style={s.tipQuoteRow}>
-          <Text style={s.quoteMark}>“</Text>
-          <Text style={s.tipA}>{data.answer}</Text>
-        </View>
-        <View style={s.tipDivider} />
-        <View style={s.tipBy}>
-          <View style={s.tipAvRing}>
-            <View style={s.tipAv}><Text style={{ fontSize: 19 }}>{data.emoji}</Text></View>
-          </View>
-          <View style={{ flex: 1 }}>
-            <Text style={s.tipName}>{data.name}</Text>
-            <Text style={s.tipRole}>{data.role}</Text>
-          </View>
-          <View style={s.verified}>
-            <Text style={s.verifiedCheck}>✓</Text>
-            <Text style={s.verifiedT}>Verified</Text>
-          </View>
-        </View>
-      </LinearGradient>
+      <View onLayout={(e) => setW(e.nativeEvent.layout.width)}>
+        {articles.length === 1 ? (
+          <ExpertCard data={articles[0]} />
+        ) : w > 0 ? (
+          <>
+            <ScrollView
+              horizontal
+              pagingEnabled
+              showsHorizontalScrollIndicator={false}
+              onMomentumScrollEnd={(e) => {
+                const next = Math.round(e.nativeEvent.contentOffset.x / w);
+                if (next !== idx) { setIdx(next); select(); }
+              }}
+            >
+              {articles.map((a, i) => (
+                <View key={i} style={{ width: w }}>
+                  <ExpertCard data={a} />
+                </View>
+              ))}
+            </ScrollView>
+            <View style={s.artDots}>
+              {articles.map((_, i) => (
+                <View key={i} style={[s.artDot, i === idx && s.artDotOn]} />
+              ))}
+            </View>
+          </>
+        ) : null}
+      </View>
     </View>
   );
 }
@@ -208,7 +245,7 @@ export default function ManualModules({ content }: { content: CategoryContent })
   return (
     <View style={s.wrap}>
       <ChecklistModule data={content.checklist} />
-      <ArticleModule data={content.article} />
+      <ArticleModule articles={content.articles} />
       {content.info && <InfographicModule data={content.info} />}
       {content.specialistQs && content.specialistQs.length > 0 && (
         <AskSpecialistModule questions={content.specialistQs} />
@@ -249,6 +286,9 @@ const s = StyleSheet.create({
   quoteMark: { fontFamily: FONTS.headerBold, fontSize: 46, lineHeight: 42, color: ACCENT, width: 28, marginTop: -4 },
   tipA: { flex: 1, fontFamily: FONTS.body, fontSize: 15.5, lineHeight: 24, color: INK },
   tipDivider: { height: 1, backgroundColor: 'rgba(67,38,15,0.1)', marginTop: 16 },
+  artDots: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 6, marginTop: 12 },
+  artDot: { width: 6, height: 6, borderRadius: 999, backgroundColor: 'rgba(67,38,15,0.18)' },
+  artDotOn: { width: 18, backgroundColor: ACCENT },
   tipBy: { flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 14 },
   tipAvRing: { width: 46, height: 46, borderRadius: 23, borderWidth: 1.5, borderColor: ACCENT, alignItems: 'center', justifyContent: 'center' },
   tipAv: { width: 38, height: 38, borderRadius: 19, backgroundColor: '#F7CDD3', alignItems: 'center', justifyContent: 'center' },

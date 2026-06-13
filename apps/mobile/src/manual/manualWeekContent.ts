@@ -40,7 +40,7 @@ export type CategoryContent = {
   label: string;
   story: StoryCard[];
   checklist: Checklist;
-  article: Article;
+  articles: Article[];   // swipeable expert cards (3–4 per chapter)
   info?: Info;
   specialistQs?: string[];   // "Ask your specialist — bring these three"
 };
@@ -83,8 +83,14 @@ const WEEK_1: Record<string, CategoryContent> = {
       { label: 'White noise for naps too' },
       { label: 'Room-share, not bed-share', note: 'first 6 months' },
     ] },
-    article: { question: 'How do I swaddle — and what if she hates it?', emoji: '🩺', name: 'Dr. Priya Nair, MD', role: 'pediatrician · villie expert',
-      answer: "Lay the blanket as a diamond, fold the top corner, one arm down and wrap snug across, then the other — tight at the chest, loose at the hips. If she fights it, try arms-up or a zip sleep sack; some babies just sleep better unswaddled, and that's completely fine." },
+    articles: [
+      { question: 'How do I swaddle — and what if she hates it?', emoji: '🩺', name: 'Dr. Priya Nair, MD', role: 'pediatrician · villie expert',
+        answer: "Lay the blanket as a diamond, fold the top corner, one arm down and wrap snug across, then the other — tight at the chest, loose at the hips. If she fights it, try arms-up or a zip sleep sack; some babies just sleep better unswaddled, and that's completely fine." },
+      { question: "Why won't she sleep unless I'm holding her?", emoji: '🌙', name: 'Renee Voss', role: 'pediatric sleep consultant · villie expert',
+        answer: "Newborns are wired for closeness — your heartbeat and warmth literally regulate hers. Contact naps now don't create bad habits. Once feeding's established you can start setting her down drowsy-but-awake to practice; until then, hold away." },
+      { question: 'Is it safe for her to sleep this much?', emoji: '🩺', name: 'Dr. Marcus Hill, MD', role: 'pediatrician · villie expert',
+        answer: "Yes — 14–17 hours a day in short 2–4 hour stretches is exactly right. Until she's back to birth weight, wake her to feed if she goes past 4 hours; after that, let her lead." },
+    ],
     info: { kind: 'wakewindows', title: 'Wake windows by age', rows: [
       { age: 'Newborn', val: '45–60 min', pct: 30, now: true }, { age: '1–2 months', val: '60–90 min', pct: 48 },
       { age: '3–4 months', val: '75–120 min', pct: 68 }, { age: '5–6 months', val: '2–2.5 hrs', pct: 88 },
@@ -108,8 +114,14 @@ const WEEK_1: Record<string, CategoryContent> = {
       { label: 'Nurse/pump 8–12× to build supply', note: 'even small colostrum counts' },
       { label: 'Never give water', note: 'breastmilk or formula only before 6 months — water is dangerous for newborns' },
     ] },
-    article: { question: 'Is she latched right — and getting enough?', emoji: '👩🏽‍⚕️', name: 'Dana Reyes, IBCLC', role: 'lactation consultant · villie expert',
-      answer: "A good latch tugs but doesn't pinch — wide-open mouth, chin buried in the breast. And you measure 'enough' by output, not ounces: six or more wet diapers a day by the end of week one means she's getting plenty. Count diapers, not minutes." },
+    articles: [
+      { question: 'Is she latched right — and getting enough?', emoji: '👩🏽‍⚕️', name: 'Dana Reyes, IBCLC', role: 'lactation consultant · villie expert',
+        answer: "A good latch tugs but doesn't pinch — wide-open mouth, chin buried in the breast. And you measure 'enough' by output, not ounces: six or more wet diapers a day by the end of week one means she's getting plenty. Count diapers, not minutes." },
+      { question: 'My nipples are cracked — what do I do?', emoji: '🤱', name: 'Dana Reyes, IBCLC', role: 'lactation consultant · villie expert',
+        answer: "Cracking almost always traces back to a shallow latch — get the mouth wider with more areola in. A little lanolin or your own expressed milk heals them between feeds. If it's bleeding or getting worse, see a lactation consultant — it's fixable." },
+      { question: 'How do I know it’s a growth spurt?', emoji: '🩺', name: 'Dr. Marcus Hill, MD', role: 'pediatrician · villie expert',
+        answer: "Sudden round-the-clock feeding for a day or two — often around weeks 2–3 and again at 6 — is a growth spurt, not low supply. Feed on demand; your body catches up within about 48 hours." },
+    ],
     info: { kind: 'milkstorage', title: 'How long does breast milk keep?', cols: [
       { icon: 'counter', v: '4', u: 'hours', w: 'Counter' }, { icon: 'fridge', v: '4', u: 'days', w: 'Fridge' }, { icon: 'freezer', v: '6', u: 'months', w: 'Freezer' },
     ], foot: 'The easy "4-4-4" rule. Thawed milk: use within 24 hrs and never refreeze.' },
@@ -132,8 +144,14 @@ const WEEK_1: Record<string, CategoryContent> = {
       { label: 'Skin-to-skin daily' },
       { label: 'Alternate the arm you feed from' },
     ] },
-    article: { question: 'When do I start tummy time — and how much?', emoji: '🤸', name: 'Dr. Priya Nair, MD', role: 'pediatrician · villie expert',
-      answer: "Start day one — a minute or two lying on your chest counts. Build to a few short sessions a day, always awake and supervised. It's the single best thing you can do for neck strength and to prevent a flat spot." },
+    articles: [
+      { question: 'When do I start tummy time — and how much?', emoji: '🤸', name: 'Dr. Priya Nair, MD', role: 'pediatrician · villie expert',
+        answer: "Start day one — a minute or two lying on your chest counts. Build to a few short sessions a day, always awake and supervised. It's the single best thing you can do for neck strength and to prevent a flat spot." },
+      { question: 'Should she be smiling at me yet?', emoji: '👶', name: 'Dr. Priya Nair, MD', role: 'pediatrician · villie expert',
+        answer: "The first real social smile usually lands around 6 weeks. Before that, those little grins are reflexes (often in sleep). Keep getting close and talking face-to-face — that's exactly what coaxes the real one out." },
+      { question: 'How much should I worry about milestones?', emoji: '📈', name: 'Dr. Lena Ortiz', role: 'pediatrician · villie expert',
+        answer: "Milestones are ranges, not deadlines. If she's feeding, alert, and growing, small timing differences are normal. Trust your gut — bring any specific worry to your well-visit rather than carrying it alone." },
+    ],
     info: { kind: 'milestones', title: "What's coming next", items: [
       { age: 'now', label: 'Focuses on faces', now: true }, { age: '~6 wks', label: 'First social smile' }, { age: '2 mo', label: 'Coos & gurgles' }, { age: '3 mo', label: 'Holds head up' },
     ], foot: "Every baby's timing is their own — these are typical ranges, not deadlines." },
@@ -157,8 +175,14 @@ const WEEK_1: Record<string, CategoryContent> = {
       { label: 'Zip/magnetic onesies for night changes' },
       { label: 'Stock a diaper caddy', note: 'diapers, wipes, cream, a spare onesie' },
     ] },
-    article: { question: 'How do I bathe her — and care for the cord?', emoji: '🛁', name: 'Dr. Marcus Hill, MD', role: 'pediatrician · villie expert',
-      answer: "Until the cord drops off (usually 1–3 weeks), stick to sponge baths: warm room, damp cloth, wash the face and folds, pat dry. Keep the stump dry and open to air, fold the diaper below it, and let it fall off on its own. Redness, swelling, or a foul smell means call us." },
+    articles: [
+      { question: 'How do I bathe her — and care for the cord?', emoji: '🛁', name: 'Dr. Marcus Hill, MD', role: 'pediatrician · villie expert',
+        answer: "Until the cord drops off (usually 1–3 weeks), stick to sponge baths: warm room, damp cloth, wash the face and folds, pat dry. Keep the stump dry and open to air, fold the diaper below it, and let it fall off on its own. Redness, swelling, or a foul smell means call us." },
+      { question: 'What counts as a fever I should call about?', emoji: '🌡️', name: 'Dr. Marcus Hill, MD', role: 'pediatrician · villie expert',
+        answer: "Under 3 months, a rectal temperature of 100.4°F (38°C) or higher is an automatic call — any hour, day or night. And don't give a newborn fever medicine before you talk to us." },
+      { question: 'Her skin is peeling and blotchy — normal?', emoji: '🧴', name: 'Dr. Lena Ortiz', role: 'pediatric dermatologist · villie expert',
+        answer: "Both are normal in the early weeks — that outer layer sheds, and come-and-go red splotches (newborn rash) settle on their own. Keep everything fragrance-free. Call if there's pus, blistering, or it spreads fast." },
+    ],
     info: { kind: 'diapercolor', title: 'Diaper decoder', cols: [
       { sw: '#2E1C0F', d: 'Day 1–2', ds: 'Black & tarry (meconium)' }, { sw: '#6E7A45', d: 'Day 3–4', ds: 'Greenish — transitioning' }, { sw: '#E3B23A', d: 'Day 5+', ds: 'Yellow & seedy — normal' },
     ], foot: 'Red, white, or chalky-grey? Snap a photo and call your provider.' },
@@ -186,8 +210,14 @@ const WEEK_0: Record<string, CategoryContent> = {
       { label: 'Car seat — installed & inspected', note: 'by week 36' }, { label: 'Insurance card + photo ID' },
       { label: 'Postpartum kit for home', note: 'pads, peri bottle, witch-hazel, stool softener' },
     ] },
-    article: { question: 'When do I install the car seat?', emoji: '🚗', name: 'Officer Maya Cole', role: 'certified car-seat technician',
-      answer: 'Install and get your seat checked by week 36 — most are installed wrong the first time, and many fire stations and hospitals inspect them free. Do it before discharge, not in the parking lot.' },
+    articles: [
+      { question: 'When do I install the car seat?', emoji: '🚗', name: 'Officer Maya Cole', role: 'certified car-seat technician',
+        answer: 'Install and get your seat checked by week 36 — most are installed wrong the first time, and many fire stations and hospitals inspect them free. Do it before discharge, not in the parking lot.' },
+      { question: 'What do I actually need in my bag?', emoji: '🎒', name: 'Dana Reyes, IBCLC', role: 'lactation consultant · villie expert',
+        answer: "Less than you think: ID + insurance card, a going-home outfit for each of you, phone charger, toiletries, and snacks. The hospital supplies most baby basics for the stay — don't overpack." },
+      { question: 'How do I know it’s real labor?', emoji: '🩺', name: 'Dr. Marcus Hill, MD', role: 'OB/GYN · villie expert',
+        answer: "Real contractions get longer, stronger, and closer together and don't ease when you move. The 5-1-1 rule is your cue to call: about 5 minutes apart, 1 minute long, holding for 1 hour." },
+    ],
   },
 
   sleep: {
@@ -203,8 +233,14 @@ const WEEK_0: Record<string, CategoryContent> = {
       { label: 'Bassinet or crib + breathable mattress' }, { label: '2–3 fitted sheets' }, { label: '3–5 swaddles' },
       { label: 'White noise machine' }, { label: 'Baby monitor / camera' }, { label: 'Blackout curtains' },
     ] },
-    article: { question: "What's actually safe in the crib?", emoji: '🩺', name: 'Dr. Priya Nair, MD', role: 'pediatrician · villie expert',
-      answer: 'For the first year: baby alone, on their back, on a firm flat surface — no bumpers, blankets, pillows, or stuffed animals. A sleep sack instead of a loose blanket once they outgrow the swaddle.' },
+    articles: [
+      { question: "What's actually safe in the crib?", emoji: '🩺', name: 'Dr. Priya Nair, MD', role: 'pediatrician · villie expert',
+        answer: 'For the first year: baby alone, on their back, on a firm flat surface — no bumpers, blankets, pillows, or stuffed animals. A sleep sack instead of a loose blanket once they outgrow the swaddle.' },
+      { question: 'Bassinet or crib to start?', emoji: '🌙', name: 'Dr. Priya Nair, MD', role: 'pediatrician · villie expert',
+        answer: "Either is safe with a firm flat mattress and a fitted sheet only. A bassinet beside your bed for the first few months makes night feeds easier and supports the recommended room-sharing." },
+      { question: 'How many swaddles do I really need?', emoji: '🧺', name: 'Renee Voss', role: 'pediatric sleep consultant · villie expert',
+        answer: "Three to five — they get spit up on and blown through constantly. A couple of zip-up swaddle sacks are far easier than wrapping a blanket at 3am." },
+    ],
   },
 
   feed: {
@@ -221,8 +257,14 @@ const WEEK_0: Record<string, CategoryContent> = {
       { label: 'Breast pump', note: 'check your insurance first — often free' }, { label: 'Milk storage bags' }, { label: 'Nursing / leak pads', note: 'washable + disposable' },
       { label: 'Burp cloths ×10' }, { label: 'Nursing pillow' }, { label: 'Small pack of formula', note: 'just in case' },
     ] },
-    article: { question: 'How often should I pump to bring milk in?', emoji: '👩🏽‍⚕️', name: 'Dana Reyes, IBCLC', role: 'lactation consultant · villie expert',
-      answer: 'In the early days, empty the breast 8–12 times in 24 hours — that frequency is the signal that builds your supply. Those first drops are colostrum; tiny amounts are exactly right. Have storage bags ready for whatever you pump.' },
+    articles: [
+      { question: 'How often should I pump to bring milk in?', emoji: '👩🏽‍⚕️', name: 'Dana Reyes, IBCLC', role: 'lactation consultant · villie expert',
+        answer: 'In the early days, empty the breast 8–12 times in 24 hours — that frequency is the signal that builds your supply. Those first drops are colostrum; tiny amounts are exactly right. Have storage bags ready for whatever you pump.' },
+      { question: 'What bottles should I buy if I want to nurse?', emoji: '🍼', name: 'Dana Reyes, IBCLC', role: 'lactation consultant · villie expert',
+        answer: "Wide-neck, slow-flow nipples that mimic the breast make moving back and forth easier. Don't overbuy one brand — babies have opinions. Start with one or two and see what she takes." },
+      { question: 'Do I need a pump before baby arrives?', emoji: '🩺', name: 'Dr. Lena Ortiz', role: 'pediatrician · villie expert',
+        answer: "Have one in the house — most insurance plans cover it free. You may not need it day one, but if your milk comes in hard or baby needs a NICU stay, you'll be glad it's ready." },
+    ],
   },
 
   care: {
@@ -239,8 +281,14 @@ const WEEK_0: Record<string, CategoryContent> = {
       { label: 'Nail file + clippers' }, { label: 'Digital thermometer' }, { label: 'Diapers', note: 'newborn + size 1' },
       { label: 'Wipes + diaper cream' }, { label: 'Easy-change onesies', note: 'zip / magnetic / open-bottom' }, { label: 'Diaper caddy', note: 'stocked, one per floor' },
     ] },
-    article: { question: 'What makes night diaper changes easier?', emoji: '🧴', name: 'Dr. Lena Ortiz', role: 'pediatric dermatologist',
-      answer: 'Choose zip, magnetic, or open-bottom onesies so you never have to pull anything over a sleepy baby’s head, and keep a fully stocked diaper caddy within arm’s reach. And wash everything that touches baby in a fragrance- and dye-free detergent first.' },
+    articles: [
+      { question: 'What makes night diaper changes easier?', emoji: '🧴', name: 'Dr. Lena Ortiz', role: 'pediatric dermatologist · villie expert',
+        answer: 'Choose zip, magnetic, or open-bottom onesies so you never have to pull anything over a sleepy baby’s head, and keep a fully stocked diaper caddy within arm’s reach. And wash everything that touches baby in a fragrance- and dye-free detergent first.' },
+      { question: 'How do I set up a bath station?', emoji: '🛁', name: 'Dr. Lena Ortiz', role: 'pediatric dermatologist · villie expert',
+        answer: "A contoured newborn tub, two hooded towels, fragrance-free wash, and a soft cup for rinsing — all within reach before you start. Sponge baths only until the cord falls off." },
+      { question: "What's the one thing new parents forget?", emoji: '💡', name: 'Dana Reyes, IBCLC', role: 'lactation consultant · villie expert',
+        answer: "A stocked diaper caddy on every floor you use, plus easy-open onesies. At 3am you want everything within arm's reach and nothing that has to go over the head." },
+    ],
   },
 };
 

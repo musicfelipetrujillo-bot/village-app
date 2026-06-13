@@ -7,16 +7,46 @@
 // The shop/learn "link sticker" stays tappable (nested touchable wins).
 import React, { useEffect, useRef, useState } from 'react';
 import {
-  View, Text, StyleSheet, Pressable, TouchableOpacity, Animated, Linking, Image,
+  View, Text, StyleSheet, Pressable, TouchableOpacity, Animated, Linking,
   type GestureResponderEvent,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import Svg, { Polygon } from 'react-native-svg';
 import { FONTS } from '@utils/constants';
 import { select, tap } from '@utils/haptics';
 import type { StoryCard } from '@/manual/manualWeekContent';
 
-const VILLIE_BEE = require('../../../assets/brand/villie-bee.png');
 const STORY_MS = 5000; // how long each card plays before auto-advancing
+
+// Subtle static honeycomb texture, top-right of the card (echoes the masthead
+// comb). Flat-top hex cells, outline only, low opacity — tinted to the card's fg.
+function HoneycombCorner({ color }: { color: string }) {
+  const r = 16;
+  const SQ3 = Math.sqrt(3);
+  const cells: { cx: number; cy: number }[] = [];
+  for (let col = 0; col < 5; col++) {
+    for (let row = 0; row < 4; row++) {
+      cells.push({ cx: col * (r * 1.5), cy: row * (r * SQ3) + (col % 2 ? (r * SQ3) / 2 : 0) });
+    }
+  }
+  const hex = (cx: number, cy: number) => {
+    const p: string[] = [];
+    for (let i = 0; i < 6; i++) {
+      const a = (Math.PI / 180) * (60 * i);
+      p.push(`${(cx + r * 0.9 * Math.cos(a)).toFixed(1)},${(cy + r * 0.9 * Math.sin(a)).toFixed(1)}`);
+    }
+    return p.join(' ');
+  };
+  return (
+    <View style={styles.combCorner} pointerEvents="none">
+      <Svg width={170} height={170} viewBox="0 0 170 170">
+        {cells.map((c, i) => (
+          <Polygon key={i} points={hex(c.cx, c.cy)} fill="none" stroke={color} strokeWidth={1.3} strokeOpacity={0.15} />
+        ))}
+      </Svg>
+    </View>
+  );
+}
 
 // Each category wears its OWN monochromatic palette (tints → deep shades of the
 // chapter's hue) so the deck color matches the selected chip. Index 0 is the
@@ -103,6 +133,7 @@ export default function ManualSwipeDeck({ story, category }: { story: StoryCard[
       >
         <LinearGradient colors={scheme.grad} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={styles.card}>
           <View style={styles.cardCircle} pointerEvents="none" />
+          <HoneycombCorner color={scheme.fg} />
 
           {/* IG-story segmented progress bars */}
           <View style={styles.bars}>
@@ -128,7 +159,6 @@ export default function ManualSwipeDeck({ story, category }: { story: StoryCard[
 
           <View style={styles.cardTop}>
             <Text style={[styles.cardCount, { color: scheme.fg }]}>CARD {idx + 1} OF {deck.length}</Text>
-            <Image source={VILLIE_BEE} style={styles.bee} resizeMode="contain" />
           </View>
 
           {!!card.eyebrow && <Text style={[styles.eyebrow, { color: scheme.sub }]}>{card.eyebrow.toUpperCase()}</Text>}
@@ -168,6 +198,7 @@ const styles = StyleSheet.create({
     position: 'absolute', bottom: -38, right: -30, width: 150, height: 150,
     borderRadius: 75, backgroundColor: 'rgba(255,255,255,0.12)',
   },
+  combCorner: { position: 'absolute', top: -22, right: -16 },
   // progress bars
   bars: { flexDirection: 'row', gap: 5, marginBottom: 14 },
   barTrack: { flex: 1, height: 3, borderRadius: 999, overflow: 'hidden' },
@@ -175,7 +206,6 @@ const styles = StyleSheet.create({
 
   cardTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   cardCount: { fontFamily: FONTS.bodyBold, fontSize: 11, letterSpacing: 1.8, opacity: 0.85 },
-  bee: { width: 32, height: 32 },
   eyebrow: { fontFamily: FONTS.bodyBold, fontSize: 11, letterSpacing: 1.6, marginTop: 16, opacity: 0.9 },
   cardTitle: { fontFamily: FONTS.headerBold, fontSize: 36, lineHeight: 38, letterSpacing: -0.7, marginTop: 6 },
   cardSay: { fontFamily: FONTS.headerItalic, fontStyle: 'italic', fontSize: 25, lineHeight: 27, marginTop: 6 },
