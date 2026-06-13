@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { FONTS } from '@utils/constants';
+import { select, tap } from '@utils/haptics';
 import type { StoryCard } from '@/manual/manualWeekContent';
 
 const VILLIE_BEE = require('../../../assets/brand/villie-bee.png');
@@ -86,6 +87,7 @@ export default function ManualSwipeDeck({ story, category }: { story: StoryCard[
 
   // Tap right 70% → next (faster); tap left 30% → previous.
   const onTapCard = (e: GestureResponderEvent) => {
+    select();
     const x = e.nativeEvent.locationX;
     if (cardW > 0 && x < cardW * 0.3) setIdx((i) => Math.max(0, i - 1));
     else setIdx((i) => Math.min(deck.length - 1, i + 1));
@@ -139,7 +141,7 @@ export default function ManualSwipeDeck({ story, category }: { story: StoryCard[
             <TouchableOpacity
               style={styles.sticker}
               activeOpacity={0.85}
-              onPress={() => Linking.openURL(card.link!.url).catch(() => {})}
+              onPress={() => { tap(); Linking.openURL(card.link!.url).catch(() => {}); }}
               accessibilityRole="link"
               accessibilityLabel={card.link.label}
             >

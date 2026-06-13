@@ -25,6 +25,7 @@ import {
 } from 'react-native';
 import { GlassHighlight } from './GlassHighlight';
 import { FONTS } from '@utils/constants';
+import { tap } from '@utils/haptics';
 
 export interface PrimaryCTAProps {
   label: string;
@@ -61,7 +62,7 @@ export function PrimaryCTA({
         isInactive && styles.disabled,
         style,
       ]}
-      onPress={onPress}
+      onPress={() => { tap(); onPress(); }}
       disabled={isInactive}
       activeOpacity={0.9}
       accessibilityRole={'button' satisfies AccessibilityRole}

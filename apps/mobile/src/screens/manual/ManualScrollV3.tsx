@@ -36,6 +36,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Path, Circle } from 'react-native-svg';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { COLORS, FONTS, PLACEHOLDER_BABY_NAME } from '@utils/constants';
+import { select } from '@utils/haptics';
 import { useT } from '@/i18n';
 import { useUserStore } from '@store/user';
 import { useHomeStore } from '@store/home';
@@ -754,12 +755,12 @@ export default function ManualScrollV3() {
   // Switch the view tab. We DON'T reset the selected chapter anymore — the
   // category the user was reading is preserved across the toggle so flipping
   // Manual ↔ Playbook ↔ Manual lands them back where they were.
-  const switchView = (next: ManualView) => setView(next);
+  const switchView = (next: ManualView) => { if (next !== view) select(); setView(next); };
 
   // Chip click selects the chapter; the swipe deck below re-keys to it.
   // (Tap-to-open-chapter → ManualCategory was removed 2026-06-10 in favor of
   // the inline Stories-style ManualSwipeDeck.)
-  const switchChapter = (next: ChapterMeta) => setChapter(next);
+  const switchChapter = (next: ChapterMeta) => { if (next.cat !== chapter.cat) select(); setChapter(next); };
 
   // Static for the preview — wire to user progress in Phase 4.2.
   const doneCount = 2;

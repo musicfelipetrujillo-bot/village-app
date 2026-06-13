@@ -7,6 +7,7 @@ import { View, Text, StyleSheet, Share } from 'react-native';
 import { TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { FONTS } from '@utils/constants';
+import { select, tap } from '@utils/haptics';
 import type { CategoryContent, Checklist, Article, Info } from '@/manual/manualWeekContent';
 
 const SAGE = '#6F7A43';
@@ -44,7 +45,7 @@ function ChecklistModule({ data }: { data: Checklist }) {
               key={i}
               style={[s.ci, i > 0 && s.ciBorder]}
               activeOpacity={0.7}
-              onPress={() => setDone((d) => ({ ...d, [i]: !d[i] }))}
+              onPress={() => { select(); setDone((d) => ({ ...d, [i]: !d[i] })); }}
               accessibilityRole="checkbox"
               accessibilityState={{ checked: on }}
               accessibilityLabel={it.label}
@@ -173,6 +174,7 @@ function InfographicModule({ data }: { data: Info }) {
 
 function AskSpecialistModule({ questions }: { questions: string[] }) {
   const onShare = () => {
+    tap();
     Share.share({
       message: 'Questions for my next visit:\n\n' + questions.map((q, i) => `${i + 1}. ${q}`).join('\n'),
     }).catch(() => {});
