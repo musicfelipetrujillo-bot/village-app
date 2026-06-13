@@ -34,7 +34,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Path } from 'react-native-svg';
 import { useNavigation } from '@react-navigation/native';
-import { COLORS, FONTS } from '@utils/constants';
+import { COLORS, FONTS, PLACEHOLDER_BABY_NAME } from '@utils/constants';
 import { useUserStore } from '@store/user';
 import { useHomeStore } from '@store/home';
 import { usePerksStore } from '@store/perks';
@@ -554,9 +554,9 @@ export default function HomeScreenV3() {
 
   // Hero requires a baby profile to render with personalized data; in
   // pre-baby state we fall back to a placeholder name.
-  // TEMP demo default 'Jackson' (was 'Your') — real fix is setting
-  // baby_profiles.baby_name in the profile; revert before broad launch.
-  const heroBabyName = babyName ?? 'Jackson';
+  // TEMP demo default (was 'Your') — real fix is setting baby_profiles.baby_name
+  // in the profile. Centralized in constants so Home + Manual stay in sync.
+  const heroBabyName = babyName ?? PLACEHOLDER_BABY_NAME;
   const heroWeek = weekNumber ?? 1;
 
   // Atmospheric backdrop — bees + warm gradient. scrollY drives the

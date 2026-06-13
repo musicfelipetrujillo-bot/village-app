@@ -35,7 +35,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Path, Circle } from 'react-native-svg';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { COLORS, FONTS } from '@utils/constants';
+import { COLORS, FONTS, PLACEHOLDER_BABY_NAME } from '@utils/constants';
 import { useT } from '@/i18n';
 import { useUserStore } from '@store/user';
 import { useHomeStore } from '@store/home';
@@ -759,7 +759,7 @@ export default function ManualScrollV3() {
   // Manual baseline content for the selected (week, category) — drives both the
   // story deck and the below-deck modules (checklist → article → infographic).
   const manualContent = getManualContent(week, chapter.cat);
-  const ownerName = who === 'baby' ? (babyProfile?.baby_name ?? 'Baby') : 'Your';
+  const ownerName = who === 'baby' ? (babyProfile?.baby_name ?? PLACEHOLDER_BABY_NAME) : 'Your';
 
   // Hamburger menu state (same recipe as ManualCategoryScreen)
   const [menuOpen, setMenuOpen] = useState(false);

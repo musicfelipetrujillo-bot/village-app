@@ -237,6 +237,11 @@ export const NAV_HEIGHT = 72;
 // Once `useUserStore.profile` is hydrated we prefer `profile.search_radius_miles`
 // (A2.a — `users.search_radius_miles`, migration 031). Keep in sync with the
 // DB column default.
+// TEMP demo placeholder shown wherever a baby name is missing (Home hero,
+// Manual masthead). Real fix is setting baby_profiles.baby_name; revert to a
+// neutral value (e.g. 'Baby') before broad launch.
+export const PLACEHOLDER_BABY_NAME = 'Jackson';
+
 export const DEFAULT_SEARCH_RADIUS_MILES = 25;
 export const MIN_SEARCH_RADIUS_MILES = 1;
 export const MAX_SEARCH_RADIUS_MILES = 100;
