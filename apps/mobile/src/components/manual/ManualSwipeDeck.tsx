@@ -23,9 +23,13 @@ const STORY_MS = 5000; // how long each card plays before auto-advancing
 function HoneycombCorner({ color }: { color: string }) {
   const r = 16;
   const SQ3 = Math.sqrt(3);
+  const COLS = 9;
+  const ROWS = 7;
+  const maxX = (COLS - 1) * (r * 1.5);
+  const maxY = (ROWS - 1) * (r * SQ3);
   const cells: { cx: number; cy: number }[] = [];
-  for (let col = 0; col < 5; col++) {
-    for (let row = 0; row < 4; row++) {
+  for (let col = 0; col < COLS; col++) {
+    for (let row = 0; row < ROWS; row++) {
       cells.push({ cx: col * (r * 1.5), cy: row * (r * SQ3) + (col % 2 ? (r * SQ3) / 2 : 0) });
     }
   }
@@ -37,11 +41,17 @@ function HoneycombCorner({ color }: { color: string }) {
     }
     return p.join(' ');
   };
+  // Fade from the top-right corner (densest) toward the lower-left (dissolves
+  // into the card so it never fights the title/body).
+  const op = (cx: number, cy: number) => {
+    const d = ((maxX - cx) / maxX + cy / maxY) / 2; // 0 at top-right → 1 at lower-left
+    return Math.max(0.04, 0.22 * (1 - d));
+  };
   return (
     <View style={styles.combCorner} pointerEvents="none">
-      <Svg width={170} height={170} viewBox="0 0 170 170">
+      <Svg width={210} height={200} viewBox="0 0 210 200">
         {cells.map((c, i) => (
-          <Polygon key={i} points={hex(c.cx, c.cy)} fill="none" stroke={color} strokeWidth={1.3} strokeOpacity={0.15} />
+          <Polygon key={i} points={hex(c.cx, c.cy)} fill="none" stroke={color} strokeWidth={1.3} strokeOpacity={op(c.cx, c.cy)} />
         ))}
       </Svg>
     </View>
@@ -198,7 +208,7 @@ const styles = StyleSheet.create({
     position: 'absolute', bottom: -38, right: -30, width: 150, height: 150,
     borderRadius: 75, backgroundColor: 'rgba(255,255,255,0.12)',
   },
-  combCorner: { position: 'absolute', top: -22, right: -16 },
+  combCorner: { position: 'absolute', top: -26, right: -18 },
   // progress bars
   bars: { flexDirection: 'row', gap: 5, marginBottom: 14 },
   barTrack: { flex: 1, height: 3, borderRadius: 999, overflow: 'hidden' },
