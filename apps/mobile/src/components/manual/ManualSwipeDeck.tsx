@@ -44,8 +44,10 @@ function HoneycombCorner({ color }: { color: string }) {
   // Fade from the top-right corner (densest) toward the lower-left (dissolves
   // into the card so it never fights the title/body).
   const op = (cx: number, cy: number) => {
-    const d = ((maxX - cx) / maxX + cy / maxY) / 2; // 0 at top-right → 1 at lower-left
-    return Math.max(0.04, 0.22 * (1 - d));
+    const dx = (maxX - cx) / maxX; // 0 at right → 1 at left
+    const dy = cy / maxY;          // 0 at top → 1 at bottom
+    const d = dx * 0.72 + dy * 0.28; // horizontal-weighted: fades harder to the left
+    return Math.max(0.03, 0.24 * Math.pow(1 - d, 1.5));
   };
   return (
     <View style={styles.combCorner} pointerEvents="none">
