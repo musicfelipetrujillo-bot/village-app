@@ -43,6 +43,7 @@ Companion docs (don't duplicate, just link):
 | `EXPO_PUBLIC_SUPABASE_ANON_KEY` | ✅ yes | same → `anon` key | safe (RLS gates) |
 | `EXPO_PUBLIC_API_BASE_URL` | ✅ yes | derived: `<SUPABASE_URL>/functions/v1` | safe |
 | `EXPO_PUBLIC_APP_ENV` | ✅ yes | `"development"` locally, `"production"` for EAS prod builds | safe |
+| `EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY` | required for any in-app payment | Stripe Dashboard → Developers → API keys → Publishable key (`pk_…`) | safe (public). Used by Specialist booking PaymentScreen **and** Villie Boxes checkout. test `pk_test_…` for staging, live `pk_live_…` for prod |
 | `EXPO_PUBLIC_OAUTH_PROVIDERS_ENABLED` | optional | `"1"` to show Apple + Google buttons on Login/SignUp | feature flag |
 | `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` | required if OAUTH=1 | Google Cloud → OAuth Clients → `Villie Web (for Supabase)` | safe (public) |
 | `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID` | required if OAUTH=1 | Google Cloud → OAuth Clients → `Villie iOS` | safe (public) |
@@ -64,8 +65,8 @@ Companion docs (don't duplicate, just link):
 | `ANTHROPIC_API_KEY` | every AI fn | yes | Anthropic console | one key shared |
 | `TWILIO_ACCOUNT_SID` + `TWILIO_AUTH_TOKEN` + `TWILIO_FROM_NUMBER` | twilio-sms (called by appointment-reminder, room-message-scan crisis fan-out, milk-purchase-confirmed) | yes (when SMS goes live) | Twilio console | A2P 10DLC pending |
 | `ONESIGNAL_APP_ID` + `ONESIGNAL_REST_API_KEY` | push-notify | yes | OneSignal → Settings → Keys | one pair per app |
-| `STRIPE_SECRET_KEY` | create-payment-intent (V1 booking only) | yes | Stripe Dashboard → Developers → API keys | test keys for staging, live for prod |
-| `STRIPE_WEBHOOK_SIGNING_SECRET` | stripe-webhook | yes | Stripe → Webhooks → endpoint | per-endpoint |
+| `STRIPE_SECRET_KEY` | create-payment-intent (V1 booking) **+ boxes-create-payment-intent (Villie Boxes)** | yes | Stripe Dashboard → Developers → API keys | test keys for staging, live for prod. One key shared by both payment fns |
+| `STRIPE_WEBHOOK_SECRET` | stripe-webhook (Villie Boxes order lifecycle) | yes (before Boxes go-live) | Stripe → Developers → Webhooks → your endpoint → Signing secret (`whsec_…`) | per-endpoint. Code reads exactly this name (`Deno.env.get('STRIPE_WEBHOOK_SECRET')`). Until set, the webhook rejects every event 400 and orders stay `pending_payment`. See §3.8 |
 | `CALENDLY_SIGNING_KEY` | calendly-webhook | yes | Calendly → Integrations → Webhooks | — |
 | `GO_UPC_API_KEY` / `UPCITEMDB_API_KEY` | gear-upc-lookup | optional | Go-UPC or UPCitemdb | degrades to manual entry without |
 | `EBAY_APP_ID` + `EBAY_CERT_ID` | gear-price-suggest | optional | eBay Developer Program → Production Keyset | absent → function returns heuristic-only `source: 'heuristic'`. Adding both auto-promotes to live eBay Browse-API comps without any client change. Waiting on Developer account approval (~1 day) as of 2026-05-15. |
@@ -267,6 +268,47 @@ curl -X POST 'https://albyndcruwopulazvpjs.supabase.co/functions/v1/gear-moderat
 
 ---
 
+### 3.8 · Villie Boxes (curated-commerce checkout — real Stripe)
+
+First-party physical-goods retail sold BY Villie (not P2P). Flow: Home card → Boxes hub → box detail/customize → cart → checkout (Stripe PaymentSheet) → confirmation → **webhook flips order to `paid`** → order history (hub "My orders" + Me → My stuff). Catalog is hardcoded in `apps/mobile/src/api/boxes.ts` **and mirrored** in the edge fn `CATALOG` const — keep them in sync until it moves to a `villie_boxes` table.
+
+**One-time go-live setup (do all four — Boxes is otherwise dark):**
+
+```bash
+# 1. Push the order tables (villie_box_orders + villie_box_order_items, owner-read RLS)
+supabase db push        # applies migration 092_villie_boxes_orders.sql
+
+# 2. Deploy both edge functions
+supabase functions deploy boxes-create-payment-intent stripe-webhook
+```
+
+3. **Secrets** (Supabase → Edge Functions → Manage Secrets): `STRIPE_SECRET_KEY` + `SUPABASE_SERVICE_ROLE_KEY` (both already set for V1 booking) cover `boxes-create-payment-intent`. The webhook additionally needs `STRIPE_WEBHOOK_SECRET` — set in step 4.
+4. **Register the Stripe webhook endpoint** (this is the step that's easy to forget):
+   - Stripe Dashboard → Developers → Webhooks → **Add endpoint**
+   - URL: `https://albyndcruwopulazvpjs.supabase.co/functions/v1/stripe-webhook`
+   - Events to send: `payment_intent.succeeded`, `payment_intent.payment_failed`, `charge.refunded`
+   - Copy the endpoint's **Signing secret** (`whsec_…`) → Supabase Edge Function Secrets as `STRIPE_WEBHOOK_SECRET`
+   - Client needs `EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY` in `apps/mobile/.env` (already set for booking — same key)
+
+**Smoke test the webhook is wired (before trusting a real order):**
+
+```bash
+# Unsigned POST should be REJECTED — proves signature verification is live.
+curl -i -X POST \
+  "https://albyndcruwopulazvpjs.supabase.co/functions/v1/stripe-webhook" \
+  -H 'Content-Type: application/json' \
+  -d '{"type":"payment_intent.succeeded","data":{"object":{}}}'
+# Expect: HTTP/2 400, body "Missing signature or secret" (no secret header) —
+# a 400 here is GOOD; it means the fn is deployed and rejecting unsigned events.
+# Real Stripe events arrive signed and return {"received":true}.
+```
+
+**End-to-end (test mode):** with `pk_test_…`/`sk_test_…`, run a checkout in the app using Stripe test card `4242 4242 4242 4242`. Then in the Stripe Dashboard → Webhooks → your endpoint, confirm the `payment_intent.succeeded` delivery shows `200`. In Supabase Studio, the matching `villie_box_orders` row should flip `pending_payment → paid` with `paid_at` set. The app's "My orders" screen (hub header or Me → My stuff → "Villie Boxes orders") should show the **Paid** pill.
+
+**Still-open pre-launch gates (not ops — flagged in memory `project_villie_boxes.md`):** FL sales-tax obligation on physical goods (shipping/tax are $0 at launch, baked into box pricing); Risk & Compliance review pass (first first-party physical-goods sale, not in the Risk doc); real retail prices + product photos (current tiles are gradient swatches, prices are placeholders).
+
+---
+
 ## 4 · Native iOS build cycle
 
 Three steps. The middle one is the recurring landmine.
@@ -340,6 +382,8 @@ Quick table for the most-googled questions.
 | `OAUTH_PROVIDERS_ENABLED=1` | apps/mobile/.env | enables Apple + Google buttons on Login/SignUp |
 | OneSignal external_id for new moderator | `GEAR_MODERATOR_EXTERNAL_IDS` env on Supabase Edge Function Secrets (comma-separated) | gear moderation pager fan-out |
 | New AASA appID | `village-website/.well-known/apple-app-site-association` + redeploy via git push to `main` | Universal Links — what URL paths the iOS app claims |
+| `STRIPE_WEBHOOK_SECRET` | Supabase Edge Function Secrets (after registering the endpoint in Stripe → Webhooks) | Villie Boxes order status (`pending_payment → paid`). Missing → orders never mark paid. See §3.8 |
+| `EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY` | apps/mobile/.env (local) + EAS env (builds) | Stripe PaymentSheet for Specialist booking + Villie Boxes checkout |
 
 ---
 

@@ -167,7 +167,15 @@ const MY_STUFF: MyStuffLink[] = [
   { labelKey: 'me.myStuffMilkOrders',       icon: '📦', tab: 'Milk',    screen: 'MilkOrders' },
   { labelKey: 'me.myStuffMyGear',           icon: '🛒', tab: 'Gear',    screen: 'MyListings' },
   { labelKey: 'me.myStuffGearInbox',        icon: '💬', tab: 'Gear',    screen: 'GearMessageThreads' },
+  { labelKey: 'me.myStuffBoxOrders',        icon: '🛍️', tab: 'Home',    screen: 'BoxOrders' },
 ];
+
+// Villie Boxes is gated OFF until its launch gates clear — hide its "My stuff"
+// row unless EXPO_PUBLIC_VILLIE_BOXES_ENABLED=1 (mirrors the Home teaser gate).
+const VILLIE_BOXES_ENABLED = process.env.EXPO_PUBLIC_VILLIE_BOXES_ENABLED === '1';
+const VISIBLE_MY_STUFF = MY_STUFF.filter(
+  (l) => l.screen !== 'BoxOrders' || VILLIE_BOXES_ENABLED,
+);
 
 export default function MeScreen() {
   const navigation = useNavigation<MeNav>();
@@ -563,12 +571,12 @@ export default function MeScreen() {
             </View>
             <Text style={s.rowChevron}>›</Text>
           </TouchableOpacity>
-          {MY_STUFF.map((link, idx) => {
+          {VISIBLE_MY_STUFF.map((link, idx) => {
             const label = t(link.labelKey);
             return (
               <TouchableOpacity
                 key={`${link.tab}:${link.screen}`}
-                style={[s.row, idx === MY_STUFF.length - 1 && s.rowLast]}
+                style={[s.row, idx === VISIBLE_MY_STUFF.length - 1 && s.rowLast]}
                 onPress={() => goToTab(link)}
                 accessibilityRole="button"
                 accessibilityLabel={t('me.myStuffOpenA11y', { label })}

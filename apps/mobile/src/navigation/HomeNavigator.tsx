@@ -24,6 +24,14 @@ import PerksListScreen from '@screens/perks/PerksListScreen';
 import PerkDetailScreen from '@screens/perks/PerkDetailScreen';
 import PerkClaimScreen from '@screens/perks/PerkClaimScreen';
 import MyClaimsScreen from '@screens/perks/MyClaimsScreen';
+// Villie Boxes (2026-06-18) — curated-commerce stack, lives on Home for launch.
+import BoxesHubScreen from '@screens/boxes/BoxesHubScreen';
+import BoxDetailScreen from '@screens/boxes/BoxDetailScreen';
+import BoxesCartScreen from '@screens/boxes/BoxesCartScreen';
+import BoxesCheckoutScreen from '@screens/boxes/BoxesCheckoutScreen';
+import BoxOrderConfirmScreen from '@screens/boxes/BoxOrderConfirmScreen';
+import BoxOrdersScreen from '@screens/boxes/BoxOrdersScreen';
+import type { BoxId } from '@api/boxes';
 
 export type HomeStackParamList = {
   HomeRoot: undefined;
@@ -45,6 +53,12 @@ export type HomeStackParamList = {
   PerkClaim: { id: string };
   MyClaims: undefined;
   MomHub: undefined;
+  BoxesHub: undefined;
+  BoxDetail: { boxId: BoxId };
+  BoxesCart: undefined;
+  BoxesCheckout: undefined;
+  BoxOrderConfirm: { orderId: string; amountCents: number };
+  BoxOrders: undefined;
 };
 
 const Stack = createNativeStackNavigator<HomeStackParamList>();
@@ -71,6 +85,12 @@ export function HomeNavigator() {
       <Stack.Screen name="PerkClaim" component={PerkClaimScreen} options={{ presentation: 'modal' }} />
       <Stack.Screen name="MyClaims" component={MyClaimsScreen} />
       <Stack.Screen name="MomHub" component={MomHubScreen} />
+      <Stack.Screen name="BoxesHub" component={BoxesHubScreen} />
+      <Stack.Screen name="BoxDetail" component={BoxDetailScreen} />
+      <Stack.Screen name="BoxesCart" component={BoxesCartScreen} />
+      <Stack.Screen name="BoxesCheckout" component={BoxesCheckoutScreen} />
+      <Stack.Screen name="BoxOrderConfirm" component={BoxOrderConfirmScreen} />
+      <Stack.Screen name="BoxOrders" component={BoxOrdersScreen} />
     </Stack.Navigator>
   );
 }

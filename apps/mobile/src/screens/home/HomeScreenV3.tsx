@@ -43,6 +43,7 @@ import type { PerkCard } from '@api/perks';
 import type { VilliePick } from '@api/picks';
 import { useT } from '@/i18n';
 import { homeApi, type Milestone } from '@api/home';
+import { BOXES } from '@api/boxes';
 import { WarmGlowBackdrop } from '@components/shared/WarmGlowBackdrop';
 import { DailyCheckinStrip } from '@components/shared/DailyCheckinStrip';
 import { GlassHighlight } from '@components/shared/GlassHighlight';
@@ -513,6 +514,70 @@ function PicksAndPerks({ picks, perks, onSeeAll }: { picks: VilliePick[]; perks:
   );
 }
 
+// Villie Boxes ships behind a flag (default OFF) until its launch gates clear
+// (real retail prices, FL sales-tax + Risk review, Stripe webhook registered).
+// Flip EXPO_PUBLIC_VILLIE_BOXES_ENABLED=1 to surface the home card + Me row.
+const VILLIE_BOXES_ENABLED = process.env.EXPO_PUBLIC_VILLIE_BOXES_ENABLED === '1';
+
+// ─── Villie Boxes teaser ─────────────────────────────────────────────────
+// Home entry into the new curated-commerce feature. Faithful to the design
+// handoff `.feat` card: "new · curated by villie" eyebrow, Bricolage title +
+// Caveat "for every stage." flourish, body line, three mini hero-gradient box
+// previews, and an "explore the boxes →" CTA. Taps into the Boxes hub
+// (registered on HomeNavigator). One cinnamon spark per card = the CTA arrow.
+function BoxesTeaserCard({ onPress }: { onPress: () => void }) {
+  return (
+    <View style={{ marginTop: 26 }}>
+      <TouchableOpacity
+        activeOpacity={0.92}
+        onPress={onPress}
+        accessibilityRole="button"
+        accessibilityLabel="Villie Boxes — curated bundles for every stage"
+        style={styles.boxesCard}
+      >
+        <LinearGradient
+          colors={['rgba(253,251,246,0.4)', 'rgba(253,251,246,0)']}
+          start={{ x: 0, y: 0 }} end={{ x: 0, y: 0.5 }}
+          style={[StyleSheet.absoluteFillObject, { borderRadius: 20 }]}
+          pointerEvents="none"
+        />
+        <View style={styles.boxesHalo} pointerEvents="none" />
+
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <View style={styles.boxesNewDot} />
+          <Text style={styles.boxesEyebrow}>new · curated by villie</Text>
+        </View>
+
+        <Text style={styles.boxesTitle}>Villie Boxes</Text>
+        <Text style={styles.boxesTitleEm}>for every stage.</Text>
+
+        <Text style={styles.boxesBlurb}>
+          Pre-packed bundles for delivery day, baby&apos;s first weeks, and your own
+          recovery — vetted by nurses and doulas, ready before you are.
+        </Text>
+
+        {/* Three mini box previews — hero gradients straight from the catalog. */}
+        <View style={styles.boxesPreviewRow}>
+          {BOXES.map((b) => (
+            <View key={b.id} style={styles.boxesPreview}>
+              <LinearGradient
+                colors={b.hero as readonly [string, string, ...string[]]}
+                start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+                style={styles.boxesPreviewSwatch}
+              />
+              <Text style={styles.boxesPreviewLabel} numberOfLines={1}>{b.pop}</Text>
+            </View>
+          ))}
+        </View>
+
+        <View style={styles.boxesCtaRow}>
+          <Text style={styles.boxesCta}>explore the boxes →</Text>
+        </View>
+      </TouchableOpacity>
+    </View>
+  );
+}
+
 // ─── Screen ────────────────────────────────────────────────────────────
 export default function HomeScreenV3() {
   const navigation = useNavigation<any>();
@@ -649,6 +714,13 @@ export default function HomeScreenV3() {
             on MomHubScreen — see ../home/MomHubScreen.tsx. */}
         <MomHeroCard onPress={() => navigation.navigate('MomHub' as never)} />
 
+        {/* Villie Boxes (2026-06-18) — new curated-commerce revenue line.
+            Lives on Home for launch; deep-links into the Boxes hub stack
+            registered on HomeNavigator. Gated OFF until launch gates clear. */}
+        {VILLIE_BOXES_ENABLED && (
+          <BoxesTeaserCard onPress={() => navigation.navigate('BoxesHub' as never)} />
+        )}
+
         <PicksAndPerks picks={picks} perks={perks} onSeeAll={() => navigation.navigate('PerksList' as never)} />
 
         <VillageStrip onPillar={goVillagePillar} onAll={goVillageAll} />
@@ -717,6 +789,44 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase', fontWeight: '600',
   },
 
+  // ── Villie Boxes teaser card ──────────────────────────────────────────
+  boxesCard: {
+    backgroundColor: T.paper, borderRadius: 20, padding: 20, overflow: 'hidden',
+    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(217,108,136,0.22)',
+    shadowColor: '#43260F', shadowOpacity: 0.06, shadowRadius: 18,
+    shadowOffset: { width: 0, height: 10 }, elevation: 2,
+  },
+  boxesHalo: {
+    position: 'absolute', top: -40, right: -30, width: 150, height: 150,
+    borderRadius: 75, backgroundColor: 'rgba(244,197,60,0.18)',
+  },
+  boxesNewDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: T.cinnamon, marginRight: 8 },
+  boxesEyebrow: {
+    fontFamily: FONTS.v2_mono, fontSize: 11, letterSpacing: 2.6,
+    textTransform: 'uppercase', fontWeight: '500', color: T.walnut,
+  },
+  boxesTitle: {
+    fontFamily: FONTS.v3_display, fontSize: 28, lineHeight: 30,
+    color: T.cocoa, letterSpacing: -0.8, marginTop: 12,
+  },
+  boxesTitleEm: {
+    fontFamily: FONTS.v3_display_italic, fontSize: 26, lineHeight: 30,
+    color: T.caramel, marginTop: 2,
+  },
+  boxesBlurb: {
+    fontFamily: FONTS.v2_body, fontSize: 13.5, lineHeight: 20,
+    color: T.walnut, marginTop: 12,
+  },
+  boxesPreviewRow: { flexDirection: 'row', gap: 10, marginTop: 18 },
+  boxesPreview: { flex: 1 },
+  boxesPreviewSwatch: { height: 64, borderRadius: 14, overflow: 'hidden' },
+  boxesPreviewLabel: {
+    fontFamily: FONTS.v2_label, fontSize: 11.5, color: T.cocoa,
+    marginTop: 8, textAlign: 'center',
+  },
+  boxesCtaRow: { marginTop: 18 },
+  boxesCta: { fontFamily: FONTS.v2_link, fontSize: 14, color: T.cinnamon },
+
   // ── This week's manual hero card ──────────────────────────────────────
   heroCard: {
     // Geometry matched to momCard (radius 20, generous padding) so the two
@@ -763,20 +873,23 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.v2_mono, fontSize: 9, letterSpacing: 1.4, fontWeight: '600',
     paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6,
   },
+  // Subtext scale is shared across all three home hero cards (Manual / Mom /
+  // Boxes): 13.5 / 19 body. The Manual hook keeps emphasis through WEIGHT
+  // (v2_bold) + cocoa ink, not a larger size, so no card's subtext out-sizes
+  // its peers. (Was 15.5 bold — read as oversized next to the 13.5 peers.)
   heroHook: {
-    fontFamily: FONTS.v2_bold, fontSize: 15.5, lineHeight: 21,
-    color: T.cocoa, marginTop: 9,
+    fontFamily: FONTS.v2_bold, fontSize: 13.5, lineHeight: 19,
+    color: T.cocoa, marginTop: 8,
   },
-  // Subtitle on the "This week's manual" card — Bricolage Grotesque Regular
-  // (the display family's light weight, same family as the card titles), not
-  // italic, for a refined feel. Sized up for presence.
+  // Fallback subtitle (no milestone hook) — same body scale as the peers,
+  // not the old 18px display line that gave this card extra editorial bulk.
   heroSub: {
-    fontFamily: FONTS.v2_display_regular, fontSize: 18, lineHeight: 25,
-    color: T.cocoa, letterSpacing: 0.1, marginTop: 12,
+    fontFamily: FONTS.v2_body, fontSize: 13.5, lineHeight: 19,
+    color: T.walnut, marginTop: 8,
   },
   heroBody: {
-    fontFamily: FONTS.v2_body, fontSize: 13.5, lineHeight: 19,
-    color: T.walnut, marginTop: 5, maxWidth: '92%',
+    fontFamily: FONTS.v2_body, fontSize: 13, lineHeight: 18,
+    color: T.walnut, marginTop: 4, maxWidth: '92%',
   },
   heroCornerBee: {
     position: 'absolute', top: 15, right: 20, opacity: 0.92,
@@ -784,7 +897,7 @@ const styles = StyleSheet.create({
   // Progress block — track + flying bee + the bee's speech bubble. paddingTop
   // reserves the room the bubble needs to float above the track.
   heroProgress: {
-    marginTop: 30, paddingTop: 46, position: 'relative',
+    marginTop: 18, paddingTop: 38, position: 'relative',
   },
   heroProgressTrack: {
     height: 6, borderRadius: 3,
@@ -807,15 +920,15 @@ const styles = StyleSheet.create({
   // The bee's speech bubble — a cream lozenge floating above the pin, with a
   // small diamond tail dropping toward the bee.
   heroBubble: {
-    position: 'absolute', bottom: 26,
-    backgroundColor: T.paper, borderRadius: 13,
-    paddingHorizontal: 13, paddingVertical: 6,
+    position: 'absolute', bottom: 22,
+    backgroundColor: T.paper, borderRadius: 12,
+    paddingHorizontal: 11, paddingVertical: 5,
     borderWidth: 1, borderColor: 'rgba(173,121,91,0.18)',
     shadowColor: T.walnut, shadowOffset: { width: 0, height: 5 },
     shadowOpacity: 0.20, shadowRadius: 12, elevation: 5,
   },
   heroBubbleText: {
-    fontFamily: FONTS.v3_display_italic, fontSize: 17.5, color: T.cocoa,
+    fontFamily: FONTS.v3_display_italic, fontSize: 14, color: T.cocoa,
   },
   heroBubbleTail: {
     position: 'absolute', bottom: -4, width: 10, height: 10,
@@ -824,7 +937,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(173,121,91,0.18)',
   },
   heroCta: {
-    fontFamily: FONTS.v2_link, fontSize: 13, color: T.cinnamon, marginTop: 18,
+    fontFamily: FONTS.v2_link, fontSize: 13, color: T.cinnamon, marginTop: 14,
   },
 
   // ── Village 2×2 pillar grid ───────────────────────────────────────────
