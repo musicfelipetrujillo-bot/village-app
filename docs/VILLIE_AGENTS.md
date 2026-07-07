@@ -103,18 +103,21 @@ Solo-founder force-multipliers.
 
 ---
 
-## Cadence (deferred — not wired yet)
+## Cadence (LIVE — wired 2026-07-07)
 
-The "monitor" half. Documented now, automated later once the roster proves useful. When we turn it on
-(via the `schedule` / `loop` tooling), these are the candidates:
+The "monitor" half. Now running as local scheduled tasks (they fire while the Claude app is open; if it was
+closed when due, they run on next launch). Each run is **read-only** and writes a dated report to
+`village-app/docs/audits/` — it never modifies code, commits, or pushes.
 
-| Agent | Proposed cadence | What it watches |
-|---|---|---|
-| `security-compliance-auditor` | Weekly | Drift against the Risk & Compliance gate across Milk/Gear |
-| `data-privacy-officer` | Pre-launch, then monthly | New PII surfaces, consent flows, policy accuracy |
-| `security-appsec-engineer` | Weekly | Auth/RLS/edge-function security posture |
+| Scheduled task ID | Agent | Schedule | Report | Watches |
+|---|---|---|---|---|
+| `villie-compliance-audit-weekly` | `security-compliance-auditor` | Mondays ~9am | `docs/audits/compliance-YYYY-MM-DD.md` | Drift against the Risk & Compliance gate across Milk/Gear + health content + EN/ES parity |
+| `villie-appsec-review-weekly` | `security-appsec-engineer` | Wednesdays ~9am | `docs/audits/appsec-YYYY-MM-DD.md` | Auth/RLS/edge-function/OAuth security posture |
+| `villie-privacy-review-monthly` | `data-privacy-officer` | 1st of month ~9am | `docs/audits/privacy-YYYY-MM-DD.md` | New PII surfaces, consent flows, policy accuracy |
 
-No scheduling is active today. Turning any of these on is an explicit, separate step.
+**Note:** the privacy review is *also* meant to be run manually before any launch — the monthly cadence does
+not replace the pre-launch pass. Manage/pause/edit these from the app's **Scheduled** sidebar, or update them
+via the `update_scheduled_task` tool by ID.
 
 ---
 
