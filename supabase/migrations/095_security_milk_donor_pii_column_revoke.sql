@@ -40,19 +40,47 @@
 --     no client does a direct .select('lat,lng') before revoking. Tracked separately.
 --   * social_links — intentionally public (self-attested social proof). Keep readable.
 
+-- IMPORTANT: a column-level `REVOKE SELECT (col)` is a NO-OP when the role already holds a
+-- TABLE-wide SELECT grant. Supabase issues `GRANT SELECT ON ALL TABLES IN SCHEMA public TO
+-- authenticated, anon` by default, so both roles have SELECT on EVERY column via the table
+-- grant — and you cannot subtract a single column from a table grant. (Verified live
+-- 2026-07-08: after a plain column REVOKE, has_column_privilege(...,'address_line') was still
+-- true.) The correct fix is to drop the table-wide SELECT and re-grant SELECT on only the
+-- non-sensitive columns. The SECURITY DEFINER RPC keeps working (runs as owner, not caller);
+-- INSERT/UPDATE grants are untouched so donors can still write their own profile.
+--
+-- NOTE: because SELECT is now an explicit column allowlist, any NEW column added to this table
+-- later must be added to these grants (and the api/milk.ts DONOR_SELECT_COLUMNS list) or
+-- authenticated reads of it will 403.
+
 begin;
 
-revoke select (address_line, phone) on public.milk_donor_profiles from authenticated;
-revoke select (address_line, phone) on public.milk_donor_profiles from anon;
+-- authenticated: table-wide SELECT -> column-scoped SELECT (omits address_line, phone)
+revoke select on public.milk_donor_profiles from authenticated;
+grant select (
+  id, user_id, display_name, avatar_url, neighborhood, city, state, zip_code,
+  lat, lng, bio, price_per_oz, supply_oz_available, is_active, is_verified,
+  stripe_account_id, stripe_onboarding_complete, created_at, updated_at,
+  rating_avg, review_count, social_links
+) on public.milk_donor_profiles to authenticated;
+
+-- anon has no SELECT RLS policy (sees 0 rows) but held the column grant; mirror the scope.
+revoke select on public.milk_donor_profiles from anon;
+grant select (
+  id, user_id, display_name, avatar_url, neighborhood, city, state, zip_code,
+  lat, lng, bio, price_per_oz, supply_oz_available, is_active, is_verified,
+  stripe_account_id, stripe_onboarding_complete, created_at, updated_at,
+  rating_avg, review_count, social_links
+) on public.milk_donor_profiles to anon;
 
 commit;
 
--- ── Verification (run after apply; both address_line/phone should be FALSE for both roles) ──
+-- ── Verification (run after apply) ──
 -- select
 --   has_column_privilege('authenticated','public.milk_donor_profiles','address_line','SELECT') as auth_addr,
 --   has_column_privilege('authenticated','public.milk_donor_profiles','phone','SELECT')        as auth_phone,
---   has_column_privilege('anon','public.milk_donor_profiles','address_line','SELECT')           as anon_addr,
---   has_column_privilege('anon','public.milk_donor_profiles','phone','SELECT')                  as anon_phone;
+--   has_column_privilege('authenticated','public.milk_donor_profiles','display_name','SELECT') as auth_display_ok;
 --
--- Expected: all FALSE. Then confirm the RPC still works for an authorized caller:
+-- Expected: auth_addr = FALSE, auth_phone = FALSE, auth_display_ok = TRUE.
+-- Then confirm the RPC still works for an authorized caller:
 -- select * from get_transaction_pickup_address('<a confirmed transaction id>');
