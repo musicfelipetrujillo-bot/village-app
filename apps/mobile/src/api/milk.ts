@@ -115,10 +115,12 @@ export interface MilkMedication {
 // `select('*')` (which expands to every column) would 403 "permission denied for column".
 // The donor editor never surfaces those two fields in cash-only mode; the post-transaction
 // pickup address is served only via the get_transaction_pickup_address SECURITY DEFINER RPC.
+// Must stay in sync with the column GRANT in migration 095.
 const DONOR_SELECT_COLUMNS =
   'id, user_id, display_name, avatar_url, neighborhood, city, state, zip_code, ' +
   'lat, lng, bio, price_per_oz, supply_oz_available, is_active, is_verified, ' +
-  'stripe_account_id, stripe_onboarding_complete, social_links, created_at, updated_at';
+  'stripe_account_id, stripe_onboarding_complete, rating_avg, review_count, ' +
+  'social_links, created_at, updated_at';
 
 export async function getMyDonorProfile(userId: string): Promise<MilkDonorProfile | null> {
   const { data, error } = await supabase
@@ -362,7 +364,7 @@ export interface DonorPublicProfile extends MilkDonorProfile {
 export async function getDonorProfile(donorProfileId: string): Promise<DonorPublicProfile | null> {
   const { data, error } = await supabase
     .from('milk_donor_profiles')
-    .select('*, milk_trust_badges(badge_level, questionnaire_complete, bloodwork_linked, diet_disclosed, medications_disclosed, ai_safety_score, ai_trust_narrative)')
+    .select(`${DONOR_SELECT_COLUMNS}, milk_trust_badges(badge_level, questionnaire_complete, bloodwork_linked, diet_disclosed, medications_disclosed, ai_safety_score, ai_trust_narrative)`)
     .eq('id', donorProfileId)
     .eq('is_active', true)
     .single();
