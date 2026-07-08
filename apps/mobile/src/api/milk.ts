@@ -110,14 +110,24 @@ export interface MilkMedication {
 
 // ── Donor profile ─────────────────────────────────────────────────────
 
+// Explicit column list for milk_donor_profiles reads. EXCLUDES address_line + phone:
+// migration 095 REVOKEs SELECT on those two PII columns from authenticated/anon, so a
+// `select('*')` (which expands to every column) would 403 "permission denied for column".
+// The donor editor never surfaces those two fields in cash-only mode; the post-transaction
+// pickup address is served only via the get_transaction_pickup_address SECURITY DEFINER RPC.
+const DONOR_SELECT_COLUMNS =
+  'id, user_id, display_name, avatar_url, neighborhood, city, state, zip_code, ' +
+  'lat, lng, bio, price_per_oz, supply_oz_available, is_active, is_verified, ' +
+  'stripe_account_id, stripe_onboarding_complete, social_links, created_at, updated_at';
+
 export async function getMyDonorProfile(userId: string): Promise<MilkDonorProfile | null> {
   const { data, error } = await supabase
     .from('milk_donor_profiles')
-    .select('*')
+    .select(DONOR_SELECT_COLUMNS)
     .eq('user_id', userId)
     .maybeSingle();
   if (error) throw error;
-  return data;
+  return data as unknown as MilkDonorProfile | null;
 }
 
 export async function createDonorProfile(payload: {
@@ -131,10 +141,10 @@ export async function createDonorProfile(payload: {
   const { data, error } = await supabase
     .from('milk_donor_profiles')
     .insert(payload)
-    .select()
+    .select(DONOR_SELECT_COLUMNS)
     .single();
   if (error) throw error;
-  return data;
+  return data as unknown as MilkDonorProfile;
 }
 
 export async function updateDonorProfile(
@@ -145,10 +155,10 @@ export async function updateDonorProfile(
     .from('milk_donor_profiles')
     .update(updates)
     .eq('id', profileId)
-    .select()
+    .select(DONOR_SELECT_COLUMNS)
     .single();
   if (error) throw error;
-  return data;
+  return data as unknown as MilkDonorProfile;
 }
 
 // ── Trust badge ────────────────────────────────────────────────────────

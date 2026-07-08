@@ -4,7 +4,8 @@
 // Upserts appointments table from Calendly events
 
 import { createClient } from 'npm:@supabase/supabase-js';
-import { createHmac } from 'node:crypto';
+import { createHmac, timingSafeEqual } from 'node:crypto';
+import { Buffer } from 'node:buffer';
 
 const supabase = createClient(
   Deno.env.get('SUPABASE_URL')!,
@@ -12,11 +13,46 @@ const supabase = createClient(
 );
 
 const WEBHOOK_SECRET = Deno.env.get('CALENDLY_WEBHOOK_SECRET') ?? '';
+const SIGNATURE_TOLERANCE_SECONDS = 300;
 
-function verifySignature(payload: string, sigHeader: string): boolean {
-  if (!WEBHOOK_SECRET) return true; // Skip in local dev
-  const expected = createHmac('sha256', WEBHOOK_SECRET).update(payload).digest('hex');
-  return sigHeader === `sha256=${expected}`;
+function timingSafeEqualStr(a: string, b: string): boolean {
+  const ab = Buffer.from(a);
+  const bb = Buffer.from(b);
+  if (ab.length !== bb.length) return false;
+  return timingSafeEqual(ab, bb);
+}
+
+// Calendly signs each webhook with the header
+//   Calendly-Webhook-Signature: t=<unix_seconds>,v1=<hex hmac_sha256>
+// where the signed content is `${t}.${rawBody}`, HMAC-SHA256 with the subscription's
+// signing key. See https://developer.calendly.com/api-docs/ZG9jOjM2MzE2MDM4-webhook-signatures
+//
+// SECURITY: fail CLOSED. Previously this returned `true` when CALENDLY_WEBHOOK_SECRET was
+// unset ("skip in local dev"), which made the endpoint accept ANY unsigned POST in any
+// environment where the secret wasn't configured (appsec finding H, 2026-07-07). We now
+// reject when the secret is missing, the header is absent/malformed, the timestamp is stale
+// (replay guard), or the HMAC doesn't match.
+function verifySignature(rawBody: string, sigHeader: string): { ok: boolean; reason?: string } {
+  if (!WEBHOOK_SECRET) return { ok: false, reason: 'secret_not_configured' };
+  if (!sigHeader) return { ok: false, reason: 'missing_signature' };
+
+  const parts: Record<string, string> = {};
+  for (const kv of sigHeader.split(',')) {
+    const i = kv.indexOf('=');
+    if (i > 0) parts[kv.slice(0, i).trim()] = kv.slice(i + 1).trim();
+  }
+  const t = parts['t'];
+  const v1 = parts['v1'];
+  if (!t || !v1) return { ok: false, reason: 'malformed_signature' };
+
+  const ts = Number(t);
+  if (!Number.isFinite(ts) || Math.abs(Date.now() / 1000 - ts) > SIGNATURE_TOLERANCE_SECONDS) {
+    return { ok: false, reason: 'timestamp_out_of_tolerance' };
+  }
+
+  const expected = createHmac('sha256', WEBHOOK_SECRET).update(`${t}.${rawBody}`).digest('hex');
+  if (!timingSafeEqualStr(v1, expected)) return { ok: false, reason: 'signature_mismatch' };
+  return { ok: true };
 }
 
 Deno.serve(async (req) => {
@@ -27,7 +63,9 @@ Deno.serve(async (req) => {
   const rawBody = await req.text();
   const sig = req.headers.get('Calendly-Webhook-Signature') ?? '';
 
-  if (!verifySignature(rawBody, sig)) {
+  const verdict = verifySignature(rawBody, sig);
+  if (!verdict.ok) {
+    console.error(`calendly-webhook rejected: ${verdict.reason}`);
     return new Response('Invalid signature', { status: 401 });
   }
 
