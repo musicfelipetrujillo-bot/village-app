@@ -16,14 +16,17 @@
 // EXPLICITLY OUT OF SCOPE — pending attorney review of retention policy:
 //   - auth.users row deletion via supabase.auth.admin.deleteUser(id).
 //     This will be wired in a follow-up once retention rules are signed
-//     off (some user-tied rows like milk_transactions / gear_listings w/
-//     CPSC recall trail / *_analytics_events MUST be retained for legal
-//     defense even on user request — and will be PII-scrubbed, not row-
-//     deleted, by a separate sweep).
-//   - Cascade scrub through favorites, reviews, appointments, milk_*,
-//     gear_*, baby_profiles, daily_checkins, brand_deals claims, etc.
+//     off (some user-tied rows like gear_listings w/ CPSC recall trail /
+//     *_analytics_events MUST be retained for legal defense even on user
+//     request — and will be PII-scrubbed, not row-deleted, by a separate
+//     sweep). NOTE: milk_transactions / milk_disputes / milk_shipping_labels
+//     were retired in migration 098 (Milk is cash-only) and no longer exist.
+//   - Cascade scrub through favorites, appointments, milk_* (donor profiles,
+//     messages, listings), gear_*, baby_profiles, daily_checkins,
+//     brand_deals claims, etc.
 //   - OneSignal external_id unlink.
-//   - Stripe Connect account removal.
+//   - Stripe Connect account removal (Specialist booking only — Milk Stripe
+//     Connect was retired in migration 098).
 //
 // FEATURE FLAG: callers should gate the UI on
 //   `EXPO_PUBLIC_DELETE_ACCOUNT_ENABLED === '1'`

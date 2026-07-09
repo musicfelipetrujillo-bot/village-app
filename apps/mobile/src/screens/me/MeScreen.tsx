@@ -164,7 +164,6 @@ const MY_STUFF: MyStuffLink[] = [
   { labelKey: 'me.myStuffMyEvents',         icon: '📅', tab: 'Home',    screen: 'MyRsvps' },
   { labelKey: 'me.myStuffMyPerks',          icon: '🎁', tab: 'Home',    screen: 'MyClaims' },
   { labelKey: 'me.myStuffMilkInbox',        icon: '💬', tab: 'Milk',    screen: 'MilkMessageThreads' },
-  { labelKey: 'me.myStuffMilkOrders',       icon: '📦', tab: 'Milk',    screen: 'MilkOrders' },
   { labelKey: 'me.myStuffMyGear',           icon: '🛒', tab: 'Gear',    screen: 'MyListings' },
   { labelKey: 'me.myStuffGearInbox',        icon: '💬', tab: 'Gear',    screen: 'GearMessageThreads' },
 ];

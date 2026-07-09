@@ -101,14 +101,6 @@ export default function MilkConnectHomeScreen({ navigation }: Props) {
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.utilityIconBtn}
-              onPress={() => navigation.navigate('MilkOrders')}
-              accessibilityRole="button"
-              accessibilityLabel={t('milk.ordersA11y')}
-            >
-              <Text style={styles.utilityIcon}>📦</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.utilityIconBtn}
               onPress={() => navigation.navigate('MilkMessageThreads')}
               accessibilityRole="button"
               accessibilityLabel={t('milk.messagesA11y')}
@@ -191,21 +183,6 @@ export default function MilkConnectHomeScreen({ navigation }: Props) {
           </TouchableOpacity>
         </View>
       )}
-
-      {/* AI Match — soft warm card with a single rust accent dot. Replaces the
-          dark/black variant which fought with the cream editorial palette. */}
-      <TouchableOpacity
-        style={styles.matchCard}
-        onPress={() => navigation.navigate('MilkMatch')}
-        activeOpacity={0.85}
-      >
-        <View style={styles.matchAccent} />
-        <View style={styles.matchTextWrap}>
-          <Text style={styles.matchTitle}>{t('milk.matchTitle')}</Text>
-          <Text style={styles.matchSub}>{t('milk.matchSub')}</Text>
-        </View>
-        <Text style={styles.matchArrow}>→</Text>
-      </TouchableOpacity>
 
       {/* Two-up hero — find milk / share milk as a balanced, COLORED pair.
           Replaces the cream-on-cream "01/02" cards (which read flat) with the
