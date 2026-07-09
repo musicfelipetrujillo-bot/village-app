@@ -110,12 +110,10 @@ export interface MilkMedication {
 
 // ── Donor profile ─────────────────────────────────────────────────────
 
-// Explicit column list for milk_donor_profiles reads. EXCLUDES address_line + phone:
-// migration 095 REVOKEs SELECT on those two PII columns from authenticated/anon, so a
-// `select('*')` (which expands to every column) would 403 "permission denied for column".
-// The donor editor never surfaces those two fields in cash-only mode; the post-transaction
-// pickup address is served only via the get_transaction_pickup_address SECURITY DEFINER RPC.
-// Must stay in sync with the column GRANT in migration 095.
+// Explicit column list for milk_donor_profiles reads. address_line + phone are DROPPED as of
+// migration 096 (data minimization — the connector role doesn't store donor PII); a
+// `select('*')` would also 403 on the migration-095 column grant anyway. Keep this list in
+// sync with the column GRANT in migration 095.
 const DONOR_SELECT_COLUMNS =
   'id, user_id, display_name, avatar_url, neighborhood, city, state, zip_code, ' +
   'lat, lng, bio, price_per_oz, supply_oz_available, is_active, is_verified, ' +
@@ -638,12 +636,12 @@ export interface DonorPickupAddress {
   donor_display_name: string;
 }
 
-export async function getTransactionAddress(transactionId: string): Promise<DonorPickupAddress | null> {
-  const { data, error } = await supabase.rpc('get_transaction_pickup_address', {
-    p_transaction_id: transactionId,
-  });
-  if (error) throw error;
-  return data?.[0] ?? null;
+// Retired by migration 096 (data minimization). The Village no longer stores donor
+// address_line/phone and the get_transaction_pickup_address RPC is dropped — cash-only
+// pickup is arranged off-platform via the message thread. Kept as a null-returning stub so
+// the dormant MilkOrderConfirmScreen still compiles.
+export async function getTransactionAddress(_transactionId: string): Promise<DonorPickupAddress | null> {
+  return null;
 }
 
 // ── M4: Messaging + reviews ───────────────────────────────────────────
