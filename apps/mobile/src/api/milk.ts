@@ -163,14 +163,24 @@ export async function updateDonorProfile(
 
 // ── Trust badge ────────────────────────────────────────────────────────
 
+// Must stay in sync with the column GRANT in migration 097. OMITS bloodwork_report_url:
+// that column is special-category health data and is not readable by authenticated/anon
+// (revoked in 097), so select('*') would 403. The public badge exposes bloodwork_linked +
+// bloodwork_verified_at, never the raw report URL.
+const TRUST_BADGE_SELECT_COLUMNS =
+  'id, donor_profile_id, questionnaire_complete, questionnaire_completed_at, ' +
+  'bloodwork_linked, bloodwork_verified_at, diet_disclosed, medications_disclosed, ' +
+  'badge_level, ai_safety_score, ai_safety_flags, ai_last_evaluated_at, ' +
+  'created_at, updated_at, ai_trust_narrative, ai_trust_narrative_cached_at';
+
 export async function getTrustBadge(donorProfileId: string): Promise<MilkTrustBadge | null> {
   const { data, error } = await supabase
     .from('milk_trust_badges')
-    .select('*')
+    .select(TRUST_BADGE_SELECT_COLUMNS)
     .eq('donor_profile_id', donorProfileId)
     .maybeSingle();
   if (error) throw error;
-  return data;
+  return data as unknown as MilkTrustBadge | null;
 }
 
 // ── Questionnaire ──────────────────────────────────────────────────────
