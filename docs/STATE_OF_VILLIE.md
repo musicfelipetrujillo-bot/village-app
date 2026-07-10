@@ -4,8 +4,8 @@
 Read this first. Update it last. When sessions collide (duplicate migration numbers, duplicate
 feature builds, stepping on shared files), the fix is: everyone coordinates *here*.
 
-- **Last updated:** 2026-07-10 (regenerated — scheduled refresh)
-- **`origin/main` head:** `3237e82` (Milk Hub unification doc, #4). ⚠️ Your **local `main` is 3 commits behind** origin (`5e71656`) — the 098/099/#4 merges are on the remote. `git fetch && git pull` before branching off main.
+- **Last updated:** 2026-07-10 (waitlist migration 100 committed, merged, and applied to prod)
+- **`origin/main` head:** `c289456` (waitlist migration, #5). Local main was fast-forwarded to match — no drift.
 - **Authoritative for:** in-flight work, migration numbers, deploy queue, launch sequence.
 - **NOT authoritative for:** per-phase build history (`CLAUDE.md`), env/key setup (`docs/OPS_RUNBOOK.md`), product intent (`docs/source/*`). This doc points at those; it doesn't replace them.
 
@@ -17,7 +17,7 @@ feature builds, stepping on shared files), the fix is: everyone coordinates *her
 
 Villie is a **pre-launch** maternal-health platform (React Native + Expo + Supabase), built across four verticals plus Home: **V1 Specialists** (live/production-grade), **V2 Milk Connect** (code-complete, cash-only/connector-only), **V3 Community** (~57%, tab intentionally hidden — do not re-enable), **V4 Gear + Home** (code-complete, legal-gated), plus **V5 Grow-With-You / Playbook / Manual** and new commerce (**Villie Boxes**) and **V6 Milk Vault** (now merged). Primary GTM is **hospital-discharge distribution** (postpartum 0–6 weeks is the core journey; copy is clinician-handoff-grade, EN+ES). A **$1.5M seed raise is in progress** — deck is built and ~80% ready; the reviewed gaps are team slide, cash-only revenue reframe, and a real demand signal (see §5). Security/privacy hardening (C-1 milk PII leak + bloodwork-URL + data-minimization) is **DONE and applied to prod**.
 
-**What moved since last refresh:** the two open PRs both landed — **PR #1 (retire Milk Stripe, migration 098)** and **PR #3 (V6 Milk Vault, migration 099)** are **merged to `origin/main`**, plus **PR #4 (Milk Hub unification plan doc)**. **There are now zero open PRs.** A new **`100_waitlist.sql`** migration (marketing-site waitlist capture) appeared as an **untracked file** on the working tree — not committed, not applied. What stands between here and launch is still almost entirely **attorney sign-off, Felipe-only deploys, and founder-input items** — not more code.
+**What moved since last refresh:** the two open PRs both landed — **PR #1 (retire Milk Stripe, migration 098)** and **PR #3 (V6 Milk Vault, migration 099)** are **merged to `origin/main`**, plus **PR #4 (Milk Hub unification plan doc)** and now **PR #5 (waitlist migration 100)** — committed on its own branch, merged, AND **applied to prod** (already has 1 real signup row). **There are now zero open PRs.** 098 + 099 are still merged-but-**unapplied** — top of the apply queue. What stands between here and launch is still almost entirely **attorney sign-off, Felipe-only deploys, and founder-input items** — not more code.
 
 ---
 
@@ -32,6 +32,7 @@ Villie is a **pre-launch** maternal-health platform (React Native + Expo + Supab
 | **#1** | `chore/retire-milk-stripe-connect-098` | ✅ **MERGED** (2026-07-09) — retires Milk Stripe Connect, migration **098**. | Apply 098 (`db push`); Felipe **deletes** 5 dead milk-Stripe edge fns (§4). |
 | **#3** | `feat/milk-vault-v6` | ✅ **MERGED** (2026-07-10) — V6 Milk Vault, migration **099**, `milk-vault-scan` edge fn. | Apply 099 (`db push`); Felipe **deploys** `milk-vault-scan`; then Milk Vault OTA (§4). |
 | **#4** | `docs/milk-hub-unification` | ✅ **MERGED** (2026-07-10) — `docs/MILK_HUB_UNIFICATION.md` (Vault + Connect → one ecosystem). **Planning doc only, no code/migration.** | Read before the next Milk-tab structural change. |
+| **#5** | `feat/waitlist-migration` | ✅ **MERGED** (2026-07-10) — migration **100**, `public.waitlist` table. **Applied to prod same day** — table live, RLS on, 1 row already. | None — fully shipped. |
 | #2 | `feat/milk-vault-phase1` | ❌ CLOSED — superseded duplicate of Milk Vault. Ignore. | — |
 
 > **No PR is currently open.** New work starts from a fresh branch off (fetched) `origin/main`.
@@ -40,8 +41,8 @@ Villie is a **pre-launch** maternal-health platform (React Native + Expo + Supab
 
 | Workstream | State | Owner surface (don't collide) | Next step |
 |---|---|---|---|
-| **Waitlist migration (100)** | **Untracked** `100_waitlist.sql` on working tree — not committed, not applied | `supabase/migrations/100_waitlist.sql` | Commit it (own branch off main), then **apply 100** (Felipe / `db push`). Anon-insert-only table for the villieapp.com landing page. |
-| **`feat/villie-boxes-home-polish`** (current working branch) | 15 ahead / 10 behind `origin/main`; carries the **untracked 100_waitlist.sql** | `screens/home/*`, Villie Boxes catalog/store, migration **092** | **Rebase/merge origin/main IN first** — it's behind on the 096/098/099 changes. Do NOT commit 100_waitlist here by accident; it belongs on its own branch off main. |
+| **Waitlist migration (100)** | ✅ **DONE** — committed on `feat/waitlist-migration`, merged (PR #5), applied to prod | `supabase/migrations/100_waitlist.sql` | Fully shipped, no follow-up. |
+| **`feat/villie-boxes-home-polish`** (current working branch) | 15 ahead / behind `origin/main` (100_waitlist.sql duplicate removed — it now lives only on main history) | `screens/home/*`, Villie Boxes catalog/store, migration **092** | **Rebase/merge origin/main IN** — it's still behind on the 096/098/099 changes. |
 | **Milk Vault V6** | ✅ Merged (PR #3). Not deployed. | `src/screens/milkVault/*`, `api/milkVault.ts`, `store/milkVault.ts`, `milk-vault-scan` fn, migration 099 | Apply 099 + deploy `milk-vault-scan` + OTA (§4). Founder go-ahead to ship still open. |
 | **Milk Hub unification** | ✅ Plan doc merged (PR #4). Not built. | `docs/MILK_HUB_UNIFICATION.md` | Read before restructuring the Milk tab (Vault + Connect → one ecosystem). |
 | **The Buzz (trending)** | Spec approved + committed, **not built** | `docs/THE_BUZZ_TRENDING.md`; will add `TheBuzzScreen`, edge fns, review-queue | Write implementation plan (phases B1–B5); B2 installs `last30days` skill. Editorial (not clinical), two-tier review gate. Awaiting green-light. |
@@ -55,9 +56,8 @@ Villie is a **pre-launch** maternal-health platform (React Native + Expo + Supab
 
 **This is the section that stops sessions from stepping on each other. Claim your number HERE before you create the file.**
 
-- **Highest APPLIED on prod:** **097** (`097_security_milk_bloodwork_url_scope.sql`, applied 2026-07-09). Also applied ahead of history: 095, 096. 093 applied (Playbook). A `supabase db push` re-runs 095–097 idempotently. **098 + 099 are merged but NOT yet applied** — they are the top of the apply queue (§4).
-- **Highest ON DISK (`origin/main`):** **099.**
-- **Highest ON DISK anywhere (incl. untracked working-tree file):** **100** (`100_waitlist.sql`, untracked, uncommitted).
+- **Highest APPLIED on prod:** **100** (`100_waitlist.sql`, applied 2026-07-10 via SQL editor — `public.waitlist` live, RLS on, already has a real signup). Also applied: 097, 096, 095, 093. **098 + 099 are merged but NOT yet applied** — gap in the sequence, top of the apply queue (§4). A `supabase db push` catches up 098/099 (095–097/100 re-run idempotently).
+- **Highest ON DISK (`origin/main`):** **100.**
 - **Highest CLAIMED:** **100.**
 
 | # | Name | What | Status |
@@ -70,7 +70,7 @@ Villie is a **pre-launch** maternal-health platform (React Native + Expo + Supab
 | 097 | `097_security_milk_bloodwork_url_scope.sql` | Scope bloodwork URL (health data) | ✅ **APPLIED to prod** (2026-07-09). On main. |
 | **098** | `098_retire_milk_stripe_connect.sql` | Retire Milk Stripe Connect | ✅ **MERGED to origin/main** (PR #1). ⚠️ **NOT yet applied** — top of §4 queue. |
 | **099** | `099_v6_milk_vault.sql` | V6 Milk Vault tables | ✅ **MERGED to origin/main** (PR #3). ⚠️ **NOT yet applied** — §4 queue. |
-| **100** | `100_waitlist.sql` | Marketing-site waitlist (anon INSERT only, no anon SELECT) | ⚠️ **UNTRACKED / uncommitted** on the working tree. Needs commit → apply. |
+| **100** | `100_waitlist.sql` | Marketing-site waitlist (anon INSERT only, no anon SELECT) | ✅ **MERGED (PR #5) + APPLIED to prod** (2026-07-10). Fully shipped. |
 
 ### ➡️ NEXT FREE MIGRATION NUMBER: **101**
 
@@ -91,7 +91,7 @@ MCP Supabase access is **read-only** — **only Felipe** can apply migrations, d
 |---|---|---|
 | **098** (retire Stripe) | ✅ merged — apply now | `supabase db push` (or run 098 in SQL editor) |
 | **099** (Milk Vault) | ✅ merged — apply now | `supabase db push` |
-| **100** (waitlist) | commit it first, then apply | `supabase db push` catches it up |
+| ~~100 (waitlist)~~ | ✅ **applied 2026-07-10** — done | — |
 | 094 (manual week intro) | verify not-yet-applied | `supabase db push` catches it up |
 
 ### 4b. Edge functions Felipe must deploy / delete
@@ -111,7 +111,7 @@ MCP Supabase access is **read-only** — **only Felipe** can apply migrations, d
 ### 4d. Config Felipe must set (pre-launch, per OPS_RUNBOOK / memories)
 - `RESEND_WEBHOOK_SECRET` + Resend dashboard webhook endpoint (newsletter open/click tracking — no signals until set).
 - Calendly webhook subscription created via API (needs Calendly PAT + org URI) once fn deployed.
-- Waitlist: confirm the villieapp.com landing page posts with the **publishable/anon** key (100_waitlist grants anon INSERT only; read the list from the dashboard/service role).
+- Waitlist: `public.waitlist` is live on prod (migration 100 applied). Confirm the villieapp.com landing page posts with the **publishable/anon** key (grants anon INSERT only; read the list from the dashboard/service role).
 - Storage: `gear-listings` + `avatars` buckets already exist on hosted (confirmed).
 
 ---
@@ -147,7 +147,7 @@ V3 Connect tab is **hidden by design.** Do not re-enable. Community is low-prior
 Per `DECK_REVIEW_2026-07-10.md`, top-5 fixes before next investor meeting:
 1. **Team slide** — fill real names/credentials + name ≥1 credentialed clinical advisor (highest impact; caps the raise while empty). *(Founder input — depends on Gate 2.)*
 2. **Cash-only revenue reframe** — stop presenting gear/milk "fees" as revenue; split "live today" (Pro sub, Specialist rev-share, Boxes margin, Picks affiliate) from "cash-only by design = moat."
-3. **Demand signal** — put one real signal on the deck (signed/verbal pilot, LOI, or 50–100 mother-interview findings w/ willingness-to-pay). *(Depends on Gate 5 + founder interviews.)* The new **waitlist capture** (migration 100) is the first mechanism to start generating this.
+3. **Demand signal** — put one real signal on the deck (signed/verbal pilot, LOI, or 50–100 mother-interview findings w/ willingness-to-pay). *(Depends on Gate 5 + founder interviews.)* The **waitlist capture** (migration 100, now live on prod) is the first mechanism generating this — already has its first real signup.
 4. **Rebuild TAM/SAM/SOM bottom-up** on real monetization (kill the $58.5B baby-products anchor); reconcile funnel → unit-econ → roadmap to one assumption set.
 5. **Reframe the raise around distribution risk** (product is built) — add runway + reconsider the 45/35/20 split toward GTM.
 
@@ -170,7 +170,7 @@ The load-bearing channel has **no signed pilot, no LOI, no named target.** Get *
 - A2.c account-delete retention policy (which tables are PII-scrubbed vs row-deleted).
 
 ### 6b. Felipe-only (MCP is read-only)
-- **Apply migrations:** **098 + 099 (both merged, unapplied)**, commit + apply **100 (waitlist)**, verify 094.
+- **Apply migrations:** **098 + 099 (both merged, unapplied)**, verify 094. (~~100~~ done — applied 2026-07-10.)
 - **Deploy:** `milk-vault-scan`, `calendly-webhook` (fail-closed), `appointment-reminder` (push-only).
 - **Delete:** 5 dead milk-Stripe edge fns (PR #1 now merged).
 - **Native builds (not OTA):** Playbook Phase 4 iOS widget; Gear Boost (RevenueCat IAP, Build 14, behind `EXPO_PUBLIC_GEAR_BOOST_ENABLED`).
@@ -190,9 +190,9 @@ The load-bearing channel has **no signed pilot, no LOI, no named target.** Get *
 ## 7. Operating rules (the discipline that prevents today's chaos)
 
 1. **One session per code area at a time.** Check §2b before starting. If another session owns `milkVault/*`, the deck, or the boxes branch — don't touch it.
-2. **Claim your migration number in §3 before you create the file.** Next free is **101**. Never reuse 098/099 (merged, unapplied) or 100 (uncommitted file already on disk).
-3. **`git fetch && git pull` before branching.** Local `main` is 3 commits behind `origin/main` (098/099/#4 merges). Branch off *fetched* origin/main, not stale local main.
-4. **Pull `origin/main` IN before committing on a long-lived branch.** `feat/villie-boxes-home-polish` is 10 behind origin/main — reconcile so retired code (dropped Stripe RPCs / `getTransactionAddress`) isn't reintroduced. And **don't commit the untracked `100_waitlist.sql` onto that branch** — it belongs on its own branch off main.
+2. **Claim your migration number in §3 before you create the file.** Next free is **101**. Never reuse 098/099 (merged, unapplied) or 100 (merged + applied).
+3. **`git fetch && git pull` before branching.** Verify local `main` matches `origin/main` (`c289456`) before branching off it.
+4. **Pull `origin/main` IN before committing on a long-lived branch.** `feat/villie-boxes-home-polish` is still behind origin/main — reconcile so retired code (dropped Stripe RPCs / `getTransactionAddress`) isn't reintroduced.
 5. **Update this doc at the end of each session** — §2 (what moved), §3 (migrations claimed/applied), §4 (what's now deployed). A stale State-of-Villie causes the exact collisions it exists to prevent.
 6. **Don't re-enable the Connect tab** or flip any feature flag (`EXPO_PUBLIC_*`: Gear Boost, Milk Stripe, Delete-Account, Villie Boxes) on your own — every flag is a product/legal call, not a build-completion signal.
 7. **MCP Supabase is read-only.** Never assume a migration is applied or a function is deployed because it's committed/merged — 098+099 are merged but still unapplied. Check §3/§4 and route the action to Felipe.
@@ -201,4 +201,4 @@ The load-bearing channel has **no signed pilot, no LOI, no named target.** Get *
 
 ---
 
-*Sources: `MEMORY.md` + `project_*`/`feedback_*` files · `CLAUDE.md` build tables + open gates · live git/gh/migrations state (2026-07-10: `origin/main` `3237e82`, 0 open PRs, migrations 001–100 on disk) · `DECK_REVIEW_2026-07-10.md` · `docs/MILK_HUB_UNIFICATION.md`. This doc is uncommitted — founder reviews/commits.*
+*Sources: `MEMORY.md` + `project_*`/`feedback_*` files · `CLAUDE.md` build tables + open gates · live git/gh/migrations state (2026-07-10: `origin/main` `c289456`, 0 open PRs, migrations 001–100 on disk, 100 applied to prod) · `DECK_REVIEW_2026-07-10.md` · `docs/MILK_HUB_UNIFICATION.md`.*
