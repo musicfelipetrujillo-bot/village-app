@@ -5,15 +5,11 @@ import {
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useMilkStore } from '@store/milk';
-import { createListing, updateDonorProfile, getStripeConnectUrl } from '@api/milk';
+import { createListing, updateDonorProfile } from '@api/milk';
 import { COLORS, FONTS } from '@utils/constants';
 import { V9PageBackdrop } from '@components/shared/V9PageBackdrop';
 import { useT } from '@/i18n';
 import type { MilkStackParamList } from '@/navigation/MilkNavigator';
-
-// Legacy Stripe Connect donor onboarding is gated behind this flag (default OFF).
-// In cash-only mode a new listing just activates the donor profile — no Stripe detour.
-const MILK_STRIPE_ENABLED = process.env.EXPO_PUBLIC_MILK_STRIPE_ENABLED === '1';
 
 type Props = NativeStackScreenProps<MilkStackParamList, 'CreateListing'>;
 
@@ -65,18 +61,13 @@ export default function CreateListingScreen({ route, navigation }: Props) {
 
       setMyListings([listing, ...myListings]);
 
-      // Cash-only (default): activate the listing and return home. The legacy Stripe
-      // Connect onboarding detour only applies when EXPO_PUBLIC_MILK_STRIPE_ENABLED is on.
-      if (MILK_STRIPE_ENABLED && !donorProfile?.stripe_onboarding_complete) {
-        navigation.replace('StripeOnboarding', { donorProfileId });
-      } else {
-        // Activate profile
-        if (donorProfile) {
-          const activated = await updateDonorProfile(donorProfileId, { is_active: true });
-          setDonorProfile(activated);
-        }
-        navigation.replace('MilkHome');
+      // Cash-only / connector-only: activate the listing and return home. (The legacy
+      // Stripe Connect donor-onboarding detour was retired in migration 098.)
+      if (donorProfile) {
+        const activated = await updateDonorProfile(donorProfileId, { is_active: true });
+        setDonorProfile(activated);
       }
+      navigation.replace('MilkHome');
     } catch (err) {
       console.error('CreateListing error:', err);
       Alert.alert(t('createListing.errorTitle'), t('createListing.errorBody'));
