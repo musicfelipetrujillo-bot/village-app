@@ -1,14 +1,17 @@
-// V1 AI Skill #5 — Appointment Reminder (Cron + Twilio)
-// Called by Supabase cron every 15 minutes
-// Sends 48h and 2h SMS reminders for upcoming appointments
+// V1 AI Skill #5 — Appointment Reminder (Cron + Push)
+// Called by Supabase cron every 15 minutes.
+// Sends 48h and 2h reminders for upcoming appointments via OneSignal push.
 // POST /functions/v1/appointment-reminder  (triggered by pg_cron)
-// Model: Sonnet (warm, contextual reminder copy)
+//
+// SMS RETIRED 2026-07-09: reminders are push-only. US carriers were silently
+// dropping our Twilio texts (A2P 10DLC unregistered) while still billing for them,
+// so the SMS leg was removed rather than pay for undelivered messages. users.phone +
+// the twilio-sms function remain for future re-enable (toll-free); the column
+// appointments.twilio_reminder_sent is now just the "reminder dispatched" flag.
 
-import Anthropic from 'npm:@anthropic-ai/sdk';
 import { createClient } from 'npm:@supabase/supabase-js';
 import { isQuietHoursActive } from '../_shared/quiet-hours.ts';
 
-const anthropic = new Anthropic({ apiKey: Deno.env.get('ANTHROPIC_API_KEY')! });
 const supabase = createClient(
   Deno.env.get('SUPABASE_URL')!,
   Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
@@ -18,56 +21,6 @@ const CORS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
-
-const SYSTEM_PROMPT = `You are The Village's maternal health assistant writing appointment reminder SMS messages.
-Write warm, encouraging SMS reminders for moms about their upcoming specialist appointments.
-
-Rules:
-- Max 160 characters (one SMS)
-- Include: provider name, time, and one warm encouragement
-- If telehealth: mention joining via video link
-- Match the mom's language (en or es)
-- End with "- The Village 🌿"
-- No filler, no hashtags`;
-
-async function generateReminderSMS(params: {
-  specialistName: string;
-  specialty: string;
-  appointmentAt: Date;
-  isTelehealth: boolean;
-  hoursUntil: number;
-  language: string;
-}): Promise<string> {
-  const timeStr = params.appointmentAt.toLocaleTimeString('en-US', {
-    hour: 'numeric',
-    minute: '2-digit',
-    timeZone: 'America/New_York',
-  });
-
-  const message = await anthropic.messages.create({
-    model: 'claude-sonnet-4-6',
-    max_tokens: 80,
-    system: [
-      {
-        type: 'text',
-        text: SYSTEM_PROMPT,
-        cache_control: { type: 'ephemeral' },
-      },
-    ],
-    messages: [
-      {
-        role: 'user',
-        content: `Write a ${params.hoursUntil}h reminder SMS (max 160 chars) for:
-Provider: ${params.specialistName} (${params.specialty})
-Time: ${timeStr} EST
-Type: ${params.isTelehealth ? 'telehealth video call' : 'in-person'}
-Language: ${params.language}`,
-      },
-    ],
-  });
-
-  return (message.content[0] as { text: string }).text.trim();
-}
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -113,7 +66,6 @@ Deno.serve(async (req) => {
     const errors: string[] = [];
 
     const sendReminder = async (appt: any, hoursUntil: number) => {
-      const phone: string = appt.users?.phone;
       const userId: string = appt.user_id;
 
       // A2.b: respect the user's appointments/specialists notif pref. Default
@@ -140,57 +92,40 @@ Deno.serve(async (req) => {
       }
 
       try {
-        const smsBody = await generateReminderSMS({
-          specialistName: appt.specialists?.full_name ?? 'Your provider',
-          specialty: appt.specialists?.specialty ?? '',
-          appointmentAt: new Date(appt.appointment_at),
-          isTelehealth: appt.is_telehealth ?? false,
-          hoursUntil,
-          language: appt.users?.preferred_language ?? 'en',
+        const lang = appt.users?.preferred_language === 'es' ? 'es' : 'en';
+        const provider = appt.specialists?.full_name ?? (lang === 'es' ? 'tu proveedor' : 'your provider');
+        const timeStr = new Date(appt.appointment_at).toLocaleTimeString(lang === 'es' ? 'es-US' : 'en-US', {
+          hour: 'numeric', minute: '2-digit', timeZone: 'America/New_York',
+        });
+        const pushTitle = hoursUntil === 48
+          ? (lang === 'es' ? 'Cita mañana' : 'Appointment tomorrow')
+          : (lang === 'es' ? 'Cita en 2 horas' : 'Appointment in 2 hours');
+        const pushBody = `${provider} · ${timeStr}`;
+
+        // Push-only reminder (SMS retired — see header). The specialists pref +
+        // quiet hours were already checked above, so just fire the push.
+        await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/push-notify`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
+          },
+          body: JSON.stringify({
+            user_id: userId,
+            title: pushTitle,
+            body: pushBody,
+            data: { screen: 'appointments', appointment_id: appt.id },
+          }),
         });
 
-        // Call twilio-sms function internally
-        const twilioRes = await fetch(
-          `${Deno.env.get('SUPABASE_URL')}/functions/v1/twilio-sms`,
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
-            },
-            body: JSON.stringify({ to: phone, body: smsBody }),
-          },
-        );
-
-        // Send push notification in parallel with SMS
-        const pushTitle = hoursUntil === 48 ? 'Appointment Tomorrow' : 'Appointment in 2 Hours';
-        const pushBody = `${appt.specialists?.full_name ?? 'Your provider'} · ${new Date(appt.appointment_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`;
-
-        await Promise.allSettled([
-          twilioRes.ok ? Promise.resolve() : Promise.reject(),
-          fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/push-notify`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
-            },
-            body: JSON.stringify({
-              user_id: userId,
-              title: pushTitle,
-              body: pushBody,
-              data: { screen: 'appointments', appointment_id: appt.id },
-            }),
-          }),
-        ]);
-
-        if (twilioRes.ok) {
-          // Mark reminder sent
-          await supabase
-            .from('appointments')
-            .update({ twilio_reminder_sent: true })
-            .eq('id', appt.id);
-          sent.push(appt.id);
-        }
+        // Mark the reminder dispatched so the 48h row doesn't re-fire every cron
+        // tick. A reminder is a nudge, not safety-critical — mark it sent even if
+        // push delivery fails, to avoid an infinite 15-min retry loop.
+        await supabase
+          .from('appointments')
+          .update({ twilio_reminder_sent: true })
+          .eq('id', appt.id);
+        sent.push(appt.id);
       } catch (e) {
         errors.push(`${appt.id}: ${String(e)}`);
       }
