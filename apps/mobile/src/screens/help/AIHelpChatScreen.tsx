@@ -6,7 +6,7 @@ import {
   KeyboardAvoidingView, Platform, ActivityIndicator,
   FlatList, Linking,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { useAuthStore } from '@store/auth';
 import { appHelpApi, type HelpMessage, type HelpUserContext, type CrisisResource } from '@api/appHelp';
 import { COLORS, FONTS } from '@utils/constants';
@@ -22,13 +22,18 @@ interface UIMessage {
 
 export default function AIHelpChatScreen() {
   const navigation = useNavigation<any>();
+  const route = useRoute<any>();
   const user = useAuthStore((s) => s.user);
   const t = useT();
+  // `seed` (optional route param) prefills the composer — e.g. from the Manual's
+  // "Ask Villie" card, framed with the current week + chapter so the question
+  // lands with context.
+  const seed: string = route.params?.seed ?? '';
 
   const [messages, setMessages] = useState<UIMessage[]>(() => [
     { id: 'greeting', role: 'assistant', content: t('help.greeting') },
   ]);
-  const [draft, setDraft] = useState('');
+  const [draft, setDraft] = useState<string>(seed);
   const [sending, setSending] = useState(false);
   const [ctx, setCtx] = useState<HelpUserContext>({});
   const listRef = useRef<FlatList<UIMessage>>(null);

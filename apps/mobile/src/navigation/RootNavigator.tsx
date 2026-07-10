@@ -10,6 +10,7 @@ import { initSentry } from '@/lib/sentry';
 import { AuthStack } from './AuthStack';
 import { AppNavigator } from './AppNavigator';
 import AIHelpChatScreen from '@screens/help/AIHelpChatScreen';
+import QuickReferenceScreen from '@screens/safety/QuickReferenceScreen';
 import FloatingHelpButton from '@components/shared/FloatingHelpButton';
 import InternalAgentsScreen from '@screens/internal/InternalAgentsScreen';
 import ClinicalReviewScreen from '@screens/internal/ClinicalReviewScreen';
@@ -88,6 +89,11 @@ export function RootNavigator() {
             <Stack.Screen
               name="AIHelpChat"
               component={AIHelpChatScreen}
+              options={{ presentation: 'modal' }}
+            />
+            <Stack.Screen
+              name="QuickReference"
+              component={QuickReferenceScreen}
               options={{ presentation: 'modal' }}
             />
             {INTERNAL_AGENTS_ENABLED ? (

@@ -38,7 +38,13 @@ import {
 
 const ROSE = '#D96C88';
 
-export type ClipRef = { id: string; audience: ManualAudience; category: string };
+// playbackId (+ title/poster/duration) lets a clip carry its Mux asset directly,
+// for videos that live outside manual_videos (e.g. the week-level intro video) —
+// the player then skips the listManualVideos lookup.
+export type ClipRef = {
+  id: string; audience: ManualAudience; category: string;
+  playbackId?: string; title?: string; posterUrl?: string; durationSeconds?: number;
+};
 
 interface ClipPlayerProps {
   clips: ClipRef[];
@@ -87,6 +93,18 @@ export default function ClipPlayer({ clips, startIndex = 0, onClose }: ClipPlaye
   // one fetch). Skips when the clip is already cached — no spinner on switch.
   useEffect(() => {
     if (!current || cache[current.id]) { setLoading(false); return; }
+    // Direct-playback clip (week-intro video — lives outside manual_videos):
+    // synthesize a cache entry, no RPC lookup.
+    if (current.playbackId) {
+      const synth = {
+        id: current.id, title: current.title ?? '',
+        mux_playback_id: current.playbackId, poster_url: current.posterUrl ?? null,
+        duration_seconds: current.durationSeconds ?? null,
+      } as unknown as ManualVideo;
+      setCache((prev) => ({ ...prev, [current.id]: synth }));
+      setLoading(false);
+      return;
+    }
     let cancelled = false;
     setLoading(true);
     (async () => {

@@ -217,6 +217,43 @@ export async function listThisWeekManual(
   })) as ManualVideoTile[];
 }
 
+// ── Week-level "this week" specialist video (migration 094) ──────────────
+// One overview video per week, shown at the top of the Manual (above the chips).
+// Lives outside manual_videos; played via ClipPlayer's direct-playbackId path.
+export interface WeekIntroVideo {
+  id: string;
+  week_number: number;
+  title: string;
+  expert_name: string | null;
+  expert_role: string | null;
+  mux_playback_id: string | null;
+  poster_url: string | null;
+  duration_seconds: number | null;
+}
+
+export async function getWeekIntroVideo(
+  audience: ManualAudience,
+  week: number,
+  locale: 'en' | 'es',
+): Promise<WeekIntroVideo | null> {
+  const { data, error } = await supabase
+    .from('manual_week_intro')
+    .select('id, week_number, title, expert_name, expert_role, mux_playback_id, poster_url, duration_seconds')
+    .eq('audience', audience)
+    .eq('week_number', week)
+    .eq('locale', locale)
+    .eq('is_published', true)
+    .maybeSingle();
+  if (error) {
+    // Table may not be deployed yet (migration 094 pending) — fail soft so the
+    // Manual just hides the slot.
+    console.warn('[manual] getWeekIntroVideo', error.message);
+    return null;
+  }
+  const row = data as WeekIntroVideo | null;
+  return row && row.mux_playback_id ? row : null;
+}
+
 // Fetch one video by id (used by ManualVideoScreen on mount). The list RPC
 // already returns everything we need, so we just call it for the bucket and
 // pluck the matching row — saves a separate RPC + RLS surface.

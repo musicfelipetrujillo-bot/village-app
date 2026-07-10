@@ -22,6 +22,24 @@ const ACCENT = '#C9824E';
 const ROSE = '#D96C88';
 const BERRY = '#C25A78';
 
+type Lang = 'en' | 'es';
+
+// Localized chrome (labels + fixed copy). Content itself is translated upstream
+// in getManualContent(week, cat, lang); this only covers the module UI text.
+const CH = {
+  checklist: { en: 'Do · checklist', es: 'Haz · lista' },
+  expert:    { en: 'Read · expert', es: 'Lee · experto' },
+  info:      { en: 'Know · infographic', es: 'Entiende · infografía' },
+  villie:    { en: 'Ask · villie', es: 'Pregunta · villie' },
+  momAsked:  { en: 'A mom asked…', es: 'Una mamá preguntó…' },
+  verified:  { en: 'Verified', es: 'Verificado' },
+  avEyebrow: { en: 'ASK VILLIE', es: 'PREGÚNTALE A VILLIE' },
+  avTitle:   { en: 'Still have a question about this week?', es: '¿Te queda alguna duda sobre esta semana?' },
+  avInput:   { en: 'ask villie anything…', es: 'pregúntale a villie lo que sea…' },
+  avSub:     { en: "your 24/7 guide — answers in villie's voice, not a google rabbit hole", es: 'tu guía 24/7 — respuestas en la voz de villie, sin caer en un laberinto de google' },
+  avA11y:    { en: 'Ask Villie about this week', es: 'Pregúntale a Villie sobre esta semana' },
+} as const;
+
 function ModuleLabel({ n, type }: { n: string; type: string }) {
   return (
     <View style={s.modLabel}>
@@ -31,11 +49,11 @@ function ModuleLabel({ n, type }: { n: string; type: string }) {
   );
 }
 
-function ChecklistModule({ data }: { data: Checklist }) {
+function ChecklistModule({ data, lang }: { data: Checklist; lang: Lang }) {
   const [done, setDone] = useState<Record<number, boolean>>({});
   return (
     <View>
-      <ModuleLabel n="01" type="Do · checklist" />
+      <ModuleLabel n="03" type={CH.checklist[lang]} />
       <Text style={s.panelTitle}>{data.title}</Text>
       <View style={s.panel}>
         {data.items.map((it, i) => {
@@ -63,10 +81,10 @@ function ChecklistModule({ data }: { data: Checklist }) {
   );
 }
 
-function ExpertCard({ data }: { data: Article }) {
+function ExpertCard({ data, lang }: { data: Article; lang: Lang }) {
   return (
     <LinearGradient colors={['#FCEFE0', '#F4DEC8']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.tip}>
-      <Text style={s.tipAsk}>A mom asked…</Text>
+      <Text style={s.tipAsk}>{CH.momAsked[lang]}</Text>
       <Text style={s.tipQ}>{data.question}</Text>
       <View style={s.tipQuoteRow}>
         <Text style={s.quoteMark}>“</Text>
@@ -83,7 +101,7 @@ function ExpertCard({ data }: { data: Article }) {
         </View>
         <View style={s.verified}>
           <Text style={s.verifiedCheck}>✓</Text>
-          <Text style={s.verifiedT}>Verified</Text>
+          <Text style={s.verifiedT}>{CH.verified[lang]}</Text>
         </View>
       </View>
     </LinearGradient>
@@ -91,16 +109,16 @@ function ExpertCard({ data }: { data: Article }) {
 }
 
 // Swipeable expert cards (3–4 per chapter). Full-width paging + dots.
-function ArticleModule({ articles }: { articles: Article[] }) {
+function ArticleModule({ articles, lang }: { articles: Article[]; lang: Lang }) {
   const [w, setW] = useState(0);
   const [idx, setIdx] = useState(0);
   if (!articles.length) return null;
   return (
     <View>
-      <ModuleLabel n="02" type="Read · expert" />
+      <ModuleLabel n="02" type={CH.expert[lang]} />
       <View onLayout={(e) => setW(e.nativeEvent.layout.width)}>
         {articles.length === 1 ? (
-          <ExpertCard data={articles[0]} />
+          <ExpertCard data={articles[0]} lang={lang} />
         ) : w > 0 ? (
           <>
             <ScrollView
@@ -114,7 +132,7 @@ function ArticleModule({ articles }: { articles: Article[] }) {
             >
               {articles.map((a, i) => (
                 <View key={i} style={{ width: w }}>
-                  <ExpertCard data={a} />
+                  <ExpertCard data={a} lang={lang} />
                 </View>
               ))}
             </ScrollView>
@@ -132,10 +150,10 @@ function ArticleModule({ articles }: { articles: Article[] }) {
 
 const STORAGE_ICON: Record<string, string> = { counter: '🌡️', fridge: '🧊', freezer: '❄️' };
 
-function InfographicModule({ data }: { data: Info }) {
+function InfographicModule({ data, lang }: { data: Info; lang: Lang }) {
   return (
     <View>
-      <ModuleLabel n="03" type="Know · infographic" />
+      <ModuleLabel n="01" type={CH.info[lang]} />
       <View style={s.info}>
         <Text style={s.infoTitle}>{data.title}</Text>
 
@@ -209,47 +227,39 @@ function InfographicModule({ data }: { data: Info }) {
   );
 }
 
-function AskSpecialistModule({ questions }: { questions: string[] }) {
-  const onShare = () => {
-    tap();
-    Share.share({
-      message: 'Questions for my next visit:\n\n' + questions.map((q, i) => `${i + 1}. ${q}`).join('\n'),
-    }).catch(() => {});
-  };
+// Ask Villie — an active door into the in-app AI guide, seeded with this week's
+// chapter (replaces the passive "bring these three questions" list). Works for
+// every week with no per-week authoring.
+function AskVillieModule({ onPress, lang }: { onPress: () => void; lang: Lang }) {
   return (
     <View>
-      <ModuleLabel n="04" type="Ask · your specialist" />
-      <View style={s.chart}>
-        <Text style={s.chartLead}>Bring these three</Text>
-        {questions.map((q, i) => (
-          <View key={i} style={s.qRow}>
-            <Text style={s.qNum}>{i + 1}</Text>
-            <Text style={s.qText}>{q}</Text>
-          </View>
-        ))}
-        <TouchableOpacity
-          style={s.shareBtn}
-          activeOpacity={0.7}
-          onPress={onShare}
-          accessibilityRole="button"
-          accessibilityLabel="Share these questions with your provider"
-        >
-          <Text style={s.shareTxt}>Share with your provider →</Text>
-        </TouchableOpacity>
-      </View>
+      <ModuleLabel n="04" type={CH.villie[lang]} />
+      <TouchableOpacity
+        style={s.av}
+        activeOpacity={0.92}
+        onPress={() => { tap(); onPress(); }}
+        accessibilityRole="button"
+        accessibilityLabel={CH.avA11y[lang]}
+      >
+        <Text style={s.avEyebrow}>{CH.avEyebrow[lang]}</Text>
+        <Text style={s.avTitle}>{CH.avTitle[lang]}</Text>
+        <View style={s.avRow}>
+          <View style={s.avInput}><Text style={s.avInputText}>{CH.avInput[lang]}</Text></View>
+          <View style={s.avSend}><Text style={s.avArrow}>→</Text></View>
+        </View>
+        <Text style={s.avSub}>{CH.avSub[lang]}</Text>
+      </TouchableOpacity>
     </View>
   );
 }
 
-export default function ManualModules({ content }: { content: CategoryContent }) {
+export default function ManualModules({ content, onAskVillie, lang = 'en' }: { content: CategoryContent; onAskVillie?: () => void; lang?: Lang }) {
   return (
     <View style={s.wrap}>
-      <ChecklistModule data={content.checklist} />
-      <ArticleModule articles={content.articles} />
-      {content.info && <InfographicModule data={content.info} />}
-      {content.specialistQs && content.specialistQs.length > 0 && (
-        <AskSpecialistModule questions={content.specialistQs} />
-      )}
+      {content.info && <InfographicModule data={content.info} lang={lang} />}
+      <ArticleModule articles={content.articles} lang={lang} />
+      <ChecklistModule data={content.checklist} lang={lang} />
+      {onAskVillie && <AskVillieModule onPress={onAskVillie} lang={lang} />}
     </View>
   );
 }
@@ -260,6 +270,17 @@ const s = StyleSheet.create({
   modLabel: { flexDirection: 'row', alignItems: 'center', gap: 9, marginBottom: 10 },
   modN: { fontFamily: FONTS.headerBold, fontSize: 14, color: ACCENT },
   modT: { fontFamily: FONTS.bodyBold, fontSize: 11, letterSpacing: 1.6, color: LABEL },
+
+  // ask villie
+  av: { backgroundColor: '#43260F', borderRadius: 20, padding: 16 },
+  avEyebrow: { fontFamily: FONTS.bodyBold, fontSize: 10, letterSpacing: 1.6, color: '#F4C868' },
+  avTitle: { fontFamily: FONTS.headerBold, fontSize: 17, color: '#FFFDF8', marginTop: 6, lineHeight: 22 },
+  avRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 12 },
+  avInput: { flex: 1, backgroundColor: 'rgba(255,255,255,0.12)', borderRadius: 12, paddingHorizontal: 13, paddingVertical: 11 },
+  avInputText: { fontFamily: FONTS.body, fontSize: 12.5, color: '#E9D9C8' },
+  avSend: { width: 40, height: 40, borderRadius: 12, backgroundColor: '#D96C88', alignItems: 'center', justifyContent: 'center' },
+  avArrow: { color: '#fff', fontSize: 20, fontFamily: FONTS.bodySemiBold, marginTop: -2 },
+  avSub: { fontFamily: FONTS.body, fontSize: 10, color: '#C9B79F', marginTop: 9 },
 
   // checklist
   panelTitle: { fontFamily: FONTS.headerBold, fontSize: 24, letterSpacing: -0.4, color: INK, marginBottom: 12 },

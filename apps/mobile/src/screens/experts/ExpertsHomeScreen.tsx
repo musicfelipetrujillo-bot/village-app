@@ -221,6 +221,7 @@ export default function ExpertsHomeScreen({ navigation, route }: Props) {
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.list}
         ListHeaderComponent={ListHeader}
+        ItemSeparatorComponent={() => <View style={styles.cardSeparator} />}
         renderItem={({ item }) => (
           <SpecialistCard
             specialist={item}
@@ -402,7 +403,11 @@ const styles = StyleSheet.create({
   chipText: { fontSize: 12, fontFamily: FONTS.bodyMedium, color: COLORS.barkSoft },
   chipTextActive: { color: '#FFFCF6' },
 
-  list: { paddingHorizontal: 16, paddingTop: 0, paddingBottom: 100, gap: 20 },
+  // gap removed — FlashList doesn't apply contentContainerStyle gap to its
+  // cells, so the cards read as crammed. Real spacing comes from the
+  // ItemSeparatorComponent below.
+  list: { paddingHorizontal: 16, paddingTop: 0, paddingBottom: 100 },
+  cardSeparator: { height: 16 },
 
   empty: { alignItems: 'center', paddingTop: 60 },
   emptyEmoji: { fontSize: 48, marginBottom: 12 },

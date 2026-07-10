@@ -105,7 +105,7 @@ function schemeForIndex(category: string, i: number, n: number): Scheme {
   return pal[1 + ((i - 1) % (pal.length - 1))];
 }
 
-export default function ManualSwipeDeck({ story, category }: { story: StoryCard[]; category: string }) {
+export default function ManualSwipeDeck({ story, category, lang = 'en' }: { story: StoryCard[]; category: string; lang?: 'en' | 'es' }) {
   const deck = story.length ? story : [];
   const [idx, setIdx] = useState(0);
   const [cardW, setCardW] = useState(0);
@@ -174,9 +174,9 @@ export default function ManualSwipeDeck({ story, category }: { story: StoryCard[
           </View>
 
           {!!card.eyebrow && <Text style={[styles.eyebrow, { color: scheme.sub }]}>{card.eyebrow.toUpperCase()}</Text>}
-          <Text style={[styles.cardTitle, { color: scheme.fg }]} numberOfLines={3}>{card.title}</Text>
-          {!!card.say && <Text style={[styles.cardSay, { color: scheme.sub }]} numberOfLines={2}>{card.say}</Text>}
-          <Text style={[styles.cardBody, { color: scheme.fg }]} numberOfLines={5}>{card.body}</Text>
+          <Text style={[styles.cardTitle, { color: scheme.fg }]} numberOfLines={2}>{card.title}</Text>
+          {!!card.say && <Text style={[styles.cardSay, { color: scheme.sub }]} numberOfLines={1}>{card.say}</Text>}
+          <Text style={[styles.cardBody, { color: scheme.fg }]} numberOfLines={4}>{card.body}</Text>
 
           {/* IG-story-style link sticker — nested touchable wins over tap-to-advance */}
           {!!card.link && (
@@ -193,6 +193,12 @@ export default function ManualSwipeDeck({ story, category }: { story: StoryCard[
               <Text style={styles.stickerText}>{card.link.label}</Text>
             </TouchableOpacity>
           )}
+          {/* FTC disclosure — required on affiliate/shop links (not on 'learn' links) */}
+          {card.link?.kind === 'shop' && (
+            <Text style={[styles.ftc, { color: scheme.sub }]}>
+              {lang === 'es' ? 'Enlace de afiliado · podríamos ganar una comisión' : 'Affiliate link · we may earn a commission'}
+            </Text>
+          )}
         </LinearGradient>
       </Pressable>
     </View>
@@ -202,26 +208,26 @@ export default function ManualSwipeDeck({ story, category }: { story: StoryCard[
 const styles = StyleSheet.create({
   wrap: { marginTop: 14 },
   card: {
-    borderRadius: 26, paddingHorizontal: 24, paddingTop: 16, paddingBottom: 26,
-    aspectRatio: 4 / 5, overflow: 'hidden',
-    shadowColor: '#43260F', shadowOpacity: 0.22, shadowOffset: { width: 0, height: 16 }, shadowRadius: 30, elevation: 6,
+    borderRadius: 22, paddingHorizontal: 20, paddingTop: 14, paddingBottom: 18,
+    aspectRatio: 1.22, overflow: 'hidden',
+    shadowColor: '#43260F', shadowOpacity: 0.20, shadowOffset: { width: 0, height: 12 }, shadowRadius: 24, elevation: 5,
   },
   cardCircle: {
-    position: 'absolute', bottom: -38, right: -30, width: 150, height: 150,
-    borderRadius: 75, backgroundColor: 'rgba(255,255,255,0.12)',
+    position: 'absolute', bottom: -34, right: -28, width: 120, height: 120,
+    borderRadius: 60, backgroundColor: 'rgba(255,255,255,0.12)',
   },
   combCorner: { position: 'absolute', top: -26, right: -18 },
   // progress bars
-  bars: { flexDirection: 'row', gap: 5, marginBottom: 14 },
+  bars: { flexDirection: 'row', gap: 5, marginBottom: 10 },
   barTrack: { flex: 1, height: 3, borderRadius: 999, overflow: 'hidden' },
   barFill: { height: '100%', borderRadius: 999 },
 
   cardTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  cardCount: { fontFamily: FONTS.bodyBold, fontSize: 11, letterSpacing: 1.8, opacity: 0.85 },
-  eyebrow: { fontFamily: FONTS.bodyBold, fontSize: 11, letterSpacing: 1.6, marginTop: 16, opacity: 0.9 },
-  cardTitle: { fontFamily: FONTS.headerBold, fontSize: 36, lineHeight: 38, letterSpacing: -0.7, marginTop: 6 },
-  cardSay: { fontFamily: FONTS.headerItalic, fontStyle: 'italic', fontSize: 25, lineHeight: 27, marginTop: 6 },
-  cardBody: { fontFamily: FONTS.body, fontSize: 15.5, lineHeight: 22, marginTop: 'auto', paddingTop: 14, opacity: 0.96 },
+  cardCount: { fontFamily: FONTS.bodyBold, fontSize: 10.5, letterSpacing: 1.8, opacity: 0.85 },
+  eyebrow: { fontFamily: FONTS.bodyBold, fontSize: 10.5, letterSpacing: 1.6, marginTop: 11, opacity: 0.9 },
+  cardTitle: { fontFamily: FONTS.headerBold, fontSize: 27, lineHeight: 29, letterSpacing: -0.6, marginTop: 4 },
+  cardSay: { fontFamily: FONTS.headerItalic, fontStyle: 'italic', fontSize: 18, lineHeight: 21, marginTop: 4 },
+  cardBody: { fontFamily: FONTS.body, fontSize: 13.5, lineHeight: 19, marginTop: 'auto', paddingTop: 10, opacity: 0.96 },
 
   // IG-story link sticker
   sticker: {
@@ -232,4 +238,5 @@ const styles = StyleSheet.create({
   stickerDot: { width: 26, height: 26, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
   stickerGlyph: { fontSize: 13 },
   stickerText: { fontFamily: FONTS.bodyBold, fontSize: 14, color: '#43260F', letterSpacing: 0.2 },
+  ftc: { fontFamily: FONTS.body, fontSize: 10, marginTop: 7, opacity: 0.85, letterSpacing: 0.2 },
 });

@@ -217,8 +217,10 @@ export default function VillageHomeScreenV3() {
           </TouchableOpacity>
         </View>
 
-        {/* Eyebrow + headline */}
-        <View style={{ marginTop: 22 }}><Eyebrow>{lang === 'es' ? 'Refuerzos' : 'Reinforcements'}</Eyebrow></View>
+        {/* Eyebrow + headline — pulled up over the right-aligned map button
+            (negative margin) so the headline lands at the same ~82px height as
+            the Manual title, keeping the two pages vertically balanced. */}
+        <View style={{ marginTop: -10 }}><Eyebrow>{lang === 'es' ? 'Refuerzos' : 'Reinforcements'}</Eyebrow></View>
         <Text style={styles.headline}>
           {lang === 'es' ? 'Tu refuerzo está ' : 'Your backup is '}
           <Text style={styles.headlineItalic}>{lang === 'es' ? 'aquí.' : 'here.'}</Text>

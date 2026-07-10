@@ -801,6 +801,18 @@ export default function MeScreen() {
                 : <>Call <Text style={s.crisisCalloutNumber}>911</Text> — or tap any line below. You don&rsquo;t need to know what to say.</>}
             </Text>
           </View>
+          <TouchableOpacity
+            style={s.row}
+            onPress={() => (navigation.getParent() as any)?.getParent()?.navigate('QuickReference')}
+            accessibilityRole="button"
+            accessibilityLabel={profile?.preferred_language === 'es' ? 'En una emergencia — referencia rápida' : 'In an emergency — quick reference'}
+          >
+            <View style={{ flex: 1 }}>
+              <Text style={s.rowLabel}>{profile?.preferred_language === 'es' ? 'En una emergencia' : 'In an emergency'}</Text>
+              <Text style={s.rowDetail}>{profile?.preferred_language === 'es' ? 'RCP infantil, fiebres, cuándo llamar' : 'infant CPR, fevers, when to call'}</Text>
+            </View>
+            <Text style={s.rowChevron}>›</Text>
+          </TouchableOpacity>
           {CRISIS_LIST.map((item) => (
             <TouchableOpacity
               key={item.label}

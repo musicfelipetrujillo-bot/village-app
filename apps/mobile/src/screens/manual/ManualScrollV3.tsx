@@ -29,8 +29,8 @@ import {
   Dimensions, findNodeHandle, UIManager, Share, Alert,
 } from 'react-native';
 import {
-  listManualVideos, listManualPieces, formatDuration,
-  type ManualVideo, type ManualAudience, type ManualPiece,
+  listManualPieces, formatDuration, getWeekIntroVideo,
+  type WeekIntroVideo, type ManualAudience, type ManualPiece,
 } from '@/api/manual';
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Path, Circle } from 'react-native-svg';
@@ -43,6 +43,7 @@ import { useHomeStore } from '@store/home';
 import { homeApi } from '@/api/home';
 import ManualSwipeDeck from '@/components/manual/ManualSwipeDeck';
 import ManualModules from '@/components/manual/ManualModules';
+import PlaybookTracker from '@/components/manual/PlaybookTracker';
 import { getManualContent } from '@/manual/manualWeekContent';
 import {
   MenuButton, MenuPanel, MenuGroup, MenuItem, MENU_ICONS,
@@ -124,6 +125,29 @@ const CHAPTER_INTRO: Record<string, string> = {
   Rest:  'Sleep when you can. Other people can do the rest.',
   Tips:  'The small wins moms wish they knew week one.',
 };
+
+// Spanish chip labels — kept short to fit the flex:1 chip row (4–5 across).
+const CHAPTER_LABEL_ES: Record<string, string> = {
+  Sleep: 'Sueño', Feed: 'Comer', Grow: 'Crecer', Care: 'Cuidar',
+  Hospital: 'Hospital', Soothe: 'Calmar',
+  Feel: 'Sentir', Heal: 'Sanar', Nourish: 'Nutrir', Rest: 'Descanso', Tips: 'Consejos',
+};
+const chLabel = (ch: string, lang: 'en' | 'es') => (lang === 'es' ? (CHAPTER_LABEL_ES[ch] ?? ch) : ch);
+
+// Spanish intro copy (feeds the PDF export byline).
+const CHAPTER_INTRO_ES: Record<string, string> = {
+  Sleep: '¿Qué es normal esta semana? ¿Y qué no?',
+  Feed:  'La lactancia en racimo es agotamiento, no fracaso.',
+  Grow:  'El salto que rompe la rutina, y lo que viene después.',
+  Care:  'Sarpullidos, golpecitos comunes y cuándo llamar.',
+  Soothe: 'El llanto, la hora bruja y lo que de verdad calma a un bebé.',
+  Feel:  'No estás rota. Así es el cerebro posparto.',
+  Heal:  'Tu cuerpo, semana a semana: qué esperar.',
+  Nourish: 'Comer para recuperarte, no para bajar de peso.',
+  Rest:  'Duerme cuando puedas. Lo demás lo pueden hacer otros.',
+  Tips:  'Los pequeños logros que las mamás desearían haber sabido en la semana uno.',
+};
+const chIntro = (ch: string, lang: 'en' | 'es') => (lang === 'es' ? (CHAPTER_INTRO_ES[ch] ?? CHAPTER_INTRO[ch]) : CHAPTER_INTRO[ch]);
 
 // ─── Piece stream types + content ──────────────────────────────────────
 // Phase 4.2 — replaces the streamPlaceholder block with a full inline
@@ -629,28 +653,67 @@ function pbClock(d: Date, lang: 'en' | 'es'): string {
 function pbDayDeck(period: PbPeriod, night: PbNight | null, lang: 'en' | 'es'): string {
   const es = lang === 'es';
   if (night === 'rough') return es
-    ? 'Después de una noche dura, recogemos el día un poco: ventanas más cortas y la hora de dormir más temprano. Sigue sus señales antes que el reloj — y ve con calma contigo también.'
-    : 'After a rough night, we’ve pulled the day in a little — shorter awake stretches and an earlier bedtime. Follow her cues over the clock, and go gentle on yourself today too.';
+    ? 'Noche dura — hoy con calma: ventanas más cortas y a la cama antes.'
+    : 'Rough night — keep today gentle: shorter wake windows, earlier bed.';
   if (night === 'some') return es
-    ? 'Algunos despertares anoche, nada fuera de lo común. Mantén las ventanas de siempre y observa las primeras señales de cansancio antes de que se sobrecanse.'
-    : 'A few wake-ups last night, nothing out of the ordinary. Keep the usual windows and catch the first tired cues before she gets overtired.';
+    ? 'Algunos despertares, nada raro. Mantén las ventanas de siempre.'
+    : 'A few wake-ups, nothing unusual. Keep the usual windows.';
   if (night === 'solid') return es
-    ? 'Una buena noche por detrás. Hoy puedes estirar un poco las ventanas si la ves contenta y despierta, sin forzarlo.'
-    : 'A solid night behind you. You can stretch the wake windows a touch today if she seems happy and alert — no need to push it.';
+    ? 'Buena noche. Estira un poco las ventanas si está contenta y despierta.'
+    : 'Solid night. Stretch the wake windows a touch if she’s happy and alert.';
   const en: Record<PbPeriod, string> = {
-    morning: 'Two naps and a handful of feeds ahead. Aim for the rhythm rather than the exact clock — her cues lead, the times are just a guide.',
-    afternoon: 'One more nap and a couple of feeds before the bedtime routine. Keep things calm and predictable as the afternoon winds down.',
-    evening: 'The day is winding down. Dim the lights, slow the pace, and let the bedtime routine do the heavy lifting from here.',
-    night: 'Middle of the night is for the basics — feed, fresh diaper, back to sleep. Keep it boring and low-light so everyone resettles faster.',
+    morning: 'Two naps and a few feeds ahead — follow her cues, not the clock.',
+    afternoon: 'One more nap, then the bedtime routine. Keep it calm.',
+    evening: 'Winding down — dim the lights and slow the pace.',
+    night: 'Middle of the night: feed, change, back to sleep. Keep it boring.',
   };
   const esm: Record<PbPeriod, string> = {
-    morning: 'Dos siestas y varias tomas por delante. Busca el ritmo más que el reloj exacto — sus señales mandan, las horas solo orientan.',
-    afternoon: 'Queda una siesta y un par de tomas antes de la rutina de dormir. Mantén todo en calma y predecible según baja la tarde.',
-    evening: 'El día va cerrando. Baja las luces, afloja el ritmo y deja que la rutina de dormir haga el trabajo de aquí en adelante.',
-    night: 'La madrugada es para lo básico — toma, pañal limpio, de vuelta a dormir. Aburrido y con poca luz para que todos se reacomoden antes.',
+    morning: 'Dos siestas y varias tomas — sigue sus señales, no el reloj.',
+    afternoon: 'Una siesta más y luego la rutina de dormir. Con calma.',
+    evening: 'Bajando el ritmo — luces tenues y todo más lento.',
+    night: 'De madrugada: toma, pañal, a dormir. Aburrido y con poca luz.',
   };
   return (es ? esm : en)[period];
 }
+
+// ─── Week-level "this week" specialist video ───────────────────────────
+// Sits above the chapter chips — one overview clip per week, same spot every
+// week. Hidden entirely when there's no published video for the week.
+function WeekIntroCard({ data, onPress, lang = 'en' }: { data: WeekIntroVideo; onPress: () => void; lang?: 'en' | 'es' }) {
+  const dur = data.duration_seconds ? formatDuration(data.duration_seconds) : null;
+  const byline = [data.expert_name, data.expert_role].filter(Boolean).join(' · ');
+  return (
+    <TouchableOpacity activeOpacity={0.92} onPress={onPress} style={styles.wiCard} accessibilityRole="button" accessibilityLabel={data.title}>
+      <LinearGradient colors={['#F0B68C', '#E98A6A', '#D96C88']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.wiHero}>
+        <View style={styles.wiBadge}><Text style={styles.wiBadgeText}>{lang === 'es' ? 'ESTA SEMANA' : 'THIS WEEK'}</Text></View>
+        <View style={styles.wiPlay}>
+          <Svg width={20} height={20} viewBox="0 0 24 24"><Path d="M8 5l11 7-11 7z" fill="#C2556F" /></Svg>
+        </View>
+        {dur ? <View style={styles.wiDur}><Text style={styles.wiDurText}>{dur}</Text></View> : null}
+      </LinearGradient>
+      <View style={styles.wiBody}>
+        <Text style={styles.wiTitle}>{data.title}</Text>
+        {byline ? <Text style={styles.wiExpert} numberOfLines={1}>{byline}</Text> : null}
+      </View>
+    </TouchableOpacity>
+  );
+}
+
+// TEMP placeholder so the week-intro card is visible on the early weeks before
+// real videos are uploaded. A real published `manual_week_intro` row always
+// takes precedence (per week). Uses a public Mux sample so tapping actually
+// plays something. Remove (or shrink the set) once real videos exist.
+const PLACEHOLDER_WEEKS = new Set([1, 2, 3, 4, 5, 6, 7, 8]);
+const PLACEHOLDER_WEEK_INTRO: WeekIntroVideo = {
+  id: 'placeholder-week-intro',
+  week_number: 1,
+  title: 'What to expect this week',
+  expert_name: 'Dr. Priya Nair, MD',
+  expert_role: 'pediatrician · villie',
+  mux_playback_id: 'DS00Spx1CV902MCtPj5WknGlR102V5HFkDe',
+  poster_url: null,
+  duration_seconds: 96,
+};
 
 // ─── Screen ────────────────────────────────────────────────────────────
 export default function ManualScrollV3() {
@@ -747,10 +810,11 @@ export default function ManualScrollV3() {
   const onSetPbFeed = (k: PbFeed) => { setPbFeed(k); persistPbPref({ pb_feed_pref: k }); };
   const onSetPbSolids = (k: PbSolids) => { setPbSolids(k); persistPbPref({ pb_solids_pref: k }); };
   const [tuneOpen, setTuneOpen] = useState(false);
-  // Quick-log preview state (local until 5.2 wires the real Baby Check-in DB).
-  const [logOpen, setLogOpen] = useState<null | 'sleep' | 'feed'>(null);
-  const [lastNight, setLastNight] = useState<PbNight | null>(null);
-  const [lastFeedLabel, setLastFeedLabel] = useState<string | null>(null);
+  // Phase 1: PlaybookTracker (real sleep/feed/diaper logging) now owns "log
+  // today". The qualitative "last night" signal that tunes the sample plan is
+  // derived from real sleep logs in Phase 3; until then it stays null, so the
+  // sample plan below shows its default rhythm.
+  const lastNight: PbNight | null = null;
 
   // Switch the view tab. We DON'T reset the selected chapter anymore — the
   // category the user was reading is preserved across the toggle so flipping
@@ -768,7 +832,7 @@ export default function ManualScrollV3() {
   const remaining = totalChapters - doneCount;
   // Manual baseline content for the selected (week, category) — drives both the
   // story deck and the below-deck modules (checklist → article → infographic).
-  const manualContent = getManualContent(week, chapter.cat);
+  const manualContent = getManualContent(week, chapter.cat, lang);
   const ownerName = who === 'baby' ? (babyProfile?.baby_name ?? PLACEHOLDER_BABY_NAME) : 'Your';
 
   // Hamburger menu state (same recipe as ManualCategoryScreen)
@@ -830,19 +894,6 @@ export default function ManualScrollV3() {
       if (p.kind === 'illustration') return { kind: 'illustration', num: p.num, title: p.title, caption: p.caption };
       return { kind: 'checklist', num: p.num, title: p.title, steps: p.steps };
     });
-    // Prepend the live video piece (when present) so the PDF leads with
-    // the current week's watch, matching the screen's piece order.
-    if (firstVideo && !merged.find((p) => p.kind === 'video')) {
-      // DB videos don't carry an expert byline; PIECES_BY_CHAPTER fallback
-      // does. Live video card omits expert for now — wire when the
-      // manual_videos schema grows an expert_name column.
-      merged.unshift({
-        kind: 'video',
-        num: '01',
-        title: firstVideo.title,
-        dur: formatDuration(firstVideo.duration_seconds ?? 0) || undefined,
-      });
-    }
     return merged;
   };
 
@@ -857,8 +908,8 @@ export default function ManualScrollV3() {
       const Sharing = require('expo-sharing');
       const ownerName = babyProfile?.baby_name?.trim() || (lang === 'es' ? 'tu bebé' : "your baby");
       const html = buildManualChapterHtml({
-        chapterName: chapter.ch,
-        chapterIntro: CHAPTER_INTRO[chapter.ch],
+        chapterName: chLabel(chapter.ch, lang),
+        chapterIntro: chIntro(chapter.ch, lang),
         week,
         who,
         ownerName,
@@ -889,42 +940,52 @@ export default function ManualScrollV3() {
     }
   };
 
-  // ─── Phase 4.3 — Real Mux videos for the current chapter ─────────────
-  // Pulls the per-chapter video bucket so the 'video' piece below can
-  // swap its chapter-tinted placeholder for a real thumbnail + title +
-  // duration. Re-fetches whenever (audience, category, lang) changes.
-  // Empty list → renders the hand-authored placeholder copy (graceful
-  // fallback for buckets that haven't been seeded yet). Errors are
-  // logged but never block render — the placeholder takes over.
-  const [chapterVideos, setChapterVideos] = useState<ManualVideo[]>([]);
+  // Below-deck non-video pieces (checklist/article/infographic authoring).
+  // Per-chapter videos were removed 2026-06-21 — the specialist video is now a
+  // single week-level "this week" clip (below), not per category.
   const [chapterPieces, setChapterPieces] = useState<ManualPiece[]>([]);
   useEffect(() => {
     let cancelled = false;
-    (async () => {
-      // Parallel fetch — videos + non-video pieces both keyed off
-      // (audience, category). Non-video bucket may be empty until
-      // clinical-advisor authoring lands; PIECES_BY_CHAPTER fallback
-      // takes over per chapter in that case (see piece render branch).
-      const [videos, pieces] = await Promise.all([
-        listManualVideos(who as ManualAudience, chapter.cat, lang)
-          .catch((e) => { console.warn('ManualScrollV3 listManualVideos failed', e); return [] as ManualVideo[]; }),
-        listManualPieces(who as ManualAudience, chapter.cat, lang),
-      ]);
-      if (cancelled) return;
-      setChapterVideos(videos);
-      setChapterPieces(pieces);
-    })();
+    listManualPieces(who as ManualAudience, chapter.cat, lang)
+      .then((pieces) => { if (!cancelled) setChapterPieces(pieces); })
+      .catch(() => {});
     return () => { cancelled = true; };
   }, [who, chapter.cat, lang]);
-  const firstVideo: ManualVideo | undefined = chapterVideos[0];
 
-  const openVideo = (video: ManualVideo) => {
-    // Play the chapter's videos as a playlist, starting at the tapped clip.
-    const ids = chapterVideos.map((v) => v.id);
-    const idx = Math.max(0, ids.indexOf(video.id));
+  // Week-level "this week" specialist video — shown above the chapter chips,
+  // identical regardless of selected chapter. Hidden until a published video
+  // exists for this week (migration 094 + an upload).
+  const [weekIntro, setWeekIntro] = useState<WeekIntroVideo | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    // Early weeks get a TEMP placeholder card until real videos are uploaded; a
+    // real published row always overrides it. Other weeks stay hidden until seeded.
+    const fallback = PLACEHOLDER_WEEKS.has(week)
+      ? {
+          ...PLACEHOLDER_WEEK_INTRO,
+          week_number: week,
+          title: lang === 'es' ? 'Qué esperar esta semana' : PLACEHOLDER_WEEK_INTRO.title,
+          expert_name: lang === 'es' ? 'Dra. Priya Nair' : PLACEHOLDER_WEEK_INTRO.expert_name,
+          expert_role: lang === 'es' ? 'pediatra · villie' : PLACEHOLDER_WEEK_INTRO.expert_role,
+        }
+      : null;
+    getWeekIntroVideo(who, week, lang)
+      .then((v) => { if (!cancelled) setWeekIntro(v ?? fallback); })
+      .catch(() => { if (!cancelled) setWeekIntro(fallback); });
+    return () => { cancelled = true; };
+  }, [who, week, lang]);
+
+  const openWeekIntro = () => {
+    if (!weekIntro?.mux_playback_id) return;
     navigation.navigate('ManualVideo' as never, {
-      audience: who, category: chapter.cat, videoId: video.id,
-      playlist: ids, playlistIndex: idx,
+      audience: who, category: 'week', videoId: weekIntro.id,
+      clips: [{
+        id: weekIntro.id, audience: who, category: 'week',
+        playbackId: weekIntro.mux_playback_id,
+        title: weekIntro.title,
+        posterUrl: weekIntro.poster_url ?? undefined,
+        durationSeconds: weekIntro.duration_seconds ?? undefined,
+      }],
     } as never);
   };
 
@@ -976,11 +1037,6 @@ export default function ManualScrollV3() {
   const pbNowClock = pbClock(pbNow, lang);
   const pbHeroLine = pbNightLine(lastNight, lang) ?? pbFriendLine(pbCurPeriod, lang);
   const pbDeck = pbDayDeck(pbCurPeriod, lastNight, lang);
-  const pbNightShort = lastNight
-    ? (lang === 'es'
-        ? { solid: 'Durmió bien', some: 'Algunos despertares', rough: 'Noche difícil' }[lastNight]
-        : { solid: 'Slept well', some: 'A few wakes', rough: 'Rough night' }[lastNight])
-    : '';
   const pbDoneCount = pbNextIdx === -1 ? pbDay.length : pbNextIdx;
   const pbProgress = pbDay.length ? pbDoneCount / pbDay.length : 0;
   const pbTuneSummary = [
@@ -1020,6 +1076,17 @@ export default function ManualScrollV3() {
               <Text style={styles.bigTitleItalic}>{isPlaybook ? 'playbook.' : 'manual.'}</Text>
             </Text>
           </View>
+          <TouchableOpacity
+            onPress={() => navigation.getParent()?.getParent()?.navigate('QuickReference' as never)}
+            style={{ paddingTop: 12, paddingRight: 4 }}
+            accessibilityRole="button"
+            accessibilityLabel="Emergency quick reference"
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <Svg width={21} height={21} viewBox="0 0 24 24">
+              <Path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke={T.walnut} strokeWidth={1.8} fill="none" strokeLinecap="round" strokeLinejoin="round" />
+            </Svg>
+          </TouchableOpacity>
           <View ref={triggerRef} collapsable={false} style={{ paddingTop: 12 }}>
             <MenuButton onPress={openMenu} expanded={menuOpen} a11yLabel={t('manualMenu.triggerA11y')} />
           </View>
@@ -1139,87 +1206,15 @@ export default function ManualScrollV3() {
               </View>
             </LinearGradient>
 
-            {/* Log today — ONE card holding the segmented control, the panel it
-                opens (in-card, hairline-separated), and the logged result. The
-                action and its options are a single object, not three loose bits.
-                The value loop: logging sharpens the plan above. */}
-            <View style={styles.pbLogCard}>
-              <Text style={styles.pbCardEyebrow}>{lang === 'es' ? 'REGISTRO DE HOY' : 'LOG TODAY'}</Text>
-              <View style={styles.pbLogSeg}>
-                <TouchableOpacity
-                  style={[styles.pbLogSegBtn, logOpen === 'sleep' && styles.pbLogSegBtnOn]}
-                  onPress={() => setLogOpen((v) => (v === 'sleep' ? null : 'sleep'))}
-                  activeOpacity={0.85} accessibilityRole="button" accessibilityState={{ expanded: logOpen === 'sleep' }}
-                >
-                  <Text style={styles.pbLogIcon}>🌙</Text>
-                  <Text style={[styles.pbLogSegText, logOpen === 'sleep' && styles.pbLogSegTextOn]}>{lang === 'es' ? 'Sueño' : 'Sleep'}</Text>
-                </TouchableOpacity>
-                <View style={styles.pbLogSegDivider} />
-                <TouchableOpacity
-                  style={[styles.pbLogSegBtn, logOpen === 'feed' && styles.pbLogSegBtnOn]}
-                  onPress={() => setLogOpen((v) => (v === 'feed' ? null : 'feed'))}
-                  activeOpacity={0.85} accessibilityRole="button" accessibilityState={{ expanded: logOpen === 'feed' }}
-                >
-                  <Text style={styles.pbLogIcon}>🍼</Text>
-                  <Text style={[styles.pbLogSegText, logOpen === 'feed' && styles.pbLogSegTextOn]}>{lang === 'es' ? 'Toma' : 'Feed'}</Text>
-                </TouchableOpacity>
-              </View>
-
-              {logOpen === 'sleep' ? (
-                <View style={styles.pbLogExpand}>
-                  <Text style={styles.pbLogQ}>{lang === 'es' ? '¿Cómo durmió anoche?' : 'How did last night go?'}</Text>
-                  <View style={styles.pbChipRow}>
-                    {([
-                      { k: 'solid', en: 'Slept well', es: 'Durmió bien' },
-                      { k: 'some', en: 'A few wakes', es: 'Algunos despertares' },
-                      { k: 'rough', en: 'Rough (3+)', es: 'Difícil (3+)' },
-                    ] as { k: PbNight; en: string; es: string }[]).map((o) => {
-                      const on = lastNight === o.k;
-                      return (
-                        <TouchableOpacity key={o.k} onPress={() => { setLastNight(o.k); setLogOpen(null); }} activeOpacity={0.85}
-                          accessibilityRole="button" accessibilityState={{ selected: on }}
-                          style={[styles.pbChip, on && styles.pbChipOn]}>
-                          <Text style={[styles.pbChipText, on && styles.pbChipTextOn]}>{lang === 'es' ? o.es : o.en}</Text>
-                        </TouchableOpacity>
-                      );
-                    })}
-                  </View>
-                </View>
-              ) : null}
-              {logOpen === 'feed' ? (
-                <View style={styles.pbLogExpand}>
-                  <Text style={styles.pbLogQ}>{lang === 'es' ? '¿Cuándo fue la última toma?' : 'When was the last feed?'}</Text>
-                  <View style={styles.pbChipRow}>
-                    {([
-                      { en: 'Just now', es: 'Ahora' },
-                      { en: '30 min ago', es: 'Hace 30 min' },
-                      { en: '1 hr ago', es: 'Hace 1 h' },
-                      { en: '2 hr ago', es: 'Hace 2 h' },
-                    ]).map((o) => {
-                      const label = lang === 'es' ? o.es : o.en;
-                      const on = lastFeedLabel === label;
-                      return (
-                        <TouchableOpacity key={o.en} onPress={() => { setLastFeedLabel(label); setLogOpen(null); }} activeOpacity={0.85}
-                          accessibilityRole="button" accessibilityState={{ selected: on }}
-                          style={[styles.pbChip, on && styles.pbChipOn]}>
-                          <Text style={[styles.pbChipText, on && styles.pbChipTextOn]}>{label}</Text>
-                        </TouchableOpacity>
-                      );
-                    })}
-                  </View>
-                </View>
-              ) : null}
-              {!logOpen && (lastNight || lastFeedLabel) ? (
-                <View style={styles.pbLoggedRow}>
-                  {lastNight ? (
-                    <View style={styles.pbLoggedChip}><Text style={styles.pbLoggedChipText}>🌙 {pbNightShort}</Text></View>
-                  ) : null}
-                  {lastFeedLabel ? (
-                    <View style={styles.pbLoggedChip}><Text style={styles.pbLoggedChipText}>🍼 {lastFeedLabel}</Text></View>
-                  ) : null}
-                </View>
-              ) : null}
-            </View>
+            {/* Phase 1 — real tracker (sleep/feed/diaper + live timer + jot +
+                today's timeline). Replaces the qualitative pill logger. Writes
+                to baby_*_logs (migration 093); fails soft pre-migration. */}
+            <PlaybookTracker
+              babyProfileId={babyProfile?.id ?? null}
+              babyName={ownerName}
+              week={week}
+              lang={lang}
+            />
 
             {/* Today timeline — a real spine: state-nodes + a detail subline +
                 a thin "now" marker line dropped in at the current time. */}
@@ -1350,6 +1345,13 @@ export default function ManualScrollV3() {
           </View>
         ) : (
           <>
+        {/* Week-level "this week" specialist video — above the chips, same spot
+            every week. Hidden until a published video exists for this week. */}
+        {weekIntro && (
+          <View style={{ paddingHorizontal: 20 }}>
+            <WeekIntroCard data={weekIntro} onPress={openWeekIntro} lang={lang} />
+          </View>
+        )}
         {/* Category chip row */}
         <View style={{ marginTop: 18 }}>
           <View style={styles.sectionHead}>
@@ -1377,7 +1379,7 @@ export default function ManualScrollV3() {
                   // is white for every chapter, so selection reads consistently.
                   style={[styles.chip, on && styles.chipOn, on && { backgroundColor: tone.bg, borderColor: tone.bg, shadowColor: tone.bg }]}
                 >
-                  <Text style={[styles.chipLabel, on && styles.chipLabelOn, on && { color: tone.fg }]} numberOfLines={1}>{c.ch}</Text>
+                  <Text style={[styles.chipLabel, on && styles.chipLabelOn, on && { color: tone.fg }]} numberOfLines={1}>{chLabel(c.ch, lang)}</Text>
                 </TouchableOpacity>
               );
             })}
@@ -1390,12 +1392,24 @@ export default function ManualScrollV3() {
             it resets to card 1 when the chapter chip changes.
             (Design-samples-first: card content is illustrative for now.) */}
         <View style={{ paddingHorizontal: 20 }}>
-          <ManualSwipeDeck key={chapter.cat} story={manualContent?.story ?? []} category={chapter.cat} />
+          <ManualSwipeDeck key={chapter.cat} story={manualContent?.story ?? []} category={chapter.cat} lang={lang} />
         </View>
 
         {/* Below-deck modules: checklist → article/video → infographic —
             the repeatable Manual baseline, driven by manualWeekContent. */}
-        {manualContent && <ManualModules content={manualContent} />}
+        {manualContent && (
+          <ManualModules
+            content={manualContent}
+            lang={lang}
+            onAskVillie={() => {
+              const topic = chapter.ch.toLowerCase();
+              const seed = lang === 'es'
+                ? `Tengo una pregunta sobre ${topic} en la semana ${week}: `
+                : `I have a question about ${topic} this week (week ${week}): `;
+              navigation.getParent()?.getParent()?.navigate('AIHelpChat', { seed });
+            }}
+          />
+        )}
 
         {/* WEEK PROGRESS BANNER — Phase 4.6 swap: moved to bottom 2026-05-28.
             Reads as a quiet "how am I doing this week" status check after
@@ -1507,7 +1521,19 @@ export default function ManualScrollV3() {
 // ─── Styles ────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: T.paper },
-  scroll: { paddingTop: 56, paddingBottom: 96 },
+  scroll: { paddingTop: 82, paddingBottom: 96 },
+
+  // ── Week-level "this week" video card ──────────────────────────────────
+  wiCard: { marginTop: 18, borderRadius: 18, overflow: 'hidden', borderWidth: 2, borderColor: T.cinnamon },
+  wiHero: { height: 120, alignItems: 'center', justifyContent: 'center', position: 'relative' },
+  wiBadge: { position: 'absolute', top: 9, left: 11, backgroundColor: 'rgba(43,23,7,0.5)', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3 },
+  wiBadgeText: { fontFamily: FONTS.v2_mono, fontSize: 8.5, letterSpacing: 1.6, color: '#FFF1DC', fontWeight: '700' },
+  wiPlay: { width: 48, height: 48, borderRadius: 24, backgroundColor: 'rgba(255,255,255,0.92)', alignItems: 'center', justifyContent: 'center' },
+  wiDur: { position: 'absolute', bottom: 9, right: 11, backgroundColor: 'rgba(0,0,0,0.32)', borderRadius: 8, paddingHorizontal: 7, paddingVertical: 2 },
+  wiDurText: { color: '#fff', fontSize: 9, fontFamily: FONTS.v2_mono },
+  wiBody: { backgroundColor: T.paper, padding: 13 },
+  wiTitle: { fontFamily: FONTS.v3_display, fontSize: 16, color: T.cocoa, letterSpacing: -0.4 },
+  wiExpert: { fontFamily: FONTS.v2_body, fontSize: 11, color: T.walnut, marginTop: 4 },
 
   marigoldHaloUnused: {
     position: 'absolute', top: 30, right: -110,

@@ -4,6 +4,7 @@ import {
   TouchableOpacity, ActivityIndicator,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import Svg, { Path } from 'react-native-svg';
 import { GlassHighlight } from '@components/shared/GlassHighlight';
 import { WarmGlowBackdrop } from '@components/shared/WarmGlowBackdrop';
 import { HoneycombBackdrop, type HoneycombIntensity } from '@components/shared/HoneycombBackdrop';
@@ -37,6 +38,25 @@ const BADGE_COLOR: Record<string, string> = {
   verified: '#E98A6A',
   verified_bloodwork: COLORS.statusSuccess,
 };
+
+// Clean SVG icon system (replaces the emoji utility icons + the left accent
+// bars) — matches the home page's icon language.
+const ICON = {
+  heart:   'M20.8 4.6a5.5 5.5 0 00-7.8 0L12 5.6l-1-1a5.5 5.5 0 00-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 000-7.8z',
+  box:     'M21 8l-9-5-9 5 9 5 9-5zM3 8v8l9 5 9-5V8M12 13v8',
+  chat:    'M4 5h16v11H9l-4 4V5z',
+  sparkle: 'M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3z',
+  search:  'M11 18a7 7 0 100-14 7 7 0 000 14zM21 21l-4.3-4.3',
+  droplet: 'M12 3s6 7 6 11a6 6 0 11-12 0c0-4 6-11 6-11z',
+} as const;
+
+function Glyph({ d, color, size = 18, sw = 1.9 }: { d: string; color: string; size?: number; sw?: number }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path d={d} stroke={color} strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
 
 export default function MilkConnectHomeScreen({ navigation }: Props) {
   const user = useAuthStore((s) => s.user);
@@ -97,7 +117,7 @@ export default function MilkConnectHomeScreen({ navigation }: Props) {
               accessibilityRole="button"
               accessibilityLabel={t('milk.saved')}
             >
-              <Text style={styles.utilityIcon}>♡</Text>
+              <Glyph d={ICON.heart} color={COLORS.v2_cinnamon} size={17} />
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.utilityIconBtn}
@@ -105,7 +125,7 @@ export default function MilkConnectHomeScreen({ navigation }: Props) {
               accessibilityRole="button"
               accessibilityLabel={t('milk.ordersA11y')}
             >
-              <Text style={styles.utilityIcon}>📦</Text>
+              <Glyph d={ICON.box} color={COLORS.v2_walnut} size={17} />
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.utilityIconBtn}
@@ -113,7 +133,7 @@ export default function MilkConnectHomeScreen({ navigation }: Props) {
               accessibilityRole="button"
               accessibilityLabel={t('milk.messagesA11y')}
             >
-              <Text style={styles.utilityIcon}>💬</Text>
+              <Glyph d={ICON.chat} color={COLORS.v2_walnut} size={17} />
             </TouchableOpacity>
           </View>
         </View>
@@ -192,21 +212,6 @@ export default function MilkConnectHomeScreen({ navigation }: Props) {
         </View>
       )}
 
-      {/* AI Match — soft warm card with a single rust accent dot. Replaces the
-          dark/black variant which fought with the cream editorial palette. */}
-      <TouchableOpacity
-        style={styles.matchCard}
-        onPress={() => navigation.navigate('MilkMatch')}
-        activeOpacity={0.85}
-      >
-        <View style={styles.matchAccent} />
-        <View style={styles.matchTextWrap}>
-          <Text style={styles.matchTitle}>{t('milk.matchTitle')}</Text>
-          <Text style={styles.matchSub}>{t('milk.matchSub')}</Text>
-        </View>
-        <Text style={styles.matchArrow}>→</Text>
-      </TouchableOpacity>
-
       {/* Two-up hero — find milk / share milk as a balanced, COLORED pair.
           Replaces the cream-on-cream "01/02" cards (which read flat) with the
           Village-hub tile palette (blush recipients · peach donors) so the page
@@ -227,6 +232,10 @@ export default function MilkConnectHomeScreen({ navigation }: Props) {
             pointerEvents="none"
           />
           <View>
+            <View style={styles.heroTileIcon}>
+              <Glyph d={ICON.search} color={COLORS.v2_cocoa} size={19} />
+            </View>
+            <Text style={styles.heroTileRole}>{t('milk.findRole')}</Text>
             <Text style={styles.heroTileTitle}>{t('milk.findDonorTitle')}</Text>
             <Text style={styles.heroTileSub}>{t('milk.findDonorTileSub')}</Text>
           </View>
@@ -236,8 +245,12 @@ export default function MilkConnectHomeScreen({ navigation }: Props) {
           </View>
         </TouchableOpacity>
 
+        {/* "Share your milk" is hidden for existing donors — for them it just
+            duplicates the dashboard's "Add a listing" above. Non-donors see it
+            as the clearly-distinct (honey, "have extra?") become-a-donor path. */}
+        {!donorProfile && (
         <TouchableOpacity
-          style={[styles.heroTile, { backgroundColor: '#F3B79C' }]}
+          style={[styles.heroTile, { backgroundColor: '#F0CD82' }]}
           activeOpacity={0.9}
           onPress={onShareMilk}
           accessibilityRole="button"
@@ -250,17 +263,44 @@ export default function MilkConnectHomeScreen({ navigation }: Props) {
             pointerEvents="none"
           />
           <View>
+            <View style={styles.heroTileIcon}>
+              <Glyph d={ICON.droplet} color={COLORS.v2_cocoa} size={19} />
+            </View>
+            <Text style={styles.heroTileRole}>{t('milk.shareRole')}</Text>
             <Text style={styles.heroTileTitle}>{t('milk.becomeDonorTitle')}</Text>
             <Text style={styles.heroTileSub}>{t('milk.shareTileSub')}</Text>
           </View>
           <View style={styles.heroTileFooter}>
-            <Text style={styles.heroTileCta}>
-              {donorProfile ? t('milk.shareTileCtaDonor') : t('milk.shareTileCta')}
-            </Text>
+            <Text style={styles.heroTileCta}>{t('milk.shareTileCta')}</Text>
             <Text style={styles.heroTileArrow}>→</Text>
           </View>
         </TouchableOpacity>
+        )}
       </View>
+
+      {/* AI Match — demoted BELOW the two equal hero tiles per Felipe so it
+          reads as the lighter, secondary "not sure?" path rather than a peer of
+          the two primary actions. The "or" divider sets it apart as the
+          alternative entry. */}
+      <View style={styles.matchDivider}>
+        <View style={styles.matchDividerLine} />
+        <Text style={styles.matchDividerText}>or</Text>
+        <View style={styles.matchDividerLine} />
+      </View>
+      <TouchableOpacity
+        style={styles.matchCard}
+        onPress={() => navigation.navigate('MilkMatch')}
+        activeOpacity={0.85}
+      >
+        <View style={styles.matchIcon}>
+          <Glyph d={ICON.sparkle} color={COLORS.v2_cinnamon} size={18} />
+        </View>
+        <View style={styles.matchTextWrap}>
+          <Text style={styles.matchTitle}>{t('milk.matchTitle')}</Text>
+          <Text style={styles.matchSub}>{t('milk.matchSub')}</Text>
+        </View>
+        <Text style={styles.matchArrow}>→</Text>
+      </TouchableOpacity>
 
       {/* Trust signal that used to live in the Find-a-donor card body. */}
       <Text style={styles.trustCaption}>{t('milk.donorTrustCaption')}</Text>
@@ -387,8 +427,8 @@ const styles = StyleSheet.create({
   dashboardRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 },
   dashboardLeft: { flex: 1, paddingRight: 12 },
   dashboardName: {
-    fontSize: 22, fontFamily: FONTS.headerItalic, fontStyle: 'italic',
-    color: COLORS.bark, marginBottom: 4,
+    fontSize: 22, fontFamily: FONTS.v3_display,
+    color: COLORS.v2_cocoa, marginBottom: 4, letterSpacing: -0.5,
   },
   badgeText: {
     fontSize: 12, fontFamily: FONTS.bodySemiBold,
@@ -396,8 +436,8 @@ const styles = StyleSheet.create({
   },
   dashboardStats: { alignItems: 'flex-end' },
   statValue: {
-    fontSize: 32, fontFamily: FONTS.headerItalic, fontStyle: 'italic',
-    color: '#D96C88', lineHeight: 36,
+    fontSize: 32, fontFamily: FONTS.v3_display,
+    color: '#D96C88', lineHeight: 36, letterSpacing: -1,
   },
   statLabel: { fontSize: 11, color: COLORS.textLight, fontFamily: FONTS.bodyMedium, letterSpacing: 0.5 },
   dashboardActions: { flexDirection: 'row', gap: 10 },
@@ -421,10 +461,22 @@ const styles = StyleSheet.create({
 
   // AI Match — cream-on-cream warm card with a single rust accent line on
   // the left edge instead of a full dark fill. Quieter, more editorial.
+  // "or" divider — sets the secondary match path apart from the two primaries.
+  matchDivider: {
+    flexDirection: 'row', alignItems: 'center', gap: 10,
+    marginHorizontal: 20, marginTop: 16, marginBottom: 12,
+  },
+  matchDividerLine: { flex: 1, height: StyleSheet.hairlineWidth, backgroundColor: 'rgba(61,31,14,0.16)' },
+  matchDividerText: {
+    fontFamily: FONTS.v2_mono, fontSize: 10, letterSpacing: 1.6,
+    textTransform: 'uppercase', color: COLORS.v2_walnut,
+  },
+  // Secondary, demoted: slimmer padding + smaller icon/title than the hero
+  // tiles so it reads as the lighter "not sure?" option, not a third primary.
   matchCard: {
-    flexDirection: 'row', alignItems: 'center', gap: 12,
-    marginHorizontal: 20, marginTop: 10,
-    paddingVertical: 14, paddingHorizontal: 16, borderRadius: 14,
+    flexDirection: 'row', alignItems: 'center', gap: 11,
+    marginHorizontal: 20,
+    paddingVertical: 11, paddingHorizontal: 14, borderRadius: 14,
     backgroundColor: '#FBEFD9',  // soft honey — warms the AI feature row
     borderWidth: 1, borderColor: 'rgba(212,150,60,0.28)',
   },
@@ -432,10 +484,16 @@ const styles = StyleSheet.create({
     width: 4, height: 36, borderRadius: 2,
     backgroundColor: '#D96C88',  // cinnamon action accent
   },
+  matchIcon: {
+    width: 32, height: 32, borderRadius: 11,
+    backgroundColor: '#FFFDF8',
+    alignItems: 'center', justifyContent: 'center',
+    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(212,150,60,0.30)',
+  },
   matchTextWrap: { flex: 1 },
   matchTitle: {
-    fontSize: 17, fontFamily: FONTS.headerItalic, fontStyle: 'italic',
-    color: COLORS.bark,
+    fontSize: 14.5, fontFamily: FONTS.v3_display,
+    color: COLORS.v2_cocoa, letterSpacing: -0.3,
   },
   matchSub: { fontSize: 13, color: COLORS.barkSoft, marginTop: 2, lineHeight: 18, fontFamily: FONTS.body },
   matchArrow: { fontSize: 20, color: '#7A4A24', fontFamily: FONTS.bodySemiBold },
@@ -677,14 +735,26 @@ const styles = StyleSheet.create({
     marginHorizontal: 20, marginTop: 14,
   },
   heroTile: {
-    flex: 1, minHeight: 158,
+    flex: 1, minHeight: 172,
     borderRadius: 18, padding: 16, paddingBottom: 13,
     overflow: 'hidden', justifyContent: 'space-between',
     shadowColor: '#7A4A24', shadowOffset: { width: 0, height: 12 },
     shadowOpacity: 0.20, shadowRadius: 26, elevation: 3,
   },
+  heroTileIcon: {
+    width: 38, height: 38, borderRadius: 12,
+    backgroundColor: 'rgba(255,253,248,0.78)',
+    alignItems: 'center', justifyContent: 'center',
+    marginBottom: 9,
+  },
+  // Role eyebrow — the at-a-glance "which one is this for" cue (need milk? /
+  // have extra?) so the two tiles never read as the same thing.
+  heroTileRole: {
+    fontFamily: FONTS.v2_mono, fontSize: 9, letterSpacing: 1.3,
+    textTransform: 'uppercase', color: 'rgba(67,38,15,0.55)', marginBottom: 3,
+  },
   heroTileTitle: {
-    fontFamily: FONTS.headerBold, fontSize: 21, lineHeight: 23,
+    fontFamily: FONTS.v3_display, fontSize: 20, lineHeight: 23,
     letterSpacing: -0.6, color: '#43260F',
   },
   heroTileSub: {

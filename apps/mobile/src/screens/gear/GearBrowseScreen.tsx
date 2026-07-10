@@ -12,7 +12,6 @@ import { getEffectiveCoords } from '@utils/devLocation';
 import { useT } from '@/i18n';
 import { useGearStore } from '@store/gear';
 import {
-  categoryLabel,
   conditionLabel,
   formatPrice,
   type GearCard,
@@ -174,12 +173,15 @@ export default function GearBrowseScreen() {
         }
         data={feed}
         keyExtractor={(l) => l.id}
+        numColumns={2}
         renderItem={({ item }) => (
-          <ListingCardView
-            listing={item}
-            onPress={() => navigation.navigate('GearListingDetail', { id: item.id })}
-            t={t}
-          />
+          <View style={styles.cell}>
+            <ListingCardView
+              listing={item}
+              onPress={() => navigation.navigate('GearListingDetail', { id: item.id })}
+              t={t}
+            />
+          </View>
         )}
         ListEmptyComponent={
           loading ? (
@@ -195,7 +197,7 @@ export default function GearBrowseScreen() {
             </View>
           )
         }
-        contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 0, paddingBottom: 140 }}
+        contentContainerStyle={{ paddingHorizontal: 12, paddingTop: 0, paddingBottom: 140 }}
         refreshControl={<RefreshControl refreshing={loading} onRefresh={load} tintColor={COLORS.coco} />}
       />
 
@@ -213,62 +215,43 @@ export default function GearBrowseScreen() {
 }
 
 function ListingCardView({ listing, onPress, t }: { listing: GearCard; onPress: () => void; t: TFn }) {
-  // Concept B feed-row pattern — eyebrow + italic Playfair title + bullet-dot
-  // meta + footer chips. Product photo replaces the left-illustration column.
-  const meta: string[] = [conditionLabel(listing.condition)];
-  if (listing.brand) meta.push(listing.brand);
-  const locText = [
-    listing.pickup_city,
-    listing.distance_km != null ? `${listing.distance_km.toFixed(1)} km` : null,
+  // Compact grid card — square thumbnail + tight info block, so the feed reads
+  // like a marketplace (more items per screen) instead of editorial hero cards.
+  const metaText = [
+    conditionLabel(listing.condition),
+    listing.brand,
   ].filter(Boolean).join(' · ');
+  const locText = listing.distance_km != null
+    ? `${listing.distance_km.toFixed(1)} km`
+    : (listing.pickup_city ?? '');
 
   return (
     <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.9} accessibilityRole="button">
-      {listing.cover_image_url ? (
-        <Image source={{ uri: listing.cover_image_url }} style={styles.cardImage} resizeMode="cover" />
-      ) : (
-        <View style={[styles.cardImage, styles.cardImageFallback]}>
-          <Text style={styles.cardImageFallbackText}>{t('gearBrowse.noPhoto')}</Text>
-        </View>
-      )}
-      {listing.is_boosted && (
-        <View style={styles.boostBadge} pointerEvents="none">
-          <Text style={styles.boostBadgeText}>✦ {t('gearBrowse.boostedBadge')}</Text>
-        </View>
-      )}
+      <View style={styles.thumbWrap}>
+        {listing.cover_image_url ? (
+          <Image source={{ uri: listing.cover_image_url }} style={styles.cardImage} resizeMode="cover" />
+        ) : (
+          <View style={[styles.cardImage, styles.cardImageFallback]}>
+            <Text style={styles.cardImageFallbackText}>{t('gearBrowse.noPhoto')}</Text>
+          </View>
+        )}
+        {listing.is_boosted && (
+          <View style={styles.boostBadge} pointerEvents="none">
+            <Text style={styles.boostBadgeText}>✦</Text>
+          </View>
+        )}
+        {listing.is_cpsc_checked && (
+          <View style={styles.cpscPill} pointerEvents="none">
+            <Text style={styles.cpscPillText}>✓ {t('gearBrowse.cpscBadge')}</Text>
+          </View>
+        )}
+      </View>
       <View style={styles.cardBody}>
-        {/* v9 paper-leaning card wash — replaces the stale golden→blush. */}
-        <LinearGradient
-          colors={['#FCF6EF', '#F8EDE0', '#F2DDD0']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={StyleSheet.absoluteFill}
-          pointerEvents="none"
-        />
-        {/* Eyebrow row — category + CPSC chip on the right */}
-        <View style={styles.cardHeaderRow}>
-          <Text style={styles.cardCategory}>{categoryLabel(listing.category).toUpperCase()}</Text>
-          {listing.is_cpsc_checked && (
-            <View style={styles.cpscChip}>
-              <Text style={styles.cpscChipText}>{t('gearBrowse.cpscBadge').toUpperCase()}</Text>
-            </View>
-          )}
-        </View>
-        {/* Italic Playfair title — the editorial hero. */}
         <Text style={styles.cardTitle} numberOfLines={2}>{listing.title}</Text>
-        {/* Meta row — bullet-dot separated. */}
-        <View style={styles.metaRow}>
-          {meta.map((token, i) => (
-            <React.Fragment key={`${token}-${i}`}>
-              {i > 0 ? <Text style={styles.metaDot}>·</Text> : null}
-              <Text style={styles.metaText}>{token}</Text>
-            </React.Fragment>
-          ))}
-        </View>
-        {/* Footer row — price + city, hairline divider. */}
+        {metaText ? <Text style={styles.cardMeta} numberOfLines={1}>{metaText}</Text> : null}
         <View style={styles.cardFooter}>
           <Text style={styles.cardPrice}>{formatPrice(listing.price_cents, listing.is_free, listing.currency)}</Text>
-          {locText ? <Text style={styles.cardCity}>{locText}</Text> : null}
+          {locText ? <Text style={styles.cardCity} numberOfLines={1}>{locText}</Text> : null}
         </View>
       </View>
     </TouchableOpacity>
@@ -335,7 +318,7 @@ const styles = StyleSheet.create({
     paddingTop: 56,
     paddingHorizontal: 22,
     paddingBottom: 18,
-    marginHorizontal: -16,   // negate FlashList paddingHorizontal:16
+    marginHorizontal: -12,   // negate FlashList paddingHorizontal:12
     position: 'relative',
     overflow: 'hidden',
   },
@@ -402,59 +385,59 @@ const styles = StyleSheet.create({
   // v9 card lift recipe — paper bg + cocoa drop + rust hairline.
   // (Moved off tan #F2E9C4 — too saturated, fought the page wash and the
   //  chapter pill palette. Paper is the canonical card surface.)
+  // Compact grid cell — wraps each card to add the inter-column gutter.
+  cell: { flex: 1, paddingHorizontal: 5, paddingBottom: 10 },
+  // NOTE: no overflow:'hidden' here — that would clip the iOS drop shadow.
+  // Corner-clipping is done on thumbWrap (top) + the card's own borderRadius
+  // (bottom), so the tile keeps clean rounded corners AND casts a real shadow
+  // to lift off the cream page.
   card: {
-    backgroundColor: COLORS.paper,
-    borderRadius: 12,
-    marginBottom: 14,
-    overflow: 'hidden',
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'rgba(150,80,50,0.18)',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(122,74,36,0.22)',
     shadowColor: '#43260F',
-    shadowOpacity: 0.22,
+    shadowOpacity: 0.16,
     shadowOffset: { width: 0, height: 8 },
-    shadowRadius: 22,
-    elevation: 3,
+    shadowRadius: 16,
+    elevation: 4,
   },
-  cardImage: { width: '100%', aspectRatio: 16 / 10, backgroundColor: COLORS.cream },
+  thumbWrap: {
+    position: 'relative',
+    borderTopLeftRadius: 13, borderTopRightRadius: 13, overflow: 'hidden',
+  },
+  // Landscape thumb (was square) — shorter cards so ~4 items fit on screen.
+  cardImage: { width: '100%', aspectRatio: 1.5, backgroundColor: '#F0E6D8' },
+  cardImageFallback: { alignItems: 'center', justifyContent: 'center' },
+  cardImageFallbackText: { color: COLORS.textLight, fontSize: 11, fontFamily: FONTS.bodySemiBold },
   boostBadge: {
-    position: 'absolute', top: 10, left: 10,
-    backgroundColor: COLORS.v2_marigold, borderRadius: 7,
-    paddingHorizontal: 9, paddingVertical: 3,
+    position: 'absolute', top: 6, left: 6,
+    backgroundColor: COLORS.v2_marigold, borderRadius: 6,
+    width: 20, height: 20, alignItems: 'center', justifyContent: 'center',
     shadowColor: '#43260F', shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2, shadowRadius: 4, elevation: 2,
   },
-  boostBadgeText: { fontSize: 10.5, fontFamily: FONTS.bodySemiBold, color: COLORS.v2_cocoa, letterSpacing: 0.3 },
-  cardImageFallback: { alignItems: 'center', justifyContent: 'center' },
-  cardImageFallbackText: { color: COLORS.textLight, fontSize: 12, fontFamily: FONTS.bodySemiBold },
-  cardBody: { paddingVertical: 14, paddingHorizontal: 16, overflow: 'hidden' },
-  cardHeaderRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 },
-  cardCategory: { fontSize: 10, fontFamily: FONTS.bodySemiBold, letterSpacing: 1.6, color: '#B5811C' },  // Gear signature: honey-gold eyebrow
-  cpscChip: {
-    backgroundColor: 'rgba(181,129,28,0.16)', borderRadius: 999,
-    paddingHorizontal: 9, paddingVertical: 3,
+  boostBadgeText: { fontSize: 11, fontFamily: FONTS.bodySemiBold, color: COLORS.v2_cocoa },
+  cpscPill: {
+    position: 'absolute', bottom: 6, left: 6,
+    backgroundColor: 'rgba(252,247,239,0.92)', borderRadius: 999,
+    paddingHorizontal: 7, paddingVertical: 2,
   },
-  cpscChipText: {
-    fontSize: 9, fontFamily: FONTS.bodySemiBold, color: '#9A6B12', letterSpacing: 0.6,
-  },
-  // Italic Playfair title — the editorial hero.
+  cpscPillText: { fontSize: 9, fontFamily: FONTS.bodySemiBold, color: '#9A6B12', letterSpacing: 0.4 },
+  cardBody: { paddingVertical: 7, paddingHorizontal: 9 },
+  // Clean sans title (was italic Playfair) — less editorial, fits the dense grid.
   cardTitle: {
-    fontSize: 20, lineHeight: 26,
-    fontFamily: FONTS.headerItalic, fontStyle: 'italic',
+    fontSize: 12.5, lineHeight: 15.5,
+    fontFamily: FONTS.bodySemiBold,
     color: COLORS.bark,
-    marginTop: 2,
   },
-  metaRow: {
-    flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 6, marginTop: 6,
-  },
-  metaText: { fontSize: 12, color: COLORS.barkSoft, fontFamily: FONTS.body },
-  metaDot: { fontSize: 12, color: COLORS.textLight },
+  cardMeta: { fontSize: 10, color: COLORS.barkSoft, fontFamily: FONTS.body, marginTop: 2 },
   cardFooter: {
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    marginTop: 12, paddingTop: 10,
-    borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: COLORS.sandSoft,
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline',
+    marginTop: 5, gap: 6,
   },
-  cardPrice: { fontSize: 17, fontFamily: FONTS.bodySemiBold, color: COLORS.bark },
-  cardCity: { fontSize: 11, color: COLORS.textLight, fontFamily: FONTS.bodyMedium },
+  cardPrice: { fontSize: 14, fontFamily: FONTS.bodySemiBold, color: COLORS.bark },
+  cardCity: { fontSize: 10, color: COLORS.textLight, fontFamily: FONTS.bodyMedium, flexShrink: 1, textAlign: 'right' },
 
   empty: { alignItems: 'center', paddingVertical: 60 },
   emptyTitle: { fontSize: 15, fontFamily: FONTS.bodySemiBold, color: COLORS.bark, marginBottom: 4 },

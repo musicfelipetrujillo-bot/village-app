@@ -10,22 +10,30 @@
 // slightly-different hexes, per memory project_villie_boxes. One cinnamon
 // spark per surface = the primary CTA.
 
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
-  View, Text, StyleSheet, TouchableOpacity, ScrollView,
+  View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Animated, Easing,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import Svg, { Path } from 'react-native-svg';
+import Svg, { Path, Rect, Ellipse, Polygon, Line } from 'react-native-svg';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { COLORS, FONTS } from '@utils/constants';
 import {
   BOXES, computeBoxPricing, bundlePricing, formatPrice, type Box,
 } from '@api/boxes';
-import {
-  useBoxesStore, cartTotal, type HubLayout,
-} from '@store/boxes';
+import { useBoxesStore, cartTotal } from '@store/boxes';
 import type { HomeStackParamList } from '@/navigation/HomeNavigator';
+
+// villie-bee.png — perched on the rim of the opened-box illustration so the
+// art reads as villie-branded (the mascot greets you from inside the box).
+const VILLIE_BEE = require('../../../assets/brand/villie-bee.png');
+const V_MARK = require('../../../assets/brand/villie-v-mark-v2.png');
+
+// Soft per-box card tints (by index) — the plain paper cards blended into the
+// cream page, so each card now sits on its own warm wash for separation.
+const CARD_TINTS = ['#F8ECE2', '#FBE7EC', '#FBF1D6'];
+const CARD_BORDERS = ['rgba(233,138,106,0.30)', 'rgba(217,108,136,0.28)', 'rgba(244,197,60,0.40)'];
 
 const T = {
   paper: COLORS.v2_paper,
@@ -42,23 +50,6 @@ const T = {
 
 type Nav = NativeStackNavigationProp<HomeStackParamList>;
 
-// Small Feather-ish trust icon (shield / truck / heart) — same icon language
-// as the gear CPSC badges. Falls back to a dot if an unknown key sneaks in.
-const TRUST_ICONS: Record<string, string> = {
-  shield: 'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z',
-  truck: 'M1 3h15v13H1zM16 8h4l3 3v5h-7M5.5 18.5a2 2 0 100-4 2 2 0 000 4zM18.5 18.5a2 2 0 100-4 2 2 0 000 4z',
-  heart: 'M20.8 4.6a5.5 5.5 0 00-7.8 0L12 5.6l-1-1a5.5 5.5 0 00-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 000-7.8z',
-};
-
-function TrustIcon({ name }: { name: string }) {
-  const d = TRUST_ICONS[name] ?? 'M12 12m-1 0a1 1 0 102 0 1 1 0 10-2 0';
-  return (
-    <Svg width={12} height={12} viewBox="0 0 24 24">
-      <Path d={d} stroke={T.walnut} strokeWidth={1.7} fill="none" strokeLinecap="round" strokeLinejoin="round" />
-    </Svg>
-  );
-}
-
 function Eyebrow({ children }: { children: React.ReactNode }) {
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -68,84 +59,150 @@ function Eyebrow({ children }: { children: React.ReactNode }) {
   );
 }
 
-function LayoutToggle({ value, onChange }: { value: HubLayout; onChange: (l: HubLayout) => void }) {
+// Opened gift box with items spilling up + the villie bee on the rim. Flat,
+// brand-colored, compact (smaller than the photographic reference). The bee
+// is the real mascot PNG layered over the SVG so the art is villie-branded.
+// A 4-point sparkle for the twinkles drifting around the gift.
+const STAR4 = 'M12 2c1 5 2 6 7 7-5 1-6 2-7 7-1-5-2-6-7-7 5-1 6-2 7-7z';
+
+function Twinkle({ pos, delay, color, size = 13 }: { pos: object; delay: number; color: string; size?: number }) {
+  const a = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    const loop = Animated.loop(Animated.sequence([
+      Animated.delay(delay),
+      Animated.timing(a, { toValue: 1, duration: 600, useNativeDriver: true }),
+      Animated.timing(a, { toValue: 0, duration: 800, useNativeDriver: true }),
+      Animated.delay(700),
+    ]));
+    loop.start();
+    return () => loop.stop();
+  }, [a, delay]);
   return (
-    <View style={styles.toggle}>
-      {(['compact', 'editorial'] as HubLayout[]).map((opt) => {
-        const active = value === opt;
-        return (
-          <TouchableOpacity
-            key={opt}
-            onPress={() => onChange(opt)}
-            activeOpacity={0.85}
-            accessibilityRole="button"
-            accessibilityState={{ selected: active }}
-            style={[styles.toggleBtn, active && styles.toggleBtnActive]}
-          >
-            <Text style={[styles.toggleText, active && styles.toggleTextActive]}>{opt}</Text>
-          </TouchableOpacity>
-        );
-      })}
-    </View>
+    <Animated.View pointerEvents="none" style={[
+      { position: 'absolute', opacity: a, transform: [{ scale: a.interpolate({ inputRange: [0, 1], outputRange: [0.4, 1] }) }] },
+      pos,
+    ]}>
+      <Svg width={size} height={size} viewBox="0 0 24 24"><Path d={STAR4} fill={color} /></Svg>
+    </Animated.View>
   );
 }
 
-function BoxCard({ box, compact, onPress }: { box: Box; compact: boolean; onPress: () => void }) {
+// The balloon bunch lifting the box (villie pastel palette).
+const BALLOONS = [
+  { cx: 56, cy: 20, fill: '#F7C5CB' },
+  { cx: 80, cy: 17, fill: '#F4B89C' },
+  { cx: 42, cy: 30, fill: '#F4C868' },
+  { cx: 96, cy: 32, fill: '#EE9C7C' },
+  { cx: 67, cy: 30, fill: '#E98AA6' },
+  { cx: 52, cy: 46, fill: '#FBEFD9' },
+  { cx: 88, cy: 48, fill: '#F7C5CB' },
+  { cx: 72, cy: 49, fill: '#E87B7B' },
+];
+
+// A kraft box lifted by a bunch of pastel balloons, drifting up through a soft
+// sky — our own villie-palette take on the reference (the brand bee floats
+// along; a honey hex marks the box). Gently bobs + sways in a loop.
+function GiftBoxArt({ size = 150 }: { size?: number }) {
+  const w = size, h = size * 1.07;
+  const f = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    const loop = Animated.loop(Animated.sequence([
+      Animated.timing(f, { toValue: 1, duration: 2400, easing: Easing.inOut(Easing.quad), useNativeDriver: true }),
+      Animated.timing(f, { toValue: 0, duration: 2400, easing: Easing.inOut(Easing.quad), useNativeDriver: true }),
+    ]));
+    loop.start();
+    return () => loop.stop();
+  }, [f]);
+  const translateY = f.interpolate({ inputRange: [0, 1], outputRange: [5, -8] });
+  const rotate = f.interpolate({ inputRange: [0, 1], outputRange: ['-2deg', '2deg'] });
+  return (
+    <Animated.View style={{ width: w, height: h, transform: [{ translateY }, { rotate }] }}>
+      <Svg width={w} height={h} viewBox="0 0 140 150">
+        {/* soft clouds */}
+        <Ellipse cx={30} cy={122} rx={30} ry={12} fill="#FFFFFF" opacity={0.45} />
+        <Ellipse cx={112} cy={134} rx={28} ry={11} fill="#FFFFFF" opacity={0.4} />
+        <Ellipse cx={70} cy={143} rx={42} ry={12} fill="#FFFFFF" opacity={0.32} />
+        {/* strings */}
+        {BALLOONS.map((b, i) => (
+          <Line key={`s${i}`} x1={b.cx} y1={b.cy + 11} x2={70} y2={66} stroke="rgba(120,90,70,0.3)" strokeWidth={0.7} />
+        ))}
+        <Line x1={70} y1={66} x2={70} y2={101} stroke="rgba(120,90,70,0.45)" strokeWidth={1.3} />
+        {/* balloons + gloss */}
+        {BALLOONS.map((b, i) => (
+          <Ellipse key={`b${i}`} cx={b.cx} cy={b.cy} rx={9.5} ry={12} fill={b.fill} />
+        ))}
+        {BALLOONS.map((b, i) => (
+          <Ellipse key={`g${i}`} cx={b.cx - 3} cy={b.cy - 4} rx={2.4} ry={3.4} fill="#FFFFFF" opacity={0.5} />
+        ))}
+        {/* box — kraft body + cream label carrying the real villie V-mark logo
+            (Image overlaid below), flanked by tiny honeycomb cells. */}
+        <Rect x={50} y={101} width={40} height={38} rx={4} fill="#E7D2AC" />
+        <Path d="M50 109 H90" stroke="#C9AF82" strokeWidth={1.1} />
+        <Polygon points="55,106 58,106 59.5,108.5 58,111 55,111 53.5,108.5" fill="none" stroke="#C9A24A" strokeWidth={0.9} />
+        <Polygon points="82,127 85,127 86.5,129.5 85,132 82,132 80.5,129.5" fill="none" stroke="#C9A24A" strokeWidth={0.9} />
+        <Rect x={55} y={114} width={30} height={20} rx={4} fill="#FFFCF6" stroke="#E4D3B4" strokeWidth={0.8} />
+      </Svg>
+      <Image
+        source={VILLIE_BEE}
+        resizeMode="contain"
+        accessible={false}
+        style={{ position: 'absolute', top: 4, left: w * 0.26, width: 22, height: 22, transform: [{ rotate: '-14deg' }] }}
+      />
+      <Image
+        source={V_MARK}
+        resizeMode="contain"
+        accessible={false}
+        style={{ position: 'absolute', top: h * 0.755, left: w * 0.405, width: 28, height: 21 }}
+      />
+    </Animated.View>
+  );
+}
+
+// Small gift glyph stamped on each card's hero thumbnail.
+const GIFT_PATH = 'M4 11h16v9H4zM3 7h18v4H3zM12 7v13M8.5 7C6.6 7 5.5 4 7 3.2 8.6 2.4 12 7 12 7m0 0s3.4-4.6 5-3.8C18.5 4 17.4 7 15.5 7';
+
+function BoxCard({ box, tint, border, onPress }: { box: Box; tint: string; border: string; onPress: () => void }) {
   // "Now" price with no customization (full box).
   const pricing = computeBoxPricing(box, new Set(), new Set());
   return (
-    <TouchableOpacity activeOpacity={0.93} onPress={onPress} style={styles.card}>
-      {/* Hero gradient band — taller in editorial, slimmer in compact. */}
-      <LinearGradient
-        colors={box.hero as readonly [string, string, ...string[]]}
-        start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-        style={[styles.cardHero, { height: compact ? 92 : 150 }]}
-      >
+    <TouchableOpacity activeOpacity={0.93} onPress={onPress} style={[styles.card, { backgroundColor: tint, borderColor: border }]}>
+      <View style={styles.cardRow}>
+        {/* Hero gradient thumbnail with a gift glyph stamp. */}
         <LinearGradient
-          colors={[box.glow, 'rgba(255,255,255,0)']}
-          start={{ x: 0.15, y: 0.1 }} end={{ x: 0.9, y: 1 }}
-          style={StyleSheet.absoluteFillObject}
-          pointerEvents="none"
-        />
-        <View style={styles.cardBadge}>
-          <Text style={styles.cardBadgeText}>{box.badge}</Text>
-        </View>
-        {!compact && (
-          <Text style={[styles.cardHeroPop, { color: box.popColor }]}>{box.pop}</Text>
-        )}
-      </LinearGradient>
+          colors={box.hero as readonly [string, string, ...string[]]}
+          start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+          style={styles.cardThumb}
+        >
+          <LinearGradient
+            colors={[box.glow, 'rgba(255,255,255,0)']}
+            start={{ x: 0.15, y: 0.1 }} end={{ x: 0.9, y: 1 }}
+            style={StyleSheet.absoluteFillObject}
+            pointerEvents="none"
+          />
+          <Svg width={30} height={30} viewBox="0 0 24 24">
+            <Path d={GIFT_PATH} stroke="#FFFFFF" strokeWidth={1.8} fill="none" strokeLinecap="round" strokeLinejoin="round" />
+          </Svg>
+        </LinearGradient>
 
-      <View style={styles.cardBody}>
-        <Text style={styles.cardStage}>{box.stage}</Text>
-        <Text style={styles.cardTitle}>
-          The <Text style={[styles.cardTitleEm, { color: T.caramel }]}>{box.pop}</Text> Box
-        </Text>
-        <Text style={styles.cardTagline} numberOfLines={compact ? 2 : 3}>{box.tagline}</Text>
-
-        <View style={styles.cardPriceRow}>
-          <Text style={styles.cardPriceNow}>{formatPrice(box.price)}</Text>
-          <Text style={styles.cardPriceWas}>{formatPrice(box.was)}</Text>
-          <View style={styles.cardSaveChip}>
-            <Text style={styles.cardSaveChipText}>save {formatPrice(box.was - box.price)}</Text>
-          </View>
-          <View style={{ flex: 1 }} />
+        <View style={{ flex: 1, minWidth: 0 }}>
+          <Text style={styles.cardStage}>{box.stage}</Text>
+          <Text style={styles.cardTitle}>
+            The <Text style={[styles.cardTitleEm, { color: T.caramel }]}>{box.pop}</Text> Box
+          </Text>
           <Text style={styles.cardItemCount}>{pricing.totalCount} items</Text>
         </View>
+      </View>
 
-        {!compact && (
-          <View style={styles.cardTrustRow}>
-            {box.trust.map(([icon, label]) => (
-              <View key={label} style={styles.cardTrustChip}>
-                <TrustIcon name={icon} />
-                <Text style={styles.cardTrustText}>{label}</Text>
-              </View>
-            ))}
-          </View>
-        )}
+      <Text style={styles.cardTagline} numberOfLines={2}>{box.tagline}</Text>
 
-        <View style={styles.cardCtaRow}>
-          <Text style={styles.cardCta}>View box →</Text>
+      <View style={styles.cardPriceRow}>
+        <Text style={styles.cardPriceNow}>{formatPrice(box.price)}</Text>
+        <Text style={styles.cardPriceWas}>{formatPrice(box.was)}</Text>
+        <View style={styles.cardSaveChip}>
+          <Text style={styles.cardSaveChipText}>save {formatPrice(box.was - box.price)}</Text>
         </View>
+        <View style={{ flex: 1 }} />
+        <Text style={styles.cardCta}>View box →</Text>
       </View>
     </TouchableOpacity>
   );
@@ -153,12 +210,9 @@ function BoxCard({ box, compact, onPress }: { box: Box; compact: boolean; onPres
 
 export default function BoxesHubScreen() {
   const navigation = useNavigation<Nav>();
-  const hubLayout = useBoxesStore((s) => s.hubLayout);
-  const setHubLayout = useBoxesStore((s) => s.setHubLayout);
   const cart = useBoxesStore((s) => s.cart);
   const toggleBundle = useBoxesStore((s) => s.toggleBundle);
 
-  const compact = hubLayout === 'compact';
   const bundle = bundlePricing();
   const bundleInCart = cart.some((l) => l.kind === 'bundle');
   const cartCount = cart.length;
@@ -201,17 +255,32 @@ export default function BoxesHubScreen() {
           start resting.
         </Text>
 
-        <View style={styles.toggleRow}>
+        {/* Opened gift-box illustration — villie-branded masthead visual. */}
+        <LinearGradient
+          colors={['#F8DDE9', '#EFDCEE', '#E2DAF4']}
+          start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }}
+          style={styles.heroArtBand}
+        >
+          <Twinkle pos={{ top: 24, left: 40 }} delay={0} color="#FFFFFF" size={10} />
+          <Twinkle pos={{ top: 60, left: 28 }} delay={500} color="#FBEFD9" size={8} />
+          <Twinkle pos={{ top: 40, right: 44 }} delay={1000} color="#FFFFFF" size={11} />
+          <Twinkle pos={{ bottom: 30, right: 36 }} delay={1500} color="#FFFFFF" size={8} />
+          <Twinkle pos={{ bottom: 46, left: 52 }} delay={2000} color="#FBEFD9" size={9} />
+          <GiftBoxArt size={150} />
+        </LinearGradient>
+
+        <View style={styles.countRow}>
           <Text style={styles.toggleLabel}>{BOXES.length} boxes</Text>
-          <LayoutToggle value={hubLayout} onChange={setHubLayout} />
+          <Text style={styles.countHint}>tap any box to customize →</Text>
         </View>
 
-        <View style={{ gap: 18, marginTop: 4 }}>
-          {BOXES.map((box) => (
+        <View style={{ gap: 14, marginTop: 4 }}>
+          {BOXES.map((box, i) => (
             <BoxCard
               key={box.id}
               box={box}
-              compact={compact}
+              tint={CARD_TINTS[i % CARD_TINTS.length]}
+              border={CARD_BORDERS[i % CARD_BORDERS.length]}
               onPress={() => navigation.navigate('BoxDetail', { boxId: box.id })}
             />
           ))}
@@ -300,6 +369,27 @@ const styles = StyleSheet.create({
     color: T.walnut, marginTop: 12,
   },
 
+  heroArtBand: {
+    marginTop: 18, borderRadius: 22, height: 178,
+    alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
+    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(217,108,136,0.20)',
+  },
+  countRow: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    marginTop: 22, marginBottom: 14,
+    paddingBottom: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: T.rule,
+  },
+  countHint: {
+    fontFamily: FONTS.v2_link, fontSize: 11.5, color: T.cinnamon,
+  },
+
+  // ── Box card (compact, tinted) ────────────────────────────────────────
+  cardRow: { flexDirection: 'row', alignItems: 'center', gap: 14 },
+  cardThumb: {
+    width: 72, height: 72, borderRadius: 16, overflow: 'hidden',
+    alignItems: 'center', justifyContent: 'center',
+  },
+
   toggleRow: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     marginTop: 22, marginBottom: 16,
@@ -321,9 +411,9 @@ const styles = StyleSheet.create({
 
   // ── Box card ──────────────────────────────────────────────────────────
   card: {
-    backgroundColor: T.paper, borderRadius: 20, overflow: 'hidden',
-    borderWidth: StyleSheet.hairlineWidth, borderColor: T.rule,
-    shadowColor: '#43260F', shadowOpacity: 0.06, shadowRadius: 16,
+    backgroundColor: T.paper, borderRadius: 20, overflow: 'hidden', padding: 16,
+    borderWidth: 1, borderColor: T.rule,
+    shadowColor: '#43260F', shadowOpacity: 0.07, shadowRadius: 16,
     shadowOffset: { width: 0, height: 8 }, elevation: 2,
   },
   cardHero: { justifyContent: 'flex-end', padding: 14 },
@@ -367,7 +457,7 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.v2_bold, fontSize: 10.5, color: T.cinnamon,
     textTransform: 'lowercase',
   },
-  cardItemCount: { fontFamily: FONTS.v2_label, fontSize: 11.5, color: T.walnut },
+  cardItemCount: { fontFamily: FONTS.v2_label, fontSize: 11.5, color: T.walnut, marginTop: 4 },
 
   cardTrustRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 14 },
   cardTrustChip: {

@@ -1,202 +1,72 @@
-// HomeScreenV3 — v3 brand kit "lean editorial" Home rebuild.
+// HomeScreenV3 — v3 brand kit "lean editorial" Home.
 //
-// Pixel-faithful port of `HomeB` from the 2026-05-24 design handoff
-// (/Users/gp/Downloads/design_handoff_villie/home.jsx). The v3 Home is
-// MUCH leaner than the current production HomeScreen.tsx:
+// 2026-06-19 layout (Felipe-approved):
+//   warm masthead greeting (full-bleed brown→cream gradient)
+//   → THIS WEEK'S MANUAL hero card (pill header + milestone blurb +
+//     journey progress + dark "what to expect" button)
+//   → daily check-in pill
+//   → YOUR VILLAGE quick-nav row (5 round tiles)
+//   → DISCOVER row (Villie Boxes + this week's 5)
+//   → your corner (filled coral→rose mom card)
 //
-//   header → greeting → daily check-in pill → THIS WEEK'S MANUAL hero card
-//   (week-overview summary) → EXPLORE THE VILLAGE 2×2 pillar grid → tab bar
-//
-// No WelcomeCard, no Help card, no Explore card, no quiet-hours strip,
-// no weekly-journey inline checklist. Those were v9 surfaces that the
-// v3 redesign deliberately removed in favor of the editorial-magazine
-// "what's the one thing for today + what's the manual saying this week"
-// posture per the handoff README.
-//
-// SHIPPING STATUS: side-by-side preview. NOT wired into the navigator —
-// to A/B against the current HomeScreen, swap the Home tab's component
-// import in `apps/mobile/src/navigation/HomeNavigator.tsx`:
-//
-//     // import HomeScreen from '@screens/home/HomeScreen';
-//     import HomeScreen from '@screens/home/HomeScreenV3';
-//
-// Reuses the production data hooks (useUserStore profile, useHomeStore
-// babyProfile, navigation) so the preview shows real user state. The
-// Manual hero card shows a short week-overview hook pulled from live
-// milestone_library data (weekMilestones), falling back to the current
-// milestone's description.
+// Differentiated card sizes + a hero masthead so the page reads as a
+// designed home, not a uniform stack of hero boxes. Reuses the production
+// data hooks (useUserStore profile, useHomeStore babyProfile, milestones)
+// so the live screen shows real user state.
 
-import React, { useEffect, useRef } from 'react';
+import React, { useRef } from 'react';
 import {
-  View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Animated,
+  View, Text, StyleSheet, TouchableOpacity, Image, Animated,
   StyleProp, ViewStyle,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import Svg, { Path } from 'react-native-svg';
+import Svg, { Path, Defs, RadialGradient, Stop, Rect } from 'react-native-svg';
 import { useNavigation } from '@react-navigation/native';
 import { COLORS, FONTS, PLACEHOLDER_BABY_NAME } from '@utils/constants';
 import { useUserStore } from '@store/user';
 import { useHomeStore } from '@store/home';
-import { usePerksStore } from '@store/perks';
 import { usePicksStore } from '@store/picks';
-import type { PerkCard } from '@api/perks';
-import type { VilliePick } from '@api/picks';
 import { useT } from '@/i18n';
 import { homeApi, type Milestone } from '@api/home';
-import { BOXES } from '@api/boxes';
 import { WarmGlowBackdrop } from '@components/shared/WarmGlowBackdrop';
 import { DailyCheckinStrip } from '@components/shared/DailyCheckinStrip';
 import { GlassHighlight } from '@components/shared/GlassHighlight';
 import { useFocusEffect } from '@react-navigation/native';
 
-// villie-bee.png — the meticulously-designed bee mascot from the v9 brand
-// work. Used here as the breathing "How are you feeling?" affordance on the
-// daily check-in pill + as a corner accent on the manual hero card. The
-// atmospheric background bees (drifting swarm + fly-in stagger) come from
-// the shared WarmGlowBackdrop component, not from this file.
+// villie-bee.png — the bee mascot. Rides the manual card's progress track
+// as the "you are here" waypoint on the 52-week journey.
 const VILLIE_BEE = require('../../../assets/brand/villie-bee.png');
+const VILLIE_WORDMARK = require('../../../assets/brand/villie-wordmark-trim.png');
 
 // ─── Tokens (v3 brand kit) ─────────────────────────────────────────────
-// All values pulled from constants.ts v2_* — verified pixel-identical to
-// the handoff `shared.jsx` BRAND block.
 const T = {
   paper:     COLORS.v2_paper,      // #FFFCF6
   cream:     COLORS.v2_cream,      // #FCF7EF
-  parchment: COLORS.v2_parchment,  // #F2E6DD
   butter:    COLORS.v2_butter,     // #F4C53C
   marigold:  COLORS.v2_marigold,   // #F4C53C
   cinnamon:  COLORS.v2_cinnamon,   // #D96C88
   caramel:   COLORS.v2_caramel,    // #E98A6A
   blush:     COLORS.v2_blush,      // #F7C5CB
   salmon:    COLORS.v2_salmon,     // #F7C5CB
-  sage:      COLORS.v2_sage,       // #F2E6DD
-  moss:      COLORS.v2_moss,       // #E98A6A
   cocoa:     COLORS.v2_cocoa,      // #43260F
   walnut:    COLORS.v2_walnut,     // #7A4A28
-  amber:     COLORS.v2_amber,      // #7A4A24
   rule:      'rgba(61,31,14,0.13)',
 };
-
-// Wordmark removed 2026-05-24 — editorial masthead is the brand
-// signature on in-app surfaces. Auth screens (Splash/Login/SignUp)
-// retain the wordmark as the identity moment.
 
 // ─── Helpers ───────────────────────────────────────────────────────────
 function greetingForHour(hour: number, lang: 'en' | 'es'): string {
   if (lang === 'es') {
-    if (hour < 5) return 'Buenas noches';
-    if (hour < 12) return 'Buenos días';
-    if (hour < 18) return 'Buenas tardes';
-    return 'Buenas noches';
+    if (hour < 5) return 'buenas noches';
+    if (hour < 12) return 'buenos días';
+    if (hour < 18) return 'buenas tardes';
+    return 'buenas noches';
   }
-  if (hour < 5) return 'Good evening';
-  if (hour < 12) return 'Good morning';
-  if (hour < 18) return 'Good afternoon';
-  return 'Good evening';
+  if (hour < 5) return 'good evening';
+  if (hour < 12) return 'good morning';
+  if (hour < 18) return 'good afternoon';
+  return 'good evening';
 }
 
-function formatDateEyebrow(d: Date, lang: 'en' | 'es'): string {
-  // "Sun · May 17, 2026" / "Dom · 17 may 2026"
-  const days = lang === 'es'
-    ? ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb']
-    : ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-  const months = lang === 'es'
-    ? ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic']
-    : ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  const dayName = days[d.getDay()];
-  const mo = months[d.getMonth()];
-  const date = d.getDate();
-  const year = d.getFullYear();
-  return lang === 'es'
-    ? `${dayName} · ${date} ${mo} ${year}`
-    : `${dayName} · ${mo} ${date}, ${year}`;
-}
-
-function babyMonthsFromDob(dob: string | null): number | null {
-  if (!dob) return null;
-  const d = new Date(dob);
-  if (Number.isNaN(d.getTime())) return null;
-  const now = new Date();
-  const months = (now.getFullYear() - d.getFullYear()) * 12 + (now.getMonth() - d.getMonth());
-  return Math.max(0, months);
-}
-
-// ─── Shared atoms ──────────────────────────────────────────────────────
-// Mono eyebrow with optional 16×1.5 dash prefix. Matches the handoff's
-// `Eyebrow` component exactly.
-function Eyebrow({ children, style }: { children: React.ReactNode; style?: StyleProp<ViewStyle> }) {
-  return (
-    <View style={[{ flexDirection: 'row', alignItems: 'center' }, style]}>
-      <View style={{ width: 16, height: 1.5, backgroundColor: T.walnut, marginRight: 8 }} />
-      <Text style={{
-        fontFamily: FONTS.v2_mono, fontSize: 11, letterSpacing: 2.6,
-        textTransform: 'uppercase', fontWeight: '500', color: T.walnut,
-      }}>{children}</Text>
-    </View>
-  );
-}
-
-// Small static bee — used as a corner accent / atmospheric decoration.
-function CornerBee({ size = 26, rotate = 0, style }: {
-  size?: number; rotate?: number; style?: any;
-}) {
-  return (
-    <Image
-      source={VILLIE_BEE}
-      resizeMode="contain"
-      accessible={false}
-      style={[
-        { width: size, height: size, transform: [{ rotate: `${rotate}deg` }] },
-        style,
-      ]}
-    />
-  );
-}
-
-// ─── Sections ──────────────────────────────────────────────────────────
-function HomeGreeting({ firstName, babyName, weekNumber, monthsOld, dateLabel }: {
-  firstName: string;
-  babyName: string | null;
-  weekNumber: number | null;
-  monthsOld: number | null;
-  dateLabel: string;
-}) {
-  const lang = useUserStore((s) => s.profile?.preferred_language ?? 'en') as 'en' | 'es';
-  const now = new Date();
-  const greet = greetingForHour(now.getHours(), lang);
-  // Mono baby info — only when we have a baby profile + week.
-  const babyLine = babyName && monthsOld != null && weekNumber
-    ? `${babyName} · ${monthsOld} ${lang === 'es' ? 'meses' : 'months'} · ${lang === 'es' ? 'semana' : 'week'} ${weekNumber}`
-    : null;
-  return (
-    <View style={styles.greetingBlock}>
-      {/* Greeting-corner bee swarm 2026-05-24 — first pass had 3 bees in
-          a rigid triangle that Felipe read as forced. Five-bee swarm now
-          with deliberately varied sizes (14-26px) + non-uniform rotation
-          + opacity drift, no clean alignment. Reads as flight path /
-          accidental wandering, not arranged decoration. Layered ABOVE
-          the page wash but pointerEvents=none so taps fall through. */}
-      <View pointerEvents="none" style={styles.greetingBeeCluster}>
-        <CornerBee size={24} rotate={-22} style={styles.greetingBee1} />
-        <CornerBee size={14} rotate={48}  style={styles.greetingBee2} />
-        <CornerBee size={20} rotate={-6}  style={styles.greetingBee3} />
-        <CornerBee size={18} rotate={31}  style={styles.greetingBee4} />
-        <CornerBee size={16} rotate={-44} style={styles.greetingBee5} />
-      </View>
-
-      <View style={{ marginTop: 22 }}><Eyebrow>{dateLabel}</Eyebrow></View>
-      <Text style={styles.greeting}>
-        {greet},{'\n'}
-        <Text style={styles.greetingItalic}>{firstName}.</Text>
-      </Text>
-      {babyLine ? (
-        <Text style={styles.babyMonoLine}>{babyLine}</Text>
-      ) : null}
-    </View>
-  );
-}
-
-// ─── This week's manual hero card ──────────────────────────────────────
 // "29th", "1st", "22nd" — ordinal suffix for the week-number title.
 function ordinal(n: number): string {
   const s = ['th', 'st', 'nd', 'rd'];
@@ -204,10 +74,8 @@ function ordinal(n: number): string {
   return `${n}${s[(v - 20) % 10] ?? s[v] ?? s[0]}`;
 }
 
-// A warm, journey-POSITION caption for the progress bar — names where the mom
-// is in baby's first year, in human terms (no developmental claim, so it stays
-// true for every baby and gentle in the fragile early weeks). This is what
-// makes the handwritten line earn its place: it interprets the bar.
+// A warm journey-POSITION caption — names where the mom is in baby's first
+// year in human terms (no developmental claim, so it stays true + gentle).
 function journeyNote(week: number): string {
   if (week <= 6)  return 'the fourth trimester';
   if (week <= 17) return 'the early months';
@@ -217,209 +85,166 @@ function journeyNote(week: number): string {
   return 'almost one';
 }
 
+// ─── Icon paths (24×24, stroke) ────────────────────────────────────────
+const ICON = {
+  book:        'M5 4h11a1 1 0 011 1v15H7a3 3 0 00-3 3V6a2 2 0 012-2z',
+  droplet:     'M12 3s6 7 6 11a6 6 0 11-12 0c0-4 6-11 6-11z',
+  stethoscope: 'M6 3v6a4 4 0 008 0V3M5 3h2m6 0h2m-3 11v2a5 5 0 0010 0v-1m-1-2a2 2 0 100-4 2 2 0 000 4z',
+  bag:         'M6 8h12l-1 12H7L6 8zm3 0V6a3 3 0 016 0v2',
+  calendar:    'M4 6h16v15H4zM4 10h16M8 3v4M16 3v4',
+  gift:        'M4 11h16v9H4zM3 7h18v4H3zM12 7v13M8.5 7C6.6 7 5.5 4 7 3.2 8.6 2.4 12 7 12 7m0 0s3.4-4.6 5-3.8C18.5 4 17.4 7 15.5 7',
+  star:        'M12 3l2.6 5.6 6.1.8-4.5 4.2 1.2 6.1L12 17l-5.4 2.9 1.2-6.1L3.3 9.4l6.1-.8L12 3z',
+} as const;
+
+function Glyph({ d, color = '#43260F', size = 22, sw = 2 }: { d: string; color?: string; size?: number; sw?: number }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24">
+      <Path d={d} stroke={color} strokeWidth={sw} fill="none" strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
+// ─── Shared atoms ──────────────────────────────────────────────────────
+function Eyebrow({ children, color = T.walnut, style }: { children: React.ReactNode; color?: string; style?: StyleProp<ViewStyle> }) {
+  return (
+    <View style={[{ flexDirection: 'row', alignItems: 'center' }, style]}>
+      <View style={{ width: 16, height: 1.5, backgroundColor: color, marginRight: 8 }} />
+      <Text style={{
+        fontFamily: FONTS.v2_mono, fontSize: 11, letterSpacing: 2.6,
+        textTransform: 'uppercase', fontWeight: '500', color,
+      }}>{children}</Text>
+    </View>
+  );
+}
+
+function CornerBee({ size = 26, rotate = 0, style }: { size?: number; rotate?: number; style?: any }) {
+  return (
+    <Image source={VILLIE_BEE} resizeMode="contain" accessible={false}
+      style={[{ width: size, height: size, transform: [{ rotate: `${rotate}deg` }] }, style]} />
+  );
+}
+
+// ─── Masthead greeting (full-bleed warm gradient) ──────────────────────
+function HomeGreeting({ firstName }: { firstName: string }) {
+  const lang = useUserStore((s) => s.profile?.preferred_language ?? 'en') as 'en' | 'es';
+  const greet = greetingForHour(new Date().getHours(), lang);
+  const now = new Date();
+  const days = lang === 'es' ? ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'] : ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+  const mons = lang === 'es'
+    ? ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic']
+    : ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+  const dateLabel = `${days[now.getDay()]} · ${mons[now.getMonth()]} ${now.getDate()}`;
+  return (
+    <View style={styles.masthead}>
+      {/* Soft honey glow — a warm radial breath at the top edge (no muddy band).
+          Type carries the header; the greeting is cocoa-on-cream, the name the
+          single rose accent. */}
+      <Svg style={StyleSheet.absoluteFill} width="100%" height="100%" pointerEvents="none">
+        <Defs>
+          <RadialGradient id="homeGlow" cx="44%" cy="0%" r="75%">
+            <Stop offset="0" stopColor="#FBE4B8" stopOpacity={0.9} />
+            <Stop offset="0.5" stopColor="#FBE4B8" stopOpacity={0.22} />
+            <Stop offset="1" stopColor="#FBE4B8" stopOpacity={0} />
+          </RadialGradient>
+        </Defs>
+        <Rect x="0" y="0" width="100%" height="100%" fill="url(#homeGlow)" />
+      </Svg>
+
+      <Image source={VILLIE_WORDMARK} resizeMode="stretch" accessibilityLabel="villie" style={styles.mastheadLogo} />
+
+      <View style={styles.mastheadEyebrowRow}>
+        <View style={styles.mastheadEyebrowBar} />
+        <Text style={styles.mastheadEyebrow}>{dateLabel}</Text>
+      </View>
+      <Text style={styles.mastheadText} numberOfLines={2}>
+        {greet},{'\n'}<Text style={styles.mastheadName}>{firstName}</Text>
+      </Text>
+      <View style={styles.mastheadHairline} />
+    </View>
+  );
+}
+
+// ─── This week's manual hero card ──────────────────────────────────────
 function ManualHeroCard({ babyName, weekNumber, hook, body, onPress }: {
   babyName: string;
   weekNumber: number;
-  /** A SHORT milestone/pain-point teaser (one line, from the week's milestone
-   *  data) — a hook to pull the reader into the Manual, NOT the full summary.
-   *  The per-chapter TOC was removed (it duplicated the Manual tab). */
   hook: string | null;
-  /** One supporting sentence under the hook (the milestone's description), so
-   *  the card carries real substance instead of a lone headline. */
   body?: string | null;
   onPress: () => void;
 }) {
-  // Hero bg = blush per handoff palette (first slot of the kit's default
-  // 3-color palette: [accent, primary, heroBg]).
-  const heroBg = T.blush;
-  // Journey progress — clamp so week 1 still shows a sliver and 52 fills.
   const pct = Math.max(0.04, Math.min(1, weekNumber / 52));
-  // Where the bee perches on the track, and which way its speech bubble opens
-  // (away from the nearer edge) so the bubble never runs off the card.
   const markerPct = Math.min(0.93, Math.max(0.06, pct));
-  const openLeft = markerPct >= 0.5;
+  const blurb = hook ?? body ?? `tiny but mighty — see what's changing for ${babyName} this week.`;
   return (
-    <View style={{ marginTop: 22 }}>
-      <View style={styles.sectionHead}>
-        <Eyebrow>This week's manual</Eyebrow>
-        <TouchableOpacity onPress={onPress} accessibilityRole="link">
-          <Text style={styles.sectionLink}>Open Manual →</Text>
-        </TouchableOpacity>
-      </View>
-
-      <TouchableOpacity activeOpacity={0.92} onPress={onPress} style={[styles.heroCard, { backgroundColor: heroBg }]}>
-        {/* Top-edge paper sheen + iOS-26 wet glass — same immersive recipe
-            as the daily check-in card so both cards lift the same way. */}
+    <TouchableOpacity activeOpacity={0.94} onPress={onPress} style={{ marginTop: 18 }}>
+      <LinearGradient
+        colors={['#F8CDD3', '#F6DFCC']}
+        start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+        style={styles.manualCard}
+      >
         <LinearGradient
-          colors={['rgba(253,251,246,0.32)', 'rgba(253,251,246,0)']}
+          colors={['rgba(253,251,246,0.34)', 'rgba(253,251,246,0)']}
           start={{ x: 0, y: 0 }} end={{ x: 0, y: 0.55 }}
-          style={[StyleSheet.absoluteFillObject, { borderRadius: 20 }]}
+          style={[StyleSheet.absoluteFillObject, { borderRadius: 22 }]}
           pointerEvents="none"
         />
-        <GlassHighlight radius={20} height={14} />
-        {/* Marigold halo top-right + a villie bee perched on it (personality:
-            the card's resident bee, basking on the honey glow). */}
-        <View style={styles.heroHalo} pointerEvents="none" />
-        <CornerBee size={48} rotate={16} style={styles.heroCornerBee} />
+        <GlassHighlight radius={22} height={14} />
+        <View style={styles.manualHalo} pointerEvents="none" />
 
-        <Text style={styles.heroTitle}>
-          {babyName}'s <Text style={styles.heroTitleItalic}>{ordinal(weekNumber)} week</Text>
-        </Text>
-
-        {/* One milestone hook — a teaser, not the whole week. The pull into
-            the Manual is the curiosity gap + the "what to expect" CTA. */}
-        {hook ? (
-          <>
-            <Text style={styles.heroTag}>✦ MILESTONE</Text>
-            <Text style={styles.heroHook} numberOfLines={2}>{hook}</Text>
-          </>
-        ) : (
-          <Text style={styles.heroSub} numberOfLines={2}>
-            See what’s changing for {babyName} this week.
-          </Text>
-        )}
-
-        {/* Supporting line — the milestone's own description, so the card has
-            body, not just a headline. Hidden when it would duplicate the hook. */}
-        {!!body && body !== hook && (
-          <Text style={styles.heroBody} numberOfLines={2}>{body}</Text>
-        )}
-
-        {/* Journey progress — the bee flies along the 52-week path and, from
-            its spot, "says" where you are in a little speech bubble. Bubble +
-            bee are one object, so the phrase is never stranded on its own. */}
-        <View style={styles.heroProgress}>
-          <View
-            style={[
-              styles.heroBubble,
-              openLeft
-                ? { right: `${(1 - markerPct) * 100}%`, marginRight: -16 }
-                : { left: `${markerPct * 100}%`, marginLeft: -16 },
-            ]}
-          >
-            <Text style={styles.heroBubbleText}>{journeyNote(weekNumber)}</Text>
-            <View style={[styles.heroBubbleTail, openLeft ? { right: 16 } : { left: 16 }]} />
+        <View style={styles.manualPillRow}>
+          <View style={styles.manualPill}>
+            <Glyph d={ICON.book} color="#fff" size={12} sw={2.2} />
+            <Text style={styles.manualPillText}>this week's manual</Text>
           </View>
-          <View style={styles.heroProgressTrack}>
-            <View style={[styles.heroProgressFill, { width: `${pct * 100}%` }]} />
-          </View>
-          {/* The bee rides a cream "pin" disc so it reads clearly against the
-              blush card + dark track, like a waypoint token on the path. */}
-          <View style={[styles.heroBeePin, { left: `${markerPct * 100}%` }]}>
-            <CornerBee size={26} rotate={-8} />
+          <View style={styles.manualHex} pointerEvents="none">
+            <Glyph d="M12 2l8 4.5v9L12 20l-8-4.5v-9L12 2z" color="rgba(67,38,15,0.28)" size={20} sw={1.6} />
           </View>
         </View>
 
-        <Text style={styles.heroCta}>What to expect →</Text>
-      </TouchableOpacity>
-    </View>
+        <Text style={styles.manualTitle}>
+          {babyName}'s <Text style={styles.manualTitleEm}>{ordinal(weekNumber)} week</Text>
+        </Text>
+
+        <Text style={styles.manualBlurb} numberOfLines={2}>{blurb}</Text>
+
+        {/* Journey progress — the bee rides a cream pin as the waypoint. */}
+        <View style={styles.manualProgress}>
+          <View style={styles.manualTrack}>
+            <View style={[styles.manualFill, { width: `${pct * 100}%` }]} />
+          </View>
+          <View style={[styles.manualBeePin, { left: `${markerPct * 100}%` }]}>
+            <CornerBee size={24} rotate={-8} />
+          </View>
+        </View>
+
+        <View style={styles.manualCtaBtn}>
+          <Text style={styles.manualCtaText}>what to expect this week →</Text>
+        </View>
+      </LinearGradient>
+    </TouchableOpacity>
   );
 }
 
-// ─── Village 2×2 pillar grid ───────────────────────────────────────────
-// `route` is the TAB name (not the inner stack screen), since the pillar
-// tap calls navigation.getParent().navigate(route) to cross-tab. Tab
-// names per AppNavigator.tsx: Home, Manual, Village, Inbox, Experts,
-// Milk, Gear, Profile. Same fix as commit f662bd7 in VillageHomeV3.
-const VILLAGE_PILLARS = [
-  // Warm analogous palette — every card colored so the page isn't stale, but all
-  // sit in one soft pink->honey family at a matched level, so they cohere instead
-  // of sore-thumbing. Cohesion = related hues, not neutral cards.
-  { label: 'Milk Connect', sub: 'Peer donors',   bg: '#F7C5CB', fg: T.cocoa, icon: 'milk',        iconColor: '#43260F', route: 'Milk' },
-  { label: 'Specialists',  sub: 'Verified',      bg: '#F3B79C', fg: T.cocoa, icon: 'specialists', iconColor: '#43260F', route: 'Experts' },
-  { label: 'Baby Gear',    sub: 'Hand-me-downs', bg: '#F4C53C', fg: T.cocoa, icon: 'gear',        iconColor: '#43260F', route: 'Gear' },
-  { label: 'Villie Plans', sub: 'Tue · 9am',     bg: '#EFB2C8', fg: T.cocoa, icon: 'plans',       iconColor: '#43260F', route: 'Village' },
-] as const;
+// ─── Your village — 5 round quick-nav tiles ────────────────────────────
+type Tile = { key: string; label: string; bg: string; icon: keyof typeof ICON; dot?: boolean; go: () => void };
 
-const PILLAR_ICONS = {
-  specialists: 'M9 12l2 2 4-4M12 22a10 10 0 100-20 10 10 0 000 20z',
-  milk: 'M8 2h8M9 2v3a4 4 0 11-2 7v6a2 2 0 002 2h6a2 2 0 002-2v-6a4 4 0 11-2-7V2',
-  gear: 'M3 7h18l-1.5 11a2 2 0 01-2 2H6.5a2 2 0 01-2-2L3 7zM8 7V5a4 4 0 118 0v2',
-  plans: 'M3 5h18v16H3zM3 9h18M8 3v4M16 3v4',
-} as const;
-
-// V5 Phase 5.1 — Mom hero card.
-// Sits between the Manual hero (baby-led) and the Village strip on Home.
-// Salmon + blush so it reads as "for mom" without competing with the
-// cinnamon Manual hero. Single Playfair italic on the title word
-// ("corner.") — same one-italic-per-card rule as every other v3 surface.
-// Tap opens MomHubScreen — the dedicated mom-side surface that replaced
-// the now-removed Mom Manual track inside the Manual tab.
-function MomHeroCard({ onPress }: { onPress: () => void }) {
-  const t = useT();
+function VillageTiles({ tiles, onAll }: { tiles: Tile[]; onAll: () => void }) {
   return (
-    <View style={{ marginTop: 22 }}>
-      <TouchableOpacity
-        onPress={onPress}
-        activeOpacity={0.92}
-        accessibilityRole="button"
-        accessibilityLabel={t('momHub.homeCardA11y')}
-        style={styles.momCard}
-      >
-        {/* Soft blush halo top-right — same recipe as auth/confirm */}
-        <View style={styles.momHalo} pointerEvents="none" />
-
-        {/* The shared Eyebrow uses walnut by default; override the dash + text
-            color inline so the Mom card eyebrow reads salmon-pink. */}
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <View style={{ width: 16, height: 1.5, backgroundColor: T.salmon, marginRight: 8 }} />
-          <Text style={{
-            fontFamily: FONTS.v2_mono, fontSize: 11, letterSpacing: 2.6,
-            textTransform: 'uppercase', fontWeight: '500', color: T.salmon,
-          }}>{t('momHub.homeCardEyebrow')}</Text>
-        </View>
-
-        <Text style={styles.momTitle}>
-          <Text style={styles.momTitleLead}>{t('momHub.titleLead')} </Text>
-          <Text style={styles.momTitleEm}>{t('momHub.titleEm')}</Text>
-        </Text>
-
-        <Text style={styles.momBlurb}>{t('momHub.homeCardBlurb')}</Text>
-
-        <View style={styles.momCtaRow}>
-          <Text style={styles.momCta}>{t('momHub.homeCardCta')}</Text>
-        </View>
-      </TouchableOpacity>
-    </View>
-  );
-}
-
-function VillageStrip({ onPillar, onAll }: { onPillar: (route: string) => void; onAll: () => void }) {
-  return (
-    <View style={{ marginTop: 26 }}>
+    <View style={{ marginTop: 28 }}>
       <View style={styles.sectionHead}>
-        <Eyebrow>Explore the village</Eyebrow>
+        <Eyebrow>your village</Eyebrow>
         <TouchableOpacity onPress={onAll} accessibilityRole="link">
           <Text style={styles.sectionLink}>All →</Text>
         </TouchableOpacity>
       </View>
-      <View style={styles.pillarGrid}>
-        {VILLAGE_PILLARS.map((p) => (
-          <TouchableOpacity
-            key={p.label}
-            onPress={() => onPillar(p.route)}
-            activeOpacity={0.85}
-            style={[styles.pillarCard, { backgroundColor: p.bg }]}
-          >
-            <LinearGradient
-              colors={['rgba(253,251,246,0.35)', 'rgba(253,251,246,0)']}
-              start={{ x: 0, y: 0 }} end={{ x: 0, y: 0.5 }}
-              style={[StyleSheet.absoluteFillObject, { borderRadius: 14 }]}
-              pointerEvents="none"
-            />
-            <View style={styles.pillarIconChip}>
-              <Svg width={15} height={15} viewBox="0 0 24 24">
-                <Path
-                  d={PILLAR_ICONS[p.icon]}
-                  stroke={p.iconColor} strokeWidth={2} fill="none"
-                  strokeLinecap="round" strokeLinejoin="round"
-                />
-              </Svg>
+      <View style={styles.tileRow}>
+        {tiles.map((t) => (
+          <TouchableOpacity key={t.key} onPress={t.go} activeOpacity={0.85} style={styles.tile} accessibilityRole="button" accessibilityLabel={t.label}>
+            <View style={[styles.tileChip, { backgroundColor: t.bg }]}>
+              <Glyph d={ICON[t.icon]} color={T.cocoa} size={23} sw={1.9} />
+              {t.dot ? <View style={styles.tileDot} /> : null}
             </View>
-            <View style={{ flex: 1, minWidth: 0 }}>
-              <Text style={[styles.pillarLabel, { color: p.fg }]} numberOfLines={1}>{p.label}</Text>
-              <Text style={[styles.pillarSub, { color: p.fg }]} numberOfLines={1}>{p.sub}</Text>
-            </View>
+            <Text style={styles.tileLabel} numberOfLines={1}>{t.label}</Text>
           </TouchableOpacity>
         ))}
       </View>
@@ -427,156 +252,83 @@ function VillageStrip({ onPillar, onAll }: { onPillar: (route: string) => void; 
   );
 }
 
-// ─── Villie's picks & perks ──────────────────────────────────────────────
-// Weekly editorial product picks (villie_picks) + brand-partner perks
-// (brand_deals). Picks build trust (recommendations); perks give tangible
-// value. Both come from stores — real on native, web-dev-seeded in the
-// browser preview. FTC disclosure inline. Pick tile colors are assigned
-// client-side (the data carries no color) from the warm palette.
-const PICK_TINTS = ['#F7C5CB', '#F3B79C', '#EFB2C8', '#FBE3A6'];
+// ─── Discover — two feature cards (image-cap + caption) ────────────────
+function DiscoverCard({ cap, capIcon, imageUrl, eyebrow, eyebrowColor, title, sub, onPress }: {
+  cap: readonly [string, string]; capIcon: keyof typeof ICON; imageUrl?: string | null;
+  eyebrow: string; eyebrowColor: string; title: string; sub: string; onPress: () => void;
+}) {
+  return (
+    <TouchableOpacity activeOpacity={0.9} onPress={onPress} style={styles.discCard} accessibilityRole="button" accessibilityLabel={title}>
+      <LinearGradient colors={cap} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.discCap}>
+        {imageUrl
+          ? <Image source={{ uri: imageUrl }} style={StyleSheet.absoluteFillObject} resizeMode="cover" />
+          : <Glyph d={ICON[capIcon]} color="#fff" size={30} sw={1.9} />}
+      </LinearGradient>
+      <View style={styles.discBody}>
+        <Text style={[styles.discEyebrow, { color: eyebrowColor }]} numberOfLines={1}>{eyebrow}</Text>
+        <Text style={styles.discTitle} numberOfLines={1}>{title}</Text>
+        <Text style={styles.discSub} numberOfLines={1}>{sub}</Text>
+      </View>
+    </TouchableOpacity>
+  );
+}
 
-function PicksAndPerks({ picks, perks, onSeeAll }: { picks: VilliePick[]; perks: PerkCard[]; onSeeAll: () => void }) {
-  if (picks.length === 0 && perks.length === 0) return null;
+function DiscoverRow({ showBoxes, picksImage, onBoxes, onPicks }: { showBoxes: boolean; picksImage?: string | null; onBoxes: () => void; onPicks: () => void }) {
   return (
     <View style={{ marginTop: 26 }}>
-      <View style={styles.sectionHead}>
-        <Eyebrow>Villie&apos;s picks &amp; perks</Eyebrow>
-        <TouchableOpacity onPress={onSeeAll} accessibilityRole="link">
-          <Text style={styles.sectionLink}>All →</Text>
-        </TouchableOpacity>
+      <Eyebrow>discover</Eyebrow>
+      <View style={styles.discoverRow}>
+        {showBoxes && (
+          <DiscoverCard
+            cap={['#D96C88', '#C2556F']} capIcon="gift"
+            eyebrow="new · curated" eyebrowColor={T.cinnamon}
+            title="Villie Boxes" sub="delivery · newborn · mama"
+            onPress={onBoxes}
+          />
+        )}
+        <DiscoverCard
+          cap={['#F4C53C', '#EAB52C']} capIcon="star" imageUrl={picksImage}
+          eyebrow="villie picks" eyebrowColor="#A9761F"
+          title="this week's 5" sub="tested, mom-approved"
+          onPress={onPicks}
+        />
       </View>
-
-      {/* Picks — weekly editorial carousel (bleeds to screen edges) */}
-      {picks.length > 0 && (
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={{ marginHorizontal: -22 }}
-          contentContainerStyle={{ paddingHorizontal: 22, paddingTop: 12, paddingBottom: 4, gap: 12 }}
-        >
-          {picks.map((p, i) => (
-            <TouchableOpacity
-              key={p.id}
-              activeOpacity={0.88}
-              onPress={onSeeAll}
-              accessibilityRole="button"
-              accessibilityLabel={p.name}
-              style={{ width: 132 }}
-            >
-              <View style={{ height: 96, borderRadius: 16, backgroundColor: PICK_TINTS[i % PICK_TINTS.length], alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-                {p.image_url
-                  ? <Image source={{ uri: p.image_url }} style={{ width: '100%', height: '100%' }} resizeMode="cover" />
-                  : <Text style={{ fontSize: 42 }}>{p.emoji ?? '🤍'}</Text>}
-              </View>
-              <Text style={{ fontFamily: FONTS.v2_bold, fontSize: 13, color: T.cocoa, marginTop: 8 }} numberOfLines={1}>{p.name}</Text>
-              <Text style={{ fontFamily: FONTS.v2_body, fontSize: 11, lineHeight: 14, color: T.walnut, marginTop: 2 }} numberOfLines={2}>{p.blurb}</Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-      )}
-
-      {/* Perks — brand-partner rows (top 2) */}
-      {perks.length > 0 && (
-        <View style={{ marginTop: 14, gap: 8 }}>
-          {perks.slice(0, 2).map((p) => (
-            <TouchableOpacity
-              key={p.id}
-              activeOpacity={0.85}
-              onPress={onSeeAll}
-              accessibilityRole="button"
-              accessibilityLabel={`${p.brand_name}: ${p.discount_label ?? p.title}`}
-              style={{
-                flexDirection: 'row', alignItems: 'center',
-                backgroundColor: T.paper, borderRadius: 14, padding: 12,
-                borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(201,108,120,0.18)',
-              }}
-            >
-              <View style={{ width: 36, height: 36, borderRadius: 10, backgroundColor: T.blush, alignItems: 'center', justifyContent: 'center', marginRight: 12, overflow: 'hidden' }}>
-                {p.brand_logo_url
-                  ? <Image source={{ uri: p.brand_logo_url }} style={{ width: '100%', height: '100%' }} resizeMode="cover" />
-                  : <Text style={{ fontFamily: FONTS.v2_bold, fontSize: 15, color: T.cocoa }}>{p.brand_name.charAt(0)}</Text>}
-              </View>
-              <View style={{ flex: 1, minWidth: 0 }}>
-                <Text style={{ fontFamily: FONTS.v2_bold, fontSize: 13, color: T.cocoa }} numberOfLines={1}>{p.brand_name}</Text>
-                <Text style={{ fontFamily: FONTS.v2_body, fontSize: 11.5, color: T.walnut }} numberOfLines={1}>{p.discount_label ?? p.title}</Text>
-              </View>
-              <Text style={{ fontFamily: FONTS.v2_link, fontSize: 12, color: T.cinnamon }}>Get →</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      )}
-
-      {/* FTC disclosure — required wherever affiliate / partner deals appear */}
-      <Text style={{ fontFamily: FONTS.v2_body, fontSize: 10, lineHeight: 14, color: T.walnut, opacity: 0.75, marginTop: 10 }}>
-        Villie may earn a little when you shop these — we only pick things we&apos;d tell a friend about.
-      </Text>
     </View>
   );
 }
 
-// Villie Boxes ships behind a flag (default OFF) until its launch gates clear
-// (real retail prices, FL sales-tax + Risk review, Stripe webhook registered).
-// Flip EXPO_PUBLIC_VILLIE_BOXES_ENABLED=1 to surface the home card + Me row.
-const VILLIE_BOXES_ENABLED = process.env.EXPO_PUBLIC_VILLIE_BOXES_ENABLED === '1';
-
-// ─── Villie Boxes teaser ─────────────────────────────────────────────────
-// Home entry into the new curated-commerce feature. Faithful to the design
-// handoff `.feat` card: "new · curated by villie" eyebrow, Bricolage title +
-// Caveat "for every stage." flourish, body line, three mini hero-gradient box
-// previews, and an "explore the boxes →" CTA. Taps into the Boxes hub
-// (registered on HomeNavigator). One cinnamon spark per card = the CTA arrow.
-function BoxesTeaserCard({ onPress }: { onPress: () => void }) {
+// ─── Your corner — filled coral→rose mom card ──────────────────────────
+function MomCornerCard({ onPress }: { onPress: () => void }) {
+  const t = useT();
   return (
-    <View style={{ marginTop: 26 }}>
-      <TouchableOpacity
-        activeOpacity={0.92}
-        onPress={onPress}
-        accessibilityRole="button"
-        accessibilityLabel="Villie Boxes — curated bundles for every stage"
-        style={styles.boxesCard}
-      >
+    <TouchableOpacity onPress={onPress} activeOpacity={0.92} accessibilityRole="button"
+      accessibilityLabel={t('momHub.homeCardA11y')} style={{ marginTop: 26 }}>
+      <LinearGradient colors={['#E98A6A', '#D96C88']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.cornerCard}>
         <LinearGradient
-          colors={['rgba(253,251,246,0.4)', 'rgba(253,251,246,0)']}
+          colors={['rgba(255,255,255,0.18)', 'rgba(255,255,255,0)']}
           start={{ x: 0, y: 0 }} end={{ x: 0, y: 0.5 }}
-          style={[StyleSheet.absoluteFillObject, { borderRadius: 20 }]}
+          style={[StyleSheet.absoluteFillObject, { borderRadius: 22 }]}
           pointerEvents="none"
         />
-        <View style={styles.boxesHalo} pointerEvents="none" />
-
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <View style={styles.boxesNewDot} />
-          <Text style={styles.boxesEyebrow}>new · curated by villie</Text>
+          <View style={{ width: 16, height: 1.5, backgroundColor: 'rgba(255,255,255,0.85)', marginRight: 8 }} />
+          <Text style={styles.cornerEyebrow}>{t('momHub.homeCardEyebrow')}</Text>
         </View>
-
-        <Text style={styles.boxesTitle}>Villie Boxes</Text>
-        <Text style={styles.boxesTitleEm}>for every stage.</Text>
-
-        <Text style={styles.boxesBlurb}>
-          Pre-packed bundles for delivery day, baby&apos;s first weeks, and your own
-          recovery — vetted by nurses and doulas, ready before you are.
+        <Text style={styles.cornerTitle}>
+          <Text style={styles.cornerTitleLead}>{t('momHub.titleLead')} </Text>
+          <Text style={styles.cornerTitleEm}>{t('momHub.titleEm')}</Text>
         </Text>
-
-        {/* Three mini box previews — hero gradients straight from the catalog. */}
-        <View style={styles.boxesPreviewRow}>
-          {BOXES.map((b) => (
-            <View key={b.id} style={styles.boxesPreview}>
-              <LinearGradient
-                colors={b.hero as readonly [string, string, ...string[]]}
-                start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-                style={styles.boxesPreviewSwatch}
-              />
-              <Text style={styles.boxesPreviewLabel} numberOfLines={1}>{b.pop}</Text>
-            </View>
-          ))}
+        <Text style={styles.cornerBlurb}>{t('momHub.homeCardBlurb')}</Text>
+        <View style={styles.cornerArrowBtn}>
+          <Text style={styles.cornerArrow}>→</Text>
         </View>
-
-        <View style={styles.boxesCtaRow}>
-          <Text style={styles.boxesCta}>explore the boxes →</Text>
-        </View>
-      </TouchableOpacity>
-    </View>
+      </LinearGradient>
+    </TouchableOpacity>
   );
 }
+
+// Villie Boxes ships behind a flag (default OFF) until launch gates clear.
+const VILLIE_BOXES_ENABLED = process.env.EXPO_PUBLIC_VILLIE_BOXES_ENABLED === '1';
 
 // ─── Screen ────────────────────────────────────────────────────────────
 export default function HomeScreenV3() {
@@ -584,59 +336,43 @@ export default function HomeScreenV3() {
   const profile = useUserStore((s) => s.profile);
   const babyProfile = useHomeStore((s) => s.babyProfile);
   const currentMilestone = useHomeStore((s) => s.currentMilestone);
-  const _t = useT(); void _t; // reserved for future i18n in subcomponents
-  const lang = (profile?.preferred_language ?? 'en') as 'en' | 'es';
 
-  // Picks & perks — read from stores. On native these fetch real rows
-  // (villie_picks + brand_deals); the web-dev seed noop's the fetchers so
-  // the browser preview keeps its seeded data.
+  // Villie Picks — fetch so the "this week's 5" discover card can use a real
+  // pick photo as its cover (falls back to the star glyph until loaded).
   const picks = usePicksStore((s) => s.picks);
   const fetchPicks = usePicksStore((s) => s.fetchPicks);
-  const perks = usePerksStore((s) => s.perks);
-  const fetchPerks = usePerksStore((s) => s.fetchPerks);
-  useEffect(() => {
-    fetchPicks();
-    fetchPerks();
-  }, [fetchPicks, fetchPerks]);
+  React.useEffect(() => { fetchPicks(); }, [fetchPicks]);
 
-  // Greeting data — fall back to "Alana" / "your" if we don't have a name yet.
   const firstName = profile?.full_name?.split(' ')[0] ?? 'Alana';
   const babyName = babyProfile?.baby_name ?? null;
   const weekNumber = babyProfile?.current_week_number ?? null;
-  const monthsOld = babyMonthsFromDob(babyProfile?.date_of_birth ?? null);
-  const dateLabel = formatDateEyebrow(new Date(), lang);
 
-  // Navigation handlers — uses parent tab navigator for cross-tab moves.
-  const goManual = () => navigation.navigate('Manual' as never);
-  // goBell removed 2026-05-24 alongside the header bell.
-  const goVillagePillar = (route: string) => {
-    // The handoff routes map to existing tab names. "Experts" = experts tab,
-    // "MilkConnect" = milk tab landing, etc. Fall back to AllExploreScreen
-    // if a route doesn't exist in the current navigator.
-    navigation.getParent()?.navigate(route as never);
-  };
-  const goVillageAll = () => navigation.navigate('Village' as never);
-
-  // Hero requires a baby profile to render with personalized data; in
-  // pre-baby state we fall back to a placeholder name.
-  // TEMP demo default (was 'Your') — real fix is setting baby_profiles.baby_name
-  // in the profile. Centralized in constants so Home + Manual stay in sync.
   const heroBabyName = babyName ?? PLACEHOLDER_BABY_NAME;
   const heroWeek = weekNumber ?? 1;
 
-  // Atmospheric backdrop — bees + warm gradient. scrollY drives the
-  // parallax drift, triggerAnim drives the fly-in stagger on focus.
+  // Cross-tab nav uses the parent tab navigator; Boxes lives on the Home stack.
+  const goTab = (route: string) => navigation.getParent()?.navigate(route as never);
+  const goManual = () => navigation.navigate('Manual' as never);
+
+  const tiles: Tile[] = [
+    { key: 'milk',    label: 'Milk',    bg: '#F7C5CB', icon: 'droplet',     go: () => goTab('Milk') },
+    { key: 'experts', label: 'Experts', bg: '#F3B79C', icon: 'stethoscope', go: () => goTab('Experts') },
+    { key: 'gear',    label: 'Gear',    bg: '#F4C53C', icon: 'bag',         go: () => goTab('Gear') },
+    { key: 'plans',   label: 'Plans',   bg: '#EFB2C8', icon: 'calendar',    go: () => goTab('Village') },
+    ...(VILLIE_BOXES_ENABLED
+      ? [{ key: 'boxes', label: 'Boxes', bg: '#E8C4B6', icon: 'gift', dot: true, go: () => navigation.navigate('BoxesHub' as never) } as Tile]
+      : []),
+  ];
+
+  // Atmospheric backdrop — parallax bees + warm wash.
   const scrollY = useRef(new Animated.Value(0)).current;
   const [triggerAnim, setTriggerAnim] = React.useState(0);
 
-  // Live week milestones — feed the Manual hero card's hook (a short
-  // week-overview line; see the render below). Empty until fetched.
+  // Live week milestones feed the manual card's blurb.
   const [weekMilestones, setWeekMilestones] = React.useState<Milestone[]>([]);
   useFocusEffect(
     React.useCallback(() => {
       setTriggerAnim((n) => n + 1);
-      // Only fetch when we have a real week — pre-baby state stays on
-      // the fallback summary. Fire-and-forget; empty array is handled.
       if (weekNumber && weekNumber >= 1 && weekNumber <= 52) {
         homeApi.getMilestonesForWeek(weekNumber)
           .then(setWeekMilestones)
@@ -648,84 +384,61 @@ export default function HomeScreenV3() {
 
   return (
     <View style={styles.container}>
-      {/* WarmGlowBackdrop — U-shape gradient + 12 atmospheric bees scattered
-          through the page with fly-in stagger on focus + parallax drift on
-          scroll. Replaces the hand-rolled radial washes. */}
       <WarmGlowBackdrop scrollY={scrollY} triggerAnim={triggerAnim} />
 
       <Animated.ScrollView
         style={{ flex: 1 }}
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
-        onScroll={Animated.event(
-          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-          { useNativeDriver: true },
-        )}
+        onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], { useNativeDriver: true })}
         scrollEventThrottle={16}
       >
-        {/* HomeHeader removed 2026-05-24 per Felipe — bell + wordmark
-            both gone; the editorial greeting opens the page directly.
-            NotificationsScreen stays registered on HomeNavigator for
-            deep-link compatibility but has no in-app entry point. */}
-        <HomeGreeting
-          firstName={firstName}
-          babyName={babyName}
-          weekNumber={weekNumber}
-          monthsOld={monthsOld}
-          dateLabel={dateLabel}
-        />
-
-        {/* v9 production check-in strip — single source of truth for the
-            "How are you feeling?" pill across both v9 + v3 Home. The
-            shared component owns the immersive recipe (GlassHighlight +
-            breathing bee + floating shadow + asymmetric padding). */}
-        <View style={{ marginTop: 22 }}>
-          <DailyCheckinStrip
-            state="pending"
-            onPress={() => navigation.navigate('DailyCheckin' as never)}
-          />
-        </View>
+        <HomeGreeting firstName={firstName} />
 
         <ManualHeroCard
           babyName={heroBabyName}
           weekNumber={heroWeek}
-          hook={
-            // A short hook, not the whole summary: prefer a concrete milestone
-            // title, fall back to the current milestone's one-line description.
-            weekMilestones[0]?.title
-              ?? currentMilestone?.description
-              ?? null
-          }
-          body={
-            // The milestone's description as a supporting line (only when the
-            // hook is the title, so it doesn't echo the hook).
-            weekMilestones[0]?.description
-              ?? currentMilestone?.description
-              ?? null
-          }
+          hook={weekMilestones[0]?.title ?? currentMilestone?.description ?? null}
+          body={weekMilestones[0]?.description ?? currentMilestone?.description ?? null}
           onPress={goManual}
         />
 
-        {/* V5 Phase 5.1 (2026-05-29) — Mom hero card.
-            Sits below the Manual hero so the page reads as "baby first,
-            then mama" — same order as the brand's tagline "for every mom"
-            but interior context is baby-led. Salmon/blush palette so it
-            visually separates from the cinnamon manual hero. Taps land
-            on MomHubScreen — see ../home/MomHubScreen.tsx. */}
-        <MomHeroCard onPress={() => navigation.navigate('MomHub' as never)} />
+        <View style={{ marginTop: 16 }}>
+          <DailyCheckinStrip state="pending" onPress={() => navigation.navigate('DailyCheckin' as never)} />
+        </View>
 
-        {/* Villie Boxes (2026-06-18) — new curated-commerce revenue line.
-            Lives on Home for launch; deep-links into the Boxes hub stack
-            registered on HomeNavigator. Gated OFF until launch gates clear. */}
-        {VILLIE_BOXES_ENABLED && (
-          <BoxesTeaserCard onPress={() => navigation.navigate('BoxesHub' as never)} />
-        )}
+        <VillageTiles tiles={tiles} onAll={() => navigation.navigate('Village' as never)} />
 
-        <PicksAndPerks picks={picks} perks={perks} onSeeAll={() => navigation.navigate('PerksList' as never)} />
+        <DiscoverRow
+          showBoxes={VILLIE_BOXES_ENABLED}
+          picksImage={picks[0]?.image_url ?? null}
+          onBoxes={() => navigation.navigate('BoxesHub' as never)}
+          onPicks={() => navigation.navigate('PerksList' as never)}
+        />
 
-        <VillageStrip onPillar={goVillagePillar} onAll={goVillageAll} />
+        <MomCornerCard onPress={() => navigation.navigate('MomHub' as never)} />
+
+        {/* Emergency quick-reference — kept quietly at the foot of the page
+            (also reachable from the Me tab + the Manual masthead shield). */}
+        <TouchableOpacity
+          style={styles.emergencyRow}
+          activeOpacity={0.85}
+          onPress={() => navigation.getParent()?.getParent()?.navigate('QuickReference' as never)}
+          accessibilityRole="button"
+          accessibilityLabel="In an emergency — quick reference"
+        >
+          <View style={styles.emergencyIcon}>
+            <Svg width={18} height={18} viewBox="0 0 24 24">
+              <Path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="#BE3A2E" strokeWidth={1.9} fill="none" strokeLinecap="round" strokeLinejoin="round" />
+            </Svg>
+          </View>
+          <View style={{ flex: 1, minWidth: 0 }}>
+            <Text style={styles.emergencyTitle}>In an emergency</Text>
+            <Text style={styles.emergencySub}>infant CPR, fevers, when to call</Text>
+          </View>
+          <Text style={styles.emergencyArrow}>→</Text>
+        </TouchableOpacity>
       </Animated.ScrollView>
-
     </View>
   );
 }
@@ -735,289 +448,152 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: T.paper, overflow: 'hidden' },
   scroll: { paddingTop: 56, paddingHorizontal: 22, paddingBottom: 96 },
 
-  // ── Header / bell styles removed 2026-05-24 alongside HomeHeader. ────
-
-  // ── Greeting block ────────────────────────────────────────────────────
-  greetingBlock: { position: 'relative' },
-  // Bee cluster overlay — fills the upper-right rail next to the short
-  // "Good evening," line. Sits inside the greeting block's relative
-  // container so the bees stay anchored to this surface (not the
-  // scroll content as a whole, which would put them in different
-  // visual spots per screen).
-  // Wider canvas so the swarm can drift further from any one anchor.
-  greetingBeeCluster: {
-    position: 'absolute', top: -8, right: -6, width: 140, height: 200,
-    zIndex: 1,
+  // ── Masthead greeting ─────────────────────────────────────────────────
+  masthead: {
+    marginTop: -56, marginHorizontal: -22,
+    paddingTop: 84, paddingBottom: 6, paddingHorizontal: 22,
+    overflow: 'hidden',
   },
-  // Five-bee organic swarm — each at a deliberately non-uniform
-  // position + opacity. Positions chosen by eye to feel like a flight
-  // path passing through the right rail (top-right → lower-left of the
-  // cluster), not a stack or a triangle. Opacities vary so the closer
-  // bees feel "near" and the smaller ones recede.
-  greetingBee1: { position: 'absolute', top: 6,   right: 14, opacity: 0.32 },
-  greetingBee2: { position: 'absolute', top: 38,  right: 78, opacity: 0.18 },
-  greetingBee3: { position: 'absolute', top: 82,  right: 36, opacity: 0.26 },
-  greetingBee4: { position: 'absolute', top: 122, right: 88, opacity: 0.20 },
-  greetingBee5: { position: 'absolute', top: 152, right: 24, opacity: 0.22 },
-
-  greeting: {
-    fontFamily: FONTS.v3_display,    // Plus Jakarta Sans 700 — brand kit grotesk display
-    fontSize: 40, lineHeight: 41,
-    color: T.cocoa, letterSpacing: -1.4,
-    marginTop: 14,
+  // villie wordmark. Sized as a masthead brand signature — a touch wider than the
+  // asset's native 2.318:1 (stretch fill) for more horizontal presence, height kept
+  // modest so the greeting spacing below (marginBottom) is unchanged.
+  mastheadLogo: { width: 118, height: 47, marginBottom: 14 },
+  mastheadEyebrowRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 9 },
+  mastheadEyebrowBar: { width: 16, height: 1.5, backgroundColor: T.walnut, marginRight: 8 },
+  mastheadEyebrow: {
+    fontFamily: FONTS.v2_mono, fontSize: 10, letterSpacing: 2.2,
+    textTransform: 'uppercase', color: T.walnut, fontWeight: '500',
   },
-  greetingItalic: {
-    fontFamily: FONTS.v3_display_italic,
-    color: T.salmon,                  // v3 italic accent — was rust-deep in v9, salmon in v3
+  mastheadText: {
+    fontFamily: FONTS.v3_display, fontSize: 32, lineHeight: 35,
+    color: T.cocoa, letterSpacing: -1.2,
   },
-  babyMonoLine: {
-    marginTop: 10,
-    fontFamily: FONTS.v2_mono, fontSize: 10,
-    color: T.walnut, letterSpacing: 2.0,
-    textTransform: 'uppercase', fontWeight: '500',
+  mastheadName: { fontFamily: FONTS.v3_display_italic, color: T.cinnamon },
+  mastheadHairline: {
+    height: StyleSheet.hairlineWidth, backgroundColor: 'rgba(61,31,14,0.1)',
+    marginTop: 16,
   },
+  emergencyRow: {
+    marginTop: 16, flexDirection: 'row', alignItems: 'center', gap: 12,
+    backgroundColor: T.paper, borderRadius: 16, padding: 13,
+    borderWidth: 1, borderColor: 'rgba(190,58,46,0.22)',
+  },
+  emergencyIcon: { width: 34, height: 34, borderRadius: 11, backgroundColor: '#FBE4E0', alignItems: 'center', justifyContent: 'center' },
+  emergencyTitle: { fontFamily: FONTS.v3_display, fontSize: 15, color: T.cocoa, letterSpacing: -0.3 },
+  emergencySub: { fontFamily: FONTS.v2_body, fontSize: 11, color: T.walnut, marginTop: 1 },
+  emergencyArrow: { fontFamily: FONTS.v2_link, fontSize: 16, color: '#BE3A2E' },
 
   // ── Section heads (eyebrow + link) ────────────────────────────────────
   sectionHead: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    paddingBottom: 8,
-    borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: T.rule,
+    paddingBottom: 10,
   },
   sectionLink: {
     fontFamily: FONTS.v2_mono, fontSize: 10,
-    color: T.cinnamon, letterSpacing: 1.8,
-    textTransform: 'uppercase', fontWeight: '600',
+    color: T.cinnamon, letterSpacing: 1.8, textTransform: 'uppercase', fontWeight: '600',
   },
-
-  // ── Villie Boxes teaser card ──────────────────────────────────────────
-  boxesCard: {
-    backgroundColor: T.paper, borderRadius: 20, padding: 20, overflow: 'hidden',
-    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(217,108,136,0.22)',
-    shadowColor: '#43260F', shadowOpacity: 0.06, shadowRadius: 18,
-    shadowOffset: { width: 0, height: 10 }, elevation: 2,
-  },
-  boxesHalo: {
-    position: 'absolute', top: -40, right: -30, width: 150, height: 150,
-    borderRadius: 75, backgroundColor: 'rgba(244,197,60,0.18)',
-  },
-  boxesNewDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: T.cinnamon, marginRight: 8 },
-  boxesEyebrow: {
-    fontFamily: FONTS.v2_mono, fontSize: 11, letterSpacing: 2.6,
-    textTransform: 'uppercase', fontWeight: '500', color: T.walnut,
-  },
-  boxesTitle: {
-    fontFamily: FONTS.v3_display, fontSize: 28, lineHeight: 30,
-    color: T.cocoa, letterSpacing: -0.8, marginTop: 12,
-  },
-  boxesTitleEm: {
-    fontFamily: FONTS.v3_display_italic, fontSize: 26, lineHeight: 30,
-    color: T.caramel, marginTop: 2,
-  },
-  boxesBlurb: {
-    fontFamily: FONTS.v2_body, fontSize: 13.5, lineHeight: 20,
-    color: T.walnut, marginTop: 12,
-  },
-  boxesPreviewRow: { flexDirection: 'row', gap: 10, marginTop: 18 },
-  boxesPreview: { flex: 1 },
-  boxesPreviewSwatch: { height: 64, borderRadius: 14, overflow: 'hidden' },
-  boxesPreviewLabel: {
-    fontFamily: FONTS.v2_label, fontSize: 11.5, color: T.cocoa,
-    marginTop: 8, textAlign: 'center',
-  },
-  boxesCtaRow: { marginTop: 18 },
-  boxesCta: { fontFamily: FONTS.v2_link, fontSize: 14, color: T.cinnamon },
 
   // ── This week's manual hero card ──────────────────────────────────────
-  heroCard: {
-    // Geometry matched to momCard (radius 20, generous padding) so the two
-    // peer hero cards read as one system. The Manual hero keeps visual
-    // primacy through its saturated blush bg + heavier shadow, not geometry.
-    marginTop: 12, borderRadius: 20,
-    paddingHorizontal: 20, paddingVertical: 18,
-    overflow: 'hidden',
-    // shadowHero from handoff — warm cocoa-tinted, deeper than shadowSm
-    shadowColor: T.walnut,
-    shadowOffset: { width: 0, height: 22 },
-    shadowOpacity: 0.32,
-    shadowRadius: 44,
-    elevation: 6,
+  manualCard: {
+    borderRadius: 22, padding: 20, overflow: 'hidden',
+    shadowColor: T.walnut, shadowOffset: { width: 0, height: 18 },
+    shadowOpacity: 0.26, shadowRadius: 36, elevation: 6,
   },
-  heroHalo: {
+  manualHalo: {
     position: 'absolute', top: -50, right: -50,
-    width: 160, height: 160, borderRadius: 80,
-    backgroundColor: 'rgba(242,193,48,0.20)',
+    width: 160, height: 160, borderRadius: 80, backgroundColor: 'rgba(244,197,60,0.18)',
   },
-  heroTitleRow: {
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline',
-    gap: 10,
+  manualPillRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  manualPill: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    backgroundColor: T.cinnamon, borderRadius: 999,
+    paddingHorizontal: 11, paddingVertical: 5,
   },
-  heroTitle: {
-    // Matched to momTitle (32 / -1.0) so the two peer hero titles balance —
-    // one step (1.25x) below the 40px greeting.
-    fontFamily: FONTS.v3_display, fontSize: 32, lineHeight: 34,
-    color: T.cocoa, letterSpacing: -1.0,
-    flexShrink: 1,
+  manualPillText: {
+    fontFamily: FONTS.v2_mono, fontSize: 9.5, letterSpacing: 1.6,
+    textTransform: 'uppercase', fontWeight: '700', color: '#fff',
   },
-  heroTitleItalic: {
-    fontFamily: FONTS.v3_display_italic, color: T.cinnamon,
+  manualHex: { opacity: 0.9 },
+  manualTitle: {
+    fontFamily: FONTS.v3_display, fontSize: 29, lineHeight: 32,
+    color: T.cocoa, letterSpacing: -1.0, marginTop: 14,
   },
-  heroMeta: {
-    fontFamily: FONTS.v2_mono, fontSize: 9.5,
-    color: T.cocoa, opacity: 0.7,
-    letterSpacing: 1.7, textTransform: 'uppercase', fontWeight: '500',
-  },
-  // ── Spacing pass — tighter, even rhythm so the card reads as one block ──
-  heroTag: {
-    alignSelf: 'flex-start', marginTop: 12, overflow: 'hidden',
-    backgroundColor: T.marigold, color: T.cocoa,
-    fontFamily: FONTS.v2_mono, fontSize: 9, letterSpacing: 1.4, fontWeight: '600',
-    paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6,
-  },
-  // Subtext scale is shared across all three home hero cards (Manual / Mom /
-  // Boxes): 13.5 / 19 body. The Manual hook keeps emphasis through WEIGHT
-  // (v2_bold) + cocoa ink, not a larger size, so no card's subtext out-sizes
-  // its peers. (Was 15.5 bold — read as oversized next to the 13.5 peers.)
-  heroHook: {
-    fontFamily: FONTS.v2_bold, fontSize: 13.5, lineHeight: 19,
-    color: T.cocoa, marginTop: 8,
-  },
-  // Fallback subtitle (no milestone hook) — same body scale as the peers,
-  // not the old 18px display line that gave this card extra editorial bulk.
-  heroSub: {
-    fontFamily: FONTS.v2_body, fontSize: 13.5, lineHeight: 19,
+  manualTitleEm: { fontFamily: FONTS.v3_display_italic, color: T.cinnamon },
+  manualBlurb: {
+    fontFamily: FONTS.v2_body, fontSize: 14, lineHeight: 20,
     color: T.walnut, marginTop: 8,
   },
-  heroBody: {
-    fontFamily: FONTS.v2_body, fontSize: 13, lineHeight: 18,
-    color: T.walnut, marginTop: 4, maxWidth: '92%',
-  },
-  heroCornerBee: {
-    position: 'absolute', top: 15, right: 20, opacity: 0.92,
-  },
-  // Progress block — track + flying bee + the bee's speech bubble. paddingTop
-  // reserves the room the bubble needs to float above the track.
-  heroProgress: {
-    marginTop: 18, paddingTop: 38, position: 'relative',
-  },
-  heroProgressTrack: {
-    height: 6, borderRadius: 3,
-    backgroundColor: 'rgba(67,38,15,0.14)', overflow: 'hidden',
-  },
-  heroProgressFill: {
-    height: '100%', borderRadius: 3, backgroundColor: T.walnut,
-  },
-  // Cream pin the bee rides — makes the bee pop off the busy blush card and
-  // reads as a clear "you are here" token on the track.
-  heroBeePin: {
-    position: 'absolute', bottom: -13, marginLeft: -17,
-    width: 34, height: 34, borderRadius: 17,
-    backgroundColor: T.paper,
+  manualProgress: { marginTop: 22, marginBottom: 8, height: 10, justifyContent: 'center' },
+  manualTrack: { height: 6, borderRadius: 3, backgroundColor: 'rgba(67,38,15,0.16)', overflow: 'hidden' },
+  manualFill: { height: '100%', borderRadius: 3, backgroundColor: T.walnut },
+  manualBeePin: {
+    position: 'absolute', marginLeft: -16,
+    width: 32, height: 32, borderRadius: 16, backgroundColor: T.paper,
     alignItems: 'center', justifyContent: 'center',
     borderWidth: 1, borderColor: 'rgba(173,121,91,0.20)',
     shadowColor: T.walnut, shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.22, shadowRadius: 7, elevation: 4,
   },
-  // The bee's speech bubble — a cream lozenge floating above the pin, with a
-  // small diamond tail dropping toward the bee.
-  heroBubble: {
-    position: 'absolute', bottom: 22,
-    backgroundColor: T.paper, borderRadius: 12,
-    paddingHorizontal: 11, paddingVertical: 5,
-    borderWidth: 1, borderColor: 'rgba(173,121,91,0.18)',
-    shadowColor: T.walnut, shadowOffset: { width: 0, height: 5 },
-    shadowOpacity: 0.20, shadowRadius: 12, elevation: 5,
+  manualCtaBtn: {
+    marginTop: 16, backgroundColor: T.cocoa, borderRadius: 999,
+    paddingVertical: 14, alignItems: 'center',
   },
-  heroBubbleText: {
-    fontFamily: FONTS.v3_display_italic, fontSize: 14, color: T.cocoa,
-  },
-  heroBubbleTail: {
-    position: 'absolute', bottom: -4, width: 10, height: 10,
-    backgroundColor: T.paper, transform: [{ rotate: '45deg' }],
-    borderRightWidth: 1, borderBottomWidth: 1,
-    borderColor: 'rgba(173,121,91,0.18)',
-  },
-  heroCta: {
-    fontFamily: FONTS.v2_link, fontSize: 13, color: T.cinnamon, marginTop: 14,
-  },
+  manualCtaText: { fontFamily: FONTS.v3_display, fontSize: 14.5, color: '#fff', letterSpacing: -0.2 },
 
-  // ── Village 2×2 pillar grid ───────────────────────────────────────────
-  pillarGrid: {
-    marginTop: 14,
-    flexDirection: 'row', flexWrap: 'wrap',
-    gap: 10,
-  },
-  pillarCard: {
-    // (cardWidth - 22*2 - 10) / 2 — RN flexBasis math; minWidth 0 forces grid.
-    width: '48%',
-    flexDirection: 'row', alignItems: 'center', gap: 10,
-    padding: 14, borderRadius: 14,
-    overflow: 'hidden',
-    shadowColor: T.walnut,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.22,
-    shadowRadius: 20,
-    elevation: 2,
-  },
-  pillarIconChip: {
-    width: 32, height: 32, borderRadius: 10,
-    backgroundColor: 'rgba(253,251,246,0.7)',
+  // ── Your village tiles ────────────────────────────────────────────────
+  tileRow: { flexDirection: 'row', justifyContent: 'space-between' },
+  tile: { alignItems: 'center', width: 60 },
+  tileChip: {
+    width: 56, height: 56, borderRadius: 18,
     alignItems: 'center', justifyContent: 'center',
-    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(122,74,40,0.08)',
+    shadowColor: T.walnut, shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.18, shadowRadius: 12, elevation: 2,
   },
-  pillarLabel: {
-    fontFamily: FONTS.v2_bold, fontSize: 12.5,
-    color: T.cocoa, lineHeight: 14,
+  tileDot: {
+    position: 'absolute', top: -2, right: 6,
+    width: 13, height: 13, borderRadius: 7, backgroundColor: T.cinnamon,
+    borderWidth: 2, borderColor: T.cream,
   },
-  pillarSub: {
-    fontFamily: FONTS.v2_body, fontSize: 10.5,
-    color: T.walnut, marginTop: 2,
-  },
+  tileLabel: { fontFamily: FONTS.v2_bold, fontSize: 11.5, color: T.cocoa, marginTop: 8 },
 
-  // ── V5 Phase 5.1 — Mom hero card ─────────────────────────────────────
-  // Paper-tone base + blush halo top-right + cinnamon CTA. Same lift recipe
-  // as the daily check-in strip + manual hero (subtle shadow, hairline
-  // border) so the page reads as a coherent vertical stack of cards.
-  momCard: {
-    backgroundColor: T.paper,
-    borderRadius: 20,
-    paddingHorizontal: 20, paddingTop: 18, paddingBottom: 18,
-    overflow: 'hidden',
-    position: 'relative',
-    borderWidth: 1, borderColor: 'rgba(237, 168, 160, 0.45)',
-    shadowColor: T.cocoa,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.10,
-    shadowRadius: 18,
-    elevation: 3,
+  // ── Discover row ──────────────────────────────────────────────────────
+  discoverRow: { flexDirection: 'row', gap: 12, marginTop: 12 },
+  discCard: {
+    flex: 1, borderRadius: 18, overflow: 'hidden', backgroundColor: T.paper,
+    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(122,74,40,0.14)',
+    shadowColor: T.walnut, shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.12, shadowRadius: 18, elevation: 2,
   },
-  momHalo: {
-    position: 'absolute',
-    top: -36, right: -36,
-    width: 140, height: 140,
-    borderRadius: 70,
-    backgroundColor: T.blush,
-    opacity: 0.32,
+  discCap: { height: 92, alignItems: 'center', justifyContent: 'center' },
+  discBody: { padding: 14 },
+  discEyebrow: {
+    fontFamily: FONTS.v2_mono, fontSize: 9.5, letterSpacing: 1.6,
+    textTransform: 'uppercase', fontWeight: '700',
   },
-  momTitle: {
-    marginTop: 10,
-    fontFamily: FONTS.v3_display, fontSize: 32, lineHeight: 34,
-    color: T.cocoa, letterSpacing: -1.0,
+  discTitle: { fontFamily: FONTS.v3_display, fontSize: 17, color: T.cocoa, letterSpacing: -0.5, marginTop: 6 },
+  discSub: { fontFamily: FONTS.v2_body, fontSize: 11.5, color: T.walnut, marginTop: 3 },
+
+  // ── Your corner (filled mom card) ─────────────────────────────────────
+  cornerCard: {
+    borderRadius: 22, paddingHorizontal: 22, paddingTop: 18, paddingBottom: 22, overflow: 'hidden',
+    shadowColor: T.cinnamon, shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.28, shadowRadius: 26, elevation: 5,
   },
-  momTitleLead: { color: T.cocoa, fontWeight: '700' },
-  momTitleEm: {
-    fontFamily: FONTS.v3_display_italic, color: T.salmon, fontWeight: '600',
+  cornerEyebrow: {
+    fontFamily: FONTS.v2_mono, fontSize: 11, letterSpacing: 2.6,
+    textTransform: 'uppercase', fontWeight: '500', color: 'rgba(255,255,255,0.92)',
   },
-  momBlurb: {
-    marginTop: 8,
-    fontFamily: FONTS.v2_body, fontSize: 13.5, lineHeight: 19,
-    color: T.walnut, maxWidth: 320,
+  cornerTitle: { marginTop: 12, fontFamily: FONTS.v3_display, fontSize: 30, lineHeight: 32, letterSpacing: -1.0 },
+  cornerTitleLead: { color: '#FFFDF8', fontWeight: '700' },
+  cornerTitleEm: { fontFamily: FONTS.v3_display_italic, color: '#FFF1DC' },
+  cornerBlurb: {
+    marginTop: 8, fontFamily: FONTS.v2_body, fontSize: 14, lineHeight: 20,
+    color: 'rgba(255,253,248,0.92)', maxWidth: '78%',
   },
-  momCtaRow: {
-    marginTop: 14, flexDirection: 'row', alignItems: 'center',
+  cornerArrowBtn: {
+    position: 'absolute', right: 20, bottom: 20,
+    width: 46, height: 46, borderRadius: 23,
+    backgroundColor: 'rgba(255,255,255,0.24)', alignItems: 'center', justifyContent: 'center',
   },
-  momCta: {
-    fontFamily: FONTS.v2_mono, fontSize: 11, letterSpacing: 1.8,
-    textTransform: 'uppercase', fontWeight: '500',
-    color: T.cinnamon,
-  },
+  cornerArrow: { color: '#fff', fontSize: 22, fontFamily: FONTS.v3_display, marginTop: -2 },
 });

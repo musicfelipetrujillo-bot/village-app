@@ -39,6 +39,7 @@
         "EXPO_PUBLIC_API_BASE_URL": "https://albyndcruwopulazvpjs.supabase.co/functions/v1",
         "EXPO_PUBLIC_MANUAL_VIDEO_ORIGIN": "https://villieapp.com",
         "EXPO_PUBLIC_INTERNAL_AGENTS_ENABLED": "0",
+        "EXPO_PUBLIC_VILLIE_BOXES_ENABLED": "1",
         "EXPO_PUBLIC_OAUTH_PROVIDERS_ENABLED": "1",
         "EXPO_PUBLIC_OAUTH_GOOGLE_ENABLED": "1",
         "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "595113218342-9k6gdicmqd30qn2j3gsu9nvenrnrh0nt.apps.googleusercontent.com",
