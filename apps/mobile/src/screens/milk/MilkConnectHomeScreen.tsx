@@ -184,6 +184,30 @@ export default function MilkConnectHomeScreen({ navigation }: Props) {
         </View>
       )}
 
+      {/* V6 — Milk Vault entry: personal freezer-stash tracker (+ optional
+          sell/donate planning). Distinct from the donor marketplace below. */}
+      <TouchableOpacity
+        style={styles.vaultCard}
+        onPress={() => navigation.navigate('MilkVaultDashboard')}
+        activeOpacity={0.9}
+        accessibilityRole="button"
+        accessibilityLabel={t('milkVault.entryTitle')}
+      >
+        <LinearGradient
+          colors={['#F2E9C4', '#EADBA8', '#E8C4B6']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={StyleSheet.absoluteFill}
+          pointerEvents="none"
+        />
+        <Text style={styles.vaultEmoji}>🧊</Text>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.vaultTitle}>{t('milkVault.entryTitle')}</Text>
+          <Text style={styles.vaultSub}>{t('milkVault.entrySub')}</Text>
+        </View>
+        <Text style={styles.vaultChevron}>›</Text>
+      </TouchableOpacity>
+
       {/* Two-up hero — find milk / share milk as a balanced, COLORED pair.
           Replaces the cream-on-cream "01/02" cards (which read flat) with the
           Village-hub tile palette (blush recipients · peach donors) so the page
@@ -645,6 +669,28 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.body, fontStyle: 'italic',
     paddingHorizontal: 32, paddingTop: 18, paddingBottom: 6,
   },
+  // V6 — Milk Vault entry card
+  vaultCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginHorizontal: 16,
+    marginTop: 18,
+    padding: 16,
+    borderRadius: 18,
+    overflow: 'hidden',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(150,80,50,0.18)',
+    shadowColor: '#43260F',
+    shadowOpacity: 0.16,
+    shadowOffset: { width: 0, height: 8 },
+    shadowRadius: 18,
+    elevation: 4,
+  },
+  vaultEmoji: { fontSize: 30 },
+  vaultTitle: { fontFamily: FONTS.v3_display, fontSize: 18, color: COLORS.genz_chestnut },
+  vaultSub: { fontFamily: FONTS.v2_body, fontSize: 12.5, lineHeight: 17, color: COLORS.genz_softink, marginTop: 2 },
+  vaultChevron: { fontSize: 24, color: COLORS.genz_chestnut, opacity: 0.5 },
 
   // ── Two-up hero tiles — colored find/share paths ───────────────────────
   // Equal-weight 1×2 tile row (blush recipients · peach donors), the Village-

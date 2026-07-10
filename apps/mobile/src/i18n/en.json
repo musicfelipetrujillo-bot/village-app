@@ -607,6 +607,10 @@
     "errorGeneric": "Something went wrong.",
     "crisisTitle": "Immediate support"
   },
+  "milkVault": {
+    "entryTitle": "Milk Vault",
+    "entrySub": "Track your freezer stash and days of coverage"
+  },
   "milk": {
     "eyebrow": "PEER MILK COMMUNITY",
     "homeTitle": "Milk Connect.",

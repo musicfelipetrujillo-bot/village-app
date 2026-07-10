@@ -607,6 +607,10 @@
     "errorGeneric": "Algo salió mal.",
     "crisisTitle": "Apoyo inmediato"
   },
+  "milkVault": {
+    "entryTitle": "Reserva de leche",
+    "entrySub": "Controla tu congelador y los días de cobertura"
+  },
   "milk": {
     "eyebrow": "COMUNIDAD DE DONADORAS",
     "homeTitle": "Leche Materna.",
