@@ -35,6 +35,26 @@ import SavedDonorsScreen from '@screens/milk/SavedDonorsScreen';
 import MilkMessageThreadsScreen from '@screens/milk/MilkMessageThreadsScreen';
 import MilkMessageDetailScreen from '@screens/milk/MilkMessageDetailScreen';
 
+// V6 — Milk Vault (personal stash + optional marketplace planning)
+import MilkVaultModePickerScreen from '@screens/milkVault/MilkVaultModePickerScreen';
+import MilkVaultDashboardScreen from '@screens/milkVault/MilkVaultDashboardScreen';
+import MilkVaultAddBagScreen from '@screens/milkVault/MilkVaultAddBagScreen';
+import MilkVaultScanScreen from '@screens/milkVault/MilkVaultScanScreen';
+import MilkVaultBagsScreen from '@screens/milkVault/MilkVaultBagsScreen';
+import MilkVaultKeepSellScreen from '@screens/milkVault/MilkVaultKeepSellScreen';
+import MilkVaultListingScreen from '@screens/milkVault/MilkVaultListingScreen';
+import MilkVaultSettingsScreen from '@screens/milkVault/MilkVaultSettingsScreen';
+
+/** Prefill payload passed from the AI scanner into the Add Bag confirmation. */
+export interface MilkVaultBagPrefill {
+  ounces?: number | null;
+  pumped_date?: string | null;
+  frozen_date?: string | null;
+  notes?: string | null;
+  photo_url?: string | null;
+  raw?: Record<string, unknown> | null;
+}
+
 // Placeholders
 function PlaceholderScreen() {
   return <View style={{ flex: 1, backgroundColor: '#F5F0E8' }} />;
@@ -60,6 +80,16 @@ export type MilkStackParamList = {
   // M4 — Messaging
   MilkMessageThreads: undefined;
   MilkMessageDetail: { threadId: string; donorProfileId: string; otherDisplayName?: string };
+
+  // V6 — Milk Vault
+  MilkVaultModePicker: { switching?: boolean } | undefined;
+  MilkVaultDashboard: undefined;
+  MilkVaultAddBag: { prefill?: MilkVaultBagPrefill } | undefined;
+  MilkVaultScan: undefined;
+  MilkVaultBags: undefined;
+  MilkVaultKeepSell: undefined;
+  MilkVaultListing: { prefillOunces?: number } | undefined;
+  MilkVaultSettings: undefined;
 };
 
 const Stack = createNativeStackNavigator<MilkStackParamList>();
@@ -83,6 +113,15 @@ export function MilkNavigator() {
       {/* M4 */}
       <Stack.Screen name="MilkMessageThreads" component={MilkMessageThreadsScreen} />
       <Stack.Screen name="MilkMessageDetail" component={MilkMessageDetailScreen} />
+      {/* V6 — Milk Vault */}
+      <Stack.Screen name="MilkVaultModePicker" component={MilkVaultModePickerScreen} />
+      <Stack.Screen name="MilkVaultDashboard" component={MilkVaultDashboardScreen} />
+      <Stack.Screen name="MilkVaultAddBag" component={MilkVaultAddBagScreen} />
+      <Stack.Screen name="MilkVaultScan" component={MilkVaultScanScreen} />
+      <Stack.Screen name="MilkVaultBags" component={MilkVaultBagsScreen} />
+      <Stack.Screen name="MilkVaultKeepSell" component={MilkVaultKeepSellScreen} />
+      <Stack.Screen name="MilkVaultListing" component={MilkVaultListingScreen} />
+      <Stack.Screen name="MilkVaultSettings" component={MilkVaultSettingsScreen} />
       {/* M5+ placeholder */}
       <Stack.Screen name="DonorDashboard" component={PlaceholderScreen} />
       <Stack.Screen name="DonorListingManager" component={PlaceholderScreen} />
