@@ -13,14 +13,15 @@
 // State flows through useTrackerStore. Fails soft if migration 093 isn't applied.
 import React, { useEffect, useState } from 'react';
 import {
-  View, Text, StyleSheet, TouchableOpacity, TextInput, Keyboard,
+  View, Text, StyleSheet, TouchableOpacity, TextInput, Keyboard, ActivityIndicator,
 } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { COLORS, FONTS } from '@utils/constants';
 import { select, tap } from '@utils/haptics';
 import { useTrackerStore } from '@store/babyTracker';
 import { wakeWindowMinutes, scheduleWakeAlarm, cancelWakeAlarm } from '@utils/sleepAlarm';
-import type { SleepLog, FeedLog, DiaperLog, NoteLog } from '@api/babyTracker';
+import { babyTrackerApi } from '@api/babyTracker';
+import type { SleepLog, FeedLog, DiaperLog, NoteLog, RecentStats } from '@api/babyTracker';
 
 const C = {
   paper: COLORS.v2_paper, cream: COLORS.v2_cream, parchment: COLORS.v2_parchment, cocoa: COLORS.v2_cocoa,
@@ -63,6 +64,19 @@ function elapsedLabel(sec: number): string {
   const mm = m < 10 ? `0${m}` : `${m}`; const ss = s < 10 ? `0${s}` : `${s}`;
   return `${mm}:${ss}`;
 }
+// Minutes → compact "1h 20m" / "45m" for the insights chips.
+function hm(min: number): string {
+  const h = Math.floor(min / 60); const m = Math.round(min % 60);
+  return h > 0 ? (m > 0 ? `${h}h ${m}m` : `${h}h`) : `${m}m`;
+}
+// "1 feed · 1 diaper" summary of what the AI jot-parse extracted.
+function loggedLabel(counts: { sleep: number; feed: number; diaper: number }, es: boolean): string {
+  const parts: string[] = [];
+  if (counts.feed) parts.push(es ? `${counts.feed} toma${counts.feed > 1 ? 's' : ''}` : `${counts.feed} feed${counts.feed > 1 ? 's' : ''}`);
+  if (counts.sleep) parts.push(es ? `${counts.sleep} sueño${counts.sleep > 1 ? 's' : ''}` : `${counts.sleep} sleep`);
+  if (counts.diaper) parts.push(es ? `${counts.diaper} pañal${counts.diaper > 1 ? 'es' : ''}` : `${counts.diaper} diaper${counts.diaper > 1 ? 's' : ''}`);
+  return parts.join(' · ');
+}
 
 type Pane = 'sleep' | 'feed' | 'diaper' | null;
 
@@ -86,6 +100,8 @@ export default function PlaybookTracker({ babyProfileId, babyName, week, lang }:
   const [open, setOpen] = useState<Pane>(null);
   const [ozDraft, setOzDraft] = useState(3);
   const [note, setNote] = useState('');
+  const [parsing, setParsing] = useState(false);
+  const [parseMsg, setParseMsg] = useState<string | null>(null);
 
   const wakeMin = wakeWindowMinutes(week);
 
@@ -94,7 +110,16 @@ export default function PlaybookTracker({ babyProfileId, babyName, week, lang }:
   const onStartFeed = (method: 'breast' | 'bottle', side: 'left' | 'right' | null) => { select(); setOzDraft(3); setOpen(null); store.startFeed(method, side); };
   const onStopFeed = () => { tap(); store.stopFeed(activeFeed?.method === 'bottle' ? ozDraft : null); };
   const onDiaper = (kind: 'wet' | 'dirty' | 'both') => { tap(); store.logDiaper(kind); };
-  const onSaveNote = () => { if (!note.trim()) return; tap(); store.logNote(note); setNote(''); Keyboard.dismiss(); };
+  const onSaveNote = async () => {
+    if (!note.trim() || parsing) return;
+    tap();
+    const text = note.trim();
+    setNote(''); Keyboard.dismiss(); setParseMsg(null); setParsing(true);
+    const res = await store.parseNote(text);
+    setParsing(false);
+    const n = res ? res.counts.sleep + res.counts.feed + res.counts.diaper : 0;
+    setParseMsg(n > 0 ? `${es ? 'villie registró' : 'villie logged'}: ${loggedLabel(res!.counts, es)}` : (es ? 'guardado' : 'saved'));
+  };
 
   const togglePane = (p: Exclude<Pane, null>) => { select(); setOpen((o) => (o === p ? null : p)); };
 
@@ -106,6 +131,25 @@ export default function PlaybookTracker({ babyProfileId, babyName, week, lang }:
   const lastFeedAgoMin = lastFeed ? Math.round((nowMs - new Date(lastFeed.ended_at!).getTime()) / 60000) : null;
   const diaperCount = today.diapers.length;
   const timeline = buildTimeline(today, es);
+
+  // Phase 3 — pull recent stats and curate a "what your logs say" card. Refetches
+  // whenever today's counts change (a new log shifts the recent averages too).
+  const [stats, setStats] = useState<RecentStats | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    babyTrackerApi.getRecentStats(3).then((s) => { if (!cancelled) setStats(s); }).catch(() => {});
+    return () => { cancelled = true; };
+  }, [today.sleep.length, today.feeds.length, today.diapers.length, activeSleep, activeFeed]);
+
+  const hasInsights = !!stats && (stats.sleepSessions >= 2 || stats.feeds >= 3 || (stats.diapersPerDay ?? 0) > 0);
+  // Gentle takeaway: compare the logged wake window to the age-typical one.
+  const takeaway: string | null = (() => {
+    if (!stats || stats.avgWakeWindowMin == null) return null;
+    const d = stats.avgWakeWindowMin - wakeMin;
+    if (Math.abs(d) <= 10) return es ? `Justo en el ritmo típico de la semana ${week} (~${wakeMin}m de vigilia).` : `Right on track for week ${week} (~${wakeMin}m awake windows).`;
+    if (d > 10) return es ? `Las ventanas de vigilia duran más que el ~${wakeMin}m típico de esta semana — puedes estirar un poco entre siestas.` : `Awake windows are running longer than the ~${wakeMin}m typical this week — you can stretch a bit between naps.`;
+    return es ? `Ventanas más cortas que el ~${wakeMin}m típico — atenta a las señales de sueño temprano.` : `Awake windows are shorter than the ~${wakeMin}m typical — watch for sleepy cues early.`;
+  })();
 
   const PILLS: { k: Exclude<Pane, null>; icon: string; label: string; active: boolean }[] = [
     { k: 'sleep', icon: ICON.moon, label: es ? 'Sueño' : 'Sleep', active: !!activeSleep },
@@ -238,17 +282,30 @@ export default function PlaybookTracker({ babyProfileId, babyName, week, lang }:
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
           <TextInput
             value={note}
-            onChangeText={setNote}
+            onChangeText={(t) => { setNote(t); if (parseMsg) setParseMsg(null); }}
             placeholder={es ? 'apúntalo o díctalo…' : 'jot it down or dictate…'}
             placeholderTextColor="#A98C6F"
             style={styles.jotInput}
             multiline
+            editable={!parsing}
           />
-          <TouchableOpacity onPress={onSaveNote} style={[styles.jotSend, !note.trim() && { opacity: 0.4 }]} disabled={!note.trim()}>
-            <Glyph d={ICON.send} color="#fff" size={16} sw={1.8} />
+          <TouchableOpacity
+            onPress={onSaveNote}
+            style={[styles.jotSend, (!note.trim() || parsing) && { opacity: 0.4 }]}
+            disabled={!note.trim() || parsing}
+            accessibilityRole="button"
+            accessibilityLabel={parsing ? (es ? 'Ordenando' : 'Sorting') : (es ? 'Guardar nota' : 'Save note')}
+          >
+            {parsing ? <ActivityIndicator size="small" color="#fff" /> : <Glyph d={ICON.send} color="#fff" size={16} sw={1.8} />}
           </TouchableOpacity>
         </View>
-        <Text style={styles.jotHint}>{es ? 'usa el micrófono del teclado para hablar' : 'use the keyboard mic to talk — villie sorts it soon'}</Text>
+        <Text style={[styles.jotHint, !!parseMsg && !parsing && { color: C.olive, fontFamily: FONTS.v2_bold }]}>
+          {parsing
+            ? (es ? 'villie está ordenando…' : 'villie is sorting it…')
+            : parseMsg
+              ? parseMsg
+              : (es ? 'usa el micrófono del teclado — villie lo ordena' : 'use the keyboard mic to talk — villie sorts it')}
+        </Text>
       </View>
 
       {/* Today timeline */}
@@ -264,6 +321,29 @@ export default function PlaybookTracker({ babyProfileId, babyName, week, lang }:
               </View>
             ))}
           </View>
+        </View>
+      )}
+
+      {/* Phase 3 — "what your logs say": curated from the mom's real recent data. */}
+      {hasInsights && stats && (
+        <View style={styles.insightCard}>
+          <Text style={styles.insightEyebrow}>{es ? 'LO QUE DICEN TUS REGISTROS' : 'WHAT YOUR LOGS SAY'}</Text>
+          <View style={styles.insightChips}>
+            {stats.avgWakeWindowMin != null && (
+              <View style={styles.insightChip}><Text style={styles.insightVal}>{hm(stats.avgWakeWindowMin)}</Text><Text style={styles.insightKey}>{es ? 'VIGILIA' : 'WAKE WINDOW'}</Text></View>
+            )}
+            {stats.avgFeedGapMin != null && (
+              <View style={styles.insightChip}><Text style={styles.insightVal}>{es ? 'c/' : 'q'}{hm(stats.avgFeedGapMin)}</Text><Text style={styles.insightKey}>{es ? 'TOMAS' : 'FEEDS'}</Text></View>
+            )}
+            {stats.avgNapMin != null && (
+              <View style={styles.insightChip}><Text style={styles.insightVal}>{hm(stats.avgNapMin)}</Text><Text style={styles.insightKey}>{es ? 'SIESTA' : 'NAP AVG'}</Text></View>
+            )}
+            {stats.diapersPerDay != null && (
+              <View style={styles.insightChip}><Text style={styles.insightVal}>{stats.diapersPerDay}/{es ? 'd' : 'd'}</Text><Text style={styles.insightKey}>{es ? 'PAÑALES' : 'DIAPERS'}</Text></View>
+            )}
+          </View>
+          {takeaway && <Text style={styles.insightTakeaway}>{takeaway}</Text>}
+          <Text style={styles.insightDisc}>{es ? 'Patrones de tus registros — apoyo, no consejo médico.' : 'Patterns from your logs — supportive, not medical advice.'}</Text>
         </View>
       )}
     </View>
@@ -377,4 +457,14 @@ const styles = StyleSheet.create({
   tlTime: { fontFamily: FONTS.v2_mono, fontSize: 9.5, color: C.walnut, width: 44 },
   tlIcon: { width: 22, height: 22, borderRadius: 7, alignItems: 'center', justifyContent: 'center' },
   tlLabel: { flex: 1, fontFamily: FONTS.v2_body, fontSize: 12, color: C.cocoa },
+
+  // Phase 3 — insights card
+  insightCard: { backgroundColor: C.oliveBg, borderRadius: 16, padding: 13, marginTop: 16, borderWidth: 1, borderColor: 'rgba(111,122,67,0.28)' },
+  insightEyebrow: { fontFamily: FONTS.v2_mono, fontSize: 9, letterSpacing: 1.8, color: C.oliveInk, fontWeight: '700' },
+  insightChips: { flexDirection: 'row', flexWrap: 'wrap', gap: 7, marginTop: 10 },
+  insightChip: { flexGrow: 1, minWidth: 68, backgroundColor: C.paper, borderRadius: 11, paddingHorizontal: 11, paddingVertical: 8, alignItems: 'center' },
+  insightVal: { fontFamily: FONTS.v3_display, fontSize: 16, color: C.cocoa, letterSpacing: -0.4 },
+  insightKey: { fontFamily: FONTS.v2_mono, fontSize: 8, letterSpacing: 0.8, color: C.olive, marginTop: 2 },
+  insightTakeaway: { fontFamily: FONTS.v2_body, fontSize: 12, lineHeight: 17, color: C.cocoa, marginTop: 11 },
+  insightDisc: { fontFamily: FONTS.v2_body, fontSize: 9, color: C.oliveInk, marginTop: 8, opacity: 0.8 },
 });

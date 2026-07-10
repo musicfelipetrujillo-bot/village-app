@@ -4,7 +4,7 @@
 import { create } from 'zustand';
 import {
   babyTrackerApi, type TodayLogs, type SleepLog, type FeedLog,
-  type FeedMethod, type BreastSide, type DiaperKind,
+  type FeedMethod, type BreastSide, type DiaperKind, type ParseResult,
 } from '@api/babyTracker';
 
 const EMPTY: TodayLogs = { sleep: [], feeds: [], diapers: [], notes: [] };
@@ -24,6 +24,7 @@ interface TrackerState {
   logBottle: (amountOz: number) => Promise<void>;
   logDiaper: (kind: DiaperKind) => Promise<void>;
   logNote: (text: string) => Promise<void>;
+  parseNote: (text: string) => Promise<ParseResult | null>;
 }
 
 export const useTrackerStore = create<TrackerState>((set, get) => ({
@@ -94,5 +95,13 @@ export const useTrackerStore = create<TrackerState>((set, get) => ({
     if (!babyProfileId || !text.trim()) return;
     await babyTrackerApi.logNote(babyProfileId, text.trim());
     get().refresh(babyProfileId);
+  },
+
+  parseNote: async (text) => {
+    const { babyProfileId } = get();
+    if (!babyProfileId || !text.trim()) return null;
+    const res = await babyTrackerApi.parseNote(babyProfileId, text.trim());
+    get().refresh(babyProfileId);
+    return res;
   },
 }));
