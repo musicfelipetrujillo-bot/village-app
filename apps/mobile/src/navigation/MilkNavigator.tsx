@@ -55,6 +55,14 @@ import MilkReviewSubmitScreen from '@screens/milk/MilkReviewSubmitScreen';
 import MilkDisputeOpenScreen from '@screens/milk/MilkDisputeOpenScreen';
 import MilkShippingLabelScreen from '@screens/milk/MilkShippingLabelScreen';
 
+// Milk Vault (personal freezer-stash tracker — migration 099)
+import MilkVaultHomeScreen from '@screens/milk/vault/MilkVaultHomeScreen';
+import MilkVaultModePickerScreen from '@screens/milk/vault/MilkVaultModePickerScreen';
+import AddMilkBagScreen from '@screens/milk/vault/AddMilkBagScreen';
+import ScanMilkBagScreen from '@screens/milk/vault/ScanMilkBagScreen';
+import MilkVaultSettingsScreen from '@screens/milk/vault/MilkVaultSettingsScreen';
+import type { MilkBagExtraction } from '@api/milkVault';
+
 // Placeholders
 function PlaceholderScreen() {
   return <View style={{ flex: 1, backgroundColor: '#F5F0E8' }} />;
@@ -62,6 +70,21 @@ function PlaceholderScreen() {
 
 export type MilkStackParamList = {
   MilkHome: undefined;
+  // Milk Vault — personal freezer-stash tracker
+  VaultHome: undefined;
+  VaultModePicker: undefined;
+  VaultScanBag: undefined;
+  VaultSettings: undefined;
+  VaultAddBag: {
+    photoUri?: string;
+    prefill?: {
+      ounces?: number;
+      pumped_at?: string;
+      frozen_at?: string;
+      notes?: string;
+      ai_extracted_data?: MilkBagExtraction | null;
+    };
+  } | undefined;
   // M1 — BecomeDonor flow
   BecomeDonorIntro: undefined;
   DonorQuestionnaire: undefined;
@@ -113,6 +136,12 @@ export function MilkNavigator() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="MilkHome" component={MilkConnectHomeScreen} />
+      {/* Milk Vault */}
+      <Stack.Screen name="VaultHome" component={MilkVaultHomeScreen} />
+      <Stack.Screen name="VaultModePicker" component={MilkVaultModePickerScreen} />
+      <Stack.Screen name="VaultAddBag" component={AddMilkBagScreen} />
+      <Stack.Screen name="VaultScanBag" component={ScanMilkBagScreen} />
+      <Stack.Screen name="VaultSettings" component={MilkVaultSettingsScreen} />
       {/* M1 */}
       <Stack.Screen name="BecomeDonorIntro" component={BecomeDonorIntroScreen} />
       <Stack.Screen name="DonorQuestionnaire" component={DonorQuestionnaireScreen} />

@@ -192,6 +192,20 @@ export default function MilkConnectHomeScreen({ navigation }: Props) {
         </View>
       )}
 
+      {/* Milk Vault — personal freezer-stash tracker entry point. */}
+      <TouchableOpacity
+        style={styles.matchCard}
+        onPress={() => navigation.navigate('VaultHome')}
+        activeOpacity={0.85}
+      >
+        <View style={styles.matchAccent} />
+        <View style={styles.matchTextWrap}>
+          <Text style={styles.matchTitle}>{t('milkVault.homeCardTitle')}</Text>
+          <Text style={styles.matchSub}>{t('milkVault.homeCardSub')}</Text>
+        </View>
+        <Text style={styles.matchArrow}>→</Text>
+      </TouchableOpacity>
+
       {/* AI Match — soft warm card with a single rust accent dot. Replaces the
           dark/black variant which fought with the cream editorial palette. */}
       <TouchableOpacity
