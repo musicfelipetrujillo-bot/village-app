@@ -1,17 +1,16 @@
 // Milk Connect home — the MARKETPLACE half of the Milk Hub.
 //
-// Two clear paths + the trust substance that makes peer milk work:
-//   · GET milk  → search + live donors near you
-//   · GIVE milk → for donors, the full trust profile (health questionnaire,
-//     trust badge, bloodwork, diet/meds) with edit access + listings; for
-//     everyone else, a become-a-donor card that spells out the screening.
-//   · How Villie keeps this safe.
+// Supply is what makes a peer-milk marketplace work, so "Share your milk" is
+// the loud, colorful hero (context-aware CTA: become → finish profile → list).
+// Below: search + live donors near you (get), the donor's screening profile
+// (health questionnaire / trust badge / bloodwork), and how-it's-safe.
 
 import React, { useEffect, useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Path } from 'react-native-svg';
 import * as Location from 'expo-location';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -27,10 +26,10 @@ import type { MilkStackParamList } from '@/navigation/MilkNavigator';
 type Props = NativeStackScreenProps<MilkStackParamList, 'MilkHome'>;
 
 const C = {
-  cream: '#FCF7EF', paper: '#FFFCF6',
+  cream: '#FCF7EF', paper: '#FDF7EC',
   rose: '#E06A88', roseInk: '#C2556F', roseTint: '#FDECEF', blush: '#F7C5CB',
   honey: '#F5C842', honeyCard: '#FBE9BE', honeyInk: '#B98A1E',
-  cocoa: '#3D2116', walnut: '#8A6A55', sage: '#7B8A46', muted: '#A6957F',
+  cocoa: '#43260F', ink: '#3D2116', walnut: '#8A6A55', sage: '#7B8A46', muted: '#A6957F',
   track: '#F0E6D6', hair: 'rgba(61,31,14,0.08)',
 };
 
@@ -69,7 +68,7 @@ function DonorPreview({ donor, index, onPress }: { donor: DonorSearchResult; ind
   const free = donor.price_per_oz <= 0;
   const place = donor.neighborhood ?? donor.city ?? 'nearby';
   return (
-    <TouchableOpacity style={styles.dCard} activeOpacity={0.88} onPress={onPress} accessibilityRole="button" accessibilityLabel={donor.display_name}>
+    <TouchableOpacity style={styles.dCard} activeOpacity={0.9} onPress={onPress} accessibilityRole="button" accessibilityLabel={donor.display_name}>
       {donor.avatar_url
         ? <Image source={{ uri: donor.avatar_url }} style={styles.dAvatar} />
         : <View style={[styles.dAvatar, { backgroundColor: bg, alignItems: 'center', justifyContent: 'center' }]}><Text style={{ fontFamily: FONTS.v2_bold, fontSize: 15, color: fg }}>{donor.display_name.charAt(0)}</Text></View>}
@@ -78,13 +77,11 @@ function DonorPreview({ donor, index, onPress }: { donor: DonorSearchResult; ind
           <Text style={styles.dName} numberOfLines={1}>{donor.display_name}</Text>
           {verified ? <Glyph d={ICON.checkC} color={C.sage} size={15} /> : badge === 'basic' ? <View style={styles.dBasic}><Text style={styles.dBasicText}>basic</Text></View> : null}
         </View>
-        <Text style={styles.dMeta} numberOfLines={1}>
-          {place} · {donor.distance_miles.toFixed(1)} mi{donor.review_count > 0 ? ` · ★ ${donor.rating_avg.toFixed(1)}` : ''}
-        </Text>
+        <Text style={styles.dMeta} numberOfLines={1}>{place} · {donor.distance_miles.toFixed(1)} mi{donor.review_count > 0 ? ` · ★ ${donor.rating_avg.toFixed(1)}` : ''}</Text>
       </View>
-      <View style={{ alignItems: 'flex-end' }}>
+      <View style={styles.dPricePill}>
         <Text style={styles.dPrice}>{free ? 'free' : `$${donor.price_per_oz.toFixed(2)}`}</Text>
-        <Text style={styles.dPriceSub}>{free ? 'donates' : '/oz'} · {donor.supply_oz_available} oz</Text>
+        <Text style={styles.dPriceSub}>{free ? 'donates' : '/oz'} · {donor.supply_oz_available}oz</Text>
       </View>
     </TouchableOpacity>
   );
@@ -93,9 +90,7 @@ function DonorPreview({ donor, index, onPress }: { donor: DonorSearchResult; ind
 function ProfileRow({ d, label, status, done, onPress, last }: { d: string; label: string; status: string; done: boolean; onPress: () => void; last?: boolean }) {
   return (
     <TouchableOpacity style={[styles.pRow, !last && styles.pRowBorder]} onPress={onPress} accessibilityRole="button" accessibilityLabel={`${label}: ${status}`}>
-      <View style={[styles.pIcon, { backgroundColor: done ? 'rgba(123,138,70,0.14)' : C.roseTint }]}>
-        <Glyph d={d} color={done ? C.sage : C.roseInk} size={16} />
-      </View>
+      <View style={[styles.pIcon, { backgroundColor: done ? 'rgba(123,138,70,0.14)' : C.roseTint }]}><Glyph d={d} color={done ? C.sage : C.roseInk} size={16} /></View>
       <Text style={styles.pLabel}>{label}</Text>
       <Text style={[styles.pStatus, { color: done ? C.sage : C.roseInk }]}>{status}</Text>
       <Glyph d={ICON.chev} color="#D0BFAC" size={15} />
@@ -132,56 +127,65 @@ export default function MilkConnectHomeScreen({ navigation }: Props) {
     return () => { cancelled = true; };
   }, []);
 
-  const goListing = () => donorProfile ? navigation.navigate('CreateListing', { donorProfileId: donorProfile.id }) : navigation.navigate('BecomeDonorIntro');
-  const goBadge = () => donorProfile && navigation.navigate('TrustBadgeBuilder', { donorProfileId: donorProfile.id });
-
-  if (loading) {
-    return <View style={[styles.container, styles.center]}><ActivityIndicator color={C.rose} /></View>;
-  }
+  if (loading) return <View style={[styles.container, styles.center]}><ActivityIndicator color={C.rose} /></View>;
 
   const badgeLevel = trustBadge?.badge_level ?? 'none';
   const qDone = !!trustBadge?.questionnaire_complete;
   const bwDone = !!trustBadge?.bloodwork_linked;
   const dietDone = !!(trustBadge?.diet_disclosed || trustBadge?.medications_disclosed);
+  const goBadge = () => donorProfile && navigation.navigate('TrustBadgeBuilder', { donorProfileId: donorProfile.id });
+
+  // Context-aware share CTA — the supply driver.
+  const shareCta = !donorProfile
+    ? { label: lang === 'es' ? 'Hazte donante' : 'Become a donor', go: () => navigation.navigate('BecomeDonorIntro') }
+    : !qDone
+      ? { label: lang === 'es' ? 'Completa tu perfil' : 'Finish your profile', go: () => navigation.navigate('DonorQuestionnaire') }
+      : { label: lang === 'es' ? '＋ Publicar leche' : '＋ Add a listing', go: () => navigation.navigate('CreateListing', { donorProfileId: donorProfile.id }) };
 
   return (
     <View style={styles.container}>
       <SafeAreaView style={{ flex: 1 }} edges={['top']}>
-        {/* Header */}
         <View style={styles.header}>
-          <View style={styles.brandRow}>
-            <View style={styles.brandDot} />
-            <Text style={styles.brand}>milk hub</Text>
-          </View>
+          <View style={styles.brandRow}><View style={styles.brandDot} /><Text style={styles.brand}>milk hub</Text></View>
           <View style={styles.headerIcons}>
-            <TouchableOpacity style={styles.iconBtn} onPress={() => navigation.navigate('SavedDonors')} accessibilityRole="button" accessibilityLabel={t('milk.saved')}>
-              <Glyph d={ICON.heart} color={C.roseInk} size={17} />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.iconBtn} onPress={() => navigation.navigate('MilkMessageThreads')} accessibilityRole="button" accessibilityLabel={t('milk.messagesA11y')}>
-              <Glyph d={ICON.chat} color={C.walnut} size={17} />
-            </TouchableOpacity>
+            <TouchableOpacity style={styles.iconBtn} onPress={() => navigation.navigate('SavedDonors')} accessibilityRole="button" accessibilityLabel={t('milk.saved')}><Glyph d={ICON.heart} color={C.roseInk} size={17} /></TouchableOpacity>
+            <TouchableOpacity style={styles.iconBtn} onPress={() => navigation.navigate('MilkMessageThreads')} accessibilityRole="button" accessibilityLabel={t('milk.messagesA11y')}><Glyph d={ICON.chat} color={C.walnut} size={17} /></TouchableOpacity>
           </View>
         </View>
 
-        {/* toggle */}
         <View style={styles.toggle}>
-          <TouchableOpacity style={styles.toggleSeg} onPress={() => navigation.navigate('MilkVaultDashboard')} accessibilityRole="button" accessibilityLabel={lang === 'es' ? 'Mi reserva' : 'My stash'}>
-            <Text style={styles.toggleText}>{lang === 'es' ? 'mi reserva' : 'my stash'}</Text>
-          </TouchableOpacity>
-          <View style={[styles.toggleSeg, styles.toggleSegActive]}>
-            <Text style={styles.toggleTextActive}>{lang === 'es' ? 'mercado' : 'marketplace'}</Text>
-          </View>
+          <TouchableOpacity style={styles.toggleSeg} onPress={() => navigation.navigate('MilkVaultDashboard')} accessibilityRole="button" accessibilityLabel={lang === 'es' ? 'Mi reserva' : 'My stash'}><Text style={styles.toggleText}>{lang === 'es' ? 'mi reserva' : 'my stash'}</Text></TouchableOpacity>
+          <View style={[styles.toggleSeg, styles.toggleSegActive]}><Text style={styles.toggleTextActive}>{lang === 'es' ? 'mercado' : 'marketplace'}</Text></View>
         </View>
 
         <ScrollView contentContainerStyle={{ paddingBottom: 110 }} showsVerticalScrollIndicator={false}>
-          {/* Search */}
+          {/* SHARE — the loud supply hero */}
+          <LinearGradient colors={['#EE94AC', '#F6C94F']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.shareHero}>
+            <View style={styles.shareHeroTop}>
+              <View style={styles.shareHeroIcon}><Glyph d={ICON.drop} color={C.cocoa} size={22} /></View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.shareHeroTitle}>{lang === 'es' ? 'Comparte tu leche' : 'Share your milk'}</Text>
+                <Text style={styles.shareHeroSub}>{lang === 'es' ? 'Convierte tu excedente en ayuda — o ingreso. Tú pones el precio, o dónala.' : 'Turn your extra into help — or income. You set the price, or donate.'}</Text>
+              </View>
+            </View>
+            <View style={styles.shareChips}>
+              <View style={styles.shareChip}><Text style={styles.shareChipText}>{lang === 'es' ? 'cuestionario de salud' : 'health questionnaire'}</Text></View>
+              <View style={styles.shareChip}><Text style={styles.shareChipText}>{lang === 'es' ? 'análisis' : 'bloodwork'}</Text></View>
+              <View style={styles.shareChip}><Text style={styles.shareChipText}>{lang === 'es' ? 'insignia' : 'trust badge'}</Text></View>
+            </View>
+            <TouchableOpacity style={styles.shareHeroCta} onPress={shareCta.go} activeOpacity={0.9} accessibilityRole="button" accessibilityLabel={shareCta.label}>
+              <Text style={styles.shareHeroCtaText}>{shareCta.label}</Text>
+              <Glyph d={ICON.chev} color="#fff" size={16} />
+            </TouchableOpacity>
+          </LinearGradient>
+
+          {/* GET — search + donors */}
           <TouchableOpacity style={styles.searchBar} activeOpacity={0.85} onPress={() => navigation.navigate('DonorSearchList')} accessibilityRole="button" accessibilityLabel={t('milk.findDonorTitle')}>
             <Glyph d={ICON.search} color={C.roseInk} size={18} />
             <Text style={styles.searchText}>{lang === 'es' ? 'buscar donantes verificadas' : 'search screened donors'}</Text>
             <TouchableOpacity onPress={() => navigation.navigate('DonorMap')} accessibilityRole="button" accessibilityLabel="Map"><Glyph d={ICON.pin} color={C.walnut} size={16} /></TouchableOpacity>
           </TouchableOpacity>
 
-          {/* GET — donors near you */}
           <View style={styles.sectionHead}>
             <Text style={styles.sectionLabel}>{lang === 'es' ? 'donantes cerca de ti' : 'donors near you'}</Text>
             <TouchableOpacity onPress={() => navigation.navigate('DonorSearchList')} accessibilityRole="button"><Text style={styles.sectionLink}>{lang === 'es' ? 'ver todas' : 'see all'}</Text></TouchableOpacity>
@@ -193,13 +197,11 @@ export default function MilkConnectHomeScreen({ navigation }: Props) {
               {donors.map((d, i) => <DonorPreview key={d.id} donor={d} index={i} onPress={() => navigation.navigate('DonorProfile', { donorProfileId: d.id })} />)}
             </View>
           ) : (
-            <TouchableOpacity style={styles.donorEmpty} onPress={() => navigation.navigate('DonorSearchList')} activeOpacity={0.85}>
-              <Text style={styles.donorEmptyText}>{lang === 'es' ? 'Aún no hay donantes cerca — amplía tu búsqueda.' : 'No donors nearby yet — widen your search.'}</Text>
-            </TouchableOpacity>
+            <TouchableOpacity style={styles.donorEmpty} onPress={() => navigation.navigate('DonorSearchList')} activeOpacity={0.85}><Text style={styles.donorEmptyText}>{lang === 'es' ? 'Aún no hay donantes cerca — amplía tu búsqueda.' : 'No donors nearby yet — widen your search.'}</Text></TouchableOpacity>
           )}
 
-          {/* GIVE — donor trust profile OR become a donor */}
-          {donorProfile ? (
+          {/* Donor's own screening profile (substance) */}
+          {donorProfile && (
             <>
               <View style={styles.sectionHead}>
                 <Text style={styles.sectionLabel}>{lang === 'es' ? 'tu perfil de donante' : 'your donor profile'}</Text>
@@ -209,35 +211,7 @@ export default function MilkConnectHomeScreen({ navigation }: Props) {
                 <ProfileRow d={ICON.clipboard} label={lang === 'es' ? 'Cuestionario de salud' : 'Health questionnaire'} status={qDone ? (lang === 'es' ? 'Completo' : 'Complete') : (lang === 'es' ? 'Completar' : 'Complete it')} done={qDone} onPress={() => navigation.navigate('DonorQuestionnaire')} />
                 <ProfileRow d={ICON.check} label={lang === 'es' ? 'Insignia de confianza' : 'Trust badge'} status={t(BADGE_LABEL_KEYS[badgeLevel])} done={badgeLevel !== 'none'} onPress={goBadge} />
                 <ProfileRow d={ICON.drop} label={lang === 'es' ? 'Análisis de sangre' : 'Bloodwork'} status={bwDone ? (lang === 'es' ? 'Vinculado' : 'Linked') : (lang === 'es' ? 'Opcional' : 'Add · optional')} done={bwDone} onPress={goBadge} />
-                <ProfileRow d={ICON.clipboard} label={lang === 'es' ? 'Dieta y medicamentos' : 'Diet & medications'} status={dietDone ? (lang === 'es' ? 'Divulgado' : 'Disclosed') : (lang === 'es' ? 'Añadir' : 'Add')} done={dietDone} onPress={goBadge} last />
-              </View>
-              <View style={styles.donorStrip}>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.donorLabel}>{lang === 'es' ? 'estás compartiendo' : "you're sharing"}</Text>
-                  <Text style={styles.donorOz}>{donorProfile.supply_oz_available}<Text style={styles.donorOzUnit}> {t('milk.ozAvailable')}</Text></Text>
-                </View>
-                <TouchableOpacity style={styles.donorBtn} onPress={goListing} accessibilityRole="button" accessibilityLabel={t('milk.addListingA11y')}>
-                  <Text style={styles.donorBtnText}>{t('milk.addListing')}</Text>
-                </TouchableOpacity>
-              </View>
-            </>
-          ) : (
-            <>
-              <View style={styles.sectionHead}>
-                <Text style={styles.sectionLabel}>{lang === 'es' ? 'comparte tu leche' : 'share your milk'}</Text>
-              </View>
-              <View style={styles.becomeCard}>
-                <Text style={styles.becomeTitle}>{t('milk.becomeDonorTitle')}</Text>
-                <Text style={styles.becomeSub}>{lang === 'es' ? 'Comparte o vende tu leche extra con mamás verificadas cerca — tú pones el precio, o dónala. Esto es lo que harás:' : 'Share or sell your extra milk with screened moms nearby — you set the price, or donate. Here’s what you’ll do:'}</Text>
-                <View style={styles.screenList}>
-                  <ScreenItem n="1" label={lang === 'es' ? 'Cuestionario de salud y estilo de vida' : 'Health & lifestyle questionnaire'} />
-                  <ScreenItem n="2" label={lang === 'es' ? 'Análisis de sangre (opcional)' : 'Optional bloodwork verification'} />
-                  <ScreenItem n="3" label={lang === 'es' ? 'Gana tu insignia de confianza' : 'Earn your trust badge'} />
-                  <ScreenItem n="4" label={lang === 'es' ? 'Publica tu leche' : 'List your milk'} last />
-                </View>
-                <TouchableOpacity style={styles.becomeCta} onPress={goListing} activeOpacity={0.9} accessibilityRole="button" accessibilityLabel={t('milk.becomeDonorTitle')}>
-                  <Text style={styles.becomeCtaText}>{lang === 'es' ? 'Empezar la evaluación' : 'Start screening'}</Text>
-                </TouchableOpacity>
+                <ProfileRow d={ICON.clipboard} label={lang === 'es' ? 'Enlaces sociales' : 'Social links'} status={donorProfile.social_links && Object.keys(donorProfile.social_links).length > 0 ? (lang === 'es' ? 'Añadidos' : 'Added') : (lang === 'es' ? 'Añadir' : 'Add')} done={!!(donorProfile.social_links && Object.keys(donorProfile.social_links).length > 0)} onPress={() => navigation.navigate('DonorSocialLinks', { donorProfileId: donorProfile.id })} last />
               </View>
             </>
           )}
@@ -252,15 +226,6 @@ export default function MilkConnectHomeScreen({ navigation }: Props) {
           <Text style={styles.safetyNote}>{t('milk.safetyNote')}</Text>
         </ScrollView>
       </SafeAreaView>
-    </View>
-  );
-}
-
-function ScreenItem({ n, label, last }: { n: string; label: string; last?: boolean }) {
-  return (
-    <View style={[styles.screenItem, !last && styles.screenItemBorder]}>
-      <View style={styles.screenNum}><Text style={styles.screenNumText}>{n}</Text></View>
-      <Text style={styles.screenLabel}>{label}</Text>
     </View>
   );
 }
@@ -281,7 +246,7 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 18, paddingTop: 6, paddingBottom: 14 },
   brandRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   brandDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: C.honey },
-  brand: { fontFamily: FONTS.v2_bold, fontSize: 17, color: C.cocoa },
+  brand: { fontFamily: FONTS.v2_bold, fontSize: 17, color: C.ink },
   headerIcons: { flexDirection: 'row', gap: 8 },
   iconBtn: { width: 34, height: 34, borderRadius: 10, backgroundColor: '#F2E6DD', alignItems: 'center', justifyContent: 'center' },
 
@@ -291,7 +256,18 @@ const styles = StyleSheet.create({
   toggleText: { fontFamily: FONTS.v2_link, fontSize: 13.5, color: C.walnut },
   toggleTextActive: { fontFamily: FONTS.v2_bold, fontSize: 13.5, color: '#fff' },
 
-  searchBar: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: C.paper, borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(61,31,14,0.14)', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12, marginHorizontal: 18 },
+  shareHero: { borderRadius: 20, padding: 18, marginHorizontal: 18, overflow: 'hidden' },
+  shareHeroTop: { flexDirection: 'row', gap: 12, alignItems: 'flex-start' },
+  shareHeroIcon: { width: 42, height: 42, borderRadius: 13, backgroundColor: 'rgba(255,252,246,0.55)', alignItems: 'center', justifyContent: 'center' },
+  shareHeroTitle: { fontFamily: FONTS.v2_display_big, fontSize: 23, color: C.cocoa, letterSpacing: -0.3 },
+  shareHeroSub: { fontFamily: FONTS.v2_body, fontSize: 13, lineHeight: 18, color: '#6B3A22', marginTop: 4 },
+  shareChips: { flexDirection: 'row', flexWrap: 'wrap', gap: 7, marginTop: 14 },
+  shareChip: { backgroundColor: 'rgba(255,252,246,0.6)', borderRadius: 999, paddingHorizontal: 10, paddingVertical: 5 },
+  shareChipText: { fontFamily: FONTS.v2_label, fontSize: 10.5, color: '#8A3A54' },
+  shareHeroCta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: C.cocoa, borderRadius: 12, paddingVertical: 13, marginTop: 16 },
+  shareHeroCtaText: { fontFamily: FONTS.v2_bold, fontSize: 14.5, color: '#fff' },
+
+  searchBar: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: C.paper, borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(61,31,14,0.14)', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12, marginHorizontal: 18, marginTop: 18 },
   searchText: { flex: 1, fontFamily: FONTS.v2_body, fontSize: 13.5, color: C.muted },
 
   sectionHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginHorizontal: 18, marginTop: 24, paddingBottom: 8, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(61,31,14,0.12)' },
@@ -300,15 +276,16 @@ const styles = StyleSheet.create({
   badgePill: { fontFamily: FONTS.v2_label, fontSize: 12 },
 
   donorLoading: { paddingVertical: 30, alignItems: 'center' },
-  dCard: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: C.paper, borderWidth: StyleSheet.hairlineWidth, borderColor: C.hair, borderRadius: 14, padding: 13, marginHorizontal: 18 },
-  dAvatar: { width: 46, height: 46, borderRadius: 23 },
+  dCard: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: C.paper, borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(224,106,136,0.14)', borderRadius: 16, padding: 12, marginHorizontal: 18 },
+  dAvatar: { width: 48, height: 48, borderRadius: 24 },
   dNameRow: { flexDirection: 'row', alignItems: 'center', gap: 5 },
-  dName: { fontFamily: FONTS.v2_bold, fontSize: 14.5, color: C.cocoa, flexShrink: 1 },
+  dName: { fontFamily: FONTS.v2_bold, fontSize: 14.5, color: C.ink, flexShrink: 1 },
   dBasic: { backgroundColor: C.honeyCard, borderRadius: 999, paddingHorizontal: 6, paddingVertical: 2 },
   dBasicText: { fontFamily: FONTS.v2_mono, fontSize: 8.5, color: C.honeyInk, fontWeight: '600' },
   dMeta: { fontFamily: FONTS.v2_mono, fontSize: 9, letterSpacing: 0.6, color: C.walnut, marginTop: 3 },
-  dPrice: { fontFamily: FONTS.v2_display_big, fontSize: 17, color: C.cocoa },
-  dPriceSub: { fontFamily: FONTS.v2_body, fontSize: 10, color: C.walnut, marginTop: 1 },
+  dPricePill: { alignItems: 'center', backgroundColor: C.roseTint, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 8 },
+  dPrice: { fontFamily: FONTS.v2_display_big, fontSize: 17, color: C.roseInk },
+  dPriceSub: { fontFamily: FONTS.v2_body, fontSize: 9.5, color: C.walnut, marginTop: 1 },
 
   donorEmpty: { marginHorizontal: 18, marginTop: 14, backgroundColor: C.paper, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, borderColor: C.hair, padding: 18, alignItems: 'center' },
   donorEmptyText: { fontFamily: FONTS.v2_body, fontSize: 13, color: C.walnut, textAlign: 'center' },
@@ -317,27 +294,8 @@ const styles = StyleSheet.create({
   pRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 13 },
   pRowBorder: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(61,31,14,0.07)' },
   pIcon: { width: 32, height: 32, borderRadius: 9, alignItems: 'center', justifyContent: 'center' },
-  pLabel: { flex: 1, fontFamily: FONTS.v2_link, fontSize: 13.5, color: C.cocoa },
+  pLabel: { flex: 1, fontFamily: FONTS.v2_link, fontSize: 13.5, color: C.ink },
   pStatus: { fontFamily: FONTS.v2_label, fontSize: 12 },
-
-  donorStrip: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: C.honeyCard, borderRadius: 16, padding: 15, marginHorizontal: 18, marginTop: 12 },
-  donorLabel: { fontFamily: FONTS.v2_mono, fontSize: 9.5, letterSpacing: 1.4, textTransform: 'uppercase', color: C.honeyInk, fontWeight: '600' },
-  donorOz: { fontFamily: FONTS.v2_display_big, fontSize: 22, color: C.cocoa, marginTop: 3 },
-  donorOzUnit: { fontFamily: FONTS.v2_body, fontSize: 12, color: C.walnut },
-  donorBtn: { backgroundColor: C.rose, borderRadius: 999, paddingHorizontal: 16, paddingVertical: 9 },
-  donorBtnText: { fontFamily: FONTS.v2_bold, fontSize: 13, color: '#fff' },
-
-  becomeCard: { backgroundColor: C.paper, borderWidth: StyleSheet.hairlineWidth, borderColor: C.hair, borderRadius: 16, padding: 16, marginHorizontal: 18, marginTop: 14 },
-  becomeTitle: { fontFamily: FONTS.v2_display_big, fontSize: 19, color: C.cocoa },
-  becomeSub: { fontFamily: FONTS.v2_body, fontSize: 12.5, lineHeight: 18, color: '#5A4030', marginTop: 6 },
-  screenList: { backgroundColor: C.honeyCard, borderRadius: 12, paddingHorizontal: 12, marginTop: 14 },
-  screenItem: { flexDirection: 'row', alignItems: 'center', gap: 11, paddingVertical: 11 },
-  screenItemBorder: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(185,138,30,0.2)' },
-  screenNum: { width: 24, height: 24, borderRadius: 12, backgroundColor: 'rgba(255,252,246,0.7)', alignItems: 'center', justifyContent: 'center' },
-  screenNumText: { fontFamily: FONTS.v2_bold, fontSize: 12, color: C.honeyInk },
-  screenLabel: { flex: 1, fontFamily: FONTS.v2_body, fontSize: 13, color: C.cocoa },
-  becomeCta: { backgroundColor: C.rose, borderRadius: 12, paddingVertical: 14, alignItems: 'center', marginTop: 16 },
-  becomeCtaText: { fontFamily: FONTS.v2_bold, fontSize: 14.5, color: '#fff' },
 
   trustCard: { backgroundColor: C.paper, borderWidth: StyleSheet.hairlineWidth, borderColor: C.hair, borderRadius: 16, padding: 16, marginHorizontal: 18, marginTop: 24 },
   trustEyebrow: { fontFamily: FONTS.v2_mono, fontSize: 11, letterSpacing: 2.2, textTransform: 'uppercase', color: C.walnut, fontWeight: '500', marginBottom: 4 },
