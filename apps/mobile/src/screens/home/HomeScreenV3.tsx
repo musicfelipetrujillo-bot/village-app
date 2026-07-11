@@ -225,12 +225,13 @@ function AskVillieHero({ onAsk, onScanMilk }: { onAsk: (seed?: string) => void; 
 }
 
 // ─── This week's manual hero card ──────────────────────────────────────
-function ManualHeroCard({ babyName, weekNumber, hook, body, onPress }: {
+function ManualHeroCard({ babyName, weekNumber, hook, body, onPress, onJourney }: {
   babyName: string;
   weekNumber: number;
   hook: string | null;
   body?: string | null;
   onPress: () => void;
+  onJourney: () => void;
 }) {
   const pct = Math.max(0.04, Math.min(1, weekNumber / 52));
   const markerPct = Math.min(0.93, Math.max(0.06, pct));
@@ -267,15 +268,26 @@ function ManualHeroCard({ babyName, weekNumber, hook, body, onPress }: {
 
         <Text style={styles.manualBlurb} numberOfLines={2}>{blurb}</Text>
 
-        {/* Journey progress — the bee rides a cream pin as the waypoint. */}
-        <View style={styles.manualProgress}>
+        {/* Journey progress — the bee marks where you are in the 52-week
+            journey. It's a progress waypoint, not a drag handle: tapping opens
+            the full week timeline, where the weeks ARE navigable. */}
+        <TouchableOpacity
+          style={styles.manualProgress}
+          onPress={onJourney}
+          activeOpacity={0.8}
+          accessibilityRole="button"
+          accessibilityLabel={`Week ${weekNumber} of 52 — explore your journey`}
+        >
           <View style={styles.manualTrack}>
             <View style={[styles.manualFill, { width: `${pct * 100}%` }]} />
           </View>
           <View style={[styles.manualBeePin, { left: `${markerPct * 100}%` }]}>
             <CornerBee size={24} rotate={-8} />
           </View>
-        </View>
+        </TouchableOpacity>
+        <Text style={{ fontFamily: FONTS.v2_mono, fontSize: 9, letterSpacing: 1, textTransform: 'uppercase', color: 'rgba(67,38,15,0.5)', marginTop: 8 }}>
+          week {weekNumber} of 52 · tap to explore your journey
+        </Text>
 
         <View style={styles.manualCtaBtn}>
           <Text style={styles.manualCtaText}>what to expect this week →</Text>
@@ -467,6 +479,7 @@ export default function HomeScreenV3() {
           hook={weekMilestones[0]?.title ?? currentMilestone?.description ?? null}
           body={weekMilestones[0]?.description ?? currentMilestone?.description ?? null}
           onPress={goManual}
+          onJourney={() => navigation.navigate('MilestoneTimeline' as never, { week: heroWeek } as never)}
         />
 
         <TouchableOpacity

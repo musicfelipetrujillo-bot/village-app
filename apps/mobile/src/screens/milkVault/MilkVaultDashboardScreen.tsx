@@ -40,7 +40,7 @@ const RING_C = 2 * Math.PI * RING_R; // ≈ 326.73
 
 export default function MilkVaultDashboardScreen() {
   const nav = useNavigation<Nav>();
-  const { settings, core, loading, loaded, fetchAll } = useMilkVaultStore();
+  const { settings, core, marketplace, loading, loaded, fetchAll } = useMilkVaultStore();
   const babyName = useHomeStore((s) => s.babyProfile?.baby_name) ?? null;
 
   useFocusEffect(useCallback(() => { fetchAll(); }, [fetchAll]));
@@ -208,14 +208,25 @@ export default function MilkVaultDashboardScreen() {
             </View>
           )}
 
-          {/* Share your extra */}
-          <TouchableOpacity style={styles.shareCard} activeOpacity={0.9} onPress={goShare} accessibilityRole="button" accessibilityLabel="Share your extra milk">
-            <Path2 d="M20.8 4.6a5.5 5.5 0 00-7.8 0L12 5.6l-1-1a5.5 5.5 0 00-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 000-7.8z" color={C.honeyInk} size={22} />
-            <Text style={styles.shareText}>
-              Have <Text style={{ fontFamily: FONTS.v2_bold, color: C.cocoa }}>extra</Text>? Share it with a mom nearby.
-            </Text>
-            <Text style={styles.shareArrow}>›</Text>
-          </TouchableOpacity>
+          {/* Share your extra — surfaces keep-vs-share earning potential when
+              she's in marketplace mode with surplus; taps into the full slider. */}
+          {marketplace && marketplace.availableOz > 0 ? (
+            <TouchableOpacity style={styles.shareCard} activeOpacity={0.9} onPress={() => nav.navigate('MilkVaultKeepSell')} accessibilityRole="button" accessibilityLabel="Keep vs share your milk">
+              <Path2 d="M20.8 4.6a5.5 5.5 0 00-7.8 0L12 5.6l-1-1a5.5 5.5 0 00-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 000-7.8z" color={C.honeyInk} size={22} />
+              <View style={{ flex: 1 }}>
+                <Text style={styles.shareText}>Share <Text style={{ fontFamily: FONTS.v2_bold, color: C.cocoa }}>{marketplace.availableOz} oz</Text> beyond your reserve.</Text>
+                <Text style={styles.shareEarn}>≈ ${marketplace.estimatedPayout} to offset costs · keep vs share ›</Text>
+              </View>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity style={styles.shareCard} activeOpacity={0.9} onPress={goShare} accessibilityRole="button" accessibilityLabel="Share your extra milk">
+              <Path2 d="M20.8 4.6a5.5 5.5 0 00-7.8 0L12 5.6l-1-1a5.5 5.5 0 00-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 000-7.8z" color={C.honeyInk} size={22} />
+              <Text style={styles.shareText}>
+                Have <Text style={{ fontFamily: FONTS.v2_bold, color: C.cocoa }}>extra</Text>? Share it with a mom nearby.
+              </Text>
+              <Text style={styles.shareArrow}>›</Text>
+            </TouchableOpacity>
+          )}
 
           {/* Add manually */}
           <TouchableOpacity onPress={() => nav.navigate('MilkVaultAddBag', {})} style={styles.addManual} accessibilityRole="button">
@@ -321,6 +332,7 @@ const styles = StyleSheet.create({
 
   shareCard: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: C.honeyCard, borderRadius: 14, padding: 14, marginHorizontal: 18, marginTop: 20 },
   shareText: { flex: 1, fontFamily: FONTS.v2_body, fontSize: 13, color: '#5A4030', lineHeight: 18 },
+  shareEarn: { fontFamily: FONTS.v2_link, fontSize: 12, color: C.roseInk, marginTop: 3 },
   shareArrow: { fontSize: 20, color: C.roseInk },
 
   addManual: { alignItems: 'center', paddingVertical: 16, marginTop: 6 },
