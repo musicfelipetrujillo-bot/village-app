@@ -201,7 +201,18 @@ export default function MilkConnectHomeScreen({ navigation }: Props) {
           </TouchableOpacity>
         )}
 
-        {/* Share path OR donor strip */}
+        {/* GIVE side — the second marketplace path, as a real section */}
+        <View style={styles.sectionHead}>
+          <Text style={styles.sectionLabel}>{lang === 'es' ? 'comparte tu leche' : 'share your milk'}</Text>
+          {donorProfile && (
+            <TouchableOpacity onPress={() => navigation.navigate('DonorSocialLinks', { donorProfileId: donorProfile.id })} accessibilityRole="button">
+              <Text style={styles.sectionLink}>
+                {donorProfile.social_links && Object.keys(donorProfile.social_links).length > 0 ? t('milk.socialCtaEdit') : t('milk.socialCtaAdd')}
+              </Text>
+            </TouchableOpacity>
+          )}
+        </View>
+
         {donorProfile ? (
           <View style={styles.donorStrip}>
             <View style={{ flex: 1 }}>
@@ -216,22 +227,25 @@ export default function MilkConnectHomeScreen({ navigation }: Props) {
             </TouchableOpacity>
           </View>
         ) : (
-          <TouchableOpacity style={styles.shareCard} activeOpacity={0.92} onPress={onShareMilk} accessibilityRole="button" accessibilityLabel={t('milk.becomeDonorTitle')}>
-            <View style={styles.shareIcon}><Glyph d={ICON.droplet} color={C.honeyInk} size={20} /></View>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.shareTitle}>{t('milk.becomeDonorTitle')}</Text>
-              <Text style={styles.shareSub}>{t('milk.shareTileSub')}</Text>
+          <View style={styles.becomeCard}>
+            <View style={styles.becomeHead}>
+              <View style={styles.shareIcon}><Glyph d={ICON.droplet} color={C.honeyInk} size={20} /></View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.becomeTitle}>{t('milk.becomeDonorTitle')}</Text>
+                <Text style={styles.becomeSub}>{lang === 'es' ? 'Comparte o vende tu leche extra con mamás verificadas cerca — tú pones el precio, o dónala.' : 'Share or sell your extra milk with screened moms nearby — you set the price, or donate.'}</Text>
+              </View>
             </View>
-            <Text style={styles.shareArrow}>›</Text>
-          </TouchableOpacity>
-        )}
-
-        {donorProfile && (
-          <TouchableOpacity onPress={() => navigation.navigate('DonorSocialLinks', { donorProfileId: donorProfile.id })} style={styles.manageRow} accessibilityRole="button">
-            <Text style={styles.manageText}>
-              {donorProfile.social_links && Object.keys(donorProfile.social_links).length > 0 ? t('milk.socialCtaEdit') : t('milk.socialCtaAdd')}
-            </Text>
-          </TouchableOpacity>
+            <View style={styles.stepsRow}>
+              <Step n="1" label={lang === 'es' ? 'evaluación' : 'get screened'} />
+              <View style={styles.stepDash} />
+              <Step n="2" label={lang === 'es' ? 'publica' : 'list your milk'} />
+              <View style={styles.stepDash} />
+              <Step n="3" label={lang === 'es' ? 'conecta' : 'connect · hand off'} />
+            </View>
+            <TouchableOpacity style={styles.becomeCta} onPress={onShareMilk} activeOpacity={0.9} accessibilityRole="button" accessibilityLabel={t('milk.becomeDonorTitle')}>
+              <Text style={styles.becomeCtaText}>{lang === 'es' ? 'Empezar' : 'Get started'}</Text>
+            </TouchableOpacity>
+          </View>
         )}
 
         {/* How Villie keeps this safe */}
@@ -252,6 +266,15 @@ function TrustRow({ d, text, last }: { d: string; text: string; last?: boolean }
     <View style={[styles.trustRow, !last && styles.trustRowBorder]}>
       <Glyph d={d} color={C.sage} size={18} />
       <Text style={styles.trustText}>{text}</Text>
+    </View>
+  );
+}
+
+function Step({ n, label }: { n: string; label: string }) {
+  return (
+    <View style={styles.step}>
+      <View style={styles.stepNum}><Text style={styles.stepNumText}>{n}</Text></View>
+      <Text style={styles.stepLabel} numberOfLines={2}>{label}</Text>
     </View>
   );
 }
@@ -299,6 +322,19 @@ const styles = StyleSheet.create({
   shareTitle: { fontFamily: FONTS.v2_bold, fontSize: 15, color: C.cocoa },
   shareSub: { fontFamily: FONTS.v2_body, fontSize: 12, color: C.walnut, marginTop: 2 },
   shareArrow: { fontSize: 20, color: C.honeyInk },
+
+  becomeCard: { backgroundColor: C.honeyCard, borderRadius: 16, padding: 16, marginHorizontal: 18, marginTop: 14 },
+  becomeHead: { flexDirection: 'row', gap: 12, alignItems: 'flex-start' },
+  becomeTitle: { fontFamily: FONTS.v2_bold, fontSize: 16, color: C.cocoa },
+  becomeSub: { fontFamily: FONTS.v2_body, fontSize: 12.5, lineHeight: 18, color: '#5A4030', marginTop: 4 },
+  stepsRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginTop: 16, paddingHorizontal: 2 },
+  step: { alignItems: 'center', width: 82 },
+  stepNum: { width: 26, height: 26, borderRadius: 13, backgroundColor: 'rgba(255,252,246,0.7)', alignItems: 'center', justifyContent: 'center' },
+  stepNumText: { fontFamily: FONTS.v2_bold, fontSize: 13, color: C.honeyInk },
+  stepLabel: { fontFamily: FONTS.v2_body, fontSize: 10.5, color: '#5A4030', textAlign: 'center', marginTop: 6, lineHeight: 13 },
+  stepDash: { flex: 1, height: 1, backgroundColor: 'rgba(185,138,30,0.35)', marginTop: 13 },
+  becomeCta: { backgroundColor: C.rose, borderRadius: 12, paddingVertical: 13, alignItems: 'center', marginTop: 18 },
+  becomeCtaText: { fontFamily: FONTS.v2_bold, fontSize: 14.5, color: '#fff' },
 
   donorStrip: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: C.paper, borderRadius: 16, borderWidth: StyleSheet.hairlineWidth, borderColor: C.hair, padding: 15, marginHorizontal: 18, marginTop: 18 },
   donorLabel: { fontFamily: FONTS.v2_mono, fontSize: 9.5, letterSpacing: 1.4, textTransform: 'uppercase', color: C.walnut, fontWeight: '600' },
