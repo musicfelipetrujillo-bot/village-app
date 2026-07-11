@@ -1,6 +1,6 @@
 import React, { useEffect, useCallback, useMemo } from 'react';
 import {
-  View, Text, StyleSheet, TouchableOpacity, ScrollView,
+  View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FlashList } from '@shopify/flash-list';
@@ -13,8 +13,13 @@ import { useT } from '@/i18n';
 import { useExpertsStore } from '@store/experts';
 import { useAuthStore } from '@store/auth';
 import { useUserStore, getPreferredRadiusMiles } from '@store/user';
-import { SpecialistCard } from '@components/experts/SpecialistCard';
+import { CareCard } from '@components/experts/CareCard';
 import { ExpertsListSkeleton } from '@components/shared/SkeletonLoader';
+import type { Specialist } from 'shared/src/types/v1';
+
+type CareRow =
+  | { kind: 'header'; title: string; tag: string }
+  | { kind: 'provider'; item: Specialist; idx: number };
 import { WarmGlowBackdrop } from '@components/shared/WarmGlowBackdrop';
 import { HoneycombBackdrop } from '@components/shared/HoneycombBackdrop';
 import type { ExpertsStackParamList } from '@/navigation/ExpertsNavigator';
@@ -50,12 +55,31 @@ export default function ExpertsHomeScreen({ navigation, route }: Props) {
     return match?.key ?? 'all';
   }, [incomingSpecialty]);
   const [activeChip, setActiveChip] = React.useState(initialChipKey);
-  // Care two-tier filter — clinical (NPI-verified) vs extra hands (background-checked).
+  // Care two-tier directory — grouped into Clinical (NPI-verified) + Extra hands
+  // (background-checked) sections, with a text search + checked-only filter.
   const [tier, setTier] = React.useState<'all' | 'clinical' | 'help'>('all');
-  const displayResults = useMemo(
-    () => (tier === 'all' ? results : results.filter((r) => (r.provider_kind ?? 'clinical') === tier)),
-    [results, tier],
-  );
+  const [query, setQuery] = React.useState('');
+  const [checkedOnly, setCheckedOnly] = React.useState(false);
+  const listData: CareRow[] = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    const rows = results.filter((r) => {
+      if (checkedOnly && r.provider_kind === 'help' && !r.background_checked) return false;
+      if (q && !`${r.full_name} ${r.credentials} ${r.specialty}`.toLowerCase().includes(q)) return false;
+      return true;
+    });
+    const clinical = rows.filter((r) => (r.provider_kind ?? 'clinical') === 'clinical');
+    const help = rows.filter((r) => r.provider_kind === 'help');
+    const out: CareRow[] = [];
+    if ((tier === 'all' || tier === 'clinical') && clinical.length) {
+      out.push({ kind: 'header', title: 'Clinical care', tag: 'NPI-verified' });
+      clinical.forEach((item, idx) => out.push({ kind: 'provider', item, idx }));
+    }
+    if ((tier === 'all' || tier === 'help') && help.length) {
+      out.push({ kind: 'header', title: 'Extra hands', tag: 'Background-checked' });
+      help.forEach((item, idx) => out.push({ kind: 'provider', item, idx }));
+    }
+    return out;
+  }, [results, tier, query, checkedOnly]);
 
   // "My insurance" chip is conditional — only shown when the user has set
   // insurance_provider on their profile. The chip value passes that string
@@ -186,6 +210,22 @@ export default function ExpertsHomeScreen({ navigation, route }: Props) {
         <View style={styles.mastheadRule} />
       </View>
 
+      {/* Search + checked-only */}
+      <View style={styles.careSearchRow}>
+        <Text style={styles.careSearchIcon}>⌕</Text>
+        <TextInput
+          style={styles.careSearchInput}
+          placeholder="search care · lactation, nanny, sleep…"
+          placeholderTextColor="#A6957F"
+          value={query}
+          onChangeText={setQuery}
+          returnKeyType="search"
+        />
+        <TouchableOpacity onPress={() => setCheckedOnly((v) => !v)} style={[styles.checkedChip, checkedOnly && styles.checkedChipActive]} accessibilityRole="button" accessibilityState={{ selected: checkedOnly }}>
+          <Text style={[styles.checkedChipText, checkedOnly && styles.checkedChipTextActive]}>🛡 checked</Text>
+        </TouchableOpacity>
+      </View>
+
       {/* Care tier toggle — clinical vs extra hands */}
       <View style={styles.tierRow}>
         {(['all', 'clinical', 'help'] as const).map((k) => (
@@ -242,17 +282,26 @@ export default function ExpertsHomeScreen({ navigation, route }: Props) {
         style={styles.pageWash}
       />
       <FlashList
-        data={loading ? [] : displayResults}
-        keyExtractor={(item) => item.id}
+        data={loading ? [] : listData}
+        keyExtractor={(row) => (row.kind === 'header' ? `h-${row.title}` : row.item.id)}
+        getItemType={(row) => row.kind}
         contentContainerStyle={styles.list}
         ListHeaderComponent={ListHeader}
-        ItemSeparatorComponent={() => <View style={styles.cardSeparator} />}
-        renderItem={({ item }) => (
-          <SpecialistCard
-            specialist={item}
-            onPress={() => navigation.navigate('SpecialistProfile', { specialistId: item.id })}
-          />
-        )}
+        ItemSeparatorComponent={() => <View style={styles.careRowGap} />}
+        renderItem={({ item: row }) =>
+          row.kind === 'header' ? (
+            <View style={styles.careSectionHead}>
+              <Text style={styles.careSectionTitle}>{row.title}</Text>
+              <Text style={styles.careSectionTag}>{row.tag}</Text>
+            </View>
+          ) : (
+            <CareCard
+              specialist={row.item}
+              index={row.idx}
+              onPress={() => navigation.navigate('SpecialistProfile', { specialistId: row.item.id })}
+            />
+          )
+        }
         ListEmptyComponent={
           loading ? (
             <ExpertsListSkeleton />
@@ -414,6 +463,17 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(61,31,14,0.13)',
   },
 
+  careSearchRow: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#FDF7EC', borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(61,31,14,0.14)', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 4, marginHorizontal: 16, marginTop: 14 },
+  careSearchIcon: { fontSize: 18, color: '#C2556F' },
+  careSearchInput: { flex: 1, fontFamily: FONTS.v2_body, fontSize: 13.5, color: '#3D2116', paddingVertical: 9 },
+  checkedChip: { backgroundColor: '#EAF0DE', borderRadius: 999, paddingHorizontal: 9, paddingVertical: 5 },
+  checkedChipActive: { backgroundColor: '#7B8A46' },
+  checkedChipText: { fontFamily: FONTS.v2_mono, fontSize: 9.5, color: '#5B6B37', fontWeight: '600' },
+  checkedChipTextActive: { color: '#fff' },
+  careSectionHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 22, marginBottom: 12, paddingBottom: 8, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(61,31,14,0.12)' },
+  careSectionTitle: { fontFamily: FONTS.v2_mono, fontSize: 11, letterSpacing: 2.2, textTransform: 'uppercase', color: '#8A6A55', fontWeight: '500' },
+  careSectionTag: { fontFamily: FONTS.v2_mono, fontSize: 9, letterSpacing: 1.2, textTransform: 'uppercase', color: '#7B8A46', fontWeight: '600' },
+  careRowGap: { height: 10 },
   tierRow: { flexDirection: 'row', gap: 8, paddingHorizontal: 16, paddingTop: 14 },
   tierSeg: { flex: 1, alignItems: 'center', paddingVertical: 9, borderRadius: 999, backgroundColor: '#F2E6DD' },
   tierSegActive: { backgroundColor: '#E06A88' },
