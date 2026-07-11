@@ -3,6 +3,7 @@ import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
   TextInput, Alert, ActivityIndicator, Modal,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useMilkStore } from '@store/milk';
 import { getTrustBadge, upsertDietFlags, addMedication, getMedications, removeMedication } from '@api/milk';
@@ -44,6 +45,7 @@ export default function TrustBadgeBuilderScreen({ route, navigation }: Props) {
   const [medFreq, setMedFreq] = useState('');
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     loadData();
@@ -123,6 +125,11 @@ export default function TrustBadgeBuilderScreen({ route, navigation }: Props) {
   return (
     <View style={styles.container}>
       <V9PageBackdrop />
+      <View style={[styles.backRow, { paddingTop: insets.top + 6 }]}>
+        <TouchableOpacity onPress={() => navigation.goBack()} accessibilityRole="button" accessibilityLabel="Back" hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+          <Text style={styles.backChevron}>‹</Text>
+        </TouchableOpacity>
+      </View>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         {/* Header */}
         <Text style={styles.title}>{t('trustBadge.title')}</Text>
@@ -272,7 +279,9 @@ export default function TrustBadgeBuilderScreen({ route, navigation }: Props) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: 'transparent' },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#F5F0E8' },
-  content: { padding: 24, paddingTop: 56, paddingBottom: 120 },
+  content: { padding: 24, paddingTop: 8, paddingBottom: 120 },
+  backRow: { paddingHorizontal: 18, paddingBottom: 2 },
+  backChevron: { fontSize: 30, color: '#C2556F', marginTop: -2 },
   title: { fontSize: 28, fontFamily: FONTS.headerBold, color: '#43260F', marginBottom: 8, letterSpacing: -0.4, lineHeight: 34 },
   subtitle: { fontSize: 14, color: '#7A4A24', lineHeight: 21, marginBottom: 24, fontFamily: FONTS.body },
 

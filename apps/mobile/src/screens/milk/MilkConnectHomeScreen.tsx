@@ -213,6 +213,10 @@ export default function MilkConnectHomeScreen({ navigation }: Props) {
                 <ProfileRow d={ICON.drop} label={lang === 'es' ? 'Análisis de sangre' : 'Bloodwork'} status={bwDone ? (lang === 'es' ? 'Vinculado' : 'Linked') : (lang === 'es' ? 'Opcional' : 'Add · optional')} done={bwDone} onPress={goBadge} />
                 <ProfileRow d={ICON.clipboard} label={lang === 'es' ? 'Enlaces sociales' : 'Social links'} status={donorProfile.social_links && Object.keys(donorProfile.social_links).length > 0 ? (lang === 'es' ? 'Añadidos' : 'Added') : (lang === 'es' ? 'Añadir' : 'Add')} done={!!(donorProfile.social_links && Object.keys(donorProfile.social_links).length > 0)} onPress={() => navigation.navigate('DonorSocialLinks', { donorProfileId: donorProfile.id })} last />
               </View>
+              <TouchableOpacity style={styles.listingsRow} onPress={() => navigation.navigate('DonorListingManager')} accessibilityRole="button" accessibilityLabel={lang === 'es' ? 'Ver mis publicaciones' : 'View your listings'}>
+                <Text style={styles.listingsRowText}>{lang === 'es' ? 'Ver mis publicaciones' : 'View your listings'}</Text>
+                <Glyph d={ICON.chev} color={C.roseInk} size={15} />
+              </TouchableOpacity>
             </>
           )}
 
@@ -296,6 +300,8 @@ const styles = StyleSheet.create({
   pIcon: { width: 32, height: 32, borderRadius: 9, alignItems: 'center', justifyContent: 'center' },
   pLabel: { flex: 1, fontFamily: FONTS.v2_link, fontSize: 13.5, color: C.ink },
   pStatus: { fontFamily: FONTS.v2_label, fontSize: 12 },
+  listingsRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4, paddingVertical: 13, marginHorizontal: 18 },
+  listingsRowText: { fontFamily: FONTS.v2_link, fontSize: 13.5, color: C.roseInk },
 
   trustCard: { backgroundColor: C.paper, borderWidth: StyleSheet.hairlineWidth, borderColor: C.hair, borderRadius: 16, padding: 16, marginHorizontal: 18, marginTop: 24 },
   trustEyebrow: { fontFamily: FONTS.v2_mono, fontSize: 11, letterSpacing: 2.2, textTransform: 'uppercase', color: C.walnut, fontWeight: '500', marginBottom: 4 },

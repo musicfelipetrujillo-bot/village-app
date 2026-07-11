@@ -19,6 +19,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 // M1 screens
 import MilkConnectHomeScreen from '@screens/milk/MilkConnectHomeScreen';
 import BecomeDonorIntroScreen from '@screens/milk/BecomeDonorIntroScreen';
+import MilkMyListingsScreen from '@screens/milk/MilkMyListingsScreen';
 import DonorQuestionnaireScreen from '@screens/milk/DonorQuestionnaireScreen';
 import TrustBadgeBuilderScreen from '@screens/milk/TrustBadgeBuilderScreen';
 import CreateListingScreen from '@screens/milk/CreateListingScreen';
@@ -124,7 +125,7 @@ export function MilkNavigator() {
       <Stack.Screen name="MilkVaultSettings" component={MilkVaultSettingsScreen} />
       {/* M5+ placeholder */}
       <Stack.Screen name="DonorDashboard" component={PlaceholderScreen} />
-      <Stack.Screen name="DonorListingManager" component={PlaceholderScreen} />
+      <Stack.Screen name="DonorListingManager" component={MilkMyListingsScreen} />
     </Stack.Navigator>
   );
 }

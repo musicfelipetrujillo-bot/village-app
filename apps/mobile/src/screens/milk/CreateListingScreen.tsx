@@ -3,6 +3,7 @@ import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
   TextInput, Alert, Switch,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useMilkStore } from '@store/milk';
 import { createListing, updateDonorProfile } from '@api/milk';
@@ -30,6 +31,7 @@ export default function CreateListingScreen({ route, navigation }: Props) {
   const [shippingPrice, setShippingPrice] = useState('');
   const [notes, setNotes] = useState('');
   const [saving, setSaving] = useState(false);
+  const insets = useSafeAreaInsets();
 
   const totalEstimate = parseFloat(pricePerOz || '0') * parseFloat(ozAvailable || '0');
 
@@ -71,7 +73,8 @@ export default function CreateListingScreen({ route, navigation }: Props) {
         const activated = await updateDonorProfile(donorProfileId, { is_active: true });
         setDonorProfile(activated);
       }
-      navigation.replace('MilkHome');
+      // Land on the donor's listings so she immediately SEES what she just posted.
+      navigation.replace('DonorListingManager');
     } catch (err) {
       console.error('CreateListing error:', err);
       Alert.alert(t('createListing.errorTitle'), t('createListing.errorBody'));
@@ -83,6 +86,11 @@ export default function CreateListingScreen({ route, navigation }: Props) {
   return (
     <View style={styles.container}>
       <V9PageBackdrop />
+      <View style={[styles.backRow, { paddingTop: insets.top + 6 }]}>
+        <TouchableOpacity onPress={() => navigation.goBack()} accessibilityRole="button" accessibilityLabel="Back" hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+          <Text style={styles.backChevron}>‹</Text>
+        </TouchableOpacity>
+      </View>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <Text style={styles.title}>{t('createListing.title')}</Text>
         <Text style={styles.subtitle}>{t('createListing.subtitle')}</Text>
@@ -212,7 +220,9 @@ export default function CreateListingScreen({ route, navigation }: Props) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: 'transparent' },
-  content: { padding: 24, paddingTop: 56, paddingBottom: 140 },
+  content: { padding: 24, paddingTop: 8, paddingBottom: 140 },
+  backRow: { paddingHorizontal: 18, paddingBottom: 2 },
+  backChevron: { fontSize: 30, color: '#C2556F', marginTop: -2 },
   title: { fontSize: 28, fontFamily: FONTS.headerBold, color: '#43260F', marginBottom: 8, letterSpacing: -0.4, lineHeight: 34 },
   subtitle: { fontSize: 14, color: '#7A4A24', lineHeight: 21, marginBottom: 28, fontFamily: FONTS.body },
   label: { fontSize: 13, fontFamily: FONTS.bodySemiBold, color: '#7A4A24', marginBottom: 8, marginTop: 16, textTransform: 'uppercase', letterSpacing: 0.6 },
