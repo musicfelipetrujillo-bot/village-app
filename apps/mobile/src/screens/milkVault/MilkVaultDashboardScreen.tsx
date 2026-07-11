@@ -13,6 +13,7 @@ import {
   View, Text, StyleSheet, TouchableOpacity, ScrollView, RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Circle, Path } from 'react-native-svg';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -142,11 +143,11 @@ export default function MilkVaultDashboardScreen() {
             </View>
           ) : (
           <>
-          {/* Freezer ring hero */}
-          <View style={styles.heroWrap}>
+          {/* Freezer ring hero — on the gradient so it pops like the marketplace */}
+          <LinearGradient colors={['#F8C6D0', '#FBE6B4']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.heroWrap}>
             <View style={styles.ringWrap}>
               <Svg width={184} height={184} viewBox="0 0 120 120">
-                <Circle cx={60} cy={60} r={RING_R} fill="none" stroke={C.track} strokeWidth={11} />
+                <Circle cx={60} cy={60} r={RING_R} fill="none" stroke="rgba(255,252,246,0.65)" strokeWidth={11} />
                 <Circle
                   cx={60} cy={60} r={RING_R} fill="none" stroke={C.honey} strokeWidth={11}
                   strokeLinecap="round" strokeDasharray={[dash, RING_C]}
@@ -164,7 +165,7 @@ export default function MilkVaultDashboardScreen() {
                 ? `≈ ${core.babyCoverageDays} ${core.babyCoverageDays === 1 ? 'day' : 'days'} of feeds${babyName ? ` for ${babyName}` : ''}`
                 : 'snap your first bag to start'}
             </Text>
-          </View>
+          </LinearGradient>
 
           {/* Quiet stat strip */}
           <View style={styles.strip}>
@@ -293,7 +294,7 @@ const styles = StyleSheet.create({
   toggleText: { fontFamily: FONTS.v2_link, fontSize: 13.5, color: C.walnut },
   toggleTextActive: { fontFamily: FONTS.v2_bold, fontSize: 13.5, color: '#fff' },
 
-  heroWrap: { alignItems: 'center', paddingTop: 14, paddingBottom: 4 },
+  heroWrap: { alignItems: 'center', paddingTop: 24, paddingBottom: 20, marginHorizontal: 18, borderRadius: 22, overflow: 'hidden' },
   ringWrap: { width: 184, height: 184, alignItems: 'center', justifyContent: 'center' },
   ringCenter: { position: 'absolute', alignItems: 'center', justifyContent: 'center' },
   ringCap: { fontFamily: FONTS.v2_mono, fontSize: 9, letterSpacing: 1.4, textTransform: 'uppercase', color: C.honeyInk, fontWeight: '600' },

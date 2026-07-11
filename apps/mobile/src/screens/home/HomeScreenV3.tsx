@@ -235,8 +235,6 @@ function ManualHeroCard({ babyName, weekNumber, hook, body, onPress, onJourney }
   onPress: () => void;
   onJourney: () => void;
 }) {
-  const pct = Math.max(0.04, Math.min(1, weekNumber / 52));
-  const markerPct = Math.min(0.93, Math.max(0.06, pct));
   const blurb = hook ?? body ?? `tiny but mighty — see what's changing for ${babyName} this week.`;
   return (
     <TouchableOpacity activeOpacity={0.94} onPress={onPress} style={{ marginTop: 18 }}>
@@ -270,26 +268,17 @@ function ManualHeroCard({ babyName, weekNumber, hook, body, onPress, onJourney }
 
         <Text style={styles.manualBlurb} numberOfLines={2}>{blurb}</Text>
 
-        {/* Journey progress — the bee marks where you are in the 52-week
-            journey. It's a progress waypoint, not a drag handle: tapping opens
-            the full week timeline, where the weeks ARE navigable. */}
+        {/* Journey — a clean tappable row (no slider). Opens the week timeline. */}
         <TouchableOpacity
-          style={styles.manualProgress}
+          style={styles.manualJourneyRow}
           onPress={onJourney}
           activeOpacity={0.8}
           accessibilityRole="button"
-          accessibilityLabel={`Week ${weekNumber} of 52 — explore your journey`}
+          accessibilityLabel={`Week ${weekNumber} of 52 — see your journey`}
         >
-          <View style={styles.manualTrack}>
-            <View style={[styles.manualFill, { width: `${pct * 100}%` }]} />
-          </View>
-          <View style={[styles.manualBeePin, { left: `${markerPct * 100}%` }]}>
-            <CornerBee size={24} rotate={-8} />
-          </View>
+          <Text style={styles.manualJourneyWeek}>week {weekNumber} of 52</Text>
+          <Text style={styles.manualJourneyLink}>see your journey →</Text>
         </TouchableOpacity>
-        <Text style={{ fontFamily: FONTS.v2_mono, fontSize: 9, letterSpacing: 1, textTransform: 'uppercase', color: 'rgba(67,38,15,0.5)', marginTop: 8 }}>
-          week {weekNumber} of 52 · tap to explore your journey
-        </Text>
 
         <View style={styles.manualCtaBtn}>
           <Text style={styles.manualCtaText}>what to expect this week →</Text>
@@ -551,7 +540,7 @@ const styles = StyleSheet.create({
   // villie wordmark. Sized as a masthead brand signature — a touch wider than the
   // asset's native 2.318:1 (stretch fill) for more horizontal presence, height kept
   // modest so the greeting spacing below (marginBottom) is unchanged.
-  mastheadLogo: { width: 84, height: 36, marginBottom: 14 },
+  mastheadLogo: { width: 62, height: 26, marginBottom: 12, alignSelf: 'flex-end', opacity: 0.9 },
   mastheadEyebrowRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 9 },
   mastheadEyebrowBar: { width: 16, height: 1.5, backgroundColor: T.walnut, marginRight: 8 },
   mastheadEyebrow: {
@@ -634,6 +623,9 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.v2_body, fontSize: 14, lineHeight: 20,
     color: T.walnut, marginTop: 8,
   },
+  manualJourneyRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 20, marginBottom: 6, paddingTop: 12, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: 'rgba(67,38,15,0.14)' },
+  manualJourneyWeek: { fontFamily: FONTS.v2_mono, fontSize: 10, letterSpacing: 1.4, textTransform: 'uppercase', color: 'rgba(67,38,15,0.6)', fontWeight: '600' },
+  manualJourneyLink: { fontFamily: FONTS.bodySemiBold, fontSize: 13, color: '#43260F' },
   manualProgress: { marginTop: 22, marginBottom: 8, height: 10, justifyContent: 'center' },
   manualTrack: { height: 6, borderRadius: 3, backgroundColor: 'rgba(67,38,15,0.16)', overflow: 'hidden' },
   manualFill: { height: '100%', borderRadius: 3, backgroundColor: T.walnut },

@@ -9,6 +9,7 @@ import React, { useCallback, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { babyTrackerApi, type RecentStats } from '@api/babyTracker';
 import { homeApi } from '@api/home';
@@ -97,17 +98,17 @@ export default function InsightsScreen() {
           <View style={styles.center}><ActivityIndicator color={C.rose} /></View>
         ) : (
           <ScrollView contentContainerStyle={{ paddingBottom: 90 }} showsVerticalScrollIndicator={false}>
-            {/* Villie's read */}
-            <View style={styles.narrCard}>
+            {/* Villie's read — the gradient "Villie moment" */}
+            <LinearGradient colors={['#EE94AC', '#F6C94F']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.narrCard}>
               <View style={styles.narrHead}>
                 <View style={styles.narrBee}><Glyph d={ICON.spark} color={C.honeyInk} size={15} /></View>
                 <Text style={styles.narrEyebrow}>villie's read on your week</Text>
               </View>
               <Text style={styles.narrText}>{narration}</Text>
-            </View>
+            </LinearGradient>
 
             {/* Sleep */}
-            <View style={styles.card}>
+            <View style={[styles.card, { backgroundColor: '#F1F5E6', borderColor: 'rgba(123,138,70,0.16)' }]}>
               <View style={styles.cardHead}>
                 <View style={styles.rowGap}><Glyph d={ICON.moon} color={C.sage} size={15} /><Text style={styles.cardEyebrow}>{babyName}'s sleep</Text></View>
               </View>
@@ -179,18 +180,18 @@ const styles = StyleSheet.create({
   weekChip: { backgroundColor: '#F2E6DD', borderRadius: 999, paddingHorizontal: 11, paddingVertical: 5 },
   weekChipText: { fontFamily: FONTS.v2_mono, fontSize: 9, letterSpacing: 1.3, textTransform: 'uppercase', color: C.walnut, fontWeight: '600' },
 
-  narrCard: { backgroundColor: C.paper, borderWidth: 1, borderColor: 'rgba(224,106,136,0.16)', borderRadius: 16, padding: 16, marginHorizontal: 16 },
+  narrCard: { borderRadius: 18, padding: 18, marginHorizontal: 16, overflow: 'hidden' },
   narrHead: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 },
-  narrBee: { width: 26, height: 26, borderRadius: 13, backgroundColor: C.honey, alignItems: 'center', justifyContent: 'center' },
-  narrEyebrow: { fontFamily: FONTS.v2_mono, fontSize: 11, letterSpacing: 1.8, textTransform: 'uppercase', color: C.roseInk, fontWeight: '600' },
-  narrText: { fontFamily: FONTS.v2_body, fontSize: 15, lineHeight: 24, color: C.cocoa },
+  narrBee: { width: 27, height: 27, borderRadius: 14, backgroundColor: 'rgba(255,252,246,0.6)', alignItems: 'center', justifyContent: 'center' },
+  narrEyebrow: { fontFamily: FONTS.v2_mono, fontSize: 11, letterSpacing: 1.8, textTransform: 'uppercase', color: '#8A3A54', fontWeight: '600' },
+  narrText: { fontFamily: FONTS.v2_body, fontSize: 15, lineHeight: 24, color: '#43260F' },
 
   card: { backgroundColor: C.paper, borderWidth: StyleSheet.hairlineWidth, borderColor: C.hair, borderRadius: 16, padding: 16, marginHorizontal: 16, marginTop: 12 },
   cardHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   rowGap: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   cardEyebrow: { fontFamily: FONTS.v2_mono, fontSize: 11, letterSpacing: 1.8, textTransform: 'uppercase', color: C.walnut, fontWeight: '500' },
   cardMeta: { fontFamily: FONTS.v2_mono, fontSize: 9, letterSpacing: 1.2, textTransform: 'uppercase', color: C.walnut, fontWeight: '600' },
-  bigVal: { fontFamily: FONTS.v2_display_big, fontSize: 26, color: C.cocoa, marginTop: 12 },
+  bigVal: { fontFamily: FONTS.v2_display_big, fontSize: 26, color: '#5B6B37', marginTop: 12 },
   bigValSub: { fontFamily: FONTS.v2_body, fontSize: 13, color: C.walnut },
   cardBody: { fontFamily: FONTS.v2_body, fontSize: 12.5, lineHeight: 18, color: '#5A4030', marginTop: 8 },
   emptyLink: { fontFamily: FONTS.v2_link, fontSize: 13.5, color: C.roseInk, marginTop: 12 },
