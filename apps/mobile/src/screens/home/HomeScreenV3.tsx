@@ -423,7 +423,7 @@ export default function HomeScreenV3() {
 
   const tiles: Tile[] = [
     { key: 'milk',    label: 'Milk',    bg: '#F7C5CB', icon: 'droplet',     go: () => goTab('Milk') },
-    { key: 'experts', label: 'Experts', bg: '#F3B79C', icon: 'stethoscope', go: () => goTab('Experts') },
+    { key: 'experts', label: 'Care', bg: '#F3B79C', icon: 'stethoscope', go: () => goTab('Experts') },
     { key: 'gear',    label: 'Gear',    bg: '#F4C53C', icon: 'bag',         go: () => goTab('Gear') },
     { key: 'plans',   label: 'Plans',   bg: '#EFB2C8', icon: 'calendar',    go: () => goTab('Village') },
     ...(VILLIE_BOXES_ENABLED

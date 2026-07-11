@@ -34,7 +34,7 @@ const TAB_META = {
   Manual:  { icon: 'book-open', label: 'Manual' },
   Village: { icon: 'heart',     label: 'Village' },
   Inbox:   { icon: 'mail',      label: 'Inbox' },
-  Experts: { icon: 'check-circle', label: 'Specialists' },
+  Experts: { icon: 'check-circle', label: 'Care' },
   Milk:    { icon: 'droplet',   label: 'Milk' },
   Gear:    { icon: 'shopping-bag', label: 'Gear' },
   Profile: { icon: 'user',      label: 'Profile' },

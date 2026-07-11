@@ -69,7 +69,7 @@ type Vertical = {
 
 const VERTICALS: Vertical[] = [
   { title: 'Milk Hub',     sub: 'Your stash, plus peer milk.',    stat: 'track · share · find', bg: '#F7C5CB', ink: '#9B4B60', route: 'Milk',    isNew: true },
-  { title: 'Specialists',  sub: 'OB, doula, lactation, sleep.',   stat: '12 verified',          bg: '#F3B79C', ink: '#8A4A2E', route: 'Experts' },
+  { title: 'Care',         sub: 'Doctors, doulas, lactation — and extra hands.', stat: '12 verified',  bg: '#F3B79C', ink: '#8A4A2E', route: 'Experts' },
   { title: 'Baby Gear',    sub: 'Hand-me-downs from real moms.',  stat: '37 listed',            bg: '#F5C842', ink: '#8A6A1E', route: 'Gear'    },
   { title: 'Villie Plans', sub: 'Classes, circles, real coffee.', stat: '5 this week',          bg: '#EFB2C8', ink: '#94436A', route: 'Village' },
 ];
