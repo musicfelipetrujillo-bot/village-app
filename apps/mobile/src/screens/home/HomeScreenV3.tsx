@@ -29,7 +29,6 @@ import { usePicksStore } from '@store/picks';
 import { useT } from '@/i18n';
 import { homeApi, type Milestone } from '@api/home';
 import { WarmGlowBackdrop } from '@components/shared/WarmGlowBackdrop';
-import { DailyCheckinStrip } from '@components/shared/DailyCheckinStrip';
 import { GlassHighlight } from '@components/shared/GlassHighlight';
 import { useFocusEffect } from '@react-navigation/native';
 
@@ -160,6 +159,65 @@ function HomeGreeting({ firstName }: { firstName: string }) {
         {greet},{'\n'}<Text style={styles.mastheadName}>{firstName}</Text>
       </Text>
       <View style={styles.mastheadHairline} />
+    </View>
+  );
+}
+
+// ─── Ask-villie hero (AI-native front door: "what can I do for you?" + a bar +
+// three do-actions that show the AI DOING real work — log milk from a photo,
+// plan milk for a trip, check the baby's sleep). Rose+honey, less brown.
+const ICON_CAM = 'M4 8h2.5L8 6h8l1.5 2H20a1 1 0 011 1v9a1 1 0 01-1 1H4a1 1 0 01-1-1V9a1 1 0 011-1zM12 17.5a3.5 3.5 0 100-7 3.5 3.5 0 000 7z';
+const ICON_PLANE = 'M2 12l19-8-6 19-4-7-9-4z';
+const ICON_MOON = 'M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z';
+const ICON_MIC = 'M12 3a3 3 0 013 3v5a3 3 0 01-6 0V6a3 3 0 013-3zM6 11a6 6 0 0012 0M12 17v4M9 21h6';
+
+function AskVillieHero({ onAsk }: { onAsk: (seed?: string) => void }) {
+  const lang = (useUserStore((s) => s.profile?.preferred_language) ?? 'en') as 'en' | 'es';
+  const DO = lang === 'es'
+    ? [
+        { d: ICON_CAM, tint: '#FDECEF', ink: '#E06A88', a: 'registra leche', b: 'desde una foto', seed: 'Quiero registrar mi reserva de leche desde una foto' },
+        { d: ICON_PLANE, tint: '#FCF1D8', ink: '#D19A1E', a: 'planea leche', b: 'para un viaje', seed: 'Ayúdame a planear cuánta leche necesito para un viaje' },
+        { d: ICON_MOON, tint: '#EDF0DE', ink: '#7B8A46', a: '¿su sueño', b: 'va bien?', seed: '¿El sueño de mi bebé va bien?' },
+      ]
+    : [
+        { d: ICON_CAM, tint: '#FDECEF', ink: '#E06A88', a: 'log milk', b: 'from a photo', seed: 'I want to log my milk stash from a photo' },
+        { d: ICON_PLANE, tint: '#FCF1D8', ink: '#D19A1E', a: 'plan milk', b: 'for a trip', seed: 'Help me plan how much milk I need for a trip' },
+        { d: ICON_MOON, tint: '#EDF0DE', ink: '#7B8A46', a: 'is his sleep', b: 'on track?', seed: "Is my baby's sleep on track?" },
+      ];
+  return (
+    <View style={styles.askCard}>
+      <View style={styles.askGlow} pointerEvents="none" />
+      <Text style={styles.askHeadline}>{lang === 'es' ? '¿Qué puedo hacer por ti?' : 'What can I do for you?'}</Text>
+      <View style={styles.askRow2}>
+        <TouchableOpacity
+          style={styles.askBar}
+          activeOpacity={0.85}
+          onPress={() => onAsk()}
+          accessibilityRole="button"
+          accessibilityLabel={lang === 'es' ? 'Pregúntale o dile a Villie' : 'Ask or tell Villie anything'}
+        >
+          <View style={styles.askBee}><Image source={VILLIE_BEE} style={{ width: 18, height: 18 }} resizeMode="contain" /></View>
+          <Text style={styles.askText}>{lang === 'es' ? 'pregúntale o dile lo que sea…' : 'ask or tell villie anything…'}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.askMic} activeOpacity={0.85} onPress={() => onAsk()} accessibilityRole="button" accessibilityLabel={lang === 'es' ? 'Habla con Villie' : 'Talk to Villie'}>
+          <Svg width={20} height={20} viewBox="0 0 24 24"><Path d={ICON_MIC} stroke="#fff" strokeWidth={1.8} fill="none" strokeLinecap="round" strokeLinejoin="round" /></Svg>
+        </TouchableOpacity>
+      </View>
+      <View style={styles.askDoRow}>
+        {DO.map((tile, i) => (
+          <TouchableOpacity
+            key={i}
+            style={[styles.askDoTile, { backgroundColor: tile.tint }]}
+            activeOpacity={0.85}
+            onPress={() => onAsk(tile.seed)}
+            accessibilityRole="button"
+            accessibilityLabel={`${tile.a} ${tile.b}`}
+          >
+            <Svg width={21} height={21} viewBox="0 0 24 24"><Path d={tile.d} stroke={tile.ink} strokeWidth={1.7} fill="none" strokeLinecap="round" strokeLinejoin="round" /></Svg>
+            <Text style={styles.askDoText}>{tile.a}{'\n'}{tile.b}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
     </View>
   );
 }
@@ -353,6 +411,7 @@ export default function HomeScreenV3() {
   // Cross-tab nav uses the parent tab navigator; Boxes lives on the Home stack.
   const goTab = (route: string) => navigation.getParent()?.navigate(route as never);
   const goManual = () => navigation.navigate('Manual' as never);
+  const askVillie = (seed?: string) => (navigation.getParent()?.getParent() as any)?.navigate('AIHelpChat', seed ? { seed, autosend: true } : {});
 
   const tiles: Tile[] = [
     { key: 'milk',    label: 'Milk',    bg: '#F7C5CB', icon: 'droplet',     go: () => goTab('Milk') },
@@ -395,6 +454,8 @@ export default function HomeScreenV3() {
       >
         <HomeGreeting firstName={firstName} />
 
+        <AskVillieHero onAsk={askVillie} />
+
         <ManualHeroCard
           babyName={heroBabyName}
           weekNumber={heroWeek}
@@ -402,10 +463,6 @@ export default function HomeScreenV3() {
           body={weekMilestones[0]?.description ?? currentMilestone?.description ?? null}
           onPress={goManual}
         />
-
-        <View style={{ marginTop: 16 }}>
-          <DailyCheckinStrip state="pending" onPress={() => navigation.navigate('DailyCheckin' as never)} />
-        </View>
 
         <VillageTiles tiles={tiles} onAll={() => navigation.navigate('Village' as never)} />
 
@@ -473,6 +530,23 @@ const styles = StyleSheet.create({
     height: StyleSheet.hairlineWidth, backgroundColor: 'rgba(61,31,14,0.1)',
     marginTop: 16,
   },
+  // ── Ask-villie hero (rose + honey, functional do-actions) ─────────────
+  askCard: {
+    marginTop: 14, backgroundColor: '#FFFDFA', borderRadius: 20, padding: 16, overflow: 'hidden',
+    borderWidth: 1, borderColor: 'rgba(224,106,136,0.16)',
+    shadowColor: '#B4785A', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.09, shadowRadius: 22, elevation: 2,
+  },
+  askGlow: { position: 'absolute', top: -30, right: -20, width: 180, height: 120, borderRadius: 90, backgroundColor: 'rgba(252,235,208,0.7)' },
+  askHeadline: { fontFamily: FONTS.v3_display, fontSize: 20, color: T.cocoa, letterSpacing: -0.4, marginBottom: 12 },
+  askRow2: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  askBar: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 9, backgroundColor: '#FDF6EC', borderRadius: 14, paddingHorizontal: 13, paddingVertical: 11 },
+  askBee: { width: 26, height: 26, borderRadius: 9, backgroundColor: '#FDECEF', alignItems: 'center', justifyContent: 'center' },
+  askText: { flex: 1, fontFamily: FONTS.v2_body, fontSize: 13.5, color: '#B79C86' },
+  askMic: { width: 40, height: 40, borderRadius: 13, backgroundColor: '#E06A88', alignItems: 'center', justifyContent: 'center', shadowColor: '#E06A88', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.4, shadowRadius: 10, elevation: 3 },
+  askDoRow: { flexDirection: 'row', gap: 8, marginTop: 11 },
+  askDoTile: { flex: 1, borderRadius: 14, paddingVertical: 12, paddingHorizontal: 6, alignItems: 'center' },
+  askDoText: { fontFamily: FONTS.v2_bold, fontSize: 11.5, color: T.cocoa, textAlign: 'center', marginTop: 5, lineHeight: 14 },
+
   emergencyRow: {
     marginTop: 16, flexDirection: 'row', alignItems: 'center', gap: 12,
     backgroundColor: T.paper, borderRadius: 16, padding: 13,

@@ -8,15 +8,18 @@
 // launches. Tap (no drag) opens the chat as before.
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  TouchableOpacity, Text, StyleSheet, View, Platform,
+  TouchableOpacity, Text, StyleSheet, View, Platform, Image,
   Animated, PanResponder, Dimensions,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
-import { COLORS, NAV_HEIGHT } from '@utils/constants';
+import { FONTS, NAV_HEIGHT } from '@utils/constants';
 
+const VILLIE_BEE = require('../../../assets/brand/villie-bee.png');
 const STORAGE_KEY = 'village.villieFabCorner.v1';
-const FAB_SIZE = 56;
+// Labeled "ask villie" pill — wider than tall, so the drag geometry tracks W + H.
+const FAB_W = 132;
+const FAB_H = 52;
 const EDGE_PADDING = 16;
 // Vertical bands keep the FAB clear of the status bar (top) and the bottom
 // tab bar (bottom). Tweak only if NAV_HEIGHT changes.
@@ -31,8 +34,8 @@ const DEFAULT_CORNER: Corner = 'bottom-right';
 
 function cornerToXY(corner: Corner) {
   const { width, height } = Dimensions.get('window');
-  const right = width - FAB_SIZE - EDGE_PADDING;
-  const bottom = height - FAB_SIZE - BOTTOM_OFFSET;
+  const right = width - FAB_W - EDGE_PADDING;
+  const bottom = height - FAB_H - BOTTOM_OFFSET;
   switch (corner) {
     case 'top-left':     return { x: EDGE_PADDING, y: TOP_OFFSET };
     case 'top-right':    return { x: right,        y: TOP_OFFSET };
@@ -43,8 +46,8 @@ function cornerToXY(corner: Corner) {
 
 function nearestCorner(x: number, y: number): Corner {
   const { width, height } = Dimensions.get('window');
-  const isLeft = x + FAB_SIZE / 2 < width / 2;
-  const isTop  = y + FAB_SIZE / 2 < height / 2;
+  const isLeft = x + FAB_W / 2 < width / 2;
+  const isTop  = y + FAB_H / 2 < height / 2;
   if (isTop  && isLeft)  return 'top-left';
   if (isTop  && !isLeft) return 'top-right';
   if (!isTop && isLeft)  return 'bottom-left';
@@ -196,10 +199,11 @@ export default function FloatingHelpButton() {
             navigation.navigate('AIHelpChat');
           }}
           accessibilityRole="button"
-          accessibilityLabel="Open in-app help chat. Drag to move."
+          accessibilityLabel="Ask Villie. Drag to move."
           activeOpacity={0.85}
         >
-          <Text style={styles.icon}>💬</Text>
+          <Image source={VILLIE_BEE} style={styles.fabBee} resizeMode="contain" />
+          <Text style={styles.fabLabel}>ask villie</Text>
         </TouchableOpacity>
       </Animated.View>
     </View>
@@ -210,28 +214,29 @@ const styles = StyleSheet.create({
   fab: {
     position: 'absolute',
     top: 0, left: 0,
-    width: FAB_SIZE, height: FAB_SIZE, borderRadius: FAB_SIZE / 2,
+    width: FAB_W, height: FAB_H, borderRadius: FAB_H / 2,
     backgroundColor: '#D96C88',
     alignItems: 'center', justifyContent: 'center',
     ...Platform.select({
       ios: {
-        shadowColor: '#43260F',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.25,
-        shadowRadius: 8,
+        shadowColor: '#D96C88',
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.4,
+        shadowRadius: 12,
       },
-      android: { elevation: 6 },
+      android: { elevation: 7 },
     }),
   },
   fabInner: {
-    width: '100%', height: '100%', borderRadius: FAB_SIZE / 2,
-    alignItems: 'center', justifyContent: 'center',
+    width: '100%', height: '100%', borderRadius: FAB_H / 2,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
   },
+  fabBee: { width: 22, height: 22 },
+  fabLabel: { color: '#fff', fontSize: 15, fontFamily: FONTS.v2_bold, letterSpacing: 0.2 },
   pulseRing: {
     position: 'absolute',
-    width: FAB_SIZE, height: FAB_SIZE, borderRadius: FAB_SIZE / 2,
+    width: FAB_W, height: FAB_H, borderRadius: FAB_H / 2,
     backgroundColor: '#D96C88',
     // Ring appears behind fab button content via z-index ordering (first child = lowest).
   },
-  icon: { fontSize: 26 },
 });

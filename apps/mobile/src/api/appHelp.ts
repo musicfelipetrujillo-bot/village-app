@@ -28,10 +28,16 @@ export interface HelpChatResponse {
   reply: string;
   crisis: boolean;
   crisis_resources?: Record<string, CrisisResource>;
+  /** Optional tap-to-send suggested replies for common structured questions. */
+  quick_replies?: string[];
 }
 
 export const appHelpApi = {
-  async sendMessage(messages: HelpMessage[], userContext: HelpUserContext = {}): Promise<HelpChatResponse> {
+  async sendMessage(
+    messages: HelpMessage[],
+    userContext: HelpUserContext = {},
+    location?: { lat: number; lng: number } | null,
+  ): Promise<HelpChatResponse> {
     const { data: { session } } = await supabase.auth.getSession();
     const res = await fetch(`${SUPABASE_URL}/functions/v1/app-help-chat`, {
       method: 'POST',
@@ -39,7 +45,7 @@ export const appHelpApi = {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${session?.access_token ?? ''}`,
       },
-      body: JSON.stringify({ messages, user_context: userContext }),
+      body: JSON.stringify({ messages, user_context: userContext, user_location: location ?? null }),
     });
     const json = await res.json();
     if (!res.ok) throw new Error(json.error ?? 'app-help-chat failed');
