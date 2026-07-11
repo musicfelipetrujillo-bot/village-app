@@ -31,7 +31,7 @@ const C = {
   cream: '#FCF7EF', paper: '#FFFCF6',
   rose: '#E06A88', roseInk: '#C2556F', roseTint: '#FDECEF',
   honey: '#F5C842', honeyCard: '#FBE9BE', honeyInk: '#B98A1E',
-  cocoa: '#3D2116', walnut: '#8A6A55', track: '#F0E6D6',
+  cocoa: '#3D2116', walnut: '#8A6A55', sage: '#7B8A46', track: '#F0E6D6',
   hair: 'rgba(61,31,14,0.08)',
 };
 
@@ -75,6 +75,8 @@ export default function MilkVaultDashboardScreen() {
   }
 
   const hasStash = core.totalFreezerOz > 0;
+  const isEmpty = core.totalFreezerOz <= 0 && core.totalBags <= 0;
+  const CAMERA = 'M4 8h2.5L8 6h8l1.5 2H20a1 1 0 011 1v9a1 1 0 01-1 1H4a1 1 0 01-1-1V9a1 1 0 011-1zM12 17.5a3.5 3.5 0 100-7 3.5 3.5 0 000 7z';
   const fill = !hasStash
     ? 0
     : core.stashGoalOz > 0
@@ -113,10 +115,33 @@ export default function MilkVaultDashboardScreen() {
         </View>
 
         <ScrollView
-          contentContainerStyle={{ paddingBottom: 44 }}
+          contentContainerStyle={{ paddingBottom: 96 }}
           showsVerticalScrollIndicator={false}
           refreshControl={<RefreshControl refreshing={loading} onRefresh={fetchAll} tintColor={C.rose} />}
         >
+          {isEmpty ? (
+            <View>
+              <View style={styles.emptyHero}>
+                <View style={styles.emptyRing}><Path2 d={CAMERA} color={C.honeyInk} size={34} /></View>
+                <Text style={styles.emptyTitle}>Start your <Text style={styles.emptyScript}>stash</Text></Text>
+                <Text style={styles.emptyBody}>Snap a photo of a milk bag — Villie reads the ounces and builds your freezer stash for you.</Text>
+              </View>
+              <TouchableOpacity style={styles.emptyCta} onPress={() => nav.navigate('MilkVaultScan')} activeOpacity={0.9} accessibilityRole="button" accessibilityLabel="Scan your first bag">
+                <Path2 d={CAMERA} color="#fff" size={20} />
+                <Text style={styles.emptyCtaText}>Scan your first bag</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => nav.navigate('MilkVaultAddBag', {})} style={styles.emptyManual} accessibilityRole="button">
+                <Text style={styles.emptyManualText}>or add one manually</Text>
+              </TouchableOpacity>
+              <Text style={styles.emptyEyebrow}>what you'll get</Text>
+              <View style={styles.emptyGetRow}>
+                <View style={styles.emptyGet}><Path2 d="M8 2v3M16 2v3M3 9h18M5 5h14a2 2 0 012 2v12a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2z" color={C.sage} size={22} /><Text style={styles.emptyGetText}>Days of{'\n'}coverage</Text></View>
+                <View style={styles.emptyGet}><Path2 d="M2 12l19-8-6 19-4-7-9-4z" color={C.honeyInk} size={22} /><Text style={styles.emptyGetText}>Trip{'\n'}planning</Text></View>
+                <View style={styles.emptyGet}><Path2 d="M20.8 4.6a5.5 5.5 0 00-7.8 0L12 5.6l-1-1a5.5 5.5 0 00-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 000-7.8z" color={C.roseInk} size={22} /><Text style={styles.emptyGetText}>Share your{'\n'}extra</Text></View>
+              </View>
+            </View>
+          ) : (
+          <>
           {/* Freezer ring hero */}
           <View style={styles.heroWrap}>
             <View style={styles.ringWrap}>
@@ -196,6 +221,8 @@ export default function MilkVaultDashboardScreen() {
           <TouchableOpacity onPress={() => nav.navigate('MilkVaultAddBag', {})} style={styles.addManual} accessibilityRole="button">
             <Text style={styles.addManualText}>＋ add a bag manually</Text>
           </TouchableOpacity>
+          </>
+          )}
 
           <Text style={styles.legal}>{VAULT_LEGAL_COPY}</Text>
         </ScrollView>
@@ -299,5 +326,20 @@ const styles = StyleSheet.create({
   addManual: { alignItems: 'center', paddingVertical: 16, marginTop: 6 },
   addManualText: { fontFamily: FONTS.v2_link, fontSize: 14, color: C.roseInk },
 
-  legal: { fontFamily: FONTS.v2_body, fontSize: 10.5, color: '#A6957F', textAlign: 'center', marginTop: 8, marginHorizontal: 24, lineHeight: 15 },
+  legal: { fontFamily: FONTS.v2_body, fontSize: 9.5, color: '#B7A896', textAlign: 'center', marginTop: 20, marginHorizontal: 28, lineHeight: 14 },
+
+  // First-run / empty state
+  emptyHero: { backgroundColor: C.honeyCard, borderRadius: 20, paddingVertical: 26, paddingHorizontal: 20, alignItems: 'center', marginHorizontal: 18, marginTop: 6 },
+  emptyRing: { width: 88, height: 88, borderRadius: 44, borderWidth: 2.5, borderColor: 'rgba(185,138,30,0.5)', borderStyle: 'dashed', backgroundColor: 'rgba(255,252,246,0.5)', alignItems: 'center', justifyContent: 'center', marginBottom: 16 },
+  emptyTitle: { fontFamily: FONTS.v2_display_big, fontSize: 27, color: C.cocoa, textAlign: 'center' },
+  emptyScript: { fontFamily: FONTS.v3_display_italic, fontSize: 33, color: C.roseInk },
+  emptyBody: { fontFamily: FONTS.v2_body, fontSize: 13.5, lineHeight: 20, color: '#5A4030', textAlign: 'center', marginTop: 10, maxWidth: 290 },
+  emptyCta: { backgroundColor: C.rose, borderRadius: 14, paddingVertical: 16, marginHorizontal: 18, marginTop: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 },
+  emptyCtaText: { fontFamily: FONTS.v2_bold, fontSize: 15.5, color: '#fff' },
+  emptyManual: { alignItems: 'center', paddingVertical: 14 },
+  emptyManualText: { fontFamily: FONTS.v2_link, fontSize: 13.5, color: C.roseInk },
+  emptyEyebrow: { fontFamily: FONTS.v2_mono, fontSize: 11, letterSpacing: 2.2, textTransform: 'uppercase', color: C.walnut, fontWeight: '500', marginTop: 14, marginHorizontal: 18, paddingBottom: 8, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(61,31,14,0.12)' },
+  emptyGetRow: { flexDirection: 'row', gap: 10, marginHorizontal: 18, marginTop: 14 },
+  emptyGet: { flex: 1, backgroundColor: C.paper, borderWidth: StyleSheet.hairlineWidth, borderColor: C.hair, borderRadius: 14, paddingVertical: 14, paddingHorizontal: 8, alignItems: 'center' },
+  emptyGetText: { fontFamily: FONTS.v2_link, fontSize: 12, color: C.cocoa, textAlign: 'center', marginTop: 8, lineHeight: 15 },
 });
