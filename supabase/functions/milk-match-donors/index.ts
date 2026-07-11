@@ -1,7 +1,10 @@
 // milk-match-donors — AI-ranked donor matches for a recipient
 // Takes recipient preferences + nearby donors, returns Haiku-ranked top 5
 // with a one-line "why this donor" narrative for each.
-// Called from MilkMatchScreen after recipient submits preferences.
+// NOTE: transaction-free donor ranking — retained through the migration-098
+// Stripe Connect retirement. Its former caller (MilkMatchScreen) was removed
+// with the purchase funnel; the callMatchDonors() client in api/milk.ts stays
+// available for a future cash-only re-wire of AI discovery.
 
 import Anthropic from 'npm:@anthropic-ai/sdk';
 import { createClient } from 'npm:@supabase/supabase-js';

@@ -1,25 +1,17 @@
 // MilkNavigator — V2 Milk Hub routes.
 //
-// ⚠️ As of 2026-05-21 the Milk Hub is CASH-ONLY (see
-// memory/project_milk_cash_only.md). The following routes are
-// registered but UNREACHABLE in production — no navigate() call targets
-// them while EXPO_PUBLIC_MILK_STRIPE_ENABLED is OFF (the default). They
-// stay in the param list so re-enabling Stripe is a one-line flag flip,
-// not a re-import dance:
-//   - StripeOnboarding              (donor Stripe Connect setup)
-//   - MilkMatch                     (AI match → purchase intent)
-//   - MilkPurchase                  (Stripe PaymentSheet — see deprecation
-//                                    banner inside MilkPurchaseScreen.tsx)
-//   - MilkOrderConfirm              (post-payment confirmation)
-//   - MilkOrders                    (no orders without transactions)
-//   - MilkReviewSubmit              (reviews are tied to transactions)
-//   - MilkDisputeOpen / MilkShippingLabel  (dispute/Shippo flows tied
-//                                           to transactions)
+// ⚠️ The Milk Hub is CASH-ONLY / connector-only (see
+// memory/project_milk_cash_only.md). The Village connects donors and moms and is
+// NOT a party to the transaction. As of migration 098 the entire Stripe Connect /
+// paid-purchase / order-history / dispute / Shippo-shipping / transaction-review
+// subsystem has been RETIRED — the following screens and their routes were removed:
+//   StripeOnboarding, MilkMatch, MilkPurchase, MilkOrderConfirm, MilkOrders,
+//   MilkReviewSubmit, MilkDisputeOpen, MilkShippingLabel.
 //
-// Active routes in cash-only world: MilkHome, BecomeDonorIntro,
-// DonorQuestionnaire, TrustBadgeBuilder, CreateListing, DonorSearchList,
-// DonorMap, DonorProfile, SavedDonors, MilkMessageThreads,
-// MilkMessageDetail.
+// Active routes in the cash-only world: MilkHome, BecomeDonorIntro,
+// DonorQuestionnaire, TrustBadgeBuilder, CreateListing, DonorSocialLinks,
+// OnboardingComplete, DonorSearchList, DonorMap, DonorProfile, SavedDonors,
+// MilkMessageThreads, MilkMessageDetail.
 import React from 'react';
 import { View } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -31,7 +23,6 @@ import DonorQuestionnaireScreen from '@screens/milk/DonorQuestionnaireScreen';
 import TrustBadgeBuilderScreen from '@screens/milk/TrustBadgeBuilderScreen';
 import CreateListingScreen from '@screens/milk/CreateListingScreen';
 import DonorSocialLinksScreen from '@screens/milk/DonorSocialLinksScreen';
-import StripeOnboardingScreen from '@screens/milk/StripeOnboardingScreen';
 import OnboardingCompleteScreen from '@screens/milk/OnboardingCompleteScreen';
 
 // M2 screens
@@ -40,20 +31,29 @@ import DonorMapScreen from '@screens/milk/DonorMapScreen';
 import DonorProfileScreen from '@screens/milk/DonorProfileScreen';
 import SavedDonorsScreen from '@screens/milk/SavedDonorsScreen';
 
-// M3 screens
-import MilkMatchScreen from '@screens/milk/MilkMatchScreen';
-import MilkPurchaseScreen from '@screens/milk/MilkPurchaseScreen';
-import MilkOrderConfirmScreen from '@screens/milk/MilkOrderConfirmScreen';
-
 // M4 screens
 import MilkMessageThreadsScreen from '@screens/milk/MilkMessageThreadsScreen';
 import MilkMessageDetailScreen from '@screens/milk/MilkMessageDetailScreen';
-import MilkOrdersScreen from '@screens/milk/MilkOrdersScreen';
-import MilkReviewSubmitScreen from '@screens/milk/MilkReviewSubmitScreen';
 
-// M5 screens
-import MilkDisputeOpenScreen from '@screens/milk/MilkDisputeOpenScreen';
-import MilkShippingLabelScreen from '@screens/milk/MilkShippingLabelScreen';
+// V6 — Milk Vault (personal stash + optional marketplace planning)
+import MilkVaultModePickerScreen from '@screens/milkVault/MilkVaultModePickerScreen';
+import MilkVaultDashboardScreen from '@screens/milkVault/MilkVaultDashboardScreen';
+import MilkVaultAddBagScreen from '@screens/milkVault/MilkVaultAddBagScreen';
+import MilkVaultScanScreen from '@screens/milkVault/MilkVaultScanScreen';
+import MilkVaultBagsScreen from '@screens/milkVault/MilkVaultBagsScreen';
+import MilkVaultKeepSellScreen from '@screens/milkVault/MilkVaultKeepSellScreen';
+import MilkVaultListingScreen from '@screens/milkVault/MilkVaultListingScreen';
+import MilkVaultSettingsScreen from '@screens/milkVault/MilkVaultSettingsScreen';
+
+/** Prefill payload passed from the AI scanner into the Add Bag confirmation. */
+export interface MilkVaultBagPrefill {
+  ounces?: number | null;
+  pumped_date?: string | null;
+  frozen_date?: string | null;
+  notes?: string | null;
+  photo_url?: string | null;
+  raw?: Record<string, unknown> | null;
+}
 
 // Placeholders
 function PlaceholderScreen() {
@@ -67,7 +67,6 @@ export type MilkStackParamList = {
   DonorQuestionnaire: undefined;
   TrustBadgeBuilder: { donorProfileId: string };
   CreateListing: { donorProfileId: string };
-  StripeOnboarding: { donorProfileId: string };
   OnboardingComplete: undefined;
   // M2 — Discovery
   DonorSearchList: undefined;
@@ -78,33 +77,19 @@ export type MilkStackParamList = {
   DonorDashboard: undefined;
   DonorListingManager: undefined;
   DonorSocialLinks: { donorProfileId: string };
-  // M3 — AI Match + Purchase
-  MilkMatch: undefined;
-  MilkPurchase: { donorProfileId: string; listingId: string };
-  MilkOrderConfirm: {
-    transactionId: string;
-    donorProfileId: string;
-    donorDisplayName: string;
-    oz: number;
-    totalCents: number;
-    fulfillmentMethod: 'pickup' | 'shipping';
-  };
-  // M4 — Messaging + Reviews + Orders
+  // M4 — Messaging
   MilkMessageThreads: undefined;
   MilkMessageDetail: { threadId: string; donorProfileId: string; otherDisplayName?: string };
-  MilkOrders: undefined;
-  MilkReviewSubmit: {
-    transactionId: string;
-    donorProfileId: string;
-    donorDisplayName: string;
-  };
-  // M5 — Disputes + Shipping
-  MilkDisputeOpen: {
-    transactionId: string;
-    role: 'recipient' | 'donor';
-    donorDisplayName?: string;
-  };
-  MilkShippingLabel: { transactionId: string };
+
+  // V6 — Milk Vault
+  MilkVaultModePicker: { switching?: boolean } | undefined;
+  MilkVaultDashboard: undefined;
+  MilkVaultAddBag: { prefill?: MilkVaultBagPrefill } | undefined;
+  MilkVaultScan: undefined;
+  MilkVaultBags: undefined;
+  MilkVaultKeepSell: undefined;
+  MilkVaultListing: { prefillOunces?: number } | undefined;
+  MilkVaultSettings: undefined;
 };
 
 const Stack = createNativeStackNavigator<MilkStackParamList>();
@@ -119,25 +104,24 @@ export function MilkNavigator() {
       <Stack.Screen name="TrustBadgeBuilder" component={TrustBadgeBuilderScreen} />
       <Stack.Screen name="CreateListing" component={CreateListingScreen} />
       <Stack.Screen name="DonorSocialLinks" component={DonorSocialLinksScreen} />
-      <Stack.Screen name="StripeOnboarding" component={StripeOnboardingScreen} />
       <Stack.Screen name="OnboardingComplete" component={OnboardingCompleteScreen} />
       {/* M2 */}
       <Stack.Screen name="DonorSearchList" component={DonorSearchListScreen} />
       <Stack.Screen name="DonorMap" component={DonorMapScreen} />
       <Stack.Screen name="DonorProfile" component={DonorProfileScreen} />
       <Stack.Screen name="SavedDonors" component={SavedDonorsScreen} />
-      {/* M3 */}
-      <Stack.Screen name="MilkMatch" component={MilkMatchScreen} />
-      <Stack.Screen name="MilkPurchase" component={MilkPurchaseScreen} />
-      <Stack.Screen name="MilkOrderConfirm" component={MilkOrderConfirmScreen} />
       {/* M4 */}
       <Stack.Screen name="MilkMessageThreads" component={MilkMessageThreadsScreen} />
       <Stack.Screen name="MilkMessageDetail" component={MilkMessageDetailScreen} />
-      <Stack.Screen name="MilkOrders" component={MilkOrdersScreen} />
-      <Stack.Screen name="MilkReviewSubmit" component={MilkReviewSubmitScreen} />
-      {/* M5 */}
-      <Stack.Screen name="MilkDisputeOpen" component={MilkDisputeOpenScreen} />
-      <Stack.Screen name="MilkShippingLabel" component={MilkShippingLabelScreen} />
+      {/* V6 — Milk Vault */}
+      <Stack.Screen name="MilkVaultModePicker" component={MilkVaultModePickerScreen} />
+      <Stack.Screen name="MilkVaultDashboard" component={MilkVaultDashboardScreen} />
+      <Stack.Screen name="MilkVaultAddBag" component={MilkVaultAddBagScreen} />
+      <Stack.Screen name="MilkVaultScan" component={MilkVaultScanScreen} />
+      <Stack.Screen name="MilkVaultBags" component={MilkVaultBagsScreen} />
+      <Stack.Screen name="MilkVaultKeepSell" component={MilkVaultKeepSellScreen} />
+      <Stack.Screen name="MilkVaultListing" component={MilkVaultListingScreen} />
+      <Stack.Screen name="MilkVaultSettings" component={MilkVaultSettingsScreen} />
       {/* M5+ placeholder */}
       <Stack.Screen name="DonorDashboard" component={PlaceholderScreen} />
       <Stack.Screen name="DonorListingManager" component={PlaceholderScreen} />

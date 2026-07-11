@@ -28,8 +28,6 @@ export interface MilkDonorProfile {
   supply_oz_available: number;
   is_active: boolean;
   is_verified: boolean;
-  stripe_account_id: string | null;
-  stripe_onboarding_complete: boolean;
   // Optional donor-provided social links (migration 075). Optional so older
   // backends that don't return the column degrade cleanly.
   social_links?: SocialLinks | null;
@@ -111,14 +109,15 @@ export interface MilkMedication {
 // ── Donor profile ─────────────────────────────────────────────────────
 
 // Explicit column list for milk_donor_profiles reads. address_line + phone are DROPPED as of
-// migration 096 (data minimization — the connector role doesn't store donor PII); a
-// `select('*')` would also 403 on the migration-095 column grant anyway. Keep this list in
-// sync with the column GRANT in migration 095.
+// migration 096 (data minimization — the connector role doesn't store donor PII), and
+// stripe_account_id + stripe_onboarding_complete as of migration 098 (Milk is cash-only /
+// connector-only — Stripe Connect retired). A `select('*')` would also 403 on the
+// migration-095 column grant anyway. Keep this list in sync with the column GRANT in
+// migration 095.
 const DONOR_SELECT_COLUMNS =
   'id, user_id, display_name, avatar_url, neighborhood, city, state, zip_code, ' +
   'lat, lng, bio, price_per_oz, supply_oz_available, is_active, is_verified, ' +
-  'stripe_account_id, stripe_onboarding_complete, rating_avg, review_count, ' +
-  'social_links, created_at, updated_at';
+  'rating_avg, review_count, social_links, created_at, updated_at';
 
 export async function getMyDonorProfile(userId: string): Promise<MilkDonorProfile | null> {
   const { data, error } = await supabase
@@ -380,26 +379,6 @@ export async function getDonorProfile(donorProfileId: string): Promise<DonorPubl
   return data;
 }
 
-export interface MilkReview {
-  id: string;
-  donor_profile_id: string;
-  reviewer_user_id: string;
-  rating: number;
-  body: string | null;
-  created_at: string;
-}
-
-export async function getDonorReviews(donorProfileId: string): Promise<MilkReview[]> {
-  const { data, error } = await supabase
-    .from('milk_reviews')
-    .select('*')
-    .eq('donor_profile_id', donorProfileId)
-    .order('created_at', { ascending: false })
-    .limit(20);
-  if (error) throw error;
-  return data ?? [];
-}
-
 export async function getDonorActiveListing(donorProfileId: string): Promise<MilkListing | null> {
   const { data, error } = await supabase
     .from('milk_listings')
@@ -497,17 +476,6 @@ export async function callQuestionnaireCoach(
   return res.json();
 }
 
-export async function getStripeConnectUrl(donorProfileId: string): Promise<{ url: string; account_id: string }> {
-  const token = await getAccessToken();
-  const res = await fetch(`${EDGE}/milk-stripe-connect`, {
-    method: 'POST',
-    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ donor_profile_id: donorProfileId }),
-  });
-  if (!res.ok) throw new Error('Stripe Connect failed');
-  return res.json();
-}
-
 export async function callTrustNarrative(
   donorProfileId: string,
   recipientPreferences?: string
@@ -536,7 +504,11 @@ export async function callDonorQA(
   return res.json();
 }
 
-// ── M3: AI matching + purchase + orders ───────────────────────────────
+// ── M3: AI matching ───────────────────────────────────────────────────
+// NOTE: the paid-purchase / order-history layer that used to live here
+// (createPurchaseIntent, confirmPurchase, listMyOrders, getTransactionAddress …)
+// was retired with Stripe Connect in migration 098 (Milk is cash-only). The
+// milk-match-donors edge function is transaction-free and stays.
 
 export interface MatchPreferences {
   lat: number;
@@ -568,93 +540,7 @@ export async function callMatchDonors(prefs: MatchPreferences): Promise<{ matche
   return res.json();
 }
 
-export interface PurchaseIntentInput {
-  donor_profile_id: string;
-  listing_id: string;
-  oz: number;
-  fulfillment_method: 'pickup' | 'shipping';
-  recipient_address?: { line: string; city: string; state: string; zip: string };
-  recipient_notes?: string;
-}
-
-export interface PurchaseIntentResult {
-  transaction_id: string;
-  payment_intent_id: string;
-  client_secret: string;
-  donor_stripe_account_id: string;
-  total_cents: number;
-  subtotal_cents: number;
-  shipping_cents: number;
-  platform_fee_cents: number;
-}
-
-export async function createPurchaseIntent(input: PurchaseIntentInput): Promise<PurchaseIntentResult> {
-  const token = await getAccessToken();
-  const res = await fetch(`${EDGE}/milk-purchase-intent`, {
-    method: 'POST',
-    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify(input),
-  });
-  const json = await res.json();
-  if (!res.ok) throw new Error(json.error ?? 'Purchase intent failed');
-  return json;
-}
-
-export async function confirmPurchase(transactionId: string): Promise<{
-  status: string;
-  transaction_id: string;
-  donor_notified: boolean;
-  recipient_notified: boolean;
-  already?: boolean;
-}> {
-  const token = await getAccessToken();
-  const res = await fetch(`${EDGE}/milk-purchase-confirmed`, {
-    method: 'POST',
-    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ transaction_id: transactionId }),
-  });
-  const json = await res.json();
-  if (!res.ok) throw new Error(json.error ?? 'Confirm failed');
-  return json;
-}
-
-export interface MyOrderRow {
-  id: string;
-  donor_profile_id: string;
-  donor_display_name: string;
-  donor_avatar_url: string | null;
-  oz_purchased: number;
-  total_charged_cents: number;
-  fulfillment_method: 'pickup' | 'shipping';
-  status: 'pending' | 'paid' | 'fulfilled' | 'disputed' | 'refunded' | 'cancelled';
-  address_revealed_at: string | null;
-  created_at: string;
-}
-
-export async function listMyOrders(userId: string): Promise<MyOrderRow[]> {
-  const { data, error } = await supabase.rpc('list_my_orders', { p_user_id: userId });
-  if (error) throw error;
-  return data ?? [];
-}
-
-export interface DonorPickupAddress {
-  donor_address_line: string | null;
-  donor_city: string | null;
-  donor_state: string | null;
-  donor_zip: string | null;
-  donor_phone: string | null;
-  donor_display_name: string;
-}
-
-// Retired by migration 096 (data minimization). The Village no longer stores donor
-// address_line/phone and the get_transaction_pickup_address RPC is dropped — cash-only
-// pickup is arranged off-platform via the message thread. Kept as a null-returning stub so
-// the dormant MilkOrderConfirmScreen still compiles.
-export async function getTransactionAddress(_transactionId: string): Promise<DonorPickupAddress | null> {
-  return null;
-}
-
-// ── M4: Messaging + reviews ───────────────────────────────────────────
+// ── M4: Messaging ─────────────────────────────────────────────────────
 
 export interface MilkThreadRow {
   thread_id: string;
@@ -763,154 +649,9 @@ export async function getOrCreateThread(
   return data;
 }
 
-// ── Reviews ───────────────────────────────────────────────────────────
-
-export interface ReviewableOrder {
-  transaction_id: string;
-  donor_profile_id: string;
-  donor_display_name: string;
-  donor_avatar_url: string | null;
-  oz_purchased: number;
-  created_at: string;
-}
-
-export async function listReviewableOrders(userId: string): Promise<ReviewableOrder[]> {
-  const { data, error } = await supabase.rpc('list_reviewable_orders', { p_user_id: userId });
-  if (error) throw error;
-  return data ?? [];
-}
-
-export async function submitMilkReview(input: {
-  transaction_id: string;
-  donor_profile_id: string;
-  reviewer_user_id: string;
-  rating: number;
-  body?: string;
-}): Promise<MilkReview> {
-  const { data, error } = await supabase
-    .from('milk_reviews')
-    .insert(input)
-    .select()
-    .single();
-  if (error) throw error;
-  return data;
-}
-
-// ── M5: Disputes ──────────────────────────────────────────────────────
-
-export type DisputeReasonCode =
-  | 'never_received'
-  | 'quality_concern'
-  | 'wrong_quantity'
-  | 'spoiled'
-  | 'no_show_pickup'
-  | 'other';
-
-export interface MilkDispute {
-  id: string;
-  transaction_id: string;
-  opened_by_user_id: string;
-  opened_by_role: 'recipient' | 'donor';
-  reason_code: DisputeReasonCode;
-  description: string;
-  evidence_urls: string[] | null;
-  status: 'open' | 'investigating' | 'resolved_recipient' | 'resolved_donor' | 'withdrawn';
-  resolution_notes: string | null;
-  resolved_at: string | null;
-  refund_amount_cents: number | null;
-  created_at: string;
-  updated_at: string;
-}
-
-export async function openDispute(input: {
-  transaction_id: string;
-  reason_code: DisputeReasonCode;
-  description: string;
-  evidence_urls?: string[];
-}): Promise<{ dispute: MilkDispute; already: boolean }> {
-  const token = await getAccessToken();
-  const res = await fetch(`${EDGE}/milk-dispute-open`, {
-    method: 'POST',
-    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify(input),
-  });
-  const json = await res.json();
-  if (!res.ok) throw new Error(json.error ?? 'Open dispute failed');
-  return json;
-}
-
-export async function getDisputeForTransaction(transactionId: string): Promise<MilkDispute | null> {
-  const { data, error } = await supabase.rpc('get_dispute_for_transaction', {
-    p_transaction_id: transactionId,
-  });
-  if (error) throw error;
-  return (Array.isArray(data) ? data[0] : data) ?? null;
-}
-
-// ── M5: Shipping (Shippo) ────────────────────────────────────────────
-
-export interface MilkShippingLabel {
-  id: string;
-  transaction_id: string;
-  shippo_transaction_id: string;
-  carrier: string | null;
-  service_level: string | null;
-  tracking_number: string | null;
-  tracking_url: string | null;
-  label_url: string | null;
-  rate_cents: number | null;
-  insurance_cents: number | null;
-  status: 'created' | 'in_transit' | 'delivered' | 'exception' | 'cancelled';
-  created_at: string;
-}
-
-export interface ShippoAddress {
-  name: string;
-  street1: string;
-  city: string;
-  state: string;
-  zip: string;
-  country: string; // 'US'
-  phone?: string;
-  email?: string;
-}
-
-export interface ShippoParcel {
-  length: string;            // inches, as numeric string per Shippo
-  width: string;
-  height: string;
-  distance_unit: 'in';
-  weight: string;            // total weight in oz
-  mass_unit: 'oz';
-}
-
-export async function buyShippoLabel(input: {
-  transaction_id: string;
-  from_address: ShippoAddress;
-  to_address: ShippoAddress;
-  parcel: ShippoParcel;
-  service_token?: string;
-}): Promise<{ label: MilkShippingLabel; already: boolean }> {
-  const token = await getAccessToken();
-  const res = await fetch(`${EDGE}/milk-shippo-label`, {
-    method: 'POST',
-    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify(input),
-  });
-  const json = await res.json();
-  if (!res.ok) throw new Error(json.error ?? 'Buy shipping label failed');
-  return json;
-}
-
-export async function getShippingLabel(transactionId: string): Promise<MilkShippingLabel | null> {
-  const { data, error } = await supabase
-    .from('milk_shipping_labels')
-    .select('*')
-    .eq('transaction_id', transactionId)
-    .maybeSingle();
-  if (error) throw error;
-  return data;
-}
+// Reviews (M4), disputes (M5), and Shippo shipping (M5) were retired with Stripe Connect
+// in migration 098 — all three were anchored to milk_transactions, which does not exist
+// under cash-only. See the migration header for the review-flow decision.
 
 // ── M5: Legal acceptances (audit trail) ──────────────────────────────
 

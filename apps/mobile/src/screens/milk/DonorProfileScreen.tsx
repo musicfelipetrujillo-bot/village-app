@@ -5,14 +5,13 @@ import {
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useAuthStore } from '@store/auth';
-import { useUserStore } from '@store/user';
 import {
-  getDonorProfile, getDonorReviews, getDonorActiveListing,
+  getDonorProfile, getDonorActiveListing,
   getDietFlags, getTrustBadge, saveDonor, unsaveDonor, isSaved,
   callTrustNarrative, callDonorQA, getOrCreateThread,
   recordLegalAcceptance, socialUrl, socialLabel,
 } from '@api/milk';
-import type { DonorPublicProfile, MilkReview, MilkListing, MilkTrustBadge , DietFlagKey, SocialPlatform } from '@api/milk';
+import type { DonorPublicProfile, MilkListing, MilkTrustBadge , DietFlagKey, SocialPlatform } from '@api/milk';
 import { COLORS, FONTS } from '@utils/constants';
 import { V9PageBackdrop } from '@components/shared/V9PageBackdrop';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -27,10 +26,9 @@ const SOCIAL_LABEL: Record<SocialPlatform, string> = {
   instagram: 'Instagram', tiktok: 'TikTok', facebook: 'Facebook', website: 'Website',
 };
 
-// Cash-only MVP (2026-05-21): Stripe PaymentSheet path is OFF by default.
-// Same posture as V4 Gear — donor/recipient coordinate cash or P2P at handoff.
-// Set EXPO_PUBLIC_MILK_STRIPE_ENABLED=1 to re-enable the legacy M3 purchase flow.
-const MILK_STRIPE_ENABLED = process.env.EXPO_PUBLIC_MILK_STRIPE_ENABLED === '1';
+// Cash-only / connector-only Milk Hub — donor and recipient coordinate cash or P2P
+// off-platform at handoff. The Stripe PaymentSheet purchase path was retired entirely in
+// migration 098; the profile now offers only the Message action.
 
 type T = ReturnType<typeof useT>;
 
@@ -68,14 +66,12 @@ function StarRow({ rating, count, t }: { rating: number; count: number; t: T }) 
 export default function DonorProfileScreen({ route, navigation }: Props) {
   const { donorProfileId } = route.params;
   const user = useAuthStore((s) => s.user);
-  const lang = useUserStore((s) => s.profile?.preferred_language ?? 'en');
   const t = useT();
   const { trackEvent } = useAnalytics();
 
   const [profile, setProfile] = useState<DonorPublicProfile | null>(null);
   const [badge, setBadge] = useState<MilkTrustBadge | null>(null);
   const [listing, setListing] = useState<MilkListing | null>(null);
-  const [reviews, setReviews] = useState<MilkReview[]>([]);
   const [dietFlags, setDietFlags] = useState<DietFlagKey[]>([]);
   const [narrative, setNarrative] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
@@ -102,18 +98,16 @@ export default function DonorProfileScreen({ route, navigation }: Props) {
 
   const loadAll = async () => {
     try {
-      const [p, b, l, r, df, savedState] = await Promise.all([
+      const [p, b, l, df, savedState] = await Promise.all([
         getDonorProfile(donorProfileId),
         getTrustBadge(donorProfileId),
         getDonorActiveListing(donorProfileId),
-        getDonorReviews(donorProfileId),
         getDietFlags(donorProfileId),
         user ? isSaved(user.id, donorProfileId) : Promise.resolve(false),
       ]);
       setProfile(p);
       setBadge(b);
       setListing(l);
-      setReviews(r);
       setDietFlags(df);
       setSaved(savedState);
 
@@ -388,34 +382,6 @@ export default function DonorProfileScreen({ route, navigation }: Props) {
           </View>
         )}
 
-        {/* ── Reviews ── */}
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>
-            {reviews.length > 0
-              ? t('donorProfile.reviewsTitleCount', { count: reviews.length })
-              : t('donorProfile.reviewsTitle')}
-          </Text>
-          {reviews.length === 0 ? (
-            <Text style={styles.noReviews}>{t('donorProfile.noReviews')}</Text>
-          ) : (
-            reviews.slice(0, 5).map((review) => (
-              <View key={review.id} style={styles.reviewCard}>
-                <View style={styles.reviewStars}>
-                  {[1,2,3,4,5].map((s) => (
-                    <Text key={s} style={{ fontSize: 12, color: s <= review.rating ? '#E98A6A' : '#E0D5C5' }}>★</Text>
-                  ))}
-                </View>
-                {review.body && <Text style={styles.reviewBody}>{review.body}</Text>}
-                <Text style={styles.reviewDate}>
-                  {new Date(review.created_at).toLocaleDateString(
-                    lang === 'es' ? 'es-US' : 'en-US',
-                    { month: 'short', year: 'numeric' },
-                  )}
-                </Text>
-              </View>
-            ))
-          )}
-        </View>
 
         {/* Safety disclaimer */}
         <View style={styles.disclaimer}>
@@ -427,31 +393,21 @@ export default function DonorProfileScreen({ route, navigation }: Props) {
       </Animated.ScrollView>
 
       {/* ── Sticky Action Bar ──
-          Cash-only MVP: only the Message button is shown by default. The
-          Stripe-bound Purchase button is gated behind EXPO_PUBLIC_MILK_STRIPE_ENABLED
-          and reserved for the legacy / future-rebuild path.
-          The Message button shows SafeMilkHandoffModal before opening chat. */}
+          Cash-only / connector-only: only the Message action is offered. The
+          Message button shows SafeMilkHandoffModal before opening chat. */}
       <View style={styles.actionBar}>
         <TouchableOpacity
-          style={MILK_STRIPE_ENABLED ? styles.messageBtn : styles.messageBtnSolo}
+          style={styles.messageBtnSolo}
           onPress={() => {
             if (!user) return;
             trackEvent('milk_safe_handoff_shown', { donor_profile_id: donorProfileId });
             setHandoffModalVisible(true);
           }}
         >
-          <Text style={MILK_STRIPE_ENABLED ? styles.messageBtnText : styles.messageBtnSoloText}>
+          <Text style={styles.messageBtnSoloText}>
             {t('donorProfile.messageBtn')}
           </Text>
         </TouchableOpacity>
-        {MILK_STRIPE_ENABLED && (
-          <TouchableOpacity
-            style={styles.purchaseBtn}
-            onPress={() => navigation.navigate('MilkPurchase', { donorProfileId, listingId: listing?.id ?? '' })}
-          >
-            <Text style={styles.purchaseBtnText}>{t('donorProfile.purchaseBtn')}</Text>
-          </TouchableOpacity>
-        )}
       </View>
 
       {/* Cash-only handoff guide — must be accepted before chat opens */}
