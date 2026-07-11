@@ -465,7 +465,7 @@ export async function callQuestionnaireCoach(
   questionKey: string,
   questionText: string,
   answerValue: string
-): Promise<{ why_it_matters: string; acknowledgement: string; concern: string | null }> {
+): Promise<{ why_it_matters: string; concern: string | null }> {
   const token = await getAccessToken();
   const res = await fetch(`${EDGE}/milk-questionnaire-coach`, {
     method: 'POST',

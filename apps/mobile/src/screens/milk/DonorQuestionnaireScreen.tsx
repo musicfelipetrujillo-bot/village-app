@@ -136,7 +136,6 @@ const QUESTIONS: Question[] = [
 
 interface CoachResponse {
   why_it_matters: string;
-  acknowledgement: string;
   concern: string | null;
 }
 
@@ -303,8 +302,7 @@ export default function DonorQuestionnaireScreen({ navigation }: Props) {
                 <ActivityIndicator color="#D96C88" size="small" style={{ marginTop: 8 }} />
               ) : coach ? (
                 <>
-                  <Text style={styles.coachText}>{coach.acknowledgement}</Text>
-                  <Text style={styles.coachWhy}>{coach.why_it_matters}</Text>
+                  <Text style={styles.coachText}>{coach.why_it_matters}</Text>
                   {coach.concern && (
                     <View style={styles.coachConcern}>
                       <Text style={styles.coachConcernText}>{t('donorQuestionnaire.concernPrefix')} {coach.concern}</Text>

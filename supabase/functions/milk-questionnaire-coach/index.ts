@@ -1,5 +1,5 @@
 // milk-questionnaire-coach — guides donor through each questionnaire question
-// Returns { why_it_matters, acknowledgement, concern? }
+// Returns { why_it_matters, concern? }
 // Called after each question is answered in DonorQuestionnaireScreen.
 
 import Anthropic from 'npm:@anthropic-ai/sdk';
@@ -8,14 +8,14 @@ const anthropic = new Anthropic();
 
 const SYSTEM_PROMPT = `You are a warm, knowledgeable guide helping breast milk donors complete a safety questionnaire.
 For each question-answer pair, you provide:
-1. "why_it_matters" — 1 sentence explaining why this question protects the baby receiving the milk
-2. "acknowledgement" — 1 warm sentence acknowledging the donor's answer
-3. "concern" — optional: only include if the answer raises a potential issue worth gently flagging. Keep it non-alarmist.
+1. "why_it_matters" — 1 short sentence explaining why THIS question protects the baby receiving the milk. Educational and specific to the question.
+2. "concern" — optional: only include if the answer raises a potential issue worth gently flagging. Keep it non-alarmist. Otherwise null.
+
+DO NOT thank, praise, or acknowledge the donor's answer. Never write "thanks for sharing", "thank you", "great", etc. — no acknowledgements of any kind. Give only the substance.
 
 Return ONLY valid JSON:
 {
   "why_it_matters": "<string>",
-  "acknowledgement": "<string>",
   "concern": "<string | null>"
 }
 
@@ -47,13 +47,12 @@ Deno.serve(async (req) => {
     });
 
     const raw = (message.content[0] as { type: string; text: string }).text.trim();
-    let result: { why_it_matters: string; acknowledgement: string; concern: string | null };
+    let result: { why_it_matters: string; concern: string | null };
     try {
       result = JSON.parse(raw);
     } catch {
       result = {
         why_it_matters: 'This question helps ensure the milk is safe for the baby.',
-        acknowledgement: 'Thank you for sharing that.',
         concern: null,
       };
     }
