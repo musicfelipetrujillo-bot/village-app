@@ -23,6 +23,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Path, Defs, RadialGradient, Stop, Rect } from 'react-native-svg';
 import { useNavigation } from '@react-navigation/native';
 import { COLORS, FONTS, PLACEHOLDER_BABY_NAME } from '@utils/constants';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useUserStore } from '@store/user';
 import { useHomeStore } from '@store/home';
 import { usePicksStore } from '@store/picks';
@@ -125,6 +126,7 @@ function CornerBee({ size = 26, rotate = 0, style }: { size?: number; rotate?: n
 
 // ─── Masthead greeting (full-bleed warm gradient) ──────────────────────
 function HomeGreeting({ firstName }: { firstName: string }) {
+  const insets = useSafeAreaInsets();
   const lang = useUserStore((s) => s.profile?.preferred_language ?? 'en') as 'en' | 'es';
   const greet = greetingForHour(new Date().getHours(), lang);
   const now = new Date();
@@ -134,7 +136,7 @@ function HomeGreeting({ firstName }: { firstName: string }) {
     : ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
   const dateLabel = `${days[now.getDay()]} · ${mons[now.getMonth()]} ${now.getDate()}`;
   return (
-    <View style={styles.masthead}>
+    <View style={[styles.masthead, { paddingTop: insets.top + 10 }]}>
       {/* Soft honey glow — a warm radial breath at the top edge (no muddy band).
           Type carries the header; the greeting is cocoa-on-cream, the name the
           single rose accent. */}
@@ -543,13 +545,13 @@ const styles = StyleSheet.create({
   // ── Masthead greeting ─────────────────────────────────────────────────
   masthead: {
     marginTop: -56, marginHorizontal: -22,
-    paddingTop: 84, paddingBottom: 6, paddingHorizontal: 22,
+    paddingBottom: 6, paddingHorizontal: 22,
     overflow: 'hidden',
   },
   // villie wordmark. Sized as a masthead brand signature — a touch wider than the
   // asset's native 2.318:1 (stretch fill) for more horizontal presence, height kept
   // modest so the greeting spacing below (marginBottom) is unchanged.
-  mastheadLogo: { width: 118, height: 47, marginBottom: 14 },
+  mastheadLogo: { width: 84, height: 36, marginBottom: 14 },
   mastheadEyebrowRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 9 },
   mastheadEyebrowBar: { width: 16, height: 1.5, backgroundColor: T.walnut, marginRight: 8 },
   mastheadEyebrow: {

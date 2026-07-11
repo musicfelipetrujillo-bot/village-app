@@ -19,6 +19,7 @@ import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity, Image,
   ActivityIndicator, Animated, Easing,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -155,6 +156,7 @@ const MOM_CATEGORIES = (t: (k: string) => string): CategoryTile[] => [
 
 export default function ManualHomeScreen() {
   const navigation = useNavigation<any>();
+  const insets = useSafeAreaInsets();
   const t = useT();
   const lang = useUserStore((s) => s.profile?.preferred_language ?? 'en') as 'en' | 'es';
   const [audience, setAudience] = useState<Audience>('mom');
@@ -250,7 +252,7 @@ export default function ManualHomeScreen() {
         {/* Editorial header — paper-leaning cover card. Was a saturated
             golden-rose banner; now a near-paper wash with the warmth
             backed off so the editorial type + tiles do the talking. */}
-        <View style={styles.header}>
+        <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
           <LinearGradient
             colors={['#FCF6EF', '#F8EDE0', '#F2DDD0']}
             start={{ x: 0, y: 0 }}

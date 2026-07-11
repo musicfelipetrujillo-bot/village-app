@@ -3,6 +3,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, RefreshControl, Image,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { FlashList } from '@shopify/flash-list';
 import { useNavigation } from '@react-navigation/native';
@@ -39,6 +40,7 @@ const CATEGORY_FILTERS: { key: GearCategory | 'all'; i18nKey: string }[] = [
 
 export default function GearBrowseScreen() {
   const t = useT();
+  const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
   const { feed, loading, fetchFeed } = useGearStore();
   const [category, setCategory] = useState<GearCategory | 'all'>('all');
@@ -85,7 +87,7 @@ export default function GearBrowseScreen() {
   const Hero = (
     /* v3 editorial masthead 2026-05-24 — replaces the KenBurns photo
        header per Felipe. See MilkConnectHomeScreen for the pattern. */
-    <View style={styles.mastheadWrap}>
+    <View style={[styles.mastheadWrap, { paddingTop: insets.top + 10 }]}>
       {/* Soft honey hero wash — ties the masthead to the Baby Gear tile color
           (Village hub) so the section reads warm + colored, not cream-on-cream. */}
       <LinearGradient

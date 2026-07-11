@@ -23,6 +23,7 @@ import {
   View, Text, StyleSheet, TouchableOpacity, ScrollView,
   Linking, Alert, Image, Animated, Easing,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -178,6 +179,7 @@ const VISIBLE_MY_STUFF = MY_STUFF.filter(
 
 export default function MeScreen() {
   const navigation = useNavigation<MeNav>();
+  const insets = useSafeAreaInsets();
   const t = useT();
   const user = useAuthStore((s) => s.user);
   const signOut = useAuthStore((s) => s.signOut);
@@ -418,7 +420,7 @@ export default function MeScreen() {
         {/* Profile header — soft full-bleed pastel cover card. Pale
             golden-rose wash keeps the identity dialled back; bark text +
             coco italic name + hairline rule carry HomeScreen's vibe. */}
-        <View style={s.header}>
+        <View style={[s.header, { paddingTop: insets.top + 10 }]}>
           <LinearGradient
             colors={['#FCF6EF', '#F8EDE0', '#F2DDD0']}
             start={{ x: 0, y: 0 }}

@@ -2,6 +2,7 @@ import React, { useEffect, useCallback, useMemo } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, ScrollView,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FlashList } from '@shopify/flash-list';
 import { LinearGradient } from 'expo-linear-gradient';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -37,6 +38,7 @@ const FILTER_CHIPS: { i18nKey: string; key: string; value?: ChipFilter }[] = [
 
 export default function ExpertsHomeScreen({ navigation, route }: Props) {
   const t = useT();
+  const insets = useSafeAreaInsets();
   const { results, loading, filters, search, setFilters } = useExpertsStore();
   const profile = useUserStore((s) => s.profile);
   // Pre-select the chip whose value.specialty matches the deeplink hint. If
@@ -128,7 +130,7 @@ export default function ExpertsHomeScreen({ navigation, route }: Props) {
     <>
       {/* v3 editorial masthead 2026-05-24 — replaces the KenBurns photo
           header per Felipe. See MilkConnectHomeScreen for the pattern. */}
-      <View style={styles.mastheadWrap}>
+      <View style={[styles.mastheadWrap, { paddingTop: insets.top + 10 }]}>
         {/* Soft peach hero wash — ties the masthead to the Specialists tile
             color (Village hub) so the section reads warm + colored. */}
         <LinearGradient

@@ -11,6 +11,7 @@ import {
   View, Text, StyleSheet, TouchableOpacity, Animated, Image,
   StyleProp, ViewStyle,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Path, Circle } from 'react-native-svg';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
@@ -86,6 +87,7 @@ function eventMeta(e: EventCard): string {
 // ─── Screen ────────────────────────────────────────────────────────────
 export default function VillageHomeScreenV3() {
   const navigation = useNavigation<any>();
+  const insets = useSafeAreaInsets();
   const t = useT();
   const profile = useUserStore((s) => s.profile);
   const lang = (profile?.preferred_language ?? 'en') as 'en' | 'es';
@@ -123,7 +125,7 @@ export default function VillageHomeScreenV3() {
       <HoneycombBackdrop accent="#E0A23E" scene="village" intensity="subtle" topOffset={92} />
       <Animated.ScrollView
         style={{ flex: 1 }}
-        contentContainerStyle={styles.scroll}
+        contentContainerStyle={[styles.scroll, { paddingTop: insets.top + 10 }]}
         showsVerticalScrollIndicator={false}
         onScroll={Animated.event(
           [{ nativeEvent: { contentOffset: { y: scrollY } } }],

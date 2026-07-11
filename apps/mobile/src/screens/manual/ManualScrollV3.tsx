@@ -28,6 +28,7 @@ import {
   View, Text, StyleSheet, TouchableOpacity, Image,
   Dimensions, findNodeHandle, UIManager, Share, Alert,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   listManualPieces, formatDuration, getWeekIntroVideo,
   type WeekIntroVideo, type ManualAudience, type ManualPiece,
@@ -718,6 +719,7 @@ const PLACEHOLDER_WEEK_INTRO: WeekIntroVideo = {
 // ─── Screen ────────────────────────────────────────────────────────────
 export default function ManualScrollV3() {
   const navigation = useNavigation<any>();
+  const insets = useSafeAreaInsets();
   const t = useT();
   const profile = useUserStore((s) => s.profile);
   const babyProfile = useHomeStore((s) => s.babyProfile);
@@ -1058,7 +1060,7 @@ export default function ManualScrollV3() {
       />
       <Animated.ScrollView
         style={{ flex: 1 }}
-        contentContainerStyle={styles.scroll}
+        contentContainerStyle={[styles.scroll, { paddingTop: insets.top + 10 }]}
         showsVerticalScrollIndicator={false}
         onScroll={Animated.event(
           [{ nativeEvent: { contentOffset: { y: scrollY } } }],

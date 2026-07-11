@@ -18,6 +18,7 @@ import {
   View, Text, StyleSheet, FlatList, TouchableOpacity,
   RefreshControl, ActivityIndicator,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { COLORS, FONTS } from '@utils/constants';
 import { useT } from '@/i18n';
@@ -91,6 +92,7 @@ function Eyebrow({ children }: { children: React.ReactNode }) {
 // ─── Screen ────────────────────────────────────────────────────────────
 export default function InboxHomeScreen() {
   const navigation = useNavigation<any>();
+  const insets = useSafeAreaInsets();
   const t = useT();
   const userId = useUserStore((s) => s.profile?.id);
   const [rows, setRows] = useState<UnifiedRow[]>([]);
@@ -195,7 +197,7 @@ export default function InboxHomeScreen() {
   // bee + warm wash sit behind everything and the list scrolls under
   // the masthead naturally.
   const ListHeader = (
-    <View style={styles.masthead}>
+    <View style={[styles.masthead, { paddingTop: insets.top + 10 }]}>
       <Eyebrow>{t('inbox.eyebrow')}</Eyebrow>
       <Text style={styles.bigTitle}>
         {t('inbox.title')}<Text style={styles.bigTitleItalic}>.</Text>
