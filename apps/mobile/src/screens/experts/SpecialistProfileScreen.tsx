@@ -58,6 +58,8 @@ export default function SpecialistProfileScreen({ navigation, route }: Props) {
     );
   }
 
+  const isHelp = spec.provider_kind === 'help';
+
   const handleBook = () => {
     navigation.navigate('Booking', { specialistId: spec.id });
   };
@@ -106,23 +108,31 @@ export default function SpecialistProfileScreen({ navigation, route }: Props) {
           )}
           <Text style={styles.heroName}>{spec.full_name}</Text>
           <Text style={styles.heroCredentials}>{spec.credentials}</Text>
-          {spec.practice_name ? (
+          {isHelp && spec.hourly_rate_cents ? (
+            <Text style={styles.heroPractice}>${Math.round(spec.hourly_rate_cents / 100)}/hr · you arrange directly</Text>
+          ) : spec.practice_name ? (
             <Text style={styles.heroPractice}>{spec.practice_name}</Text>
           ) : null}
           <View style={styles.heroBadges}>
-            {spec.npi_verified && (
+            {isHelp ? (
+              spec.background_checked && (
+                <View style={[styles.badge, styles.badgeChecked]}>
+                  <Text style={styles.badgeText}>🛡 Background-checked</Text>
+                </View>
+              )
+            ) : spec.npi_verified && (
               <View style={[styles.badge, styles.badgeNPI]}>
                 <Text style={styles.badgeText}>{t('specialistProfile.badgeNpi')}</Text>
               </View>
             )}
-            {spec.telehealth_available && (
+            {!isHelp && spec.telehealth_available && (
               <View style={styles.badge}>
                 <Text style={styles.badgeText}>{t('specialistProfile.badgeTelehealth')}</Text>
               </View>
             )}
             {spec.accepting_patients && (
               <View style={[styles.badge, styles.badgeGreen]}>
-                <Text style={styles.badgeText}>{t('specialistProfile.badgeAccepting')}</Text>
+                <Text style={styles.badgeText}>{isHelp ? 'Available' : t('specialistProfile.badgeAccepting')}</Text>
               </View>
             )}
           </View>
@@ -142,23 +152,36 @@ export default function SpecialistProfileScreen({ navigation, route }: Props) {
             <Text style={styles.actionIcon}>{isFavorited ? '❤️' : '🤍'}</Text>
             <Text style={styles.actionLabel}>{t('specialistProfile.actionSave')}</Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.actionBtn, styles.actionBtnPrimary]}
-            onPress={handleBook}
-            accessibilityLabel={t('specialistProfile.actionBookA11y', { name: spec.full_name })}
-            accessibilityRole="button"
-          >
-            <Text style={styles.actionBtnPrimaryText}>{t('specialistProfile.actionBook')}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.actionBtn}
-            onPress={handleMessage}
-            accessibilityLabel={t('specialistProfile.actionMessageA11y', { name: spec.full_name })}
-            accessibilityRole="button"
-          >
-            <Text style={styles.actionIcon}>💬</Text>
-            <Text style={styles.actionLabel}>{t('specialistProfile.actionMessage')}</Text>
-          </TouchableOpacity>
+          {isHelp ? (
+            <TouchableOpacity
+              style={[styles.actionBtn, styles.actionBtnPrimary]}
+              onPress={handleMessage}
+              accessibilityLabel={`Contact ${spec.full_name}`}
+              accessibilityRole="button"
+            >
+              <Text style={styles.actionBtnPrimaryText}>Contact</Text>
+            </TouchableOpacity>
+          ) : (
+            <>
+              <TouchableOpacity
+                style={[styles.actionBtn, styles.actionBtnPrimary]}
+                onPress={handleBook}
+                accessibilityLabel={t('specialistProfile.actionBookA11y', { name: spec.full_name })}
+                accessibilityRole="button"
+              >
+                <Text style={styles.actionBtnPrimaryText}>{t('specialistProfile.actionBook')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.actionBtn}
+                onPress={handleMessage}
+                accessibilityLabel={t('specialistProfile.actionMessageA11y', { name: spec.full_name })}
+                accessibilityRole="button"
+              >
+                <Text style={styles.actionIcon}>💬</Text>
+                <Text style={styles.actionLabel}>{t('specialistProfile.actionMessage')}</Text>
+              </TouchableOpacity>
+            </>
+          )}
           {spec.telehealth_available && spec.telehealth_link && (
             <TouchableOpacity
               style={styles.actionBtn}
@@ -194,7 +217,7 @@ export default function SpecialistProfileScreen({ navigation, route }: Props) {
 
         {/* Info tabs */}
         <View style={styles.tabs}>
-          {(['about', 'services', 'insurance', 'location'] as InfoTab[]).map((tab) => (
+          {(isHelp ? (['about', 'services', 'location'] as InfoTab[]) : (['about', 'services', 'insurance', 'location'] as InfoTab[])).map((tab) => (
             <TouchableOpacity
               key={tab}
               style={[styles.tab, activeTab === tab && styles.tabActive]}
@@ -358,6 +381,7 @@ const styles = StyleSheet.create({
   },
   badgeGreen: { backgroundColor: '#F2E6DD' },
   badgeNPI: { backgroundColor: '#F2E6DD' },
+  badgeChecked: { backgroundColor: '#FDECEF' },
   badgeText: { fontSize: 11, fontFamily: FONTS.bodyMedium, color: COLORS.barkSoft },
 
   actionBar: {
