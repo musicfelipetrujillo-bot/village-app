@@ -171,16 +171,18 @@ const ICON_PLANE = 'M2 12l19-8-6 19-4-7-9-4z';
 const ICON_MOON = 'M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z';
 const ICON_MIC = 'M12 3a3 3 0 013 3v5a3 3 0 01-6 0V6a3 3 0 013-3zM6 11a6 6 0 0012 0M12 17v4M9 21h6';
 
-function AskVillieHero({ onAsk }: { onAsk: (seed?: string) => void }) {
+function AskVillieHero({ onAsk, onScanMilk }: { onAsk: (seed?: string) => void; onScanMilk: () => void }) {
   const lang = (useUserStore((s) => s.profile?.preferred_language) ?? 'en') as 'en' | 'es';
+  // `nav: 'scan'` tiles do real work instead of chatting — the camera tile opens
+  // the Milk Vault bag scanner (photo → AI reads the ounces) directly.
   const DO = lang === 'es'
     ? [
-        { d: ICON_CAM, tint: '#FDECEF', ink: '#E06A88', a: 'registra leche', b: 'desde una foto', seed: 'Quiero registrar mi reserva de leche desde una foto' },
+        { d: ICON_CAM, tint: '#FDECEF', ink: '#E06A88', a: 'registra leche', b: 'desde una foto', nav: 'scan' as const },
         { d: ICON_PLANE, tint: '#FCF1D8', ink: '#D19A1E', a: 'planea leche', b: 'para un viaje', seed: 'Ayúdame a planear cuánta leche necesito para un viaje' },
         { d: ICON_MOON, tint: '#EDF0DE', ink: '#7B8A46', a: '¿su sueño', b: 'va bien?', seed: '¿El sueño de mi bebé va bien?' },
       ]
     : [
-        { d: ICON_CAM, tint: '#FDECEF', ink: '#E06A88', a: 'log milk', b: 'from a photo', seed: 'I want to log my milk stash from a photo' },
+        { d: ICON_CAM, tint: '#FDECEF', ink: '#E06A88', a: 'log milk', b: 'from a photo', nav: 'scan' as const },
         { d: ICON_PLANE, tint: '#FCF1D8', ink: '#D19A1E', a: 'plan milk', b: 'for a trip', seed: 'Help me plan how much milk I need for a trip' },
         { d: ICON_MOON, tint: '#EDF0DE', ink: '#7B8A46', a: 'is his sleep', b: 'on track?', seed: "Is my baby's sleep on track?" },
       ];
@@ -209,7 +211,7 @@ function AskVillieHero({ onAsk }: { onAsk: (seed?: string) => void }) {
             key={i}
             style={[styles.askDoTile, { backgroundColor: tile.tint }]}
             activeOpacity={0.85}
-            onPress={() => onAsk(tile.seed)}
+            onPress={() => ('nav' in tile && tile.nav === 'scan') ? onScanMilk() : onAsk((tile as { seed?: string }).seed)}
             accessibilityRole="button"
             accessibilityLabel={`${tile.a} ${tile.b}`}
           >
@@ -412,6 +414,9 @@ export default function HomeScreenV3() {
   const goTab = (route: string) => navigation.getParent()?.navigate(route as never);
   const goManual = () => navigation.navigate('Manual' as never);
   const askVillie = (seed?: string) => (navigation.getParent()?.getParent() as any)?.navigate('AIHelpChat', seed ? { seed, autosend: true } : {});
+  // Log-milk-from-a-photo do-tile opens the Milk Vault scanner directly (real
+  // work, not a chat turn): photo → milk-vault-scan reads the ounces → confirm.
+  const scanMilk = () => (navigation.getParent() as any)?.navigate('Milk', { screen: 'MilkVaultScan' });
 
   const tiles: Tile[] = [
     { key: 'milk',    label: 'Milk',    bg: '#F7C5CB', icon: 'droplet',     go: () => goTab('Milk') },
@@ -454,7 +459,7 @@ export default function HomeScreenV3() {
       >
         <HomeGreeting firstName={firstName} />
 
-        <AskVillieHero onAsk={askVillie} />
+        <AskVillieHero onAsk={askVillie} onScanMilk={scanMilk} />
 
         <ManualHeroCard
           babyName={heroBabyName}
