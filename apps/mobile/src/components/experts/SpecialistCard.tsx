@@ -24,6 +24,12 @@ const SPECIALTY_CONFIG: Record<
   ob_gyn:               { emoji: '👩‍⚕️', bg: COLORS.pinkSoft,  label: 'OB/GYN',              eyebrow: 'COMFORT & HEALTH' },
   midwife:              { emoji: '🌿', bg: COLORS.sageSoft,  label: 'Midwife',              eyebrow: 'COMFORT & HEALTH' },
   pediatrician:         { emoji: '👶', bg: COLORS.sageSoft,  label: 'Pediatrician',         eyebrow: 'COMFORT & HEALTH' },
+  // Care vertical — non-clinical "extra hands"
+  night_nurse:          { emoji: '🌙', bg: COLORS.sandSoft,  label: 'Night Nurse',          eyebrow: 'EXTRA HANDS' },
+  postpartum_doula:     { emoji: '🤝', bg: COLORS.sageSoft,  label: 'Postpartum Doula',     eyebrow: 'EXTRA HANDS' },
+  nanny:                { emoji: '👶', bg: COLORS.pinkSoft,  label: 'Nanny',                eyebrow: 'EXTRA HANDS' },
+  mothers_helper:       { emoji: '🧺', bg: COLORS.sandSoft,  label: "Mother's Helper",      eyebrow: 'EXTRA HANDS' },
+  babysitter:           { emoji: '🧸', bg: COLORS.sageSoft,  label: 'Babysitter',           eyebrow: 'EXTRA HANDS' },
 };
 
 interface Props {
@@ -62,10 +68,11 @@ export function SpecialistCard({ specialist, onPress }: Props) {
     specialist.distance_miles != null
       ? `${specialist.distance_miles.toFixed(1)} mi`
       : specialist.city ?? null;
+  const isHelp = specialist.provider_kind === 'help';
   const accepting = specialist.accepting_patients;
   const meta: string[] = [];
   if (distText) meta.push(distText);
-  meta.push(accepting ? 'Accepting patients' : 'Waitlist only');
+  meta.push(accepting ? (isHelp ? 'Available' : 'Accepting patients') : (isHelp ? 'Booked up' : 'Waitlist only'));
   if (specialist.telehealth_available) meta.push('Virtual');
 
   return (
@@ -75,10 +82,12 @@ export function SpecialistCard({ specialist, onPress }: Props) {
           the top of every Concept B card. */}
       <View style={styles.eyebrowRow}>
         <Text style={styles.eyebrow}>{config.eyebrow}</Text>
-        {specialist.npi_verified ? (
-          <View style={styles.npiBadge}>
-            <Text style={styles.npiBadgeText}>✓ NPI</Text>
-          </View>
+        {isHelp ? (
+          specialist.background_checked ? (
+            <View style={styles.checkedBadge}><Text style={styles.checkedBadgeText}>🛡 Background-checked</Text></View>
+          ) : null
+        ) : specialist.npi_verified ? (
+          <View style={styles.npiBadge}><Text style={styles.npiBadgeText}>✓ NPI</Text></View>
         ) : null}
       </View>
 
@@ -141,13 +150,13 @@ export function SpecialistCard({ specialist, onPress }: Props) {
           ))}
         </View>
         <View style={styles.ctaCol}>
-          {specialist.services?.[0]?.price_cents ? (
-            <Text style={styles.price}>
-              ${Math.round(specialist.services[0].price_cents / 100)}
-            </Text>
+          {isHelp && specialist.hourly_rate_cents ? (
+            <Text style={styles.price}>${Math.round(specialist.hourly_rate_cents / 100)}<Text style={styles.priceUnit}>/hr</Text></Text>
+          ) : specialist.services?.[0]?.price_cents ? (
+            <Text style={styles.price}>${Math.round(specialist.services[0].price_cents / 100)}</Text>
           ) : null}
           <TouchableOpacity style={styles.bookBtn} onPress={onPress}>
-            <Text style={styles.bookBtnText}>Book →</Text>
+            <Text style={styles.bookBtnText}>{isHelp ? 'Contact →' : 'Book →'}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -194,6 +203,19 @@ const styles = StyleSheet.create({
     color: COLORS.sage,
     letterSpacing: 0.3,
   },
+  checkedBadge: {
+    backgroundColor: '#FDECEF',
+    borderRadius: 50,
+    paddingVertical: 2,
+    paddingHorizontal: 8,
+  },
+  checkedBadgeText: {
+    fontSize: 9,
+    fontFamily: FONTS.bodySemiBold,
+    color: '#C2556F',
+    letterSpacing: 0.3,
+  },
+  priceUnit: { fontSize: 11, fontFamily: FONTS.body, color: COLORS.textLight },
 
   heroRow: {
     flexDirection: 'row',

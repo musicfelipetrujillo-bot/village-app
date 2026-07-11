@@ -89,7 +89,23 @@ export const specialistsApi = {
       langMap[l.specialist_id].push(l.language_code);
     });
 
-    return (data ?? []).map((s: any) => ({ ...s, languages: langMap[s.id] ?? [] }));
+    // Care vertical: the specialists_near RPC's fixed return table predates the
+    // provider_kind / background-check columns, so attach them via a follow-up
+    // read (same pattern as languages) instead of re-signing the RPC.
+    const { data: careRows } = await supabase
+      .from('specialists')
+      .select('id, provider_kind, background_checked, hourly_rate_cents')
+      .in('id', ids);
+    const careMap: Record<string, { provider_kind?: string; background_checked?: boolean; hourly_rate_cents?: number | null }> = {};
+    (careRows ?? []).forEach((c: any) => { careMap[c.id] = c; });
+
+    return (data ?? []).map((s: any) => ({
+      ...s,
+      languages: langMap[s.id] ?? [],
+      provider_kind: careMap[s.id]?.provider_kind ?? 'clinical',
+      background_checked: careMap[s.id]?.background_checked ?? false,
+      hourly_rate_cents: careMap[s.id]?.hourly_rate_cents ?? null,
+    }));
   },
 
   getById: async (id: string): Promise<Specialist> => {

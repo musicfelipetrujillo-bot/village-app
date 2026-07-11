@@ -20,7 +20,15 @@ export type SpecialtyType =
   | 'sleep_coach'
   | 'pelvic_floor_pt'
   | 'perinatal_dietitian'
-  | 'ppd_therapist';
+  | 'ppd_therapist'
+  // Care vertical — non-clinical "extra hands" (provider_kind = 'help')
+  | 'night_nurse'
+  | 'postpartum_doula'
+  | 'nanny'
+  | 'mothers_helper'
+  | 'babysitter';
+
+export type ProviderKind = 'clinical' | 'help';
 
 export type AppointmentStatus =
   | 'pending'
@@ -86,6 +94,11 @@ export interface Specialist {
   calendly_username: string | null;
   stripe_account_id: string | null;
   distance_miles?: number; // injected by geo query
+  // Care vertical (migration 101)
+  provider_kind?: ProviderKind;
+  background_checked?: boolean;
+  background_checked_at?: string | null;
+  hourly_rate_cents?: number | null;
   languages?: string[];
   insurances?: string[];
   services?: SpecialistService[];

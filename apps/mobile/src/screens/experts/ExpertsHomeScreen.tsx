@@ -50,6 +50,12 @@ export default function ExpertsHomeScreen({ navigation, route }: Props) {
     return match?.key ?? 'all';
   }, [incomingSpecialty]);
   const [activeChip, setActiveChip] = React.useState(initialChipKey);
+  // Care two-tier filter — clinical (NPI-verified) vs extra hands (background-checked).
+  const [tier, setTier] = React.useState<'all' | 'clinical' | 'help'>('all');
+  const displayResults = useMemo(
+    () => (tier === 'all' ? results : results.filter((r) => (r.provider_kind ?? 'clinical') === tier)),
+    [results, tier],
+  );
 
   // "My insurance" chip is conditional — only shown when the user has set
   // insurance_provider on their profile. The chip value passes that string
@@ -180,6 +186,23 @@ export default function ExpertsHomeScreen({ navigation, route }: Props) {
         <View style={styles.mastheadRule} />
       </View>
 
+      {/* Care tier toggle — clinical vs extra hands */}
+      <View style={styles.tierRow}>
+        {(['all', 'clinical', 'help'] as const).map((k) => (
+          <TouchableOpacity
+            key={k}
+            style={[styles.tierSeg, tier === k && styles.tierSegActive]}
+            onPress={() => setTier(k)}
+            accessibilityRole="button"
+            accessibilityState={{ selected: tier === k }}
+          >
+            <Text style={[styles.tierSegText, tier === k && styles.tierSegTextActive]}>
+              {k === 'all' ? 'All' : k === 'clinical' ? 'Clinical' : 'Extra hands'}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -219,7 +242,7 @@ export default function ExpertsHomeScreen({ navigation, route }: Props) {
         style={styles.pageWash}
       />
       <FlashList
-        data={loading ? [] : results}
+        data={loading ? [] : displayResults}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.list}
         ListHeaderComponent={ListHeader}
@@ -391,6 +414,11 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(61,31,14,0.13)',
   },
 
+  tierRow: { flexDirection: 'row', gap: 8, paddingHorizontal: 16, paddingTop: 14 },
+  tierSeg: { flex: 1, alignItems: 'center', paddingVertical: 9, borderRadius: 999, backgroundColor: '#F2E6DD' },
+  tierSegActive: { backgroundColor: '#E06A88' },
+  tierSegText: { fontFamily: FONTS.bodySemiBold, fontSize: 12.5, color: '#8A6A55' },
+  tierSegTextActive: { color: '#fff' },
   chipScroll: { flexGrow: 0 },
   chipContent: { paddingHorizontal: 16, paddingTop: 12, paddingBottom: 12, gap: 8, flexDirection: 'row' },
   chip: {
