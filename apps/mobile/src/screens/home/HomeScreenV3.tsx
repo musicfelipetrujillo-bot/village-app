@@ -469,6 +469,23 @@ export default function HomeScreenV3() {
           onPress={goManual}
         />
 
+        <TouchableOpacity
+          activeOpacity={0.9}
+          onPress={() => navigation.navigate('Insights' as never)}
+          accessibilityRole="button"
+          accessibilityLabel={`Your week — Villie's read on you and ${heroBabyName}`}
+          style={{ flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: '#FBE9BE', borderRadius: 16, padding: 15, marginHorizontal: 16, marginTop: 14 }}
+        >
+          <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: 'rgba(255,252,246,0.6)', alignItems: 'center', justifyContent: 'center' }}>
+            <Svg width={20} height={20} viewBox="0 0 24 24"><Path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3z" stroke="#B98A1E" strokeWidth={1.7} fill="none" strokeLinecap="round" strokeLinejoin="round" /></Svg>
+          </View>
+          <View style={{ flex: 1, minWidth: 0 }}>
+            <Text style={{ fontFamily: FONTS.v2_mono, fontSize: 10, letterSpacing: 1.6, textTransform: 'uppercase', color: '#B98A1E', fontWeight: '600' }}>your week, so far</Text>
+            <Text style={{ fontFamily: FONTS.bodySemiBold, fontSize: 14.5, color: '#3D2116', marginTop: 3 }} numberOfLines={1}>Villie's read on you + {heroBabyName}</Text>
+          </View>
+          <Text style={{ fontSize: 20, color: '#C2556F' }}>›</Text>
+        </TouchableOpacity>
+
         <VillageTiles tiles={tiles} onAll={() => navigation.navigate('Village' as never)} />
 
         <DiscoverRow

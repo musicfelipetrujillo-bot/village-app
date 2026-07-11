@@ -182,6 +182,18 @@ export const homeApi = {
     return rows[0] ?? null;
   },
 
+  // Last-N-days mood trend for the Insights screen. RLS (own-only) scopes rows.
+  async getRecentCheckins(days = 7): Promise<{ checkin_date: string; mood_score: number }[]> {
+    const since = new Date(Date.now() - days * 86400000).toISOString().slice(0, 10);
+    const { data, error } = await supabase
+      .from('daily_checkins')
+      .select('checkin_date, mood_score')
+      .gte('checkin_date', since)
+      .order('checkin_date', { ascending: true });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as { checkin_date: string; mood_score: number }[];
+  },
+
   async submitCheckin(input: CheckinInput): Promise<DailyCheckinWithReply> {
     // 1) Write the user-side row via RLS-protected RPC.
     const { data: upserted, error: upErr } = await supabase.rpc('upsert_daily_checkin', {
