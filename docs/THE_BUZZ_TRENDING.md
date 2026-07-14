@@ -4,7 +4,7 @@
 **Author:** brainstormed with Claude (roster feature)
 **Working name:** "The Buzz" (bee brand + "buzz" = trending chatter — the name sets a *conversation* frame, not a medical-directive frame)
 
-**2026-07-14 addendum:** three things unresolved in the original spec are settled below and threaded through the doc: (1) the `last30days-skill` research mechanism didn't actually exist — replaced with a scheduled Claude Code research agent, §4; (2) the review surface is the existing `ClinicalReviewScreen`, extended — §3/§4; (3) copy needs the V10 Gen Z voice, and the mandatory-human-review gate is keyed on medical-claim content rather than item kind — §2/§4.
+**2026-07-14 addendum:** four things unresolved in the original spec are settled below and threaded through the doc: (1) the actual research mechanism is a scheduled Claude Code agent, with `last30days-skill` (`mvanhorn/last30days-skill`, real + verified — see §4) wired in as a discovery-only input, never a citation source; (2) the review surface is the existing `ClinicalReviewScreen`, extended — §3/§4; (3) copy needs the V10 Gen Z voice, and the mandatory-human-review gate is keyed on medical-claim content rather than item kind — §2/§4; (4) migration number corrected to 104 — §3.
 
 ---
 
@@ -77,7 +77,10 @@ Belongs to an issue.
 
 ## 4. Pipeline (research → review → publish → archive) — mechanism corrected 2026-07-14
 
-1. **Research (weekly).** A **new scheduled Claude Code agent** (same pattern as the existing 3 local audit agents — see `project_villie_agent_roster`), given WebSearch/WebFetch, drafts candidate items constrained to the two allowlists in §3, and POSTs them to a new **`trending-ingest` Edge Function** (service-role, shared-secret auth — not a public/JWT route, since only the scheduled agent calls it). The function performs the actual insert into `trending_items` as `draft`, where the DB-side allowlist trigger is the real enforcement point regardless of what the agent's prompt does. *(This replaces the original spec's undefined `last30days-skill` — no such tool exists; no new paid search API needed.)* MVP stays founder-in-the-loop weekly (a human still reviews every medical-claim item regardless — see step 2).
+1. **Research (weekly), two sub-steps.** A **new scheduled Claude Code agent** (same pattern as the existing 3 local audit agents — see `project_villie_agent_roster`) runs weekly:
+   - **1a. Discovery (last30days-skill, verified real — `mvanhorn/last30days-skill`, MIT, 52k★, actively maintained).** The agent runs `/last30days` scoped to its **zero-config sources only** (Reddit, Hacker News, Polymarket, GitHub, web) to answer "what's actually buzzing in mom-world this week" — no X/TikTok/Instagram/LinkedIn, since those need browser-cookie or API-key auth that has no business being wired into an unattended weekly cron. **Its output is discovery-only and is never cited, never stored, never shown to a user** — it exists purely to hand the next sub-step a short list of candidate topics. This is the part of the original spec's "reads mom communities" line that's actually real now; it does not change the trend-signal *sourcing* requirement below.
+   - **1b. Sourcing (allowlist-constrained).** For each candidate topic from 1a, the same agent uses plain WebSearch/WebFetch restricted to the two allowlists in §3 to find an actual citable trend-tier article and an evidence-tier grounding source. Only these allowlisted URLs ever become `trend_source_url`/`evidence_source_url` — a Reddit thread or TikTok video from step 1a can point you at a topic, but it can never itself be the citation.
+   - The agent POSTs the finished drafts to a new **`trending-ingest` Edge Function** (service-role, shared-secret auth — not a public/JWT route, since only the scheduled agent calls it), which performs the actual insert into `trending_items` as `draft`. The DB-side allowlist trigger is the real enforcement point regardless of what either sub-step's prompt does. MVP stays founder-in-the-loop weekly (a human still reviews every medical-claim item regardless — see step 2).
 2. **Gate, keyed on `is_medical_claim` (not on `kind`).**
    - `is_medical_claim = false` → automated `healthcare-marketing-compliance` agent pass (brand-safety/tone/legal, not medical fact-check) → `agent_cleared` → publishable without a human. `cultural-intelligence-strategist` assists the ES pass.
    - `is_medical_claim = true` (default, includes most `news` items and the clarification item) → stays `in_review` until a human `is_clinical_reviewer` approves via `approve_content_row`. **Human sign-off is mandatory**; `reviewed_by/at` stored for chain-of-custody.
@@ -99,6 +102,7 @@ Belongs to an issue.
 ## 6. Compliance guardrails (the part a hospital partner scrutinizes)
 
 - **Source allowlist** enforced *both* in the research prompt *and* validated at DB insert (reject off-allowlist domains). Trend tier allows vetted journalism; evidence tier restricted to authorities/journals.
+- **last30days-skill output never becomes a citation.** It's a discovery-only input to step 1a (§4) — raw Reddit/HN/Polymarket/GitHub/web engagement data is never stored on a `trending_items` row, never shown to a user, and can't reach `trend_source_url`/`evidence_source_url` (those only accept allowlisted domains, enforced at insert). This is what keeps "know what moms are actually buzzing about" from becoming the "live/real-time social feed" the spec's non-goals rule out.
 - **Public sources only** — never hospital/patient/clinical-record data.
 - Every item cites **both** sources with live links.
 - **Editorial disclaimer** on every surface; framing is "conversation," never "directive."
@@ -117,7 +121,7 @@ Belongs to an issue.
 ## 8. Build sequence (proposed phases — updated 2026-07-14)
 
 - **B1 — Data + gate:** migration 104 (`trending_issues`, `trending_items` incl. `is_medical_claim`, `trending_source_allowlist` seeded per §3, RLS, insert-time allowlist check), extends `list_pending_review` / `approve_content_row` / `reject_content_row` with a `trending_items` arm.
-- **B2 — Research draft path:** new scheduled Claude Code research agent (WebSearch/WebFetch, allowlist-constrained) + `trending-ingest` Edge Function (service-role, shared-secret) that performs the insert; `healthcare-marketing-compliance` auto-pass for `is_medical_claim=false` items.
+- **B2 — Research draft path:** new scheduled Claude Code research agent — installs `last30days-skill` (`/plugin marketplace add mvanhorn/last30days-skill` + `/plugin install last30days`) for discovery-only topic-finding scoped to its zero-config sources, then allowlist-constrained WebSearch/WebFetch for actual sourcing — + `trending-ingest` Edge Function (service-role, shared-secret) that performs the insert; `healthcare-marketing-compliance` auto-pass for `is_medical_claim=false` items.
 - **B3 — Review surface:** extend `ClinicalReviewScreen` with the `trending_items` card variant (source links + myth/fact block), grouped by ISO week of `issue_date`.
 - **B4 — Publish + Home card:** issue publish flip, `home-feed-curator` card, `TheBuzzScreen` (V10 Gen Z voice copy), `trending` notif pref key + push via `push-notify`.
 - **B5 — Manual archive + ES polish + analytics/audit.**
