@@ -1,8 +1,10 @@
 # The Buzz — Trending in Maternal Health (Design Spec)
 
-**Status:** Design approved 2026-07-08 · not yet implemented
+**Status:** Design approved 2026-07-08 · operational gaps resolved 2026-07-14 · moving to implementation planning
 **Author:** brainstormed with Claude (roster feature)
 **Working name:** "The Buzz" (bee brand + "buzz" = trending chatter — the name sets a *conversation* frame, not a medical-directive frame)
+
+**2026-07-14 addendum:** three things unresolved in the original spec are settled below and threaded through the doc: (1) the `last30days-skill` research mechanism didn't actually exist — replaced with a scheduled Claude Code research agent, §4; (2) the review surface is the existing `ClinicalReviewScreen`, extended — §3/§4; (3) copy needs the V10 Gen Z voice, and the mandatory-human-review gate is keyed on medical-claim content rather than item kind — §2/§4.
 
 ---
 
@@ -20,7 +22,7 @@ The framing is deliberate and is itself the primary risk control:
 - Per-stage personalization (one global issue for everyone at MVP).
 - A live/real-time social feed.
 - User comments / sharing.
-- Auto-publishing of **any** myth/clarification content.
+- Auto-publishing of **any medical-claim** content (`is_medical_claim=true`, §3) — always mandatory human sign-off, whether it's a news item or the myth-buster. *(Non-medical myth-busters — e.g. debunking a cost/product claim with nothing health-related in it — can auto-clear same as non-medical news items; see §4.)*
 - Fully-headless always-on automation (MVP is founder-in-the-loop weekly).
 
 ---
@@ -42,11 +44,15 @@ The clarification item is the same shape: *"everyone's posting about X — here'
 
 **Standing disclaimer (editorial, not clinical):** *"This is what's being talked about — not medical advice. Always check with your provider."*
 
+### Voice (2026-07-14)
+
+All Buzz copy — item titles, summaries, the "ask your provider" line — is written in the **V10 Gen Z voice** (lowercase, casual, group-chat tone; see `docs/V10_GENZ_REBRAND.md`): reads like a friend texting you the tea, not a health-article headline. **Exception:** the standing disclaimer stays sober and clearly legible as a disclaimer — same carve-out V10 already makes for crisis/legal copy elsewhere in the app. This is copy-only; no schema impact.
+
 ---
 
-## 3. Data model (new migration ~096)
+## 3. Data model (migration 104 — corrected 2026-07-14, was `~096`)
 
-`last30days` is a **research/draft engine feeding a review queue** — it never writes published content.
+The research step is a **scheduled agent feeding a review queue** — it never writes published content directly (see §4).
 
 ### `trending_issues`
 One row per weekly issue.
@@ -56,25 +62,28 @@ One row per weekly issue.
 Belongs to an issue.
 - `id`, `issue_id` (FK), `kind` (`news` | `myth_buster`), `rank`.
 - `status` (`draft` | `agent_cleared` | `approved` | `rejected`).
+- **`is_medical_claim` BOOLEAN NOT NULL DEFAULT TRUE** (added 2026-07-14). Drives the review gate in §4 — replaces "kind determines the gate" with "does this item make a health claim." Defaults TRUE (fail-safe): the research agent only sets it FALSE when an item is purely cultural/product trend with no health content. A human reviewer can flip it back to TRUE if the agent mis-tagged something; there's no path for a human to flip TRUE→FALSE from inside the review UI (avoids a reviewer accidentally waving through medical content — if it's mistagged FALSE and shouldn't be, fix it in the draft, not in review).
 - **Two sources:** `trend_source_name` / `trend_source_url`, `evidence_source_name` / `evidence_source_url`.
-- **Localized content:** `title_en/es`, `summary_en/es`; for `myth_buster` kind also `myth_claim_en/es` + `fact_en/es`; `ask_provider_en/es` (the "questions for your provider" line).
+- **Localized content:** `title_en/es`, `summary_en/es`; for `myth_buster` kind also `myth_claim_en/es` + `fact_en/es`; `ask_provider_en/es` (the "questions for your provider" line). All copy fields follow the V10 Gen Z voice (§2) except the standing disclaimer, which is fixed app copy, not a per-item field.
 - **Audit:** `reviewed_by` (FK users), `reviewed_at`, `review_notes`.
 
 ### RLS & pipeline reuse
 - Public reads **published issues + approved items only**. Drafts are reviewer/service-role only.
-- Reuses existing infra: `is_clinical_reviewer()`, `approve_content_row(p_table, p_id, p_notes)`, `list_pending_review()`.
+- Reuses existing infra: `is_clinical_reviewer()`, `approve_content_row(p_table, p_id, p_notes)`, `list_pending_review()` — all three get a `trending_items` arm added (see §4).
 - **Source-allowlist enforced at insert:** a DB-side check (or trigger) rejects any item whose `trend_source_url` / `evidence_source_url` domain is not on the allowlist table (`trending_source_allowlist`: domain, tier `trend`|`evidence`).
+  - **Proposed seed (editable in-DB, not code):** trend tier — apnews.com, reuters.com, nytimes.com, washingtonpost.com, motherly.com, parents.com, romper.com. Evidence tier — acog.org, aap.org, cdc.gov, who.int, nih.gov / pubmed.ncbi.nlm.nih.gov, llli.org.
 
 ---
 
-## 4. Pipeline (research → review → publish → archive)
+## 4. Pipeline (research → review → publish → archive) — mechanism corrected 2026-07-14
 
-1. **Research (weekly).** A `last30days`-backed agent run, domain-allowlisted, drafts candidate items into `trending_items` as `draft` — trend half + evidence half + localized copy. *MVP: founder-triggered weekly* (a human reviews the clarification item every week regardless, so a fragile always-on cron buys little; full automation is a v2 lever). Reuses the scheduled-agent pattern already established for the weekly audits.
-2. **Two-tier gate.**
-   - **News items** → automated `healthcare-marketing-compliance` agent pass → `agent_cleared`. `cultural-intelligence-strategist` assists the ES pass.
-   - **Clarification item** → stays `in_review` until a human `is_clinical_reviewer` approves via `approve_content_row`. **Human sign-off is mandatory**; `reviewed_by/at` stored for chain-of-custody.
-3. **Publish.** When the issue has its approved items, it flips to `published` → surfaces the Home card + optional push (respecting notif prefs via a new `trending` key, default on, suppressible; routed through `push-notify` with the pref gate).
+1. **Research (weekly).** A **new scheduled Claude Code agent** (same pattern as the existing 3 local audit agents — see `project_villie_agent_roster`), given WebSearch/WebFetch, drafts candidate items constrained to the two allowlists in §3, and POSTs them to a new **`trending-ingest` Edge Function** (service-role, shared-secret auth — not a public/JWT route, since only the scheduled agent calls it). The function performs the actual insert into `trending_items` as `draft`, where the DB-side allowlist trigger is the real enforcement point regardless of what the agent's prompt does. *(This replaces the original spec's undefined `last30days-skill` — no such tool exists; no new paid search API needed.)* MVP stays founder-in-the-loop weekly (a human still reviews every medical-claim item regardless — see step 2).
+2. **Gate, keyed on `is_medical_claim` (not on `kind`).**
+   - `is_medical_claim = false` → automated `healthcare-marketing-compliance` agent pass (brand-safety/tone/legal, not medical fact-check) → `agent_cleared` → publishable without a human. `cultural-intelligence-strategist` assists the ES pass.
+   - `is_medical_claim = true` (default, includes most `news` items and the clarification item) → stays `in_review` until a human `is_clinical_reviewer` approves via `approve_content_row`. **Human sign-off is mandatory**; `reviewed_by/at` stored for chain-of-custody.
+3. **Publish.** When the issue has its approved items, it flips to `published` → surfaces the Home card + push (respecting notif prefs via a new `trending` key, default on, quiet-hours-respecting, suppressible; routed through `push-notify` with the pref gate).
 4. **Archive.** Published issues list into the Manual archive.
+5. **Review surface.** `ClinicalReviewScreen` + its 3 RPCs are extended with a `trending_items` arm rather than built new: `list_pending_review()` groups by ISO week of `issue_date` (fits the screen's existing week-grouped layout); the card component grows an optional block rendering `trend_source_url`/`evidence_source_url` and, for `myth_buster` kind, `myth_claim`/`fact`; `approve_content_row`/`reject_content_row` grow a matching CASE arm. Only rows with `is_medical_claim=true` and `status='in_review'` ever reach this screen — the rest never enter the human queue.
 
 ---
 
@@ -105,21 +114,23 @@ Belongs to an issue.
 
 ---
 
-## 8. Build sequence (proposed phases)
+## 8. Build sequence (proposed phases — updated 2026-07-14)
 
-- **B1 — Data + gate:** migration 096 (`trending_issues`, `trending_items`, `trending_source_allowlist`, RLS, insert-time allowlist check), wired to existing review RPCs.
-- **B2 — Research draft path:** the `last30days`-backed weekly research step that drafts items (+ install `last30days-skill` as a backend tool), including the `healthcare-marketing-compliance` auto-pass for news.
-- **B3 — Review surface:** a lightweight in-app (or ops) review screen for the clinical reviewer to approve/reject the clarification item and edit copy.
-- **B4 — Publish + Home card:** issue publish flip, `home-feed-curator` card, `TheBuzzScreen`, notif pref + push.
+- **B1 — Data + gate:** migration 104 (`trending_issues`, `trending_items` incl. `is_medical_claim`, `trending_source_allowlist` seeded per §3, RLS, insert-time allowlist check), extends `list_pending_review` / `approve_content_row` / `reject_content_row` with a `trending_items` arm.
+- **B2 — Research draft path:** new scheduled Claude Code research agent (WebSearch/WebFetch, allowlist-constrained) + `trending-ingest` Edge Function (service-role, shared-secret) that performs the insert; `healthcare-marketing-compliance` auto-pass for `is_medical_claim=false` items.
+- **B3 — Review surface:** extend `ClinicalReviewScreen` with the `trending_items` card variant (source links + myth/fact block), grouped by ISO week of `issue_date`.
+- **B4 — Publish + Home card:** issue publish flip, `home-feed-curator` card, `TheBuzzScreen` (V10 Gen Z voice copy), `trending` notif pref key + push via `push-notify`.
 - **B5 — Manual archive + ES polish + analytics/audit.**
 
 Each phase is independently shippable; B1–B4 is the thinnest end-to-end slice.
 
 ---
 
-## 9. Open questions (resolve during planning)
+## 9. Open questions — resolved 2026-07-14
 
-- Exact allowlist membership (which journalism outlets qualify as "vetted" for the trend tier).
-- Whether the review surface is in-app (reuses mobile) or an ops/web tool.
-- Push cadence: notify on every issue vs silent Home-card refresh.
-- Final section name + all copy → V10 brand-voice pass (not an architecture decision).
+- ~~Exact allowlist membership~~ → proposed seed list in §3 (editable in-DB anytime, not a code change).
+- ~~Whether the review surface is in-app or ops/web~~ → in-app, extends `ClinicalReviewScreen` (§4 step 5).
+- ~~Push cadence~~ → notify on every publish via `trending` notif_prefs key, default on, quiet-hours-respecting.
+- ~~Gate keyed on item kind~~ → re-keyed to `is_medical_claim` (§3/§4) so non-medical trend/culture items move fast while anything health-related still requires mandatory human clinical sign-off.
+- Voice: V10 Gen Z voice on all copy except the standing disclaimer (§2).
+- Still open, non-blocking for planning: exact final section-name copy and the very first week's seed content — both are content/copy decisions to make when B4 lands, not architecture.
