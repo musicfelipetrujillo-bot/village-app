@@ -48,3 +48,6 @@ yarn-error.*
 
 # TypeScript
 *.tsbuildinfo
+
+# Git worktrees (superpowers subagent-driven-development isolation)
+.worktrees/
