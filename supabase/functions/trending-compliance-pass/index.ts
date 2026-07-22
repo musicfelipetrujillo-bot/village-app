@@ -1,4 +1,4 @@
-// trending-compliance-pass — automated brand-safety/tone/legal pass for
+// trending-compliance-pass — automated brand-safety/tone pass for
 // The Buzz items tagged is_medical_claim=false. This is NOT a medical
 // fact-check (medical-claim items always require a human, see migration
 // 105's list_pending_review filter) — it checks the copy reads as
@@ -87,20 +87,31 @@ async function screenOne(item: ItemRow) {
     console.warn(`trending-compliance-pass failed ${item.id}:`, (err as Error).message);
     const { error } = await supabase
       .from('trending_items')
-      .update({ status: 'in_review', review_notes: 'compliance-pass ai_unavailable' })
+      .update({
+        status: 'in_review',
+        review_notes: 'compliance-pass ai_unavailable',
+        updated_at: new Date().toISOString(),
+      })
       .eq('id', item.id)
       .eq('status', 'draft');
-    return { item_id: item.id, outcome: 'in_review', reason: 'ai_unavailable', db_error: error?.message };
+    if (error) {
+      return { item_id: item.id, outcome: 'skipped', reason: 'db_error', db_error: error.message };
+    }
+    return { item_id: item.id, outcome: 'in_review', reason: 'ai_unavailable' };
   }
 
   const nextStatus = cleared ? 'agent_cleared' : 'in_review';
   const { error } = await supabase
     .from('trending_items')
-    .update({ status: nextStatus, review_notes: rationale })
+    .update({ status: nextStatus, review_notes: rationale, updated_at: new Date().toISOString() })
     .eq('id', item.id)
     .eq('status', 'draft');
 
-  return { item_id: item.id, outcome: nextStatus, reason: rationale, db_error: error?.message };
+  if (error) {
+    return { item_id: item.id, outcome: 'skipped', reason: 'db_error', db_error: error.message };
+  }
+
+  return { item_id: item.id, outcome: nextStatus, reason: rationale };
 }
 
 Deno.serve(async (req) => {
