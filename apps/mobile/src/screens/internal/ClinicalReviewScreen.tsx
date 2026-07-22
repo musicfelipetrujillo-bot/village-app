@@ -30,6 +30,7 @@ import {
   sourceTableLabel,
   rowSource,
 } from '@api/clinical-review';
+import { supabase } from '@/lib/supabase';
 import { COLORS, FONTS } from '@utils/constants';
 
 interface RejectTarget {
@@ -52,11 +53,21 @@ export default function ClinicalReviewScreen() {
   const [rejectNotes, setRejectNotes] = useState('');
   const [rejecting, setRejecting] = useState(false);
 
+  // The Buzz — recently auto-cleared trending_items, flaggable back into review
+  const [clearedRows, setClearedRows] = useState<
+    { id: string; issue_id: string; kind: string; title_en: string; summary_en: string; trend_source_url: string; evidence_source_url: string; created_at: string }[]
+  >([]);
+  const [flaggingId, setFlaggingId] = useState<string | null>(null);
+
   const load = useCallback(async () => {
     setError(null);
     try {
-      const data = await clinicalReviewApi.listPending();
-      setRows(data);
+      const [pending, cleared] = await Promise.all([
+        clinicalReviewApi.listPending(),
+        supabase.rpc('list_recent_agent_cleared_trending_items').then((r) => r.data ?? []),
+      ]);
+      setRows(pending);
+      setClearedRows(cleared);
     } catch (e: any) {
       setError(e?.message ?? 'Failed to load pending review queue.');
     }
@@ -138,6 +149,19 @@ export default function ClinicalReviewScreen() {
     }
   }
 
+  async function flagAsMedical(id: string) {
+    setFlaggingId(id);
+    try {
+      await supabase.rpc('flag_trending_item_as_medical', { p_id: id, p_notes: 'flagged from recently-cleared list' });
+      setClearedRows((cur) => cur.filter((r) => r.id !== id));
+      await load(); // pulls the newly-in_review item into the main pending list
+    } catch (e: any) {
+      Alert.alert('Flag failed', e?.message ?? 'Unknown error');
+    } finally {
+      setFlaggingId(null);
+    }
+  }
+
   // ── render ─────────────────────────────────────────────────────────
   return (
     <KeyboardAvoidingView
@@ -211,6 +235,33 @@ export default function ClinicalReviewScreen() {
                 ))}
               </View>
             ))}
+
+            {clearedRows.length > 0 ? (
+              <View style={s.weekBlock}>
+                <Text style={s.weekHeading}>Recently auto-cleared — The Buzz</Text>
+                <Text style={s.helpTxt}>
+                  Non-medical items that auto-cleared without human review. Flag one if it actually touches a
+                  health/medical claim.
+                </Text>
+                {clearedRows.map((r) => (
+                  <View key={r.id} style={s.cardBlock}>
+                    <Text style={s.cardTitle} selectable>{r.title_en}</Text>
+                    <Text style={s.bodyTxt} selectable>{r.summary_en}</Text>
+                    <TouchableOpacity
+                      style={[s.rejectBtn, flaggingId === r.id && s.btnDisabled]}
+                      onPress={() => flagAsMedical(r.id)}
+                      disabled={flaggingId === r.id}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Flag ${r.title_en} as medical`}
+                    >
+                      {flaggingId === r.id
+                        ? <ActivityIndicator color={COLORS.cocoDeep} />
+                        : <Text style={s.rejectBtnTxt}>🚩 Flag as medical</Text>}
+                    </TouchableOpacity>
+                  </View>
+                ))}
+              </View>
+            ) : null}
           </>
         )}
       </ScrollView>
@@ -330,6 +381,23 @@ function ReviewCard({
           <Text style={s.ctaTxt} selectable>
             {row.cta_label ?? '(no label)'} → {row.cta_target ?? '(no target)'}
           </Text>
+        </View>
+      ) : null}
+
+      {row.source_table === 'trending_items' ? (
+        <View style={s.buzzBlock}>
+          <Text style={s.buzzLabel}>TREND SOURCE</Text>
+          <Text style={s.buzzUrl} selectable numberOfLines={1}>{row.trend_source_url}</Text>
+          <Text style={s.buzzLabel}>EVIDENCE SOURCE</Text>
+          <Text style={s.buzzUrl} selectable numberOfLines={1}>{row.evidence_source_url}</Text>
+          {row.myth_claim_en ? (
+            <>
+              <Text style={s.buzzLabel}>MYTH CLAIM</Text>
+              <Text style={s.bodyTxt} selectable>{row.myth_claim_en}</Text>
+              <Text style={s.buzzLabel}>FACT</Text>
+              <Text style={s.bodyTxt} selectable>{row.fact_en}</Text>
+            </>
+          ) : null}
         </View>
       ) : null}
 
@@ -583,6 +651,27 @@ const s = StyleSheet.create({
     fontSize: 12,
     color: COLORS.bark,
     marginTop: 2,
+  },
+
+  buzzBlock: {
+    marginTop: 10,
+    padding: 8,
+    backgroundColor: COLORS.cream,
+    borderRadius: 8,
+    gap: 2,
+  },
+  buzzLabel: {
+    fontFamily: FONTS.bodySemiBold,
+    fontSize: 10,
+    color: COLORS.barkSoft,
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+    marginTop: 6,
+  },
+  buzzUrl: {
+    fontFamily: FONTS.body,
+    fontSize: 11,
+    color: COLORS.coco,
   },
 
   statusRow: { marginTop: 8 },
