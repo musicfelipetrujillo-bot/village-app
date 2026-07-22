@@ -121,7 +121,14 @@ ALTER TABLE trending_items ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "trending_items_public_read" ON trending_items
   FOR SELECT TO authenticated
-  USING (status IN ('approved', 'agent_cleared'));
+  USING (
+    status IN ('approved', 'agent_cleared')
+    AND EXISTS (
+      SELECT 1 FROM trending_issues ti
+      WHERE ti.id = trending_items.issue_id
+        AND ti.status = 'published'
+    )
+  );
 
 CREATE POLICY "trending_items_reviewer_read" ON trending_items
   FOR SELECT TO authenticated
@@ -140,6 +147,7 @@ CREATE OR REPLACE FUNCTION extract_url_domain(p_url TEXT)
 RETURNS TEXT
 LANGUAGE sql
 IMMUTABLE
+SET search_path = public, pg_catalog
 AS $$
   SELECT lower(
     regexp_replace(
@@ -152,6 +160,7 @@ $$;
 CREATE OR REPLACE FUNCTION check_trending_source_allowlist()
 RETURNS TRIGGER
 LANGUAGE plpgsql
+SET search_path = public, pg_catalog
 AS $$
 DECLARE
   v_trend_domain    TEXT := extract_url_domain(NEW.trend_source_url);
@@ -194,6 +203,7 @@ CREATE TRIGGER trending_items_allowlist_check
 CREATE OR REPLACE FUNCTION trending_items_after_review()
 RETURNS TRIGGER
 LANGUAGE plpgsql
+SET search_path = public, pg_catalog
 AS $$
 DECLARE
   v_all_done BOOLEAN;
