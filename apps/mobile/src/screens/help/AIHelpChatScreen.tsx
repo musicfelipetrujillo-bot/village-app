@@ -10,6 +10,7 @@ import {
 const VILLIE_BEE = require('../../../assets/brand/villie-bee.png');
 import { useNavigation, useRoute } from '@react-navigation/native';
 import * as Location from 'expo-location';
+import { getUpcomingBusy } from '@utils/calendar';
 import { useAuthStore } from '@store/auth';
 import { useUserStore } from '@store/user';
 import { appHelpApi, type HelpMessage, type HelpUserContext, type CrisisResource } from '@api/appHelp';
@@ -38,6 +39,30 @@ interface UIMessage {
   quickReplies?: string[];
 }
 
+// Billy-facing nav key → concrete React Navigation target. Cross-tab jumps use the
+// getParent() pattern (chat is a modal over the tabs). params pass pre-fill hints.
+// Verified against the live navigators (2026-07-22): Booking→Experts, CreateListing/
+// MyListings→Gear, BoxDetail→Home, BecomeDonorIntro/TrustBadgeBuilder→Milk, MeRoot→Profile
+// (the Me tab is registered under the name 'Profile' in AppNavigator).
+const NAV_ROUTES: Record<string, { tab?: string; screen: string }> = {
+  booking:            { tab: 'Experts', screen: 'Booking' },
+  appointment_book:   { tab: 'Experts', screen: 'Booking' },
+  gear_create:        { tab: 'Gear',    screen: 'CreateListing' },
+  gear_boost:         { tab: 'Gear',    screen: 'MyListings' },
+  box_checkout:       { tab: 'Home',    screen: 'BoxDetail' },
+  become_donor:       { tab: 'Milk',    screen: 'BecomeDonorIntro' },
+  donor_profile_edit: { tab: 'Milk',    screen: 'TrustBadgeBuilder' },
+  account_settings:   { tab: 'Profile', screen: 'MeRoot' },
+};
+
+function runNavigate(navigation: any, action: { screen: string; params?: Record<string, unknown> }) {
+  const target = NAV_ROUTES[action.screen];
+  if (!target) return;
+  const parent = navigation.getParent?.();
+  if (target.tab && parent) parent.navigate(target.tab, { screen: target.screen, params: action.params });
+  else navigation.navigate(target.screen, action.params);
+}
+
 export default function AIHelpChatScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
@@ -60,6 +85,7 @@ export default function AIHelpChatScreen() {
   const [sending, setSending] = useState(false);
   const [ctx, setCtx] = useState<HelpUserContext>({});
   const [loc, setLoc] = useState<{ lat: number; lng: number } | null>(null);
+  const [avail, setAvail] = useState<{ start: string; end: string }[] | null>(null);
   const listRef = useRef<FlatList<UIMessage>>(null);
 
   useEffect(() => {
@@ -83,6 +109,15 @@ export default function AIHelpChatScreen() {
     return () => { cancelled = true; };
   }, []);
 
+  // Best-effort free/busy (times only, no titles) so Villie can answer
+  // "find me something that fits my schedule". Only if calendar is already
+  // connected — never prompts here.
+  useEffect(() => {
+    let cancelled = false;
+    getUpcomingBusy().then((b) => { if (!cancelled) setAvail(b.length ? b : null); }).catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
+
   useEffect(() => {
     if (messages.length > 0) {
       setTimeout(() => listRef.current?.scrollToEnd({ animated: true }), 50);
@@ -103,7 +138,7 @@ export default function AIHelpChatScreen() {
       const history: HelpMessage[] = next
         .filter((m) => m.id !== 'greeting')
         .map((m) => ({ role: m.role, content: m.content }));
-      const res = await appHelpApi.sendMessage(history, ctx, loc);
+      const res = await appHelpApi.sendMessage(history, ctx, loc, avail);
       setMessages((prev) => [
         ...prev,
         {
@@ -116,6 +151,9 @@ export default function AIHelpChatScreen() {
           quickReplies: res.crisis ? undefined : res.quick_replies,
         },
       ]);
+      if (res.navigate) {
+        setTimeout(() => runNavigate(navigation, res.navigate!), 350);
+      }
     } catch (e) {
       const msg = e instanceof Error ? e.message : t('help.errorGeneric');
       setMessages((prev) => [
@@ -125,7 +163,7 @@ export default function AIHelpChatScreen() {
     } finally {
       setSending(false);
     }
-  }, [messages, ctx, loc, sending, t]);
+  }, [messages, ctx, loc, avail, sending, t]);
 
   const handleSend = useCallback(() => send(draft), [send, draft]);
 
@@ -241,7 +279,7 @@ export default function AIHelpChatScreen() {
 
       {sending && (
         <View style={styles.typingRow}>
-          <ActivityIndicator color="#D96C88" size="small" />
+          <ActivityIndicator color="#E84B79" size="small" />
           <Text style={styles.typingText}>{t('help.typing')}</Text>
         </View>
       )}
@@ -280,7 +318,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1, borderBottomColor: 'rgba(122,74,40,0.08)',
   },
   headerSide: { width: 44, height: 40, alignItems: 'center', justifyContent: 'center' },
-  headerClose: { fontSize: 32, color: '#C2556F', marginTop: -6, fontFamily: FONTS.body },
+  headerClose: { fontSize: 32, color: '#B0234F', marginTop: -6, fontFamily: FONTS.body },
   headerTitleWrap: { flex: 1, alignItems: 'center' },
   headerTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   headerBee: { width: 20, height: 20 },
@@ -292,7 +330,7 @@ const styles = StyleSheet.create({
   bubbleRowMine: { justifyContent: 'flex-end' },
   bubbleRowTheirs: { justifyContent: 'flex-start' },
   bubble: { maxWidth: '82%', paddingHorizontal: 14, paddingVertical: 10, borderRadius: 18 },
-  bubbleMine: { backgroundColor: '#E06A88', borderBottomRightRadius: 4 },
+  bubbleMine: { backgroundColor: '#E84B79', borderBottomRightRadius: 4 },
   bubbleTheirs: { backgroundColor: '#FFFDFA', borderBottomLeftRadius: 4, borderWidth: 1, borderColor: 'rgba(122,74,40,0.08)' },
   bubbleText: { fontSize: 15, color: '#3D2116', lineHeight: 21, fontFamily: FONTS.body },
 
@@ -305,7 +343,7 @@ const styles = StyleSheet.create({
     borderWidth: 1.5, borderColor: 'rgba(224,106,136,0.45)',
     shadowColor: '#B4785A', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 1,
   },
-  qrText: { fontSize: 14, color: '#C2556F', fontFamily: FONTS.bodySemiBold, letterSpacing: 0.1 },
+  qrText: { fontSize: 14, color: '#B0234F', fontFamily: FONTS.bodySemiBold, letterSpacing: 0.1 },
 
   // Crisis card — was flat blush bg, low contrast in the chat scroll.
   // Lift recipe + paper bg so it reads as a deliberate intervention.
@@ -329,7 +367,7 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: 'rgba(224,106,136,0.16)',
     shadowColor: '#B4785A', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.06, shadowRadius: 8, elevation: 1,
   },
-  suggestArrow: { fontSize: 17, color: '#E06A88', fontFamily: FONTS.bodySemiBold, marginTop: -1 },
+  suggestArrow: { fontSize: 17, color: '#E84B79', fontFamily: FONTS.bodySemiBold, marginTop: -1 },
   suggestText: { flex: 1, fontSize: 14, color: '#5A4030', fontFamily: FONTS.bodyMedium, lineHeight: 19 },
 
   typingRow: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 20, paddingBottom: 6 },
@@ -349,7 +387,7 @@ const styles = StyleSheet.create({
   },
   sendBtn: {
     width: 44, height: 44, borderRadius: 22,
-    backgroundColor: '#D96C88', alignItems: 'center', justifyContent: 'center',
+    backgroundColor: '#E84B79', alignItems: 'center', justifyContent: 'center',
   },
   sendBtnDisabled: { opacity: 0.4 },
   sendBtnText: { color: '#FFFCF6', fontSize: 22, fontFamily: FONTS.bodySemiBold },

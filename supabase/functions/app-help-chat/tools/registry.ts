@@ -5,8 +5,9 @@ import { searchGear } from './searchGear.ts';
 import { findDonors } from './findDonors.ts';
 import { findEvents } from './findEvents.ts';
 import { findDaycares } from './findDaycares.ts';
+import { navigate } from './navigate.ts';
 
-const REGISTRY: ToolDef[] = [getBabyTrackingStats, findSpecialists, searchGear, findDonors, findEvents, findDaycares];
+const REGISTRY: ToolDef[] = [getBabyTrackingStats, findSpecialists, searchGear, findDonors, findEvents, findDaycares, navigate];
 const BY_NAME = new Map(REGISTRY.map((t) => [t.schema.name, t]));
 export const TOOLS = REGISTRY.map((t) => t.schema);
 export async function dispatch(name: string, ctx: ToolContext, input: any): Promise<unknown> {

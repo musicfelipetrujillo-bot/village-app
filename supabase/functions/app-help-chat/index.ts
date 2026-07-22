@@ -8,6 +8,7 @@
 import Anthropic from 'npm:@anthropic-ai/sdk';
 import { createClient } from 'npm:@supabase/supabase-js';
 import { dispatch, TOOLS } from './tools/registry.ts';
+import { isNavigate } from './tools/types.ts';
 import type { Loc } from './tools/types.ts';
 
 const anthropic = new Anthropic({ apiKey: Deno.env.get('ANTHROPIC_API_KEY')! });
@@ -152,6 +153,7 @@ Reply with JSON only.`
     // on the first turn, so how-to/crisis handling is unchanged.
     const convo: any[] = trimmed;
     let aiResponse: any = null;
+    let navigateAction: { screen: string; params?: Record<string, unknown> } | null = null;
     for (let hop = 0; hop < 4; hop++) {
       const resp = await anthropic.messages.create({
         model: 'claude-haiku-4-5-20251001',
@@ -167,7 +169,12 @@ Reply with JSON only.`
       const ctx = { supabase, loc: userLocation };
       for (const tu of toolUses as any[]) {
         const out = await dispatch(tu.name, ctx, tu.input);
-        toolResults.push({ type: 'tool_result', tool_use_id: tu.id, content: JSON.stringify(out) });
+        if (isNavigate(out)) {
+          navigateAction = out.__navigate;
+          toolResults.push({ type: 'tool_result', tool_use_id: tu.id, content: JSON.stringify({ ok: true, navigating: true }) });
+        } else {
+          toolResults.push({ type: 'tool_result', tool_use_id: tu.id, content: JSON.stringify(out) });
+        }
       }
       convo.push({ role: 'user', content: toolResults });
     }
@@ -206,6 +213,7 @@ Reply with JSON only.`
         crisis: parsed.crisis ?? false,
         crisis_resources: resolvedResources,
         quick_replies: quickReplies && quickReplies.length > 0 ? quickReplies : undefined,
+        navigate: navigateAction ?? undefined,
       }),
       { headers: { ...CORS, 'Content-Type': 'application/json' } },
     );
