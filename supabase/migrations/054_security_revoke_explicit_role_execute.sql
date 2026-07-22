@@ -59,7 +59,14 @@ REVOKE EXECUTE ON FUNCTION public.reject_event(p_id uuid, p_notes text) FROM ano
 -- Service-role-only — revoke anon AND authenticated
 -- ────────────────────────────────────────────────────────────────────────────
 REVOKE EXECUTE ON FUNCTION public.list_active_home_users(p_limit integer) FROM anon, authenticated;
-REVOKE EXECUTE ON FUNCTION public.rls_auto_enable() FROM anon, authenticated;
+-- See migration 104: rls_auto_enable() is backfilled there since it only
+-- ever existed on hosted ad-hoc. Guard so a fresh reset doesn't fail here.
+DO $$
+BEGIN
+  IF to_regprocedure('public.rls_auto_enable()') IS NOT NULL THEN
+    EXECUTE 'REVOKE EXECUTE ON FUNCTION public.rls_auto_enable() FROM anon, authenticated';
+  END IF;
+END $$;
 REVOKE EXECUTE ON FUNCTION public.verify_app_gucs() FROM anon, authenticated;
 
 -- ────────────────────────────────────────────────────────────────────────────
