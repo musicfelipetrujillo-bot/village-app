@@ -114,10 +114,14 @@ closed when due, they run on next launch). Each run is **read-only** and writes 
 | `villie-compliance-audit-weekly` | `security-compliance-auditor` | Mondays ~9am | `docs/audits/compliance-YYYY-MM-DD.md` | Drift against the Risk & Compliance gate across Milk/Gear + health content + EN/ES parity |
 | `villie-appsec-review-weekly` | `security-appsec-engineer` | Wednesdays ~9am | `docs/audits/appsec-YYYY-MM-DD.md` | Auth/RLS/edge-function/OAuth security posture |
 | `villie-privacy-review-monthly` | `data-privacy-officer` | 1st of month ~9am | `docs/audits/privacy-YYYY-MM-DD.md` | New PII surfaces, consent flows, policy accuracy |
+| `villie-buzz-discovery-weekly` | `last30days-skill` (no agent persona — direct skill invocation) | Mondays ~8am | `docs/audits/buzz-discovery-YYYY-MM-DD.md` | Candidate trending topics for The Buzz — discovery only, no DB write |
+| `villie-buzz-sourcing-ingest-weekly` | none — direct WebSearch/WebFetch + trending-ingest POST | Mondays ~8:30am | (posts directly to trending_items via trending-ingest; no markdown report) | Allowlist-constrained sourcing + ingest for The Buzz, holds TRENDING_INGEST_SECRET |
 
 **Note:** the privacy review is *also* meant to be run manually before any launch — the monthly cadence does
 not replace the pre-launch pass. Manage/pause/edit these from the app's **Scheduled** sidebar, or update them
 via the `update_scheduled_task` tool by ID.
+
+**Note on the two Buzz agents (added 2026-07-22):** unlike the three read-only audit agents above, `villie-buzz-sourcing-ingest-weekly` DOES write — it POSTs to `trending-ingest`, which inserts draft/in_review rows into `trending_items`. It never publishes anything itself; every medical-claim item still waits on a human via `ClinicalReviewScreen`, and every insert is allowlist-checked at the DB layer regardless of what the agent's research believed it verified. See `docs/THE_BUZZ_TRENDING.md` for the full pipeline.
 
 ---
 
