@@ -1,4 +1,4 @@
--- 104_v7_the_buzz.sql — The Buzz: weekly trending maternal-health digest.
+-- 105_v7_the_buzz.sql — The Buzz: weekly trending maternal-health digest.
 -- Spec: docs/THE_BUZZ_TRENDING.md. Editorial (not clinical) surface — every
 -- item pairs a trend signal with a grounding source, both restricted to an
 -- allowlisted domain set enforced at insert. Review gate is keyed on
