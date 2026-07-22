@@ -7,7 +7,10 @@ docs/superpowers/specs/2026-07-22-billy-capability-coverage-design.md.
 Tier values: `read` = pure read/search, `do` = reversible low-stakes write (Billy acts),
 `route` = sensitive/irreversible — Billy deep-links + native confirm, `blocked` = never automate.
 `confirm?` is Y for every `route` row (and every `blocked` row is never executed at all), N otherwise.
-The 6 already-shipped tools are `wired = yes`; everything else `wired = no`.
+`wired?` states: `yes` = live in production AND its eval is green; `code` = built on
+branch `feat/billy-capability-coverage`, pending `supabase functions deploy` + eval run;
+`no` = not built yet. The 6 shipped read tools are `yes`; Wave 1 (log-a-nap/bottle/diaper
+via the `log_baby_event` tool, and 6 route deep-links via the generic `navigate` tool) is `code`.
 
 | action | tier | backing RPC / edge fn | confirm? | wired? | eval id |
 |--------|------|-----------------------|----------|--------|---------|
@@ -17,12 +20,12 @@ The 6 already-shipped tools are `wired = yes`; everything else `wired = no`.
 | Find events nearby | read | rpc:list_events_near | N | yes | E-find-events |
 | Find daycares nearby | read | fn:daycares-nearby | N | yes | E-find-daycares |
 | Read my baby tracking stats | read | (client) baby_sleep/feed/diaper_logs aggregate | N | yes | E-read-tracking-stats |
-| Log a nap / start sleep timer | do | insert:baby_sleep_logs | N | no | E-start-sleep |
+| Log a nap / start sleep timer | do | insert:baby_sleep_logs | N | code | E-start-sleep |
 | Stop / end a sleep timer | do | update:baby_sleep_logs | N | no | E-stop-sleep |
 | Log a nursing session / start feed timer | do | insert:baby_feed_logs | N | no | E-start-feed |
 | Stop / end a feed timer | do | update:baby_feed_logs | N | no | E-stop-feed |
-| Log a bottle feed | do | insert:baby_feed_logs | N | no | E-log-bottle |
-| Log a diaper change | do | insert:baby_diaper_logs | N | no | E-log-diaper |
+| Log a bottle feed | do | insert:baby_feed_logs | N | code | E-log-bottle |
+| Log a diaper change | do | insert:baby_diaper_logs | N | code | E-log-diaper |
 | Jot a freeform baby note | do | insert:baby_log_notes | N | no | E-log-note |
 | Parse a voice/text jot into structured logs | do | fn:playbook-parse-note | N | no | E-parse-note |
 | Read today's logs (feeds/naps/diapers) | read | (client) baby_sleep/feed/diaper_logs | N | no | E-read-today-logs |
@@ -61,7 +64,7 @@ The 6 already-shipped tools are `wired = yes`; everything else `wired = no`.
 | Generate questions to ask at an appointment | read | fn:ai-followup-questions | N | no | E-ai-followup-questions |
 | Translate a specialist profile field | do | fn:ai-translate | N | no | E-ai-translate |
 | Refresh a specialist's AI review summary | do | fn:ai-review-summary | N | no | E-ai-review-summary |
-| Book an appointment with a specialist | route | fn:create-payment-intent + insert:appointments | Y | no | E-book-appointment |
+| Book an appointment with a specialist | route | fn:create-payment-intent + insert:appointments | Y | code | E-book-appointment |
 | Read my appointments | read | (client) appointments | N | no | E-read-appointments |
 | Message a specialist (send DM) | route | insert:messages | Y | no | E-message-specialist |
 | Read my specialist message thread | read | (client) messages | N | no | E-read-specialist-thread |
@@ -71,8 +74,8 @@ The 6 already-shipped tools are `wired = yes`; everything else `wired = no`.
 | Save / unsave a milk donor | do | insert/delete:milk_saved_donors | N | no | E-toggle-save-donor |
 | AI-match me to best-fit donors | read | fn:milk-match-donors | N | no | E-milk-match-donors |
 | Ask AI a question about a donor | read | fn:milk-donor-qa | N | no | E-milk-donor-qa |
-| Become a milk donor (create donor profile) | route | insert:milk_donor_profiles | Y | no | E-create-donor-profile |
-| Edit my donor profile | route | update:milk_donor_profiles | Y | no | E-update-donor-profile |
+| Become a milk donor (create donor profile) | route | insert:milk_donor_profiles | Y | code | E-create-donor-profile |
+| Edit my donor profile | route | update:milk_donor_profiles | Y | code | E-update-donor-profile |
 | Save donor questionnaire responses | route | upsert:milk_questionnaire_responses | Y | no | E-donor-questionnaire |
 | Set my donor diet flags | route | upsert:milk_donor_diet_flags | Y | no | E-donor-diet-flags |
 | Add a donor medication (trust badge) | route | insert:milk_donor_medications | Y | no | E-donor-add-med |
@@ -104,7 +107,7 @@ The 6 already-shipped tools are `wired = yes`; everything else `wired = no`.
 | Read my gear listings | read | rpc:list_my_gear_listings | N | no | E-read-my-gear-listings |
 | Read my saved gear | read | rpc:list_my_saved_gear | N | no | E-read-saved-gear |
 | Save / unsave a gear listing | do | insert/delete:gear_saved_listings | N | no | E-toggle-save-gear |
-| Create a gear listing | route | rpc:create_gear_listing + insert:gear_listing_images | Y | no | E-create-gear-listing |
+| Create a gear listing | route | rpc:create_gear_listing + insert:gear_listing_images | Y | code | E-create-gear-listing |
 | Change a gear listing status (sold/withdraw/reactivate) | route | rpc:update_gear_status (updateStatus) | Y | no | E-update-gear-status |
 | UPC-lookup to prefill a gear listing | do | fn:gear-upc-lookup | N | no | E-gear-upc-lookup |
 | Identify gear from a photo (AI) | do | fn:gear-vision-identify | N | no | E-gear-vision-identify |
@@ -117,7 +120,7 @@ The 6 already-shipped tools are `wired = yes`; everything else `wired = no`.
 | Acknowledge the safe-meeting guide | do | rpc:ack_gear_safe_meeting | N | no | E-gear-ack-safe-meeting |
 | Report a gear listing | route | insert:gear_listing_reports | Y | no | E-report-gear-listing |
 | Record gear legal-addendum acceptance | route | insert:gear_legal_acceptances | Y | no | E-gear-legal-accept |
-| Activate a paid gear boost (IAP payment) | route | fn:gear-boost-activate | Y | no | E-gear-boost |
+| Activate a paid gear boost (IAP payment) | route | fn:gear-boost-activate | Y | code | E-gear-boost |
 | RSVP to an event | do | insert:event_rsvps | N | no | E-event-rsvp |
 | Cancel an event RSVP | do | update:event_rsvps | N | no | E-event-cancel-rsvp |
 | Mark an event added to calendar | do | update:event_rsvps | N | no | E-event-calendar-added |
@@ -129,7 +132,7 @@ The 6 already-shipped tools are `wired = yes`; everything else `wired = no`.
 | Read a perk detail | read | rpc:get_perk (getPerk) | N | no | E-read-perk |
 | Claim a perk (reveal code / affiliate link) | do | rpc:claim_perk | N | no | E-claim-perk |
 | Read my claimed perks | read | rpc:list_my_claims | N | no | E-read-my-claims |
-| Buy a curated Villie Box (checkout) | route | fn:boxes-create-payment-intent | Y | no | E-buy-box |
+| Buy a curated Villie Box (checkout) | route | fn:boxes-create-payment-intent | Y | code | E-buy-box |
 | Read my box orders | read | (client) villie_box_orders | N | no | E-read-box-orders |
 | Discover community rooms | read | rpc:list_rooms_for_discovery | N | no | E-list-rooms |
 | Read a room + pinned resources | read | rpc:get_room_by_slug / list_pinned_resources | N | no | E-read-room |

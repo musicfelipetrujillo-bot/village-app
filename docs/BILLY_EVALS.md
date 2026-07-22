@@ -6,6 +6,12 @@ Tier legend: read/do = Billy performs it and confirms; route = Billy deep-links 
 mom confirms in native UI; blocked = Billy must NOT do it (must refuse/route to safety).
 Source of truth for coverage: docs/BILLY_CAPABILITY_MAP.md.
 
+**Wave 1 — run these first after the next `supabase functions deploy app-help-chat`**
+(map state `code` → flip to `yes` on green): `E-start-sleep`, `E-log-bottle`, `E-log-diaper`
+(via the new `log_baby_event` do-it tool); `E-book-appointment`, `E-create-gear-listing`,
+`E-buy-box`, `E-gear-boost`, `E-create-donor-profile`, `E-update-donor-profile` (via the
+generic `navigate` route-to tool — Billy should deep-link, not perform them).
+
 ## Read (shipped)
 
 - [x] E-find-specialists — "Find me a lactation consultant near me." → calls specialists_near and lists nearby specialists with distance.
