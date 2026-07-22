@@ -4,7 +4,7 @@
 
 **Goal:** Build "The Buzz" — a weekly editorial trending-topics digest (3 news items + 1 myth-buster, each paired with a trend source and a grounding source) with a two-tier review gate, a Home card, a full-screen reader, and a Manual archive — per the approved spec at `docs/THE_BUZZ_TRENDING.md`.
 
-**Architecture:** New `trending_issues`/`trending_items` tables (migration 104) extend the existing clinical-review RPC trio (`list_pending_review`/`approve_content_row`/`reject_content_row` from migrations 042/043) with a `trending_items` arm, gated on a new `is_medical_claim` column rather than item kind. Two isolated scheduled Claude Code agents populate content weekly (Step A discovery via `last30days-skill`, no DB credential; Step B allowlist-constrained sourcing + ingest, holds the DB credential) — Step B posts to a new `trending-ingest` Edge Function. A `trending-compliance-pass` Edge Function auto-clears non-medical items; medical-claim items always wait for a human via the existing (extended) `ClinicalReviewScreen`. A DB trigger auto-publishes an issue once every item is cleared/approved and fires a push via a new `trending-publish-notify` Edge Function. Mobile surfaces: a Home card in the currently-mounted `HomeScreenV3.tsx`, a new `TheBuzzScreen` (live + archive mode via an optional `issueId` param), and a new `BuzzArchiveScreen` reachable from the Manual tab.
+**Architecture:** New `trending_issues`/`trending_items` tables (migration 105) extend the existing clinical-review RPC trio (`list_pending_review`/`approve_content_row`/`reject_content_row` from migrations 042/043) with a `trending_items` arm, gated on a new `is_medical_claim` column rather than item kind. Two isolated scheduled Claude Code agents populate content weekly (Step A discovery via `last30days-skill`, no DB credential; Step B allowlist-constrained sourcing + ingest, holds the DB credential) — Step B posts to a new `trending-ingest` Edge Function. A `trending-compliance-pass` Edge Function auto-clears non-medical items; medical-claim items always wait for a human via the existing (extended) `ClinicalReviewScreen`. A DB trigger auto-publishes an issue once every item is cleared/approved and fires a push via a new `trending-publish-notify` Edge Function. Mobile surfaces: a Home card in the currently-mounted `HomeScreenV3.tsx`, a new `TheBuzzScreen` (live + archive mode via an optional `issueId` param), and a new `BuzzArchiveScreen` reachable from the Manual tab.
 
 **Tech Stack:** Supabase Postgres (RLS + SQL triggers + SECURITY DEFINER RPCs), Deno Edge Functions (`jsr:@supabase/supabase-js@2`, `npm:@anthropic-ai/sdk`), React Native + Expo (React Navigation native-stack, Zustand, this repo's hand-rolled i18n).
 
@@ -12,7 +12,7 @@
 
 ## Important corrections discovered during planning (read before starting)
 
-1. **The spec's original migration number `~096` is stale.** The next free number is **104** (096–103 are already used by other shipped work).
+1. **The spec's original migration number `~096` is stale.** It was first renumbered to 104 (096–103 were already used by other shipped work), then renumbered again to **105** during implementation when `main` gained its own migration 104 (`104_security_backfill_rls_auto_enable.sql`, an unrelated fix) while this branch was in flight.
 2. **`trending_items.status` needs a 5th enum value.** The spec's §3 lists `draft | agent_cleared | approved | rejected`, but §4's pipeline description requires an `in_review` state (where medical-claim items sit pending human review). This plan uses the correct 5-value enum: `draft | agent_cleared | in_review | approved | rejected`.
 3. **`home-feed-curator`'s card system is dormant on the currently-mounted Home screen.** `HomeNavigator.tsx` points `HomeRoot` at `HomeScreenV3.tsx`, which does **not** consume `home_feed_cache`/`home-feed-curator` at all (that plumbing only exists in the older, unmounted `HomeScreen.tsx`). Rather than wire an entire dormant subsystem back in, the Buzz Home card is built as a small self-contained section directly inside `HomeScreenV3.tsx` that fetches the current issue itself — functionally identical to what the spec asked for ("a card appears on Home when a published issue exists"), just simpler and correct for the code that's actually running.
 4. **Closing the "reviewer can flip a mis-tagged item back to medical" loop.** The approved spec says a human should be able to flip `is_medical_claim` back to `TRUE` if the agent mis-tagged something — but items that auto-clear (`agent_cleared`) never enter the human review queue by construction, so a reviewer would never see one to flip. This plan adds a small "recently auto-cleared" list + a one-way `flag_trending_item_as_medical` RPC (FALSE→TRUE only — there is no RPC path for a human to go the other way) so this is a real, working safety net rather than a spec line with no surface.
@@ -24,7 +24,7 @@
 ## File structure
 
 **Create:**
-- `supabase/migrations/104_v7_the_buzz.sql`
+- `supabase/migrations/105_v7_the_buzz.sql`
 - `supabase/functions/trending-ingest/index.ts`
 - `supabase/functions/trending-compliance-pass/index.ts`
 - `supabase/functions/trending-publish-notify/index.ts`
@@ -49,15 +49,15 @@
 
 ## Phase B1 — Data model + review-RPC extension
 
-### Task 1: Migration 104, part A — tables, RLS, allowlist trigger, auto-publish trigger
+### Task 1: Migration 105, part A — tables, RLS, allowlist trigger, auto-publish trigger
 
 **Files:**
-- Create: `supabase/migrations/104_v7_the_buzz.sql`
+- Create: `supabase/migrations/105_v7_the_buzz.sql`
 
 - [ ] **Step 1: Write the migration file**
 
 ```sql
--- 104_v7_the_buzz.sql — The Buzz: weekly trending maternal-health digest.
+-- 105_v7_the_buzz.sql — The Buzz: weekly trending maternal-health digest.
 -- Spec: docs/THE_BUZZ_TRENDING.md. Editorial (not clinical) surface — every
 -- item pairs a trend signal with a grounding source, both restricted to an
 -- allowlisted domain set enforced at insert. Review gate is keyed on
@@ -307,7 +307,7 @@ CREATE TRIGGER trending_items_after_review_trg
 - [ ] **Step 2: Apply locally**
 
 Run: `cd "/Users/gp/The Village App/village-app" && supabase db reset`
-Expected: migration `104_v7_the_buzz.sql` applies with no errors, output ends with the seed-data summary line Supabase CLI normally prints.
+Expected: migration `105_v7_the_buzz.sql` applies with no errors, output ends with the seed-data summary line Supabase CLI normally prints.
 
 - [ ] **Step 3: Verify the allowlist trigger actually rejects an off-allowlist domain**
 
@@ -344,8 +344,8 @@ Clean up test rows: `DELETE FROM trending_issues WHERE title = 'test';` (cascade
 - [ ] **Step 5: Commit**
 
 ```bash
-cd "/Users/gp/The Village App/village-app" && git add supabase/migrations/104_v7_the_buzz.sql && git commit -m "$(cat <<'EOF'
-feat: add The Buzz data model (migration 104)
+cd "/Users/gp/The Village App/village-app" && git add supabase/migrations/105_v7_the_buzz.sql && git commit -m "$(cat <<'EOF'
+feat: add The Buzz data model (migration 105)
 
 trending_issues/trending_items + source allowlist enforced at insert +
 auto-publish trigger. Uses a 5-value status enum (adds in_review, missing
@@ -359,10 +359,10 @@ EOF
 
 ---
 
-### Task 2: Migration 104, part B — extend review RPCs + new read RPCs + notif_prefs default
+### Task 2: Migration 105, part B — extend review RPCs + new read RPCs + notif_prefs default
 
 **Files:**
-- Modify: `supabase/migrations/104_v7_the_buzz.sql` (append to the same file — one migration, two tasks purely for plan granularity)
+- Modify: `supabase/migrations/105_v7_the_buzz.sql` (append to the same file — one migration, two tasks purely for plan granularity)
 
 - [ ] **Step 1: Append the RPC extensions to the migration file**
 
@@ -795,7 +795,7 @@ UPDATE public.users
 - [ ] **Step 2: Apply locally**
 
 Run: `cd "/Users/gp/The Village App/village-app" && supabase db reset`
-Expected: no errors; the full 104 migration (both tasks' SQL, now one file) applies cleanly.
+Expected: no errors; the full 105 migration (both tasks' SQL, now one file) applies cleanly.
 
 - [ ] **Step 3: Verify `get_trending_issue` hydration + `list_pending_review` filtering**
 
@@ -819,7 +819,7 @@ Clean up: `DELETE FROM trending_issues WHERE title = 'Issue T';`
 - [ ] **Step 4: Commit**
 
 ```bash
-cd "/Users/gp/The Village App/village-app" && git add supabase/migrations/104_v7_the_buzz.sql && git commit -m "$(cat <<'EOF'
+cd "/Users/gp/The Village App/village-app" && git add supabase/migrations/105_v7_the_buzz.sql && git commit -m "$(cat <<'EOF'
 feat: extend clinical-review RPCs + add read RPCs for The Buzz
 
 list_pending_review/approve_content_row/reject_content_row grow a
@@ -926,7 +926,7 @@ EOF
 // Step B (sourcing + ingest) scheduled agent. Never called by the mobile
 // app. Auth is a shared secret (TRENDING_INGEST_SECRET), not a Supabase
 // JWT — this function is invoked by an external Claude Code agent session,
-// not a signed-in user. The DB-side allowlist trigger (migration 104) is
+// not a signed-in user. The DB-side allowlist trigger (migration 105) is
 // the real enforcement point for source URLs regardless of what this
 // function's caller believes it verified.
 //
@@ -1150,7 +1150,7 @@ EOF
 // trending-compliance-pass — automated brand-safety/tone/legal pass for
 // The Buzz items tagged is_medical_claim=false. This is NOT a medical
 // fact-check (medical-claim items always require a human, see migration
-// 104's list_pending_review filter) — it checks the copy reads as
+// 105's list_pending_review filter) — it checks the copy reads as
 // conversational-not-directive, carries no sensational framing, and has
 // no brand-safety concerns, per docs/THE_BUZZ_TRENDING.md §4/§6.
 //
@@ -1369,7 +1369,7 @@ const VALID_PREF_KEYS = [
 ```ts
 // trending-publish-notify — fires the "The Buzz — this week" push when an
 // issue transitions to published (invoked by the trending_items_after_review
-// trigger in migration 104 via pg_net, body: { issue_id }). Queries the
+// trigger in migration 105 via pg_net, body: { issue_id }). Queries the
 // candidate audience directly (everyone who hasn't opted out of the
 // 'trending' notif_prefs key) rather than relying on push-notify's own
 // filterByPrefs to build the initial list, since push-notify has no
@@ -2537,7 +2537,7 @@ EOF
 
 ## Post-implementation: production deploy checklist (not part of any task above — do once all 14 tasks are merged)
 
-- [ ] `supabase db push` (or apply migration 104 via the hosted MCP) to the hosted project
+- [ ] `supabase db push` (or apply migration 105 via the hosted MCP) to the hosted project
 - [ ] `supabase functions deploy trending-ingest trending-compliance-pass trending-publish-notify`
 - [ ] Set `TRENDING_INGEST_SECRET` in Supabase Edge Function Secrets (same value used in the Step B scheduled-agent prompt)
 - [ ] Confirm `ANTHROPIC_API_KEY` is available to `trending-compliance-pass` (should already be set project-wide for the other AI functions)
