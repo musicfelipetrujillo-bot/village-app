@@ -2538,7 +2538,8 @@ EOF
 ## Post-implementation: production deploy checklist (not part of any task above — do once all 14 tasks are merged)
 
 - [ ] `supabase db push` (or apply migration 105 via the hosted MCP) to the hosted project
-- [ ] `supabase functions deploy trending-ingest trending-compliance-pass trending-publish-notify`
+- [ ] `supabase functions deploy trending-ingest --no-verify-jwt` (this function has zero Supabase JWT involvement — it's called by an external scheduled agent with only the `TRENDING_INGEST_SECRET` header; deploying it the default way makes the gateway 401 every call before `verifyToken` ever runs — matches the established pattern already used for `manual-og`/`gear-moderation-*`/`specialist-invite-create` in this repo)
+- [ ] `supabase functions deploy trending-compliance-pass trending-publish-notify` (both invoked with a real service-role JWT, default verify-jwt posture is correct)
 - [ ] Set `TRENDING_INGEST_SECRET` in Supabase Edge Function Secrets (same value used in the Step B scheduled-agent prompt)
 - [ ] Confirm `ANTHROPIC_API_KEY` is available to `trending-compliance-pass` (should already be set project-wide for the other AI functions)
 - [ ] Set at least one `users.is_clinical_reviewer = TRUE` reviewer (reuses the existing flag from migration 043 — no new reviewer role needed)
