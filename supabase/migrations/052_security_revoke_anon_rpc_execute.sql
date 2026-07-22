@@ -120,8 +120,17 @@ GRANT  EXECUTE ON FUNCTION public.reject_event(p_id uuid, p_notes text) TO authe
 REVOKE EXECUTE ON FUNCTION public.list_active_home_users(p_limit integer) FROM PUBLIC;
 GRANT  EXECUTE ON FUNCTION public.list_active_home_users(p_limit integer) TO service_role;
 
-REVOKE EXECUTE ON FUNCTION public.rls_auto_enable() FROM PUBLIC;
-GRANT  EXECUTE ON FUNCTION public.rls_auto_enable() TO service_role;
+-- rls_auto_enable() is backfilled retroactively in migration 104 (it existed
+-- on hosted ad-hoc, never via a migration, so a fresh reset doesn't have it
+-- yet at this point). Guard so this doesn't hard-fail on a clean clone --
+-- migration 104 reasserts the correct service-role-only grant regardless.
+DO $$
+BEGIN
+  IF to_regprocedure('public.rls_auto_enable()') IS NOT NULL THEN
+    EXECUTE 'REVOKE EXECUTE ON FUNCTION public.rls_auto_enable() FROM PUBLIC';
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.rls_auto_enable() TO service_role';
+  END IF;
+END $$;
 
 REVOKE EXECUTE ON FUNCTION public.verify_app_gucs() FROM PUBLIC;
 GRANT  EXECUTE ON FUNCTION public.verify_app_gucs() TO service_role;
