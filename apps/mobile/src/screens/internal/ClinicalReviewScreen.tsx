@@ -62,12 +62,13 @@ export default function ClinicalReviewScreen() {
   const load = useCallback(async () => {
     setError(null);
     try {
-      const [pending, cleared] = await Promise.all([
+      const [pending, clearedResult] = await Promise.all([
         clinicalReviewApi.listPending(),
-        supabase.rpc('list_recent_agent_cleared_trending_items').then((r) => r.data ?? []),
+        supabase.rpc('list_recent_agent_cleared_trending_items'),
       ]);
+      if (clearedResult.error) throw clearedResult.error;
       setRows(pending);
-      setClearedRows(cleared);
+      setClearedRows(clearedResult.data ?? []);
     } catch (e: any) {
       setError(e?.message ?? 'Failed to load pending review queue.');
     }
@@ -235,35 +236,35 @@ export default function ClinicalReviewScreen() {
                 ))}
               </View>
             ))}
-
-            {clearedRows.length > 0 ? (
-              <View style={s.weekBlock}>
-                <Text style={s.weekHeading}>Recently auto-cleared — The Buzz</Text>
-                <Text style={s.helpTxt}>
-                  Non-medical items that auto-cleared without human review. Flag one if it actually touches a
-                  health/medical claim.
-                </Text>
-                {clearedRows.map((r) => (
-                  <View key={r.id} style={s.cardBlock}>
-                    <Text style={s.cardTitle} selectable>{r.title_en}</Text>
-                    <Text style={s.bodyTxt} selectable>{r.summary_en}</Text>
-                    <TouchableOpacity
-                      style={[s.rejectBtn, flaggingId === r.id && s.btnDisabled]}
-                      onPress={() => flagAsMedical(r.id)}
-                      disabled={flaggingId === r.id}
-                      accessibilityRole="button"
-                      accessibilityLabel={`Flag ${r.title_en} as medical`}
-                    >
-                      {flaggingId === r.id
-                        ? <ActivityIndicator color={COLORS.cocoDeep} />
-                        : <Text style={s.rejectBtnTxt}>🚩 Flag as medical</Text>}
-                    </TouchableOpacity>
-                  </View>
-                ))}
-              </View>
-            ) : null}
           </>
         )}
+
+        {clearedRows.length > 0 ? (
+          <View style={s.weekBlock}>
+            <Text style={s.weekHeading}>Recently auto-cleared — The Buzz</Text>
+            <Text style={s.helpTxt}>
+              Non-medical items that auto-cleared without human review. Flag one if it actually touches a
+              health/medical claim.
+            </Text>
+            {clearedRows.map((r) => (
+              <View key={r.id} style={s.cardBlock}>
+                <Text style={s.cardTitle} selectable>{r.title_en}</Text>
+                <Text style={s.bodyTxt} selectable>{r.summary_en}</Text>
+                <TouchableOpacity
+                  style={[s.rejectBtn, flaggingId === r.id && s.btnDisabled]}
+                  onPress={() => flagAsMedical(r.id)}
+                  disabled={flaggingId === r.id}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Flag ${r.title_en} as medical`}
+                >
+                  {flaggingId === r.id
+                    ? <ActivityIndicator color={COLORS.cocoDeep} />
+                    : <Text style={s.rejectBtnTxt}>🚩 Flag as medical</Text>}
+                </TouchableOpacity>
+              </View>
+            ))}
+          </View>
+        ) : null}
       </ScrollView>
 
       {/* Reject modal */}
