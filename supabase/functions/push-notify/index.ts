@@ -46,6 +46,7 @@ const VALID_PREF_KEYS = [
   'articles',
   'ai',
   'promotions',
+  'trending',
 ] as const;
 type NotifPrefKey = typeof VALID_PREF_KEYS[number];
 
