@@ -121,39 +121,47 @@ Deno.serve(async (req) => {
     return json({ error: issueErr?.message ?? 'failed to upsert issue' }, 500);
   }
 
-  const results: { rank: number; ok: boolean; reason?: string }[] = [];
+  const results: { rank: number; ok: boolean; reason?: string; action?: string }[] = [];
 
   for (const item of items) {
     // Medical-claim items go straight to the human queue; non-medical
     // items land as 'draft' for trending-compliance-pass to clear.
     const initialStatus = item.is_medical_claim ? 'in_review' : 'draft';
 
-    const { error } = await supabase.from('trending_items').insert({
-      issue_id: issue.id,
-      kind: item.kind,
-      rank: item.rank,
-      status: initialStatus,
-      is_medical_claim: item.is_medical_claim,
-      trend_source_name: item.trend_source_name,
-      trend_source_url: item.trend_source_url,
-      evidence_source_name: item.evidence_source_name,
-      evidence_source_url: item.evidence_source_url,
-      title_en: item.title_en,
-      title_es: item.title_es ?? null,
-      summary_en: item.summary_en,
-      summary_es: item.summary_es ?? null,
-      myth_claim_en: item.myth_claim_en ?? null,
-      myth_claim_es: item.myth_claim_es ?? null,
-      fact_en: item.fact_en ?? null,
-      fact_es: item.fact_es ?? null,
-      ask_provider_en: item.ask_provider_en,
-      ask_provider_es: item.ask_provider_es ?? null,
+    // upsert_trending_item (migration 105) upserts on the (issue_id, rank)
+    // unique constraint instead of a plain insert, so re-running ingest for
+    // the same issue_date doesn't duplicate rows. Its internal guard only
+    // applies the update `WHERE status = 'draft'` — once a row has moved
+    // past draft (in_review/agent_cleared/approved/rejected) a re-ingest is
+    // a no-op for that row (action: 'skipped_reviewed') rather than
+    // silently resetting a reviewer's decision back to draft/in_review.
+    const { data, error } = await supabase.rpc('upsert_trending_item', {
+      p_issue_id: issue.id,
+      p_kind: item.kind,
+      p_rank: item.rank,
+      p_status: initialStatus,
+      p_is_medical_claim: item.is_medical_claim,
+      p_trend_source_name: item.trend_source_name,
+      p_trend_source_url: item.trend_source_url,
+      p_evidence_source_name: item.evidence_source_name,
+      p_evidence_source_url: item.evidence_source_url,
+      p_title_en: item.title_en,
+      p_title_es: item.title_es ?? null,
+      p_summary_en: item.summary_en,
+      p_summary_es: item.summary_es ?? null,
+      p_myth_claim_en: item.myth_claim_en ?? null,
+      p_myth_claim_es: item.myth_claim_es ?? null,
+      p_fact_en: item.fact_en ?? null,
+      p_fact_es: item.fact_es ?? null,
+      p_ask_provider_en: item.ask_provider_en,
+      p_ask_provider_es: item.ask_provider_es ?? null,
     });
 
-    // A rejected insert here is almost always the allowlist trigger firing
+    // A rejected call here is almost always the allowlist trigger firing
     // (off-allowlist domain) — surface the DB error message as-is so the
     // agent's sourcing step can see exactly which URL failed.
-    results.push({ rank: item.rank, ok: !error, reason: error?.message });
+    const row = Array.isArray(data) ? data[0] : undefined;
+    results.push({ rank: item.rank, ok: !error, reason: error?.message, action: row?.action });
   }
 
   return json({ issue_id: issue.id, results });

@@ -109,7 +109,14 @@ CREATE TABLE IF NOT EXISTS trending_items (
 
   CONSTRAINT trending_items_myth_fields CHECK (
     kind <> 'myth_buster' OR (myth_claim_en IS NOT NULL AND fact_en IS NOT NULL)
-  )
+  ),
+  -- One item per rank per issue. Also the conflict target for
+  -- upsert_trending_item() below — without this, re-running trending-ingest
+  -- for the same issue_date silently duplicates every item, and two items
+  -- sharing a rank in one ingest call both insert (get_trending_issue's
+  -- jsonb_agg ORDER BY rank has no dedup, so duplicates reach the published
+  -- issue as duplicate cards).
+  UNIQUE (issue_id, rank)
 );
 
 CREATE INDEX IF NOT EXISTS idx_trending_items_issue ON trending_items(issue_id, rank);
@@ -699,3 +706,127 @@ ALTER TABLE public.users
 UPDATE public.users
    SET notif_prefs = notif_prefs || '{"trending": true}'::jsonb
  WHERE NOT (notif_prefs ? 'trending');
+
+-- ─────────────────────────────────────────────────────────────────────────
+-- 11. upsert_trending_item — service-role-only helper so trending-ingest can
+--     re-run for the same issue_date without duplicating rows (the new
+--     UNIQUE (issue_id, rank) constraint above is the conflict target).
+--
+--     Supabase-js's plain `.upsert()` updates every column in the payload on
+--     conflict, including `status` — since the insert payload always carries
+--     a freshly-computed initial status (in_review for medical claims, draft
+--     otherwise), a naive upsert would silently reset an already-reviewed
+--     item's status back to draft/in_review on re-ingest, discarding a
+--     human reviewer's approve/reject decision. That's worse than the
+--     duplication bug this migration fixes.
+--
+--     Guard: the ON CONFLICT DO UPDATE only fires `WHERE
+--     trending_items.status = 'draft'`. Once a row has moved past 'draft'
+--     (in_review, agent_cleared, approved, rejected) a re-ingest for that
+--     same (issue_id, rank) is a no-op — the existing row's id is returned
+--     with action='skipped_reviewed' so the caller can see this happened
+--     without it being treated as an error. This also gives a well-defined,
+--     non-silent outcome when a single ingest call sends two items sharing
+--     a rank: the second one either updates the still-draft row from the
+--     first (last-write-wins, visible as two 'inserted_or_updated' results)
+--     or is skipped if the first had already moved past draft — either way
+--     the caller can see exactly what happened per rank via `action`.
+-- ─────────────────────────────────────────────────────────────────────────
+CREATE OR REPLACE FUNCTION upsert_trending_item(
+  p_issue_id             UUID,
+  p_kind                 TEXT,
+  p_rank                 INTEGER,
+  p_status               TEXT,
+  p_is_medical_claim     BOOLEAN,
+  p_trend_source_name    TEXT,
+  p_trend_source_url     TEXT,
+  p_evidence_source_name TEXT,
+  p_evidence_source_url  TEXT,
+  p_title_en             TEXT,
+  p_title_es             TEXT,
+  p_summary_en           TEXT,
+  p_summary_es           TEXT,
+  p_myth_claim_en        TEXT,
+  p_myth_claim_es        TEXT,
+  p_fact_en              TEXT,
+  p_fact_es              TEXT,
+  p_ask_provider_en      TEXT,
+  p_ask_provider_es      TEXT
+)
+RETURNS TABLE (id UUID, action TEXT)
+LANGUAGE plpgsql
+SET search_path = public, pg_catalog
+AS $$
+DECLARE
+  v_id UUID;
+BEGIN
+  INSERT INTO trending_items (
+    issue_id, kind, rank, status, is_medical_claim,
+    trend_source_name, trend_source_url, evidence_source_name, evidence_source_url,
+    title_en, title_es, summary_en, summary_es,
+    myth_claim_en, myth_claim_es, fact_en, fact_es,
+    ask_provider_en, ask_provider_es
+  ) VALUES (
+    p_issue_id, p_kind, p_rank, p_status, p_is_medical_claim,
+    p_trend_source_name, p_trend_source_url, p_evidence_source_name, p_evidence_source_url,
+    p_title_en, p_title_es, p_summary_en, p_summary_es,
+    p_myth_claim_en, p_myth_claim_es, p_fact_en, p_fact_es,
+    p_ask_provider_en, p_ask_provider_es
+  )
+  ON CONFLICT (issue_id, rank) DO UPDATE SET
+    kind                 = EXCLUDED.kind,
+    status               = EXCLUDED.status,
+    is_medical_claim     = EXCLUDED.is_medical_claim,
+    trend_source_name    = EXCLUDED.trend_source_name,
+    trend_source_url     = EXCLUDED.trend_source_url,
+    evidence_source_name = EXCLUDED.evidence_source_name,
+    evidence_source_url  = EXCLUDED.evidence_source_url,
+    title_en             = EXCLUDED.title_en,
+    title_es             = EXCLUDED.title_es,
+    summary_en           = EXCLUDED.summary_en,
+    summary_es           = EXCLUDED.summary_es,
+    myth_claim_en        = EXCLUDED.myth_claim_en,
+    myth_claim_es        = EXCLUDED.myth_claim_es,
+    fact_en              = EXCLUDED.fact_en,
+    fact_es              = EXCLUDED.fact_es,
+    ask_provider_en      = EXCLUDED.ask_provider_en,
+    ask_provider_es      = EXCLUDED.ask_provider_es,
+    updated_at           = now()
+  WHERE trending_items.status = 'draft'
+  RETURNING trending_items.id INTO v_id;
+
+  IF v_id IS NOT NULL THEN
+    RETURN QUERY SELECT v_id, 'inserted_or_updated'::TEXT;
+    RETURN;
+  END IF;
+
+  -- Conflict occurred but the WHERE guard blocked the update — the existing
+  -- row has already progressed past 'draft'. Not an error: look up its id
+  -- so the caller can report it as skipped instead of failing the ingest.
+  SELECT ti.id INTO v_id
+  FROM trending_items ti
+  WHERE ti.issue_id = p_issue_id AND ti.rank = p_rank;
+
+  IF v_id IS NULL THEN
+    RAISE EXCEPTION 'upsert_trending_item: no row for issue_id=%, rank=% after insert/update attempt', p_issue_id, p_rank
+      USING ERRCODE = '02000';
+  END IF;
+
+  RETURN QUERY SELECT v_id, 'skipped_reviewed'::TEXT;
+END;
+$$;
+
+-- service-role-only: this is called exclusively by the trending-ingest edge
+-- function (shared-secret auth, not a Supabase JWT) — never by mobile.
+GRANT EXECUTE ON FUNCTION upsert_trending_item(
+  UUID, TEXT, INTEGER, TEXT, BOOLEAN, TEXT, TEXT, TEXT, TEXT,
+  TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT
+) TO service_role;
+REVOKE EXECUTE ON FUNCTION upsert_trending_item(
+  UUID, TEXT, INTEGER, TEXT, BOOLEAN, TEXT, TEXT, TEXT, TEXT,
+  TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT
+) FROM PUBLIC;
+REVOKE EXECUTE ON FUNCTION upsert_trending_item(
+  UUID, TEXT, INTEGER, TEXT, BOOLEAN, TEXT, TEXT, TEXT, TEXT,
+  TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT
+) FROM anon, authenticated;
