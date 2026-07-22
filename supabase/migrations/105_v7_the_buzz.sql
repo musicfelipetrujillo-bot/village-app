@@ -408,6 +408,12 @@ AS $$
 $$;
 
 GRANT EXECUTE ON FUNCTION list_pending_review() TO authenticated;
+-- list_pending_review() is a brand-new object here (DROP+CREATE above), so it
+-- regains Postgres's default PUBLIC-EXECUTE grant on CREATE FUNCTION; REVOKE
+-- FROM PUBLIC closes that (anon inherits through PUBLIC otherwise) — same
+-- pattern migration 052 used for every function it originally hardened.
+REVOKE EXECUTE ON FUNCTION list_pending_review() FROM PUBLIC;
+REVOKE EXECUTE ON FUNCTION list_pending_review() FROM anon;
 
 -- ─────────────────────────────────────────────────────────────────────────
 -- 7. approve_content_row / reject_content_row — add a trending_items arm.
@@ -642,7 +648,16 @@ END;
 $$;
 
 GRANT EXECUTE ON FUNCTION flag_trending_item_as_medical(UUID, TEXT) TO authenticated;
+-- New function → still holds the default PUBLIC-EXECUTE grant from CREATE
+-- FUNCTION; revoke PUBLIC (not just anon) to actually close the gap.
+REVOKE EXECUTE ON FUNCTION flag_trending_item_as_medical(UUID, TEXT) FROM PUBLIC;
+REVOKE EXECUTE ON FUNCTION flag_trending_item_as_medical(UUID, TEXT) FROM anon;
 
+-- Plain SECURITY INVOKER: trending_items_reviewer_read RLS policy already
+-- gates row visibility on is_clinical_reviewer() for every status including
+-- agent_cleared, so this function doesn't need to bypass RLS. The WHERE
+-- clause below is a harmless redundant double-gate; RLS is the real backstop
+-- (same reasoning as get_trending_issue/list_trending_archive above).
 CREATE OR REPLACE FUNCTION list_recent_agent_cleared_trending_items()
 RETURNS TABLE (
   id UUID, issue_id UUID, kind TEXT, title_en TEXT, summary_en TEXT,
@@ -650,7 +665,6 @@ RETURNS TABLE (
 )
 LANGUAGE sql
 STABLE
-SECURITY DEFINER
 SET search_path = public, pg_catalog
 AS $$
   SELECT ti.id, ti.issue_id, ti.kind, ti.title_en, ti.summary_en,
@@ -663,6 +677,10 @@ AS $$
 $$;
 
 GRANT EXECUTE ON FUNCTION list_recent_agent_cleared_trending_items() TO authenticated;
+-- New function → still holds the default PUBLIC-EXECUTE grant from CREATE
+-- FUNCTION; revoke PUBLIC (not just anon) to actually close the gap.
+REVOKE EXECUTE ON FUNCTION list_recent_agent_cleared_trending_items() FROM PUBLIC;
+REVOKE EXECUTE ON FUNCTION list_recent_agent_cleared_trending_items() FROM anon;
 
 -- ─────────────────────────────────────────────────────────────────────────
 -- 10. notif_prefs — add the 'trending' key (mirrors migration 033's
