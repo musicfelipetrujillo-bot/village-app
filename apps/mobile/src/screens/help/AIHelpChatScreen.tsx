@@ -42,14 +42,15 @@ interface UIMessage {
 // Billy-facing nav key → concrete React Navigation target. Cross-tab jumps use the
 // getParent() pattern (chat is a modal over the tabs). params pass pre-fill hints.
 // Verified against the live navigators (2026-07-22): Booking→Experts, CreateListing/
-// MyListings→Gear, BoxDetail→Home, BecomeDonorIntro/TrustBadgeBuilder→Milk, MeRoot→Profile
+// MyListings→Gear, BoxesHub→Home (paramless hub so a generic "buy a box" intent lands
+// somewhere she can pick + check out), BecomeDonorIntro/TrustBadgeBuilder→Milk, MeRoot→Profile
 // (the Me tab is registered under the name 'Profile' in AppNavigator).
 const NAV_ROUTES: Record<string, { tab?: string; screen: string }> = {
   booking:            { tab: 'Experts', screen: 'Booking' },
   appointment_book:   { tab: 'Experts', screen: 'Booking' },
   gear_create:        { tab: 'Gear',    screen: 'CreateListing' },
   gear_boost:         { tab: 'Gear',    screen: 'MyListings' },
-  box_checkout:       { tab: 'Home',    screen: 'BoxDetail' },
+  box_checkout:       { tab: 'Home',    screen: 'BoxesHub' },
   become_donor:       { tab: 'Milk',    screen: 'BecomeDonorIntro' },
   donor_profile_edit: { tab: 'Milk',    screen: 'TrustBadgeBuilder' },
   account_settings:   { tab: 'Profile', screen: 'MeRoot' },

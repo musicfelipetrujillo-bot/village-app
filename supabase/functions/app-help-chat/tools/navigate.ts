@@ -28,7 +28,7 @@ export const navigate: ToolDef = {
       required: ['screen'],
     },
   },
-  handler: (_ctx, input) => {
+  handler: async (_ctx, input) => {
     const screen = String(input?.screen ?? '');
     if (!(NAV_TARGETS as readonly string[]).includes(screen)) return { error: 'unknown_screen' };
     return { __navigate: { screen, params: input?.params ?? {} } };
