@@ -27,7 +27,7 @@ type Props = NativeStackScreenProps<MilkStackParamList, 'MilkHome'>;
 
 const C = {
   cream: '#FCF7EF', paper: '#FDF7EC',
-  rose: '#E06A88', roseInk: '#C2556F', roseTint: '#FDECEF', blush: '#F7C5CB',
+  rose: '#E84B79', roseInk: '#B0234F', roseTint: '#FDECEF', blush: '#F7C5CB',
   honey: '#F5C842', honeyCard: '#FBE9BE', honeyInk: '#B98A1E',
   cocoa: '#43260F', ink: '#3D2116', walnut: '#8A6A55', sage: '#7B8A46', muted: '#A6957F',
   track: '#F0E6D6', hair: 'rgba(61,31,14,0.08)',
@@ -160,7 +160,7 @@ export default function MilkConnectHomeScreen({ navigation }: Props) {
 
         <ScrollView contentContainerStyle={{ paddingBottom: 110 }} showsVerticalScrollIndicator={false}>
           {/* SHARE — the loud supply hero */}
-          <LinearGradient colors={['#EE94AC', '#F6C94F']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.shareHero}>
+          <LinearGradient colors={['#E84B79', '#F6C94F']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.shareHero}>
             <View style={styles.shareHeroTop}>
               <View style={styles.shareHeroIcon}><Glyph d={ICON.drop} color={C.cocoa} size={22} /></View>
               <View style={{ flex: 1 }}>

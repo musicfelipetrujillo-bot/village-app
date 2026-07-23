@@ -342,9 +342,9 @@ const styles = StyleSheet.create({
   },
   // v9 canonical CTA
   primaryBtn: {
-    flex: 1, backgroundColor: '#D96C88', borderRadius: 999,
+    flex: 1, backgroundColor: '#E84B79', borderRadius: 999,
     paddingVertical: 15, alignItems: 'center', justifyContent: 'center',
-    shadowColor: '#D96C88', shadowOffset: { width: 0, height: 4 },
+    shadowColor: '#E84B79', shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.24, shadowRadius: 10, elevation: 3,
   },
   primaryBtnDisabled: { opacity: 0.45 },

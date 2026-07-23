@@ -112,7 +112,7 @@ export default function MilkMessageDetailScreen({ navigation, route }: Props) {
       </View>
 
       {loading ? (
-        <View style={styles.center}><ActivityIndicator color="#D96C88" /></View>
+        <View style={styles.center}><ActivityIndicator color="#E84B79" /></View>
       ) : (
         <FlatList
           ref={listRef}
@@ -168,7 +168,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.paper,
     borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.06)',
   },
-  back: { fontSize: 15, color: '#D96C88', fontFamily: FONTS.bodyMedium },
+  back: { fontSize: 15, color: '#E84B79', fontFamily: FONTS.bodyMedium },
   title: { flex: 1, fontSize: 16, fontFamily: FONTS.bodySemiBold, color: '#43260F', textAlign: 'center' },
 
   listContent: { paddingHorizontal: 12, paddingTop: 12, paddingBottom: 12, gap: 6 },
@@ -197,7 +197,7 @@ const styles = StyleSheet.create({
   },
   sendBtn: {
     width: 44, height: 44, borderRadius: 22,
-    backgroundColor: '#D96C88', alignItems: 'center', justifyContent: 'center',
+    backgroundColor: '#E84B79', alignItems: 'center', justifyContent: 'center',
   },
   sendBtnDisabled: { opacity: 0.4 },
   sendBtnText: { color: '#FFFCF6', fontSize: 22, fontFamily: FONTS.bodySemiBold },

@@ -17,7 +17,7 @@ type Nav = NativeStackNavigationProp<MilkStackParamList, 'DonorListingManager'>;
 
 const C = {
   cream: '#FCF7EF', paper: '#FDF7EC',
-  rose: '#E06A88', roseInk: '#C2556F',
+  rose: '#E84B79', roseInk: '#B0234F',
   honey: '#F5C842', honeyInk: '#B98A1E',
   cocoa: '#3D2116', walnut: '#8A6A55', sage: '#7B8A46', muted: '#A6957F', hair: 'rgba(61,31,14,0.08)',
 };

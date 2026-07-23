@@ -109,8 +109,8 @@ export function CoffeeCup({ size = 26 }: { size?: number }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 28 28">
       {/* steam */}
-      <Path d="M10 7 q2.4 -2.2 0 -4.4" stroke="#D96C88" strokeWidth={1.3} fill="none" strokeLinecap="round" opacity={0.55} />
-      <Path d="M15 7 q2.4 -2.2 0 -4.4" stroke="#D96C88" strokeWidth={1.3} fill="none" strokeLinecap="round" opacity={0.45} />
+      <Path d="M10 7 q2.4 -2.2 0 -4.4" stroke="#E84B79" strokeWidth={1.3} fill="none" strokeLinecap="round" opacity={0.55} />
+      <Path d="M15 7 q2.4 -2.2 0 -4.4" stroke="#E84B79" strokeWidth={1.3} fill="none" strokeLinecap="round" opacity={0.45} />
       {/* handle */}
       <Path d="M20 12 q4.6 0 4.6 4 q0 3.6 -4.6 3.2" stroke="#C9A36F" strokeWidth={1.9} fill="none" />
       {/* cup body */}

@@ -70,7 +70,7 @@ export default function MilestoneDetailScreen() {
 
       <ScrollView contentContainerStyle={styles.content}>
         {loading ? (
-          <ActivityIndicator color="#D96C88" style={{ marginTop: 40 }} />
+          <ActivityIndicator color="#E84B79" style={{ marginTop: 40 }} />
         ) : milestones.length === 0 ? (
           <View style={styles.empty}>
             <Text style={styles.emptyText}>{t('milestone.emptyForWeek')}</Text>
@@ -157,7 +157,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.paper,
     borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.06)',
   },
-  back: { fontSize: 15, color: '#D96C88', fontFamily: FONTS.bodySemiBold },
+  back: { fontSize: 15, color: '#E84B79', fontFamily: FONTS.bodySemiBold },
   headerTitle: { fontSize: 16, fontFamily: FONTS.bodySemiBold, color: COLORS.bark },
   content: { paddingHorizontal: 20, paddingTop: 16, paddingBottom: 40 },
 

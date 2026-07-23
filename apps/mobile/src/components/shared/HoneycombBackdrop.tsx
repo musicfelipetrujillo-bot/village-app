@@ -47,6 +47,7 @@ export function HoneycombBackdrop({
   intensity = 'subtle',
   pageColor = '#FCF7EF',
   showBee = true,
+  showComb = false,
   topOffset = 76,
   animate = true,
   scene,
@@ -58,6 +59,9 @@ export function HoneycombBackdrop({
   /** Kept for API symmetry; the comb dissolves via per-cell opacity. */
   pageColor?: string;
   showBee?: boolean;
+  /** Draw the honeycomb cells. Default false — bees-only, cleaner UI
+   *  (Felipe 2026-07-11: "remove the honeycomb but keep the cute bees"). */
+  showComb?: boolean;
   /** Push the comb + bee down so they clear the masthead utility row. */
   topOffset?: number;
   /** Shift the scene bees left from the right edge (clears a top-right menu). */
@@ -165,7 +169,7 @@ export function HoneycombBackdrop({
 
   return (
     <View pointerEvents="none" style={[StyleSheet.absoluteFill, { overflow: 'hidden' }, style]}>
-      {cells.map((cell, i) => {
+      {showComb && cells.map((cell, i) => {
         const p = entry[i];
         const flare = Math.min(1, cell.target * 1.9);
         // Pop in with a brightness flare that settles to the resting opacity.
@@ -198,7 +202,7 @@ export function HoneycombBackdrop({
 
       {/* Living-hive glow — a brighter duplicate on the accent cells that
           breathes after the cascade settles. */}
-      {cells.filter((c) => c.glow).map((cell, i) => {
+      {showComb && cells.filter((c) => c.glow).map((cell, i) => {
         const gOpacity = glow.interpolate({ inputRange: [0, 1], outputRange: [0, Math.min(0.55, cell.target * 1.5)] });
         return (
           <Animated.View

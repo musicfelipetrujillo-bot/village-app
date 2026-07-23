@@ -18,6 +18,7 @@ import { specialistsApi } from '@api/specialists';
 import type { Specialist, SpecialtyType } from 'shared/src/types/v1';
 import { COLORS, FONTS } from '@utils/constants';
 import { V9PageBackdrop } from '@components/shared/V9PageBackdrop';
+import { BackButton } from '@components/shared/BackButton';
 import { getEffectiveCoordsWithSource } from '@utils/devLocation';
 import { getPreferredRadiusMiles } from '@store/user';
 import { useT } from '@/i18n';
@@ -110,13 +111,7 @@ export default function SpecialistsMapScreen({ navigation }: Props) {
       <V9PageBackdrop />
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          accessibilityRole="button"
-          accessibilityLabel="Back"
-        >
-          <Text style={styles.backText}>← Back</Text>
-        </TouchableOpacity>
+        <BackButton color="#E84B79" />
         <Text style={styles.headerTitle}>Specialists nearby</Text>
         <Text style={styles.countText}>{specialists.length}</Text>
       </View>
@@ -167,7 +162,7 @@ export default function SpecialistsMapScreen({ navigation }: Props) {
       {/* Loading overlay — sits above the map until the first results land */}
       {loading && (
         <View style={styles.loadingOverlay}>
-          <ActivityIndicator color="#D96C88" size="large" />
+          <ActivityIndicator color="#E84B79" size="large" />
         </View>
       )}
 
@@ -207,7 +202,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFCF6', zIndex: 10,
     borderBottomWidth: 1, borderBottomColor: '#E8E0D5',
   },
-  backText: { fontSize: 15, color: '#D96C88', fontFamily: FONTS.bodySemiBold },
+  backText: { fontSize: 15, color: '#E84B79', fontFamily: FONTS.bodySemiBold },
   headerTitle: { fontSize: 17, fontFamily: FONTS.bodySemiBold, color: '#43260F' },
   countText: { fontSize: 13, color: '#7A4A24', fontFamily: FONTS.bodySemiBold },
   map: { flex: 1 },

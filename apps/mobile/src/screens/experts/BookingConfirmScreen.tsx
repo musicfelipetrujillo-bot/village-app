@@ -204,7 +204,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     width: '100%',
   },
-  telehealthBtnText: { color: '#D96C88', fontSize: 15, fontFamily: FONTS.bodySemiBold },
+  telehealthBtnText: { color: '#E84B79', fontSize: 15, fontFamily: FONTS.bodySemiBold },
 
   note: {
     fontSize: 12,
@@ -224,7 +224,7 @@ const styles = StyleSheet.create({
     borderTopColor: 'rgba(0,0,0,0.07)',
   },
   doneBtn: {
-    backgroundColor: '#D96C88',
+    backgroundColor: '#E84B79',
     borderRadius: 14,
     paddingVertical: 16,
     alignItems: 'center',

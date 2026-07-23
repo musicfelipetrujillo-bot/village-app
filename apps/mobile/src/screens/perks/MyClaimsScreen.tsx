@@ -45,7 +45,7 @@ export default function MyClaimsScreen() {
       </View>
 
       {loading && myClaims.length === 0 ? (
-        <ActivityIndicator color="#D96C88" style={{ marginTop: 40 }} />
+        <ActivityIndicator color="#E84B79" style={{ marginTop: 40 }} />
       ) : (
         <FlashList
           data={myClaims}
@@ -127,7 +127,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.paper,
     borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.06)',
   },
-  back: { fontSize: 15, color: '#D96C88', fontFamily: FONTS.bodySemiBold },
+  back: { fontSize: 15, color: '#E84B79', fontFamily: FONTS.bodySemiBold },
   headerTitle: { fontSize: 16, fontFamily: FONTS.bodySemiBold, color: COLORS.bark },
 
   card: {
@@ -163,7 +163,7 @@ const styles = StyleSheet.create({
     fontSize: 14, color: COLORS.barkSoft, textAlign: 'center', lineHeight: 21, marginBottom: 8,
   },
   discoverBtn: {
-    marginTop: 8, backgroundColor: '#D96C88', borderRadius: 14,
+    marginTop: 8, backgroundColor: '#E84B79', borderRadius: 14,
     paddingHorizontal: 24, paddingVertical: 14,
   },
   discoverBtnText: { color: '#FFFCF6', fontFamily: FONTS.bodySemiBold, fontSize: 15 },

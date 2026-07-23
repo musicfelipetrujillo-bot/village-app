@@ -21,6 +21,7 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { COLORS, FONTS } from '@utils/constants';
 import { WarmGlowBackdrop } from '@components/shared/WarmGlowBackdrop';
+import { BackButton } from '@components/shared/BackButton';
 import { V3Card } from '@components/shared/V3Card';
 import {
   issueSpecialistInvite,
@@ -120,9 +121,7 @@ export default function AdminInviteScreen() {
         keyboardShouldPersistTaps="handled"
       >
         {/* Editorial masthead */}
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backRow} activeOpacity={0.7}>
-          <Text style={styles.backText}>← Me</Text>
-        </TouchableOpacity>
+        <BackButton style={styles.backRow} />
         <View style={styles.eyebrowRow}>
           <View style={styles.eyebrowBar} />
           <Text style={styles.eyebrow}>ADMIN · SPECIALIST INVITES</Text>

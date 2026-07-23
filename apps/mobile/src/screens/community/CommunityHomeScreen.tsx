@@ -128,7 +128,7 @@ export default function CommunityHomeScreen({ navigation }: Props) {
   if (loading) {
     return (
       <SafeAreaView style={styles.loadingWrap}>
-        <ActivityIndicator color="#D96C88" size="large" />
+        <ActivityIndicator color="#E84B79" size="large" />
       </SafeAreaView>
     );
   }

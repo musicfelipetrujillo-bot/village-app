@@ -18,6 +18,7 @@ import {
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { FONTS } from '@utils/constants';
+import { BackButton } from '@components/shared/BackButton';
 import { useHomeStore } from '@store/home';
 import {
   CHAPTER_THEME, CHAPTER_THEME_DEFAULT, HERO_TITLE, SUB_LEAD,
@@ -122,14 +123,7 @@ export default function ManualChapterReadScreen() {
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         {/* Header — back + audience tag */}
         <View style={styles.header}>
-          <TouchableOpacity
-            onPress={() => navigation.goBack()}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            accessibilityRole="button"
-            accessibilityLabel="Back to the chapter"
-          >
-            <Text style={styles.back}>← Back</Text>
-          </TouchableOpacity>
+          <BackButton accessibilityLabel="Back to the chapter" />
           <View style={styles.audiencePill}>
             <Text style={styles.audienceText}>{audience === 'mom' ? 'Mom' : 'Baby'}</Text>
           </View>

@@ -9,6 +9,7 @@ import {
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { COLORS, FONTS } from '@utils/constants';
 import { WarmGlowBackdrop } from '@components/shared/WarmGlowBackdrop';
+import { BackButton } from '@components/shared/BackButton';
 import { homeApi, type DailyCheckin } from '@api/home';
 import { useT } from '@/i18n';
 import type { HomeStackParamList } from '@/navigation/HomeNavigator';
@@ -72,19 +73,13 @@ export default function CheckinResponseScreen({ navigation }: Props) {
     <View style={styles.container}>
       <WarmGlowBackdrop />
       <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => navigation.popToTop()}
-          accessibilityRole="button"
-          accessibilityLabel={t('checkin.responseBackA11y')}
-        >
-          <Text style={styles.back}>← {t('checkin.responseHeaderBack')}</Text>
-        </TouchableOpacity>
+        <BackButton color="#E84B79" onPress={() => navigation.popToTop()} accessibilityLabel={t('checkin.responseBackA11y')} />
         <Text style={styles.title}>{t('checkin.headerTitle')}</Text>
         <View style={{ width: 60 }} />
       </View>
 
       {loading ? (
-        <View style={styles.center}><ActivityIndicator color="#D96C88" /></View>
+        <View style={styles.center}><ActivityIndicator color="#E84B79" /></View>
       ) : !row ? (
         <View style={styles.center}>
           <Text style={styles.errorText}>{t('checkin.responseErrorLoad')}</Text>
@@ -172,7 +167,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.paper,
     borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.06)',
   },
-  back: { fontSize: 15, color: '#D96C88', fontFamily: FONTS.bodySemiBold },
+  back: { fontSize: 15, color: '#E84B79', fontFamily: FONTS.bodySemiBold },
   title: { fontSize: 17, fontFamily: FONTS.bodySemiBold, color: COLORS.bark },
 
   content: { padding: 20, paddingBottom: 60 },
@@ -199,7 +194,7 @@ const styles = StyleSheet.create({
   resourceName: { fontSize: 14, fontFamily: FONTS.bodySemiBold, color: COLORS.bark },
   resourceDesc: { fontSize: 12, color: COLORS.barkSoft, marginTop: 2 },
   resourceBtn: {
-    backgroundColor: '#D96C88', borderRadius: 10,
+    backgroundColor: '#E84B79', borderRadius: 10,
     paddingHorizontal: 14, paddingVertical: 8,
   },
   resourceBtnAlt: { backgroundColor: COLORS.sage },

@@ -190,11 +190,11 @@ const styles = StyleSheet.create({
   btn: {
     marginHorizontal: 24,
     marginBottom: 36,
-    backgroundColor: '#D96C88',
+    backgroundColor: '#E84B79',
     borderRadius: 999,
     paddingVertical: 16,
     alignItems: 'center',
-    shadowColor: '#D96C88',
+    shadowColor: '#E84B79',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.24,
     shadowRadius: 10,

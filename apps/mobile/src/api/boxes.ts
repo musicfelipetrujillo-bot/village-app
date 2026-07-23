@@ -182,7 +182,7 @@ export const BOXES: Box[] = [
     tagline: 'Postpartum recovery, gathered with love — because you matter too.',
     blurb:
       "The box that's just for you. Everything to soothe, heal, and feel a little more human through the tender first weeks.",
-    hero: ['#F7CDD3', '#E089A0', '#C25A78'],
+    hero: ['#F7CDD3', '#E089A0', '#B0234F'],
     glow: 'rgba(255,255,255,0.55)',
     badge: 'OB-GYN + doula designed',
     popColor: '#7A3350',

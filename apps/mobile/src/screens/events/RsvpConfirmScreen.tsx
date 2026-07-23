@@ -64,7 +64,7 @@ export default function RsvpConfirmScreen() {
   };
 
   if (!event) {
-    return <View style={styles.container}><ActivityIndicator color="#D96C88" style={{ marginTop: 80 }} /></View>;
+    return <View style={styles.container}><ActivityIndicator color="#E84B79" style={{ marginTop: 80 }} /></View>;
   }
 
   return (
@@ -120,7 +120,7 @@ const styles = StyleSheet.create({
   when: { fontSize: 14, color: COLORS.barkSoft, textAlign: 'center', marginBottom: 28 },
 
   calBtn: {
-    backgroundColor: '#D96C88', borderRadius: 14,
+    backgroundColor: '#E84B79', borderRadius: 14,
     paddingHorizontal: 32, paddingVertical: 14,
     marginBottom: 10, width: '100%', alignItems: 'center',
   },
@@ -138,7 +138,7 @@ const styles = StyleSheet.create({
     width: '100%', alignItems: 'center',
     borderWidth: 1.5, borderColor: COLORS.coco,
   },
-  doneBtnText: { color: '#D96C88', fontSize: 14, fontFamily: FONTS.bodySemiBold },
+  doneBtnText: { color: '#E84B79', fontSize: 14, fontFamily: FONTS.bodySemiBold },
 
   closeBtn: { marginTop: 14, paddingVertical: 8 },
   closeBtnText: { color: COLORS.textLight, fontSize: 13, fontFamily: FONTS.bodySemiBold },

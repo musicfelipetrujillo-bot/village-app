@@ -142,7 +142,7 @@ export default function BecomeDonorIntroScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: 'transparent', paddingHorizontal: 28 },
   back: { marginTop: 56, marginBottom: 16 },
-  backText: { fontSize: 15, color: '#D96C88', fontFamily: FONTS.bodySemiBold },
+  backText: { fontSize: 15, color: '#E84B79', fontFamily: FONTS.bodySemiBold },
   dots: { flexDirection: 'row', gap: 8, marginBottom: 48 },
   dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#E0D5C5' },
   dotActive: { width: 24, backgroundColor: COLORS.coco },
@@ -164,7 +164,7 @@ const styles = StyleSheet.create({
   earningsNum: { fontSize: 26, fontFamily: FONTS.headerBold, color: '#7A4A24', marginBottom: 4, letterSpacing: -0.5 },
   earningsLabel: { fontSize: 13, color: '#7A4A24', textAlign: 'center', fontFamily: FONTS.bodyMedium },
   footer: { paddingBottom: 48, gap: 12 },
-  nextBtn: { backgroundColor: '#D96C88', borderRadius: 14, paddingVertical: 16, alignItems: 'center' },
+  nextBtn: { backgroundColor: '#E84B79', borderRadius: 14, paddingVertical: 16, alignItems: 'center' },
   nextBtnText: { fontSize: 16, fontFamily: FONTS.bodySemiBold, color: '#FFFCF6' },
   prevBtn: { alignItems: 'center', paddingVertical: 8 },
   prevBtnText: { fontSize: 15, color: '#7A4A24', fontFamily: FONTS.bodyMedium },

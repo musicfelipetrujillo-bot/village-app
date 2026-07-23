@@ -141,7 +141,7 @@ export function AIAssistantModal({ visible, onClose, specialist }: Props) {
                   </Text>
                 </View>
                 {loading ? (
-                  <ActivityIndicator color="#D96C88" size="small" />
+                  <ActivityIndicator color="#E84B79" size="small" />
                 ) : (
                   <Text style={styles.menuCardArrow}>›</Text>
                 )}
@@ -198,7 +198,7 @@ export function AIAssistantModal({ visible, onClose, specialist }: Props) {
                 {loading && (
                   <View style={styles.bubbleAI}>
                     <Text style={styles.bubbleAILabel}>🤖 Village AI</Text>
-                    <ActivityIndicator color="#D96C88" size="small" style={{ marginTop: 4 }} />
+                    <ActivityIndicator color="#E84B79" size="small" style={{ marginTop: 4 }} />
                   </View>
                 )}
               </ScrollView>
@@ -333,7 +333,7 @@ const styles = StyleSheet.create({
 
   bubble: { borderRadius: 16, padding: 13, maxWidth: '86%' },
   bubbleUser: {
-    backgroundColor: '#D96C88',
+    backgroundColor: '#E84B79',
     alignSelf: 'flex-end',
     borderBottomRightRadius: 4,
   },
@@ -378,7 +378,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#D96C88',
+    backgroundColor: '#E84B79',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -405,7 +405,7 @@ const styles = StyleSheet.create({
     width: 26,
     height: 26,
     borderRadius: 13,
-    backgroundColor: '#D96C88',
+    backgroundColor: '#E84B79',
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,

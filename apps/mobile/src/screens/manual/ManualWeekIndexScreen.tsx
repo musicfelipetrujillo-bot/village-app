@@ -8,6 +8,7 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { COLORS, FONTS } from '@utils/constants';
 import { V9PageBackdrop } from '@components/shared/V9PageBackdrop';
+import { BackButton } from '@components/shared/BackButton';
 import { useT } from '@/i18n';
 import { useHomeStore } from '@store/home';
 import { isProUser } from '@/lib/pro';
@@ -87,9 +88,7 @@ export default function ManualWeekIndexScreen() {
     <View style={styles.container}>
       <V9PageBackdrop />
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} accessibilityRole="button" accessibilityLabel={t('common.back')}>
-          <Text style={styles.back}>← {t('common.back')}</Text>
-        </TouchableOpacity>
+        <BackButton color={T.rose} />
         <Text style={styles.headerTitle}>{t('manualWeekIndex.title')}</Text>
         <View style={{ width: 56 }} />
       </View>

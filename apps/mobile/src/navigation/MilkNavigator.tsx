@@ -97,8 +97,11 @@ const Stack = createNativeStackNavigator<MilkStackParamList>();
 
 export function MilkNavigator() {
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="MilkHome" component={MilkConnectHomeScreen} />
+    <Stack.Navigator initialRouteName="MilkVaultDashboard" screenOptions={{ headerShown: false }}>
+      {/* Milk tab lands on the personal stash dashboard; the donor marketplace
+          (MilkHome) is one toggle away. Both fade so the my-stash|marketplace
+          toggle swaps in place instead of sliding like a push. */}
+      <Stack.Screen name="MilkHome" component={MilkConnectHomeScreen} options={{ animation: 'fade' }} />
       {/* M1 */}
       <Stack.Screen name="BecomeDonorIntro" component={BecomeDonorIntroScreen} />
       <Stack.Screen name="DonorQuestionnaire" component={DonorQuestionnaireScreen} />
@@ -116,7 +119,7 @@ export function MilkNavigator() {
       <Stack.Screen name="MilkMessageDetail" component={MilkMessageDetailScreen} />
       {/* V6 — Milk Vault */}
       <Stack.Screen name="MilkVaultModePicker" component={MilkVaultModePickerScreen} />
-      <Stack.Screen name="MilkVaultDashboard" component={MilkVaultDashboardScreen} />
+      <Stack.Screen name="MilkVaultDashboard" component={MilkVaultDashboardScreen} options={{ animation: 'fade' }} />
       <Stack.Screen name="MilkVaultAddBag" component={MilkVaultAddBagScreen} />
       <Stack.Screen name="MilkVaultScan" component={MilkVaultScanScreen} />
       <Stack.Screen name="MilkVaultBags" component={MilkVaultBagsScreen} />

@@ -35,6 +35,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation, useRoute, useFocusEffect, type RouteProp } from '@react-navigation/native';
 import { FONTS } from '@utils/constants';
+import { BackButton } from '@components/shared/BackButton';
 import { useT } from '@/i18n';
 import { useUserStore } from '@store/user';
 import { useHomeStore } from '@store/home';
@@ -58,9 +59,9 @@ type ParamList = {
 // ═══════════════════════════════════════════════════════════════════════
 // V9 palette — exact CSS variable values from the v9 mockup.
 // Use these directly for this screen; do NOT route through COLORS.coco/
-// rust since those resolve to brand-v2 cinnamon (#D96C88), which is a
+// rust since those resolve to brand-v2 cinnamon (#E84B79), which is a
 // different shade than the v9 mockup's --coco (#AD795B) / --rust
-// (#D96C88). The screen is meant to look exactly like the mockup.
+// (#E84B79). The screen is meant to look exactly like the mockup.
 // ═══════════════════════════════════════════════════════════════════════
 const V9 = {
   paper: '#FFFCF6',
@@ -76,8 +77,8 @@ const V9 = {
   // Kit canon (2026-05-16): old rust/rust-deep retired; cinnamon family is the
   // app's canonical warm action color. Token names kept for grep compatibility
   // across the Manual file (60+ refs in masthead + week hero + tile SVG).
-  rust: '#D96C88',     // cinnamon (was #D96C88)
-  rustDeep: '#D96C88', // action-deep (was #7A4A24)
+  rust: '#E84B79',     // cinnamon (was #E84B79)
+  rustDeep: '#E84B79', // action-deep (was #7A4A24)
   sage: '#E98A6A',
   sageDeep: '#E98A6A',
   coco: '#AD795B',
@@ -134,8 +135,8 @@ export const CHAPTER_THEME_DEFAULT: ChapterTheme = {
 // feed↔nourish, grow↔feel, care↔rest, soothe↔tips.
 export const CHAPTER_THEME: Record<string, ChapterTheme> = {
   // Grow / Feel — rose
-  'baby/grow':  { accent: '#D96C88', accentDeep: '#D96C88', bg: '#FAE2E7', yolkBg: '#FAE2E7' },
-  'mom/feel':   { accent: '#D96C88', accentDeep: '#D96C88', bg: '#FAE2E7', yolkBg: '#FAE2E7' },
+  'baby/grow':  { accent: '#E84B79', accentDeep: '#E84B79', bg: '#FAE2E7', yolkBg: '#FAE2E7' },
+  'mom/feel':   { accent: '#E84B79', accentDeep: '#E84B79', bg: '#FAE2E7', yolkBg: '#FAE2E7' },
   // Sleep / Heal — terracotta
   'baby/sleep': { accent: '#C46A45', accentDeep: '#C46A45', bg: '#F0D7C3', yolkBg: '#F0D7C3' },
   'mom/heal':   { accent: '#C46A45', accentDeep: '#C46A45', bg: '#F0D7C3', yolkBg: '#F0D7C3' },
@@ -511,9 +512,7 @@ export default function ManualCategoryScreen() {
     <View style={styles.container}>
       {/* Top nav — Back · audience tag · hamburger menu (v3 brand kit) */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} accessibilityRole="button" accessibilityLabel={t('common.back')}>
-          <Text style={styles.back}>← {t('common.back')}</Text>
-        </TouchableOpacity>
+        <BackButton />
         <View style={styles.headerRight}>
           {/* Audience (Mom/Baby) pill removed 2026-06-09 — mom/baby is no
               longer a toggleable mode, so the badge served no purpose. */}

@@ -62,7 +62,7 @@ const styles = StyleSheet.create({
   name: { fontFamily: FONTS.v2_bold, fontSize: 15, color: '#3D2116', flexShrink: 1 },
   npiTick: { fontSize: 13, color: '#7B8A46', fontFamily: FONTS.v2_bold },
   checkedBadge: { backgroundColor: '#FDECEF', borderRadius: 999, paddingHorizontal: 7, paddingVertical: 2 },
-  checkedText: { fontFamily: FONTS.v2_mono, fontSize: 8.5, color: '#C2556F', fontWeight: '600' },
+  checkedText: { fontFamily: FONTS.v2_mono, fontSize: 8.5, color: '#B0234F', fontWeight: '600' },
   role: { fontFamily: FONTS.v2_body, fontSize: 12.5, color: '#8A6A55', marginTop: 2 },
   meta: { fontFamily: FONTS.v2_mono, fontSize: 9, letterSpacing: 0.6, color: '#A6957F', marginTop: 3, textTransform: 'uppercase' },
   right: { flexDirection: 'row', alignItems: 'baseline' },

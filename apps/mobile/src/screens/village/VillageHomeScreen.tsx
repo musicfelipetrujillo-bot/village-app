@@ -324,7 +324,7 @@ const styles = StyleSheet.create({
   },
   cardNumInline: {
     fontSize: 28, fontFamily: FONTS.headerItalic, fontStyle: 'italic',
-    color: '#D96C88', marginBottom: 4, lineHeight: 30, opacity: 0.75,
+    color: '#E84B79', marginBottom: 4, lineHeight: 30, opacity: 0.75,
   },
   cardTitle: {
     fontSize: 20, fontFamily: FONTS.headerBold,
@@ -337,7 +337,7 @@ const styles = StyleSheet.create({
   },
   cardCta: {
     fontSize: 12, fontFamily: FONTS.bodySemiBold,
-    color: '#D96C88', letterSpacing: 0.4,
+    color: '#E84B79', letterSpacing: 0.4,
   },
   // Photo on the RIGHT — square-ish band w/ accent tint behind the image
   // (acts as both fallback and a soft editorial border tone). flexShrink:0

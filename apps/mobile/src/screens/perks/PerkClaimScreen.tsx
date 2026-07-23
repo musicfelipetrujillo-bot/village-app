@@ -69,7 +69,7 @@ export default function PerkClaimScreen() {
   if (loading) {
     return (
       <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-        <ActivityIndicator color="#D96C88" size="large" />
+        <ActivityIndicator color="#E84B79" size="large" />
       </View>
     );
   }
@@ -196,10 +196,10 @@ const styles = StyleSheet.create({
   // v9 canonical CTA — rect variant
   primaryBtn: {
     marginTop: 16,
-    backgroundColor: '#D96C88', borderRadius: 14,
+    backgroundColor: '#E84B79', borderRadius: 14,
     paddingHorizontal: 28, paddingVertical: 14,
     minWidth: 240, alignItems: 'center',
-    shadowColor: '#D96C88', shadowOffset: { width: 0, height: 4 },
+    shadowColor: '#E84B79', shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.24, shadowRadius: 10, elevation: 3,
   },
   primaryBtnText: { color: '#FFFCF6', fontSize: 15, fontFamily: FONTS.bodySemiBold, letterSpacing: 0.3 },
@@ -208,7 +208,7 @@ const styles = StyleSheet.create({
     marginTop: 24,
     paddingHorizontal: 20, paddingVertical: 10,
   },
-  secondaryBtnText: { color: '#D96C88', fontSize: 14, fontFamily: FONTS.bodySemiBold },
+  secondaryBtnText: { color: '#E84B79', fontSize: 14, fontFamily: FONTS.bodySemiBold },
 
   disclosure: {
     fontSize: 11, color: COLORS.textLight, marginTop: 24,

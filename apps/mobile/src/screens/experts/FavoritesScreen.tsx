@@ -67,7 +67,7 @@ export default function FavoritesScreen({ navigation }: Props) {
 
       {loading ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator color="#D96C88" />
+          <ActivityIndicator color="#E84B79" />
         </View>
       ) : (
         <FlatList
@@ -114,7 +114,7 @@ const styles = StyleSheet.create({
     borderBottomColor: 'rgba(0,0,0,0.06)',
   },
   backBtn: { marginBottom: 10 },
-  backText: { fontSize: 15, color: '#D96C88', fontFamily: FONTS.bodyMedium },
+  backText: { fontSize: 15, color: '#E84B79', fontFamily: FONTS.bodyMedium },
   title: {
     fontFamily: FONTS.headerItalic,
     fontSize: 28,
@@ -131,7 +131,7 @@ const styles = StyleSheet.create({
   emptyTitle: { fontSize: 18, fontFamily: FONTS.bodySemiBold, color: COLORS.bark, marginBottom: 8, textAlign: 'center' },
   emptyText: { fontSize: 14, color: COLORS.textLight, textAlign: 'center', lineHeight: 20, marginBottom: 24, fontFamily: FONTS.body },
   browseBtn: {
-    backgroundColor: '#D96C88',
+    backgroundColor: '#E84B79',
     borderRadius: 12,
     paddingVertical: 13,
     paddingHorizontal: 28,

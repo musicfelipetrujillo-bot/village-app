@@ -75,7 +75,7 @@ export default function GearMessageThreadsScreen({ navigation }: Props) {
       </View>
 
       {loading ? (
-        <View style={styles.center}><ActivityIndicator color="#D96C88" /></View>
+        <View style={styles.center}><ActivityIndicator color="#E84B79" /></View>
       ) : (
         <FlashList
           data={threads}
@@ -158,7 +158,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.paper,
     borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.06)',
   },
-  back: { fontSize: 15, color: '#D96C88', fontFamily: FONTS.bodySemiBold },
+  back: { fontSize: 15, color: '#E84B79', fontFamily: FONTS.bodySemiBold },
   title: { fontSize: 17, fontFamily: FONTS.bodySemiBold, color: COLORS.bark },
 
   row: {
@@ -199,7 +199,7 @@ const styles = StyleSheet.create({
   emptyTitle: { fontSize: 20, fontFamily: FONTS.bodySemiBold, color: COLORS.bark },
   emptyBody: { fontSize: 14, color: COLORS.barkSoft, textAlign: 'center', lineHeight: 20, fontFamily: FONTS.body },
   browseBtn: {
-    marginTop: 8, backgroundColor: '#D96C88', borderRadius: 14,
+    marginTop: 8, backgroundColor: '#E84B79', borderRadius: 14,
     paddingVertical: 13, paddingHorizontal: 28,
   },
   browseBtnText: { fontSize: 15, color: '#FFFCF6', fontFamily: FONTS.bodySemiBold },

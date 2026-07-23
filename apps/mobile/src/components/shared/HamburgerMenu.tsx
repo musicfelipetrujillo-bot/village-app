@@ -35,7 +35,7 @@ const CREAM     = COLORS.v2_cream;     // #FCF7EF
 const PARCHMENT = COLORS.v2_parchment; // #F2E6DD
 const COCOA     = COLORS.v2_cocoa;     // #43260F
 const WALNUT    = COLORS.v2_walnut;    // #7A4A28
-const CINNAMON  = COLORS.v2_cinnamon;  // #D96C88
+const CINNAMON  = COLORS.v2_cinnamon;  // #E84B79
 
 // ─── MenuButton ────────────────────────────────────────────────────────
 // Three-bar hamburger trigger. 36×28 parchment chip with embossed

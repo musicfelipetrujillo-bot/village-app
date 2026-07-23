@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { COLORS, FONTS } from '@utils/constants';
+import { BackButton } from '@components/shared/BackButton';
 import { useT } from '@/i18n';
 import { useUserStore } from '@store/user';
 import {
@@ -52,19 +53,13 @@ export default function SavedManualScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          accessibilityRole="button"
-          accessibilityLabel={t('common.back')}
-        >
-          <Text style={styles.back}>← {t('common.back')}</Text>
-        </TouchableOpacity>
+        <BackButton />
         <Text style={styles.headerTitle}>{t('savedManual.title')}</Text>
         <View style={{ width: 60 }} />
       </View>
 
       {loading && (
-        <View style={styles.center}><ActivityIndicator color="#D96C88" /></View>
+        <View style={styles.center}><ActivityIndicator color="#E84B79" /></View>
       )}
 
       {!loading && videos.length === 0 && (
@@ -88,7 +83,7 @@ export default function SavedManualScreen() {
           data={videos}
           keyExtractor={(v) => v.id}
           contentContainerStyle={styles.list}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#D96C88" />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#E84B79" />}
           renderItem={({ item, index }) => (
             <TouchableOpacity
               style={styles.row}
@@ -152,7 +147,7 @@ const styles = StyleSheet.create({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
 
   emptyWrap: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
-  emptyIcon: { fontSize: 52, color: '#D96C88', marginBottom: 12 },
+  emptyIcon: { fontSize: 52, color: '#E84B79', marginBottom: 12 },
   emptyTitle: {
     fontSize: 20, fontFamily: FONTS.headerBold, color: COLORS.bark,
     textAlign: 'center', marginBottom: 8,
@@ -162,7 +157,7 @@ const styles = StyleSheet.create({
     textAlign: 'center', lineHeight: 21, marginBottom: 20,
   },
   emptyCta: {
-    backgroundColor: '#D96C88', borderRadius: 999,
+    backgroundColor: '#E84B79', borderRadius: 999,
     paddingHorizontal: 24, paddingVertical: 14,
   },
   emptyCtaText: { color: COLORS.paper, fontSize: 14, fontFamily: FONTS.bodySemiBold },

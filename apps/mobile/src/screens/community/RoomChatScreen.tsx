@@ -33,6 +33,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { COLORS, FONTS } from '@utils/constants';
+import { BackButton } from '@components/shared/BackButton';
 import { useAuthStore } from '@store/auth';
 import {
   listPinnedResources, getRoomBySlug,
@@ -285,13 +286,7 @@ export default function RoomChatScreen({ navigation, route }: Props) {
   return (
     <SafeAreaView style={styles.screen} edges={['top']}>
       <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          accessibilityLabel="Back"
-          accessibilityRole="button"
-        >
-          <Text style={styles.back}>← Back</Text>
-        </TouchableOpacity>
+        <BackButton color="#E84B79" style={{ paddingRight: 14 }} />
         <View style={styles.headerTitleWrap}>
           <Text style={styles.headerTitle} numberOfLines={1}>
             {room ? `${room.emoji}  ${room.name}` : 'Room'}
@@ -331,7 +326,7 @@ export default function RoomChatScreen({ navigation, route }: Props) {
         keyboardVerticalOffset={Platform.OS === 'ios' ? 88 : 0}
       >
         {loading ? (
-          <ActivityIndicator color="#D96C88" />
+          <ActivityIndicator color="#E84B79" />
         ) : (
           <FlatList
             ref={listRef}
@@ -539,7 +534,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.06)',
     backgroundColor: COLORS.paper,
   },
-  back:               { fontSize: 15, color: '#D96C88', fontFamily: FONTS.bodyMedium, paddingRight: 14 },
+  back:               { fontSize: 15, color: '#E84B79', fontFamily: FONTS.bodyMedium, paddingRight: 14 },
   headerTitleWrap:    { flex: 1 },
   headerTitle:        { fontSize: 16, fontFamily: FONTS.bodySemiBold, color: COLORS.bark },
   headerMeta:         { fontSize: 12, color: COLORS.textLight, marginTop: 2 },

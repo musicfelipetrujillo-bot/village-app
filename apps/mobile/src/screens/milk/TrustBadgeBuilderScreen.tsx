@@ -116,7 +116,7 @@ export default function TrustBadgeBuilderScreen({ route, navigation }: Props) {
   };
 
   if (loading) {
-    return <View style={styles.center}><ActivityIndicator color="#D96C88" /></View>;
+    return <View style={styles.center}><ActivityIndicator color="#E84B79" /></View>;
   }
 
   const badgeLevel = (badge?.badge_level ?? 'basic') as keyof typeof BADGE_INFO;
@@ -281,7 +281,7 @@ const styles = StyleSheet.create({
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#F5F0E8' },
   content: { padding: 24, paddingTop: 8, paddingBottom: 120 },
   backRow: { paddingHorizontal: 18, paddingBottom: 2 },
-  backChevron: { fontSize: 30, color: '#C2556F', marginTop: -2 },
+  backChevron: { fontSize: 30, color: '#B0234F', marginTop: -2 },
   title: { fontSize: 28, fontFamily: FONTS.headerBold, color: '#43260F', marginBottom: 8, letterSpacing: -0.4, lineHeight: 34 },
   subtitle: { fontSize: 14, color: '#7A4A24', lineHeight: 21, marginBottom: 24, fontFamily: FONTS.body },
 
@@ -322,7 +322,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.paper, borderRadius: 20,
     borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(150,80,50,0.18)',
   },
-  flagChipActive: { borderColor: '#D96C88', backgroundColor: 'rgba(192,120,64,0.08)' },
+  flagChipActive: { borderColor: '#E84B79', backgroundColor: 'rgba(192,120,64,0.08)' },
   flagEmoji: { fontSize: 16 },
   flagLabel: { fontSize: 13, color: '#7A4A24', fontFamily: FONTS.bodyMedium },
   flagLabelActive: { color: '#43260F', fontFamily: FONTS.bodySemiBold },
@@ -361,8 +361,8 @@ const styles = StyleSheet.create({
   },
   // v9 canonical CTA — rect variant
   continueBtn: {
-    backgroundColor: '#D96C88', borderRadius: 14, paddingVertical: 16, alignItems: 'center',
-    shadowColor: '#D96C88', shadowOffset: { width: 0, height: 4 },
+    backgroundColor: '#E84B79', borderRadius: 14, paddingVertical: 16, alignItems: 'center',
+    shadowColor: '#E84B79', shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.24, shadowRadius: 10, elevation: 3,
   },
   continueBtnText: { fontSize: 16, fontFamily: FONTS.bodySemiBold, color: '#FFFCF6' },
@@ -382,6 +382,6 @@ const styles = StyleSheet.create({
     borderRadius: 10, paddingVertical: 12, alignItems: 'center',
   },
   modalCancelText: { fontSize: 15, color: '#7A4A24', fontFamily: FONTS.bodySemiBold },
-  modalAdd: { flex: 1, backgroundColor: '#D96C88', borderRadius: 10, paddingVertical: 12, alignItems: 'center' },
+  modalAdd: { flex: 1, backgroundColor: '#E84B79', borderRadius: 10, paddingVertical: 12, alignItems: 'center' },
   modalAddText: { fontSize: 15, color: '#FFFCF6', fontFamily: FONTS.bodySemiBold },
 });

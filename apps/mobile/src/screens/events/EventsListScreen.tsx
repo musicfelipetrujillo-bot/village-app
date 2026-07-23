@@ -17,6 +17,8 @@ import { EventCardSkeleton } from '@components/shared/SkeletonLoader';
 import { KenBurnsImage } from '@components/shared/KenBurnsImage';
 import { V9PageBackdrop } from '@components/shared/V9PageBackdrop';
 import { HoneycombBackdrop } from '@components/shared/HoneycombBackdrop';
+import { HubHeader } from '@components/shared/HubHeader';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useT } from '@/i18n';
 
 type TFn = (key: string, params?: Record<string, string | number>) => string;
@@ -38,6 +40,7 @@ const AGE_FILTER_KEYS: { key: AgeTag; labelKey: string }[] = [
 export default function EventsListScreen() {
   const t = useT();
   const navigation = useNavigation<any>();
+  const insets = useSafeAreaInsets();
   const { upcoming, loading, fetchUpcoming, savedIds, fetchSavedIds, toggleSave } = useEventsStore();
   const [typeFilter, setTypeFilter] = useState<EventType | 'all'>('all');
   const [ageFilter, setAgeFilter] = useState<AgeTag | null>(null);
@@ -106,34 +109,24 @@ export default function EventsListScreen() {
         locations={[0, 0.45, 1]}
         style={styles.pageWash}
       />
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} accessibilityLabel={t('eventsList.backA11y')}>
-          <Text style={styles.back}>{t('eventsList.back')}</Text>
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>{t('eventsList.title')}</Text>
-        <View style={styles.headerLinks}>
-          <TouchableOpacity onPress={() => navigation.navigate('SavedEvents')} accessibilityLabel={t('eventsList.savedA11y')}>
-            <Text style={styles.headerLink}>{t('eventsList.saved')}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => navigation.navigate('MyRsvps')} accessibilityLabel={t('eventsList.mineA11y')}>
-            <Text style={styles.headerLink}>{t('eventsList.mine')}</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      {/* Honeycomb masthead (was a full-bleed photo) — three bees gather
-          around the comb. Matches Milk / Specialists / Gear. */}
-      <View style={styles.plansMasthead}>
-        <HoneycombBackdrop accent="#EFB2C8" intensity="playful" scene="plans" topOffset={44} />
-        <View style={styles.heroEyebrowRow}>
-          <View style={styles.plansEyebrowBar} />
-          <Text style={styles.plansEyebrowText}>{t('eventsList.mastheadEyebrow')}</Text>
-        </View>
-        <Text style={styles.plansTitle}>
-          {t('eventsList.mastheadTitleRoman')}{' '}
-          <Text style={styles.plansTitleItalic}>{t('eventsList.mastheadTitleItalic')}</Text>
-        </Text>
-        <Text style={styles.plansDeck}>{t('eventsList.mastheadSub')}</Text>
+      {/* Canonical shared header — matches Milk / Care / Gear exactly. */}
+      <View style={{ paddingTop: insets.top + 6 }}>
+        <HubHeader
+          name="plans"
+          dotColor="#EFB2C8"
+          onBack={() => navigation.goBack()}
+          backAccessibilityLabel={t('eventsList.backA11y')}
+          right={
+            <View style={styles.headerLinks}>
+              <TouchableOpacity onPress={() => navigation.navigate('SavedEvents')} accessibilityLabel={t('eventsList.savedA11y')}>
+                <Text style={styles.headerLink}>{t('eventsList.saved')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => navigation.navigate('MyRsvps')} accessibilityLabel={t('eventsList.mineA11y')}>
+                <Text style={styles.headerLink}>{t('eventsList.mine')}</Text>
+              </TouchableOpacity>
+            </View>
+          }
+        />
       </View>
 
       <View style={styles.filterRow}>
@@ -170,7 +163,7 @@ export default function EventsListScreen() {
       </View>
 
       {loading && data.length === 0 ? (
-        <View style={{ paddingHorizontal: 16, paddingTop: 16 }}>
+        <View style={{ paddingHorizontal: 18, paddingTop: 16 }}>
           <EventCardSkeleton />
           <EventCardSkeleton />
         </View>
@@ -193,7 +186,7 @@ export default function EventsListScreen() {
               <Text style={styles.emptyBody}>{t('eventsList.emptyBody')}</Text>
             </View>
           }
-          contentContainerStyle={{ padding: 16, paddingBottom: 120 }}
+          contentContainerStyle={{ padding: 18, paddingBottom: 120 }}
           refreshControl={<RefreshControl refreshing={loading} onRefresh={onRefresh} tintColor={COLORS.coco} />}
         />
       )}
@@ -287,13 +280,13 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.paper,
     borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.06)',
   },
-  back: { fontSize: 15, color: '#D96C88', fontFamily: FONTS.bodySemiBold },
+  back: { fontSize: 15, color: '#E84B79', fontFamily: FONTS.bodySemiBold },
   headerTitle: { fontSize: 16, fontFamily: FONTS.bodySemiBold, color: COLORS.bark },
   headerLinks: { flexDirection: 'row', alignItems: 'center', gap: 16 },
-  headerLink: { fontSize: 14, color: '#D96C88', fontFamily: FONTS.bodySemiBold },
+  headerLink: { fontSize: 14, color: '#E84B79', fontFamily: FONTS.bodySemiBold },
   footerRight: { flexDirection: 'row', alignItems: 'center', gap: 14 },
   heart: { fontSize: 20, color: '#C9A9B0', lineHeight: 22 },
-  heartOn: { color: '#D96C88' },
+  heartOn: { color: '#E84B79' },
 
   // Magazine-cover hero — full-bleed photo dominates the top of the page.
   // Matches Specialists / Milk / Gear hero pattern so the four verticals
@@ -381,7 +374,7 @@ const styles = StyleSheet.create({
 
   filterRow: {
     flexDirection: 'row', gap: 8,
-    paddingHorizontal: 16, paddingTop: 12,
+    paddingHorizontal: 18, paddingTop: 12,
     backgroundColor: 'transparent',
   },
   typeChip: {

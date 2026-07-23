@@ -3,12 +3,13 @@
 // Driven entirely by a CategoryContent (manualWeekContent), so every week +
 // category renders the same structure. The infographic switches on `kind`.
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Share, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Share, ScrollView, Dimensions, Linking } from 'react-native';
 import { TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import Svg, { Path, Circle, Defs, LinearGradient as SvgGrad, Stop } from 'react-native-svg';
 import { FONTS } from '@utils/constants';
 import { select, tap } from '@utils/haptics';
-import type { CategoryContent, Checklist, Article, Info } from '@/manual/manualWeekContent';
+import type { CategoryContent, Checklist, Article, Info, Helps } from '@/manual/manualWeekContent';
 
 const SAGE = '#6F7A43';
 const SAGE_BG = '#EAEDD8';
@@ -18,9 +19,10 @@ const INKSOFT = '#7A5A3A';
 const LABEL = '#A8794A';
 const CREAM = '#FFFCF6';
 const HAIR = 'rgba(67,38,15,0.07)';
-const ACCENT = '#C9824E';
-const ROSE = '#D96C88';
-const BERRY = '#C25A78';
+const ACCENT = '#B0234F'; // repointed cinnamon->rose 2026-07-12 to match the app
+const HONEY = '#B98A1E';
+const ROSE = '#E84B79';
+const BERRY = '#B0234F';
 
 type Lang = 'en' | 'es';
 
@@ -30,7 +32,11 @@ const CH = {
   checklist: { en: 'Do · checklist', es: 'Haz · lista' },
   expert:    { en: 'Read · expert', es: 'Lee · experto' },
   info:      { en: 'Know · infographic', es: 'Entiende · infografía' },
+  helps:     { en: 'Helps · tips + picks', es: 'Ayuda · tips + favoritos' },
   villie:    { en: 'Ask · villie', es: 'Pregunta · villie' },
+  helpsNote: { en: 'tips + picks — not medical advice', es: 'tips + favoritos — no es consejo médico' },
+  helpsDisc: { en: 'villie may earn a small commission — we only add what moms actually love.', es: 'villie puede ganar una pequeña comisión — solo agregamos lo que de verdad les encanta a las mamás.' },
+  helpsShop: { en: 'shop ›', es: 'ver ›' },
   momAsked:  { en: 'A mom asked…', es: 'Una mamá preguntó…' },
   verified:  { en: 'Verified', es: 'Verificado' },
   avEyebrow: { en: 'ASK VILLIE', es: 'PREGÚNTALE A VILLIE' },
@@ -154,22 +160,50 @@ function InfographicModule({ data, lang }: { data: Info; lang: Lang }) {
   return (
     <View>
       <ModuleLabel n="01" type={CH.info[lang]} />
-      <View style={s.info}>
+      <LinearGradient colors={['#FDF0DC', '#FDECEF']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.info}>
         <Text style={s.infoTitle}>{data.title}</Text>
 
-        {data.kind === 'wakewindows' && (
-          <View>
-            {data.rows.map((r, i) => (
-              <View key={i} style={s.ww}>
-                <Text style={[s.wwAge, r.now && s.wwAgeNow]}>{r.age}{r.now ? ' · now' : ''}</Text>
-                <View style={s.wwTrack}>
-                  <View style={[s.wwFill, { width: `${r.pct}%` }, r.now && s.wwFillNow]} />
-                </View>
-                <Text style={[s.wwVal, r.now && s.wwValNow]}>{r.val}</Text>
+        {data.kind === 'wakewindows' && (() => {
+          // A rising CURVE (not bars) — "awake time ramps up fast" as one shape.
+          const W = Dimensions.get('window').width - 80;
+          const H = 128, pad = 16;
+          const maxPct = Math.max(...data.rows.map((r) => r.pct), 1);
+          const pts = data.rows.map((r, i) => ({
+            x: pad + (data.rows.length > 1 ? i / (data.rows.length - 1) : 0.5) * (W - 2 * pad),
+            y: pad + (1 - r.pct / maxPct) * (H - 2 * pad - 4),
+            now: r.now,
+          }));
+          const line = pts.map((p, i) => `${i ? 'L' : 'M'}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+          const area = `${line} L${pts[pts.length - 1].x.toFixed(1)},${H - pad} L${pts[0].x.toFixed(1)},${H - pad} Z`;
+          const nowP = pts.find((p) => p.now);
+          const nowRow = data.rows.find((r) => r.now);
+          return (
+            <View>
+              <Svg width={W} height={H}>
+                <Defs>
+                  <SvgGrad id="wwArea" x1="0" y1="0" x2="0" y2="1">
+                    <Stop offset="0" stopColor="#E84B79" stopOpacity={0.32} />
+                    <Stop offset="1" stopColor="#E84B79" stopOpacity={0.02} />
+                  </SvgGrad>
+                </Defs>
+                <Path d={area} fill="url(#wwArea)" />
+                <Path d={line} stroke={ACCENT} strokeWidth={2.6} fill="none" strokeLinecap="round" strokeLinejoin="round" />
+                {nowP ? <Circle cx={nowP.x} cy={nowP.y} r={5.5} fill={ACCENT} stroke="#FFFFFF" strokeWidth={2.5} /> : null}
+              </Svg>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 2 }}>
+                {data.rows.map((r, i) => <Text key={i} style={s.wwAxis} numberOfLines={1}>{r.age}</Text>)}
               </View>
-            ))}
-          </View>
-        )}
+              {nowRow ? (
+                <View style={s.wwNow}>
+                  <View style={s.wwNowDot} />
+                  <Text style={s.wwNowText}>
+                    {lang === 'es' ? `Aquí — ${nowRow.age}: ${nowRow.val}` : `You're here — ${nowRow.age}: ${nowRow.val}`}
+                  </Text>
+                </View>
+              ) : null}
+            </View>
+          );
+        })()}
 
         {data.kind === 'milkstorage' && (
           <View style={s.cols}>
@@ -222,6 +256,49 @@ function InfographicModule({ data, lang }: { data: Info; lang: Lang }) {
         )}
 
         <Text style={s.infoFoot}>{data.foot}</Text>
+      </LinearGradient>
+    </View>
+  );
+}
+
+// Things that help — the honest commerce lane, split OUT of the story deck so a
+// product recommendation never masquerades as education. Tips first (optional),
+// then curated picks, with an FTC disclosure line. Products open in the browser.
+function HelpsModule({ data, lang }: { data: Helps; lang: Lang }) {
+  const open = (url: string) => { tap(); Linking.openURL(url).catch(() => {}); };
+  return (
+    <View>
+      <ModuleLabel n="04" type={CH.helps[lang]} />
+      <View style={s.helps}>
+        <Text style={s.helpsNote}>{CH.helpsNote[lang]}</Text>
+        {!!data.tips?.length && (
+          <View style={s.helpsTips}>
+            {data.tips.map((tip, i) => (
+              <View key={i} style={s.helpsTipRow}>
+                <Text style={s.helpsSpark}>✦</Text>
+                <Text style={s.helpsTipText}>{tip}</Text>
+              </View>
+            ))}
+          </View>
+        )}
+        {data.picks.map((p, i) => (
+          <TouchableOpacity
+            key={i}
+            style={[s.helpsPick, (i > 0 || !!data.tips?.length) && s.helpsPickBorder]}
+            activeOpacity={0.85}
+            onPress={() => open(p.url)}
+            accessibilityRole="link"
+            accessibilityLabel={p.label}
+          >
+            <View style={s.helpsThumb} />
+            <View style={s.helpsPickText}>
+              <Text style={s.helpsPickLabel}>{p.label}</Text>
+              {!!p.tag && <Text style={s.helpsPickTag}>{p.tag}</Text>}
+            </View>
+            <Text style={s.helpsShop}>{CH.helpsShop[lang]}</Text>
+          </TouchableOpacity>
+        ))}
+        <Text style={s.helpsDisc}>{CH.helpsDisc[lang]}</Text>
       </View>
     </View>
   );
@@ -233,7 +310,7 @@ function InfographicModule({ data, lang }: { data: Info; lang: Lang }) {
 function AskVillieModule({ onPress, lang }: { onPress: () => void; lang: Lang }) {
   return (
     <View>
-      <ModuleLabel n="04" type={CH.villie[lang]} />
+      <ModuleLabel n="05" type={CH.villie[lang]} />
       <TouchableOpacity
         style={s.av}
         activeOpacity={0.92}
@@ -259,6 +336,7 @@ export default function ManualModules({ content, onAskVillie, lang = 'en' }: { c
       {content.info && <InfographicModule data={content.info} lang={lang} />}
       <ArticleModule articles={content.articles} lang={lang} />
       <ChecklistModule data={content.checklist} lang={lang} />
+      {!!content.helps?.picks.length && <HelpsModule data={content.helps} lang={lang} />}
       {onAskVillie && <AskVillieModule onPress={onAskVillie} lang={lang} />}
     </View>
   );
@@ -271,6 +349,23 @@ const s = StyleSheet.create({
   modN: { fontFamily: FONTS.headerBold, fontSize: 14, color: ACCENT },
   modT: { fontFamily: FONTS.bodyBold, fontSize: 11, letterSpacing: 1.6, color: LABEL },
 
+  // things that help — honey-tinted, dashed border so it reads as a distinct
+  // "picks" lane, unmistakably NOT one of the cream education cards.
+  helps: { backgroundColor: '#FDF7E8', borderRadius: 20, borderWidth: 1, borderColor: '#E7CE9A', borderStyle: 'dashed', paddingHorizontal: 16, paddingTop: 14, paddingBottom: 15 },
+  helpsNote: { fontFamily: FONTS.body, fontSize: 11.5, color: '#9A7B3A', marginBottom: 10 },
+  helpsTips: { marginBottom: 4 },
+  helpsTipRow: { flexDirection: 'row', gap: 8, marginBottom: 7 },
+  helpsSpark: { fontFamily: FONTS.bodyBold, fontSize: 13, color: HONEY, marginTop: 1 },
+  helpsTipText: { flex: 1, fontFamily: FONTS.body, fontSize: 13.5, lineHeight: 19, color: '#5C3B2A' },
+  helpsPick: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 11 },
+  helpsPickBorder: { borderTopWidth: 1, borderTopColor: '#EFDDB4' },
+  helpsThumb: { width: 44, height: 44, borderRadius: 11, backgroundColor: '#F3D9DF' },
+  helpsPickText: { flex: 1 },
+  helpsPickLabel: { fontFamily: FONTS.bodyBold, fontSize: 14, color: INK },
+  helpsPickTag: { fontFamily: FONTS.body, fontSize: 11.5, color: INKSOFT, marginTop: 1, textTransform: 'lowercase' },
+  helpsShop: { fontFamily: FONTS.bodyBold, fontSize: 12.5, color: HONEY },
+  helpsDisc: { fontFamily: FONTS.body, fontSize: 10, color: '#A0895F', marginTop: 11 },
+
   // ask villie
   av: { backgroundColor: '#43260F', borderRadius: 20, padding: 16 },
   avEyebrow: { fontFamily: FONTS.bodyBold, fontSize: 10, letterSpacing: 1.6, color: '#F4C868' },
@@ -278,7 +373,7 @@ const s = StyleSheet.create({
   avRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 12 },
   avInput: { flex: 1, backgroundColor: 'rgba(255,255,255,0.12)', borderRadius: 12, paddingHorizontal: 13, paddingVertical: 11 },
   avInputText: { fontFamily: FONTS.body, fontSize: 12.5, color: '#E9D9C8' },
-  avSend: { width: 40, height: 40, borderRadius: 12, backgroundColor: '#D96C88', alignItems: 'center', justifyContent: 'center' },
+  avSend: { width: 40, height: 40, borderRadius: 12, backgroundColor: '#E84B79', alignItems: 'center', justifyContent: 'center' },
   avArrow: { color: '#fff', fontSize: 20, fontFamily: FONTS.bodySemiBold, marginTop: -2 },
   avSub: { fontFamily: FONTS.body, fontSize: 10, color: '#C9B79F', marginTop: 9 },
 
@@ -315,12 +410,17 @@ const s = StyleSheet.create({
   tipAv: { width: 38, height: 38, borderRadius: 19, backgroundColor: '#F7CDD3', alignItems: 'center', justifyContent: 'center' },
   tipName: { fontFamily: FONTS.bodyBold, fontSize: 14.5, color: INK },
   tipRole: { fontFamily: FONTS.body, fontSize: 12, color: INKSOFT, marginTop: 1 },
-  verified: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: 'rgba(111,122,67,0.14)', borderRadius: 999, paddingHorizontal: 9, paddingVertical: 5 },
-  verifiedCheck: { fontSize: 10, fontWeight: '800', color: SAGE },
-  verifiedT: { fontFamily: FONTS.bodyBold, fontSize: 11, color: SAGE },
+  verified: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#FBEFD0', borderRadius: 999, paddingHorizontal: 9, paddingVertical: 5 },
+  verifiedCheck: { fontSize: 10, fontWeight: '800', color: HONEY },
+  verifiedT: { fontFamily: FONTS.bodyBold, fontSize: 11, color: HONEY },
 
-  // infographic shell
-  info: { backgroundColor: CREAM, borderRadius: 20, borderWidth: 1, borderColor: HAIR, padding: 20 },
+  // infographic shell — distinct tinted card + curve viz so it reads as a data
+  // graphic, not another checklist.
+  info: { borderRadius: 20, borderWidth: 1, borderColor: 'rgba(224,106,136,0.18)', padding: 20 },
+  wwAxis: { flex: 1, textAlign: 'center', fontFamily: FONTS.bodySemiBold, fontSize: 9, color: '#9A8264' },
+  wwNow: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: 'rgba(224,106,136,0.25)', borderRadius: 12, paddingHorizontal: 11, paddingVertical: 9, marginTop: 10 },
+  wwNowDot: { width: 9, height: 9, borderRadius: 5, backgroundColor: ACCENT },
+  wwNowText: { flex: 1, fontFamily: FONTS.body, fontSize: 12.5, color: INK },
   infoTitle: { fontFamily: FONTS.headerBold, fontSize: 20, letterSpacing: -0.3, color: INK, marginBottom: 14 },
   infoFoot: { fontFamily: FONTS.body, fontSize: 12.5, lineHeight: 18, color: INKSOFT, marginTop: 8, paddingTop: 12, borderTopWidth: 1, borderTopColor: HAIR },
 

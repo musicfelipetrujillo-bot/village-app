@@ -1,7 +1,7 @@
 // V4 Phase G4 — Gear browse feed
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-  View, Text, StyleSheet, TouchableOpacity, RefreshControl, Image,
+  View, Text, StyleSheet, TouchableOpacity, RefreshControl, Image, TextInput,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -19,6 +19,8 @@ import {
   type GearCategory,
 } from '@api/gear';
 import { GearCardSkeleton } from '@components/shared/SkeletonLoader';
+import { BackButton } from '@components/shared/BackButton';
+import { HubHeader } from '@components/shared/HubHeader';
 import { WarmGlowBackdrop } from '@components/shared/WarmGlowBackdrop';
 import { HoneycombBackdrop } from '@components/shared/HoneycombBackdrop';
 
@@ -45,6 +47,12 @@ export default function GearBrowseScreen() {
   const { feed, loading, fetchFeed } = useGearStore();
   const [category, setCategory] = useState<GearCategory | 'all'>('all');
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [query, setQuery] = useState('');
+  const shown = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return feed;
+    return feed.filter((g) => [g.title, g.brand, g.category].some((v) => v && String(v).toLowerCase().includes(q)));
+  }, [feed, query]);
 
   useEffect(() => {
     (async () => {
@@ -87,59 +95,26 @@ export default function GearBrowseScreen() {
   const Hero = (
     /* v3 editorial masthead 2026-05-24 — replaces the KenBurns photo
        header per Felipe. See MilkConnectHomeScreen for the pattern. */
-    <View style={[styles.mastheadWrap, { paddingTop: insets.top + 10 }]}>
-      {/* Soft honey hero wash — ties the masthead to the Baby Gear tile color
-          (Village hub) so the section reads warm + colored, not cream-on-cream. */}
-      <LinearGradient
-        colors={['#F7DEA2', 'rgba(247,222,162,0)']}
-        start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }}
-        style={StyleSheet.absoluteFillObject}
-        pointerEvents="none"
+    <View style={{ marginHorizontal: -18, paddingTop: insets.top + 6 }}>
+      <HubHeader
+        name="gear"
+        dotColor="#F4C53C"
+        onBack={() => navigation.getParent()?.navigate('Village' as never)}
+        backAccessibilityLabel={t('common.backToVillage')}
+        right={
+          <View style={styles.utilityRight}>
+            <TouchableOpacity onPress={() => navigation.navigate('GearMessageThreads')} accessibilityLabel={t('gearBrowse.linkInboxA11y')} hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}>
+              <Text style={styles.utilityLink}>{t('gearBrowse.linkInbox')}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => navigation.navigate('SavedGear')} accessibilityLabel={t('gearBrowse.linkSavedA11y')} hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}>
+              <Text style={styles.utilityLink}>{t('gearBrowse.linkSaved')}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => navigation.navigate('MyListings')} accessibilityLabel={t('gearBrowse.linkMineA11y')} hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}>
+              <Text style={styles.utilityLink}>{t('gearBrowse.linkMine')}</Text>
+            </TouchableOpacity>
+          </View>
+        }
       />
-      <HoneycombBackdrop accent="#F4C53C" intensity="subtle" scene="gear" />
-      <View style={styles.mastheadUtility}>
-        <TouchableOpacity
-          onPress={() => navigation.getParent()?.navigate('Village' as never)}
-          accessibilityRole="button"
-          accessibilityLabel={t('common.backToVillage')}
-          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-        >
-          <Text style={styles.backLink}>← {t('common.backToVillage')}</Text>
-        </TouchableOpacity>
-        <View style={styles.utilityRight}>
-          <TouchableOpacity
-            onPress={() => navigation.navigate('GearMessageThreads')}
-            accessibilityLabel={t('gearBrowse.linkInboxA11y')}
-            hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
-          >
-            <Text style={styles.utilityLink}>{t('gearBrowse.linkInbox')}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => navigation.navigate('SavedGear')}
-            accessibilityLabel={t('gearBrowse.linkSavedA11y')}
-            hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
-          >
-            <Text style={styles.utilityLink}>{t('gearBrowse.linkSaved')}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => navigation.navigate('MyListings')}
-            accessibilityLabel={t('gearBrowse.linkMineA11y')}
-            hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
-          >
-            <Text style={styles.utilityLink}>{t('gearBrowse.linkMine')}</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-      <View style={styles.mastheadEyebrowRow}>
-        <View style={styles.mastheadEyebrowBar} />
-        <Text style={styles.mastheadEyebrowText}>{t('gearBrowse.eyebrow')}</Text>
-      </View>
-      <Text style={styles.mastheadTitle}>
-        {t('gearBrowse.homeTitleRoman')}{' '}
-        <Text style={styles.mastheadTitleItalic}>{t('gearBrowse.homeTitleItalic')}</Text>
-      </Text>
-      <Text style={styles.mastheadDeck}>{t('gearBrowse.homeSub')}</Text>
-      <View style={styles.mastheadRule} />
     </View>
   );
 
@@ -156,6 +131,17 @@ export default function GearBrowseScreen() {
         ListHeaderComponent={
           <>
             {Hero}
+            <View style={styles.gearSearchRow}>
+              <Text style={styles.gearSearchIcon}>⌕</Text>
+              <TextInput
+                style={styles.gearSearchInput}
+                placeholder="search gear · stroller, carrier, high chair…"
+                placeholderTextColor="#A6957F"
+                value={query}
+                onChangeText={setQuery}
+                returnKeyType="search"
+              />
+            </View>
             <View style={styles.filterRow}>
               {CATEGORY_FILTERS.map((f) => (
                 <TouchableOpacity
@@ -173,7 +159,7 @@ export default function GearBrowseScreen() {
             </View>
           </>
         }
-        data={feed}
+        data={shown}
         keyExtractor={(l) => l.id}
         numColumns={2}
         renderItem={({ item }) => (
@@ -199,7 +185,7 @@ export default function GearBrowseScreen() {
             </View>
           )
         }
-        contentContainerStyle={{ paddingHorizontal: 12, paddingTop: 0, paddingBottom: 140 }}
+        contentContainerStyle={{ paddingHorizontal: 18, paddingTop: 0, paddingBottom: 140 }}
         refreshControl={<RefreshControl refreshing={loading} onRefresh={load} tintColor={COLORS.coco} />}
       />
 
@@ -276,7 +262,7 @@ const styles = StyleSheet.create({
   backToVillage: { paddingVertical: 4, paddingRight: 8 },
   backToVillageText: { fontSize: 13, color: COLORS.textLight, fontFamily: FONTS.bodyMedium },
   headerActions: { flexDirection: 'row', gap: 16 },
-  headerLink: { fontSize: 13, color: '#D96C88', fontFamily: FONTS.bodySemiBold },
+  headerLink: { fontSize: 13, color: '#E84B79', fontFamily: FONTS.bodySemiBold },
 
   // Title block — relative so DecorativeMarks (absolutely positioned)
   // can tuck behind the eyebrow → italic title → sub stack without
@@ -372,6 +358,10 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(61,31,14,0.13)',
   },
 
+  gearSearchRow: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#FDF7EC', borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(61,31,14,0.14)', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 4, marginTop: 14 },
+  gearSearchIcon: { fontSize: 18, color: '#B0234F' },
+  gearSearchInput: { flex: 1, fontFamily: FONTS.v2_body, fontSize: 13.5, color: '#3D2116', paddingVertical: 9 },
+
   filterRow: {
     flexDirection: 'row', flexWrap: 'wrap', gap: 8,
     paddingTop: 12, paddingBottom: 12,
@@ -448,9 +438,9 @@ const styles = StyleSheet.create({
   fab: {
     position: 'absolute', bottom: 90, right: 16,
     flexDirection: 'row', alignItems: 'center', gap: 8,
-    backgroundColor: '#D96C88', borderRadius: 28,             // v9 CTA = cinnamon
+    backgroundColor: '#E84B79', borderRadius: 28,             // v9 CTA = cinnamon
     paddingHorizontal: 18, paddingVertical: 13,
-    shadowColor: '#D96C88', shadowOpacity: 0.24, shadowRadius: 10, shadowOffset: { width: 0, height: 4 },
+    shadowColor: '#E84B79', shadowOpacity: 0.24, shadowRadius: 10, shadowOffset: { width: 0, height: 4 },
     elevation: 5,
   },
   fabIcon: { color: '#FFFCF6', fontSize: 20, fontFamily: FONTS.bodySemiBold },

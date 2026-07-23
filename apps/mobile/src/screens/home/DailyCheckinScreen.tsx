@@ -14,6 +14,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { COLORS, FONTS } from '@utils/constants';
 import { tap, confirm } from '@utils/haptics';
 import { WarmGlowBackdrop } from '@components/shared/WarmGlowBackdrop';
+import { BackButton } from '@components/shared/BackButton';
 import MoodFaceIcon, { type MoodScore } from '@components/shared/MoodFaceIcon';
 import { homeApi, MOOD_OPTIONS } from '@api/home';
 import { useHomeStore } from '@store/home';
@@ -94,19 +95,13 @@ export default function DailyCheckinScreen({ navigation }: Props) {
     >
       <WarmGlowBackdrop />
       <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          accessibilityRole="button"
-          accessibilityLabel={t('checkin.backA11y')}
-        >
-          <Text style={styles.back}>← {t('common.back')}</Text>
-        </TouchableOpacity>
+        <BackButton color="#E84B79" accessibilityLabel={t('checkin.backA11y')} />
         <Text style={styles.title}>{t('checkin.headerTitle')}</Text>
         <View style={{ width: 50 }} />
       </View>
 
       {loading ? (
-        <View style={styles.center}><ActivityIndicator color="#D96C88" /></View>
+        <View style={styles.center}><ActivityIndicator color="#E84B79" /></View>
       ) : (
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
           <Text style={styles.heading}>{t('checkin.heading')}</Text>
@@ -203,7 +198,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.paper,
     borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.06)',
   },
-  back: { fontSize: 15, color: '#D96C88', fontFamily: FONTS.bodySemiBold },
+  back: { fontSize: 15, color: '#E84B79', fontFamily: FONTS.bodySemiBold },
   title: { fontSize: 17, fontFamily: FONTS.bodySemiBold, color: COLORS.bark },
 
   content: { padding: 20, paddingBottom: 80 },
@@ -219,7 +214,7 @@ const styles = StyleSheet.create({
     borderWidth: 1.5, borderColor: 'rgba(150,80,50,0.18)',
   },
   // v9 active state — action-deep (matches CTAs, toggle active, week chip)
-  moodChipActive: { backgroundColor: '#D96C88', borderColor: '#D96C88' },
+  moodChipActive: { backgroundColor: '#E84B79', borderColor: '#E84B79' },
   moodEmoji: { fontSize: 28 },
   moodLabel: { fontSize: 11, fontFamily: FONTS.bodySemiBold, color: COLORS.barkSoft, marginTop: 4 },
   moodLabelActive: { color: '#FFFCF6' },
@@ -260,9 +255,9 @@ const styles = StyleSheet.create({
 
   // v9 canonical CTA — action-deep + cocoa shadow + paper text
   submit: {
-    marginTop: 22, backgroundColor: '#D96C88', borderRadius: 999,
+    marginTop: 22, backgroundColor: '#E84B79', borderRadius: 999,
     paddingVertical: 15, alignItems: 'center',
-    shadowColor: '#D96C88', shadowOffset: { width: 0, height: 4 },
+    shadowColor: '#E84B79', shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.24, shadowRadius: 10, elevation: 3,
   },
   submitDisabled: { opacity: 0.45 },

@@ -46,6 +46,7 @@ import ManualSwipeDeck from '@/components/manual/ManualSwipeDeck';
 import ManualModules from '@/components/manual/ManualModules';
 import PlaybookTracker from '@/components/manual/PlaybookTracker';
 import { getManualContent } from '@/manual/manualWeekContent';
+import { isExpecting } from '@/manual/beforeBaby';
 import {
   MenuButton, MenuPanel, MenuGroup, MenuItem, MENU_ICONS,
 } from '@components/shared/HamburgerMenu';
@@ -67,7 +68,10 @@ const T = {
   butter:    COLORS.v2_butter,
   marigold:  COLORS.v2_marigold,
   caramel:   COLORS.v2_caramel,   // warm "milk before bed" — used for baby/sleep chapter
-  cinnamon:  COLORS.v2_cinnamon,
+  // Accent repointed to the app rose (2026-07-12) so the Manual matches the
+  // rest of the app (Home / Milk / Day Sheet). Token name kept for churn-free
+  // reuse across the file.
+  cinnamon:  '#B0234F',
   blush:     COLORS.v2_blush,
   salmon:    COLORS.v2_salmon,
   sage:      COLORS.v2_sage,
@@ -90,7 +94,7 @@ const BABY_CHAPTERS: ChapterMeta[] = [
   { ch: 'Sleep', cat: 'sleep', bg: '#F0D7C3', fg: T.cocoa },   // light terracotta
   { ch: 'Feed',  cat: 'feed',  bg: '#F7EBCC', fg: T.cocoa },   // light amber
   { ch: 'Grow',  cat: 'grow',  bg: '#FAE2E7', fg: T.cocoa },   // light rose
-  { ch: 'Care',  cat: 'care',  bg: '#EAEDD8', fg: T.cocoa },   // light olive
+  { ch: 'Care',  cat: 'care',  bg: '#F7EAD0', fg: T.cocoa },   // warm honey (was olive — Felipe: no greens)
   // Soothe dropped 2026-06-10 — its content folded into Sleep + Care.
 ];
 
@@ -194,10 +198,10 @@ const CHAPTER_BG_BY_NAME: Record<string, string> = {
 const CHIP_TONE: Record<string, { bg: string; fg: string }> = {
   sleep:   { bg: '#C46A45', fg: '#FFFCF6' }, // terracotta (orange)
   feed:    { bg: '#BE851F', fg: '#FFFCF6' }, // amber (gold)
-  grow:    { bg: '#D96C88', fg: '#FFFCF6' }, // rose (pink)
+  grow:    { bg: '#E84B79', fg: '#FFFCF6' }, // rose (pink)
   care:    { bg: '#6F7A43', fg: '#FFFCF6' }, // olive (green)
   soothe:  { bg: '#A8466B', fg: '#FFFCF6' }, // wine (deep berry)
-  feel:    { bg: '#D96C88', fg: '#FFFCF6' }, // rose
+  feel:    { bg: '#E84B79', fg: '#FFFCF6' }, // rose
   heal:    { bg: '#C46A45', fg: '#FFFCF6' }, // terracotta
   nourish: { bg: '#BE851F', fg: '#FFFCF6' }, // amber
   rest:    { bg: '#6F7A43', fg: '#FFFCF6' }, // olive
@@ -685,10 +689,10 @@ function WeekIntroCard({ data, onPress, lang = 'en' }: { data: WeekIntroVideo; o
   const byline = [data.expert_name, data.expert_role].filter(Boolean).join(' · ');
   return (
     <TouchableOpacity activeOpacity={0.92} onPress={onPress} style={styles.wiCard} accessibilityRole="button" accessibilityLabel={data.title}>
-      <LinearGradient colors={['#F0B68C', '#E98A6A', '#D96C88']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.wiHero}>
+      <LinearGradient colors={['#F0B68C', '#E98A6A', '#E84B79']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.wiHero}>
         <View style={styles.wiBadge}><Text style={styles.wiBadgeText}>{lang === 'es' ? 'ESTA SEMANA' : 'THIS WEEK'}</Text></View>
         <View style={styles.wiPlay}>
-          <Svg width={20} height={20} viewBox="0 0 24 24"><Path d="M8 5l11 7-11 7z" fill="#C2556F" /></Svg>
+          <Svg width={20} height={20} viewBox="0 0 24 24"><Path d="M8 5l11 7-11 7z" fill="#B0234F" /></Svg>
         </View>
         {dur ? <View style={styles.wiDur}><Text style={styles.wiDurText}>{dur}</Text></View> : null}
       </LinearGradient>
@@ -861,6 +865,8 @@ export default function ManualScrollV3() {
   };
   const goToCompleteManual = () => navigation.navigate('ManualWeekIndex' as never);
   const goToSavedChapters = () => navigation.navigate('SavedManual' as never);
+  const goToBeforeBaby = () => navigation.navigate('BeforeBaby' as never);
+  const expecting = isExpecting(profile?.due_date, profile?.pregnancy_stage);
   const placeholder = (titleKey: string, bodyKey: string) =>
     Alert.alert(t(titleKey), t(bodyKey));
   const shareChapter = async () => {
@@ -1012,7 +1018,7 @@ export default function ManualScrollV3() {
   // Manual masthead honeycomb — accent + thematic bee follow the selected
   // chapter (Sleep/Feed/Grow/Care/Soothe). Re-keys on chapter change so the
   // comb re-lights and the new bee animates in each time you switch.
-  const chapterAccent = CHIP_TONE[chapter.cat]?.bg ?? '#D96C88';
+  const chapterAccent = CHIP_TONE[chapter.cat]?.bg ?? '#E84B79';
   const manualScene = (['sleep', 'feed', 'grow', 'care', 'soothe'].includes(chapter.cat)
     ? chapter.cat
     : undefined) as any;
@@ -1050,6 +1056,7 @@ export default function ManualScrollV3() {
   return (
     <View style={styles.container}>
       <WarmGlowBackdrop scrollY={scrollY} triggerAnim={triggerAnim} />
+      {/* Comb-less now (showComb defaults false) — keeps the cute chapter bee. */}
       <HoneycombBackdrop
         key={backdropKey}
         accent={backdropAccent}
@@ -1085,8 +1092,8 @@ export default function ManualScrollV3() {
             accessibilityLabel="Emergency quick reference"
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
-            <Svg width={21} height={21} viewBox="0 0 24 24">
-              <Path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke={T.walnut} strokeWidth={1.8} fill="none" strokeLinecap="round" strokeLinejoin="round" />
+            <Svg width={20} height={20} viewBox="0 0 24 24">
+              <Path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="#BBAB94" strokeWidth={1.7} fill="none" strokeLinecap="round" strokeLinejoin="round" />
             </Svg>
           </TouchableOpacity>
           <View ref={triggerRef} collapsable={false} style={{ paddingTop: 12 }}>
@@ -1094,10 +1101,13 @@ export default function ManualScrollV3() {
           </View>
         </View>
 
-        {/* Progress bar — 3px cinnamon fill */}
+        {/* Single progress — slim bar + a quiet count (bottom banner removed). */}
         <View style={styles.progressTrack}>
           <View style={[styles.progressFill, { width: `${(doneCount / totalChapters) * 100}%` }]} />
         </View>
+        <Text style={styles.progressCount}>
+          {lang === 'es' ? `${doneCount} de ${totalChapters} capítulos esta semana` : `${doneCount} of ${totalChapters} chapters this week`}
+        </Text>
 
         {/* Manual / Playbook toggle — embossed parchment track.
             V5 Phase 5.1 (2026-05-29): swap replaces the mom/baby track. */}
@@ -1347,6 +1357,25 @@ export default function ManualScrollV3() {
           </View>
         ) : (
           <>
+        {/* Before-baby prep — pinned above everything for moms who are still
+            expecting (future due date / prenatal stage). Reachable for everyone
+            via the Manual menu. */}
+        {expecting && (
+          <View style={{ paddingHorizontal: 20, marginBottom: 4 }}>
+            <TouchableOpacity onPress={goToBeforeBaby} activeOpacity={0.9} accessibilityRole="button"
+              accessibilityLabel={lang === 'es' ? 'Antes de que llegue el bebé' : 'Before baby arrives'}>
+              <LinearGradient colors={['#E84B79', '#F6C94F']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.bbCard}>
+                <View style={styles.bbIcon}><Text style={styles.bbIconText}>✓</Text></View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.bbEyebrow}>{lang === 'es' ? 'PREPÁRATE' : 'GETTING READY'}</Text>
+                  <Text style={styles.bbTitle}>{lang === 'es' ? 'Antes de que llegue el bebé' : 'Before baby arrives'}</Text>
+                  <Text style={styles.bbSub}>{lang === 'es' ? 'maleta del hospital + esenciales en casa' : 'hospital bag + home essentials'}</Text>
+                </View>
+                <Text style={styles.bbChevron}>›</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
+        )}
         {/* Week-level "this week" specialist video — above the chips, same spot
             every week. Hidden until a published video exists for this week. */}
         {weekIntro && (
@@ -1413,38 +1442,8 @@ export default function ManualScrollV3() {
           />
         )}
 
-        {/* WEEK PROGRESS BANNER — Phase 4.6 swap: moved to bottom 2026-05-28.
-            Reads as a quiet "how am I doing this week" status check after
-            the user has scrolled through the chapter content. */}
-        <View style={[styles.weekBanner, { marginTop: 28 }]}>
-          <LinearGradient
-            colors={['rgba(253,251,246,0.28)', 'rgba(253,251,246,0)']}
-            start={{ x: 0, y: 0 }} end={{ x: 0, y: 0.5 }}
-            style={[StyleSheet.absoluteFillObject, { borderRadius: 10 }]}
-            pointerEvents="none"
-          />
-          <GlassHighlight radius={10} height={10} />
-          <View style={styles.weekBannerInner}>
-            <View style={styles.weekBannerIconChip}>
-              <Svg width={13} height={13} viewBox="0 0 24 24">
-                <Path d="M5 13l4 4L19 7" stroke={T.moss} strokeWidth={2.4} fill="none" strokeLinecap="round" strokeLinejoin="round" />
-              </Svg>
-            </View>
-            <View style={{ flex: 1, minWidth: 0 }}>
-              <Text style={styles.weekBannerTitle}>
-                {lang === 'es'
-                  ? (remaining === 1 ? '1 categoría más esta semana.' : `${remaining} categorías más esta semana.`)
-                  : (remaining === 1 ? '1 more category to complete this week.' : `${remaining} more categories to complete this week.`)
-                }
-              </Text>
-              <Text style={styles.weekBannerEyebrow}>{lang === 'es' ? 'Tu semana' : 'Your week'}</Text>
-            </View>
-            <Text style={styles.weekBannerCount}>{doneCount} / {totalChapters}</Text>
-          </View>
-          <View style={styles.weekBannerProgress}>
-            <View style={[styles.weekBannerFill, { width: `${(doneCount / totalChapters) * 100}%` }]} />
-          </View>
-        </View>
+        {/* Bottom "your week" banner removed 2026-07-12 — single progress now
+            lives under the header (count line), so it isn't shown twice. */}
           </>
         )}
       </Animated.ScrollView>
@@ -1476,6 +1475,12 @@ export default function ManualScrollV3() {
             sub={t('manualMenu.readingHistorySub')}
             icon={MENU_ICONS.history}
             onPress={closeAnd(() => placeholder('manualMenu.historyComingTitle', 'manualMenu.historyComingBody'))}
+          />
+          <MenuItem
+            title={lang === 'es' ? 'Antes del bebé' : 'Before baby'}
+            sub={lang === 'es' ? 'maleta del hospital + esenciales en casa' : 'hospital bag + home essentials'}
+            icon={MENU_ICONS.bookOpen}
+            onPress={closeAnd(goToBeforeBaby)}
           />
         </MenuGroup>
         <MenuGroup label={t('manualMenu.groupThisChapter')}>
@@ -1528,6 +1533,15 @@ const styles = StyleSheet.create({
   // ── Week-level "this week" video card ──────────────────────────────────
   wiCard: { marginTop: 18, borderRadius: 18, overflow: 'hidden', borderWidth: 2, borderColor: T.cinnamon },
   wiHero: { height: 120, alignItems: 'center', justifyContent: 'center', position: 'relative' },
+
+  // before-baby pinned card
+  bbCard: { flexDirection: 'row', alignItems: 'center', gap: 13, borderRadius: 18, paddingVertical: 14, paddingHorizontal: 16 },
+  bbIcon: { width: 40, height: 40, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.32)', alignItems: 'center', justifyContent: 'center' },
+  bbIconText: { fontFamily: FONTS.bodyBold, fontSize: 18, color: '#4A1F2C' },
+  bbEyebrow: { fontFamily: FONTS.bodyBold, fontSize: 10, letterSpacing: 1.3, color: '#4A1F2C' },
+  bbTitle: { fontFamily: FONTS.headerBold, fontSize: 17, color: '#4A1F2C', marginTop: 2 },
+  bbSub: { fontFamily: FONTS.body, fontSize: 12, color: '#5c3b2a', marginTop: 1 },
+  bbChevron: { fontFamily: FONTS.headerBold, fontSize: 22, color: '#4A1F2C' },
   wiBadge: { position: 'absolute', top: 9, left: 11, backgroundColor: 'rgba(43,23,7,0.5)', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3 },
   wiBadgeText: { fontFamily: FONTS.v2_mono, fontSize: 8.5, letterSpacing: 1.6, color: '#FFF1DC', fontWeight: '700' },
   wiPlay: { width: 48, height: 48, borderRadius: 24, backgroundColor: 'rgba(255,255,255,0.92)', alignItems: 'center', justifyContent: 'center' },
@@ -1563,6 +1577,7 @@ const styles = StyleSheet.create({
     height: 3, backgroundColor: T.parchment, borderRadius: 2, overflow: 'hidden',
   },
   progressFill: { height: '100%', backgroundColor: T.cinnamon },
+  progressCount: { fontFamily: FONTS.v2_body, fontSize: 11, color: T.walnut, marginTop: 7, marginHorizontal: 22 },
 
   // For mom / For baby toggle
   toggleTrack: {
@@ -1720,7 +1735,7 @@ const styles = StyleSheet.create({
   bandCta: {
     marginTop: 14, alignSelf: 'flex-start',
     paddingVertical: 8, paddingHorizontal: 14,
-    backgroundColor: '#D96C88', borderRadius: 999,
+    backgroundColor: '#E84B79', borderRadius: 999,
   },
   bandCtaText: {
     fontFamily: FONTS.v2_link, fontSize: 12, color: T.paper, letterSpacing: 0.4,

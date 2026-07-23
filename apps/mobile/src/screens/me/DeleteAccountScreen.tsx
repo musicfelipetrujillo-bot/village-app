@@ -30,6 +30,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { COLORS, FONTS } from '@utils/constants';
 import { useT } from '@/i18n';
 import { V9PageBackdrop } from '@components/shared/V9PageBackdrop';
+import { BackButton } from '@components/shared/BackButton';
 import { accountApi } from '@/api/account';
 import { useAuthStore } from '@store/auth';
 import { useAnalytics } from '@/hooks/useAnalytics';
@@ -100,15 +101,12 @@ export default function DeleteAccountScreen() {
     >
       <V9PageBackdrop />
       <ScrollView contentContainerStyle={s.container} keyboardShouldPersistTaps="handled">
-        <TouchableOpacity
+        <BackButton
+          color="#E84B79"
           style={s.back}
-          onPress={() => navigation.goBack()}
-          accessibilityRole="button"
           accessibilityLabel={t('account.back')}
-          disabled={submitting}
-        >
-          <Text style={s.backText}>← {t('account.back')}</Text>
-        </TouchableOpacity>
+          onPress={() => { if (!submitting) navigation.goBack(); }}
+        />
 
         {/* v9 editorial masthead */}
         <View style={s.eyebrowRow}>
@@ -187,7 +185,7 @@ function Bullet({ text }: { text: string }) {
 const s = StyleSheet.create({
   container: { padding: 28, paddingTop: 60, paddingBottom: 48 },
   back: { marginBottom: 18 },
-  backText: { fontSize: 15, color: '#D96C88', fontFamily: FONTS.bodySemiBold },
+  backText: { fontSize: 15, color: '#E84B79', fontFamily: FONTS.bodySemiBold },
   // v9 editorial masthead
   eyebrowRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
   eyebrowBar: { width: 22, height: 2, backgroundColor: '#7A4A24', marginRight: 10, borderRadius: 1 },
@@ -200,7 +198,7 @@ const s = StyleSheet.create({
     letterSpacing: -0.5,
     marginBottom: 8,
   },
-  titleItalic: { fontFamily: FONTS.headerItalic, fontStyle: 'italic', color: '#D96C88' },
+  titleItalic: { fontFamily: FONTS.headerItalic, fontStyle: 'italic', color: '#E84B79' },
   titleRule: {
     height: StyleSheet.hairlineWidth,
     backgroundColor: 'rgba(61,31,13,0.18)',

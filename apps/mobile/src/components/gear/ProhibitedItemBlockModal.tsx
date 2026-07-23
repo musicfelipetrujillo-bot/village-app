@@ -146,7 +146,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.cream,
   },
   closeBtn: {
-    backgroundColor: '#D96C88', borderRadius: 14,
+    backgroundColor: '#E84B79', borderRadius: 14,
     paddingVertical: 15, alignItems: 'center',
   },
   closeBtnText: { color: '#FFFCF6', fontSize: 15, fontFamily: FONTS.bodySemiBold, letterSpacing: 0.3 },

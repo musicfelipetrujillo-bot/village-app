@@ -1,6 +1,6 @@
 import React, { useEffect, useCallback, useMemo } from 'react';
 import {
-  View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput,
+  View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput, Linking, Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FlashList } from '@shopify/flash-list';
@@ -15,11 +15,15 @@ import { useAuthStore } from '@store/auth';
 import { useUserStore, getPreferredRadiusMiles } from '@store/user';
 import { CareCard } from '@components/experts/CareCard';
 import { ExpertsListSkeleton } from '@components/shared/SkeletonLoader';
+import { BackButton } from '@components/shared/BackButton';
+import { HubHeader } from '@components/shared/HubHeader';
+import { daycaresApi, type Daycare } from '@api/daycares';
 import type { Specialist } from 'shared/src/types/v1';
 
 type CareRow =
   | { kind: 'header'; title: string; tag: string }
-  | { kind: 'provider'; item: Specialist; idx: number };
+  | { kind: 'provider'; item: Specialist; idx: number }
+  | { kind: 'daycare'; item: Daycare };
 import { WarmGlowBackdrop } from '@components/shared/WarmGlowBackdrop';
 import { HoneycombBackdrop } from '@components/shared/HoneycombBackdrop';
 import type { ExpertsStackParamList } from '@/navigation/ExpertsNavigator';
@@ -57,11 +61,19 @@ export default function ExpertsHomeScreen({ navigation, route }: Props) {
   const [activeChip, setActiveChip] = React.useState(initialChipKey);
   // Care two-tier directory — grouped into Clinical (NPI-verified) + Extra hands
   // (background-checked) sections, with a text search + checked-only filter.
-  const [tier, setTier] = React.useState<'all' | 'clinical' | 'help'>('all');
+  const [tier, setTier] = React.useState<'all' | 'clinical' | 'help' | 'daycare'>('all');
   const [query, setQuery] = React.useState('');
   const [checkedOnly, setCheckedOnly] = React.useState(false);
+  const [daycares, setDaycares] = React.useState<Daycare[]>([]);
+  const [daycareLoading, setDaycareLoading] = React.useState(false);
+  const [daycareError, setDaycareError] = React.useState(false);
   const listData: CareRow[] = useMemo(() => {
     const q = query.trim().toLowerCase();
+    if (tier === 'daycare') {
+      return daycares
+        .filter((d) => !q || d.name.toLowerCase().includes(q))
+        .map((item) => ({ kind: 'daycare' as const, item }));
+    }
     const rows = results.filter((r) => {
       if (checkedOnly && r.provider_kind === 'help' && !r.background_checked) return false;
       if (q && !`${r.full_name} ${r.credentials} ${r.specialty}`.toLowerCase().includes(q)) return false;
@@ -79,7 +91,7 @@ export default function ExpertsHomeScreen({ navigation, route }: Props) {
       help.forEach((item, idx) => out.push({ kind: 'provider', item, idx }));
     }
     return out;
-  }, [results, tier, query, checkedOnly]);
+  }, [results, tier, query, checkedOnly, daycares]);
 
   // "My insurance" chip is conditional — only shown when the user has set
   // insurance_provider on their profile. The chip value passes that string
@@ -97,7 +109,7 @@ export default function ExpertsHomeScreen({ navigation, route }: Props) {
     return [FILTER_CHIPS[0], myIns, ...FILTER_CHIPS.slice(1)];
   }, [insuranceProvider]);
 
-  const doSearch = useCallback(async (extraFilters: ChipFilter = {}) => {
+  const resolveCoords = useCallback(async () => {
     let deviceCoords: { latitude: number; longitude: number } | null = null;
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
@@ -107,11 +119,34 @@ export default function ExpertsHomeScreen({ navigation, route }: Props) {
       }
     } catch {}
     // Dev-mode override: Simulator's Cupertino default is replaced with Miami.
-    const { lat, lng } = getEffectiveCoords(deviceCoords);
+    return getEffectiveCoords(deviceCoords);
+  }, []);
+
+  const doSearch = useCallback(async (extraFilters: ChipFilter = {}) => {
+    const { lat, lng } = await resolveCoords();
     // Use the user's saved radius pref (A2.a) — falls back to default when
     // store is empty (cold launch before fetchProfile resolves).
     search({ lat, lng, radiusMiles: getPreferredRadiusMiles(), ...extraFilters });
-  }, [search]);
+  }, [search, resolveCoords]);
+
+  // Daycare tier is a separate data source (Google Places) — fetched lazily the
+  // first time she opens the tier. villie lists, doesn't endorse.
+  const fetchDaycares = useCallback(async () => {
+    setDaycareLoading(true);
+    setDaycareError(false);
+    try {
+      const { lat, lng } = await resolveCoords();
+      setDaycares(await daycaresApi.listNear(lat, lng, getPreferredRadiusMiles()));
+    } catch {
+      setDaycareError(true);
+    } finally {
+      setDaycareLoading(false);
+    }
+  }, [resolveCoords]);
+
+  useEffect(() => {
+    if (tier === 'daycare' && !daycares.length && !daycareLoading && !daycareError) fetchDaycares();
+  }, [tier, daycares.length, daycareLoading, daycareError, fetchDaycares]);
 
   // On mount, run the initial search with the deeplinked specialty filter
   // applied (when ExpertsHome was opened with `route.params.specialty`).
@@ -160,54 +195,25 @@ export default function ExpertsHomeScreen({ navigation, route }: Props) {
     <>
       {/* v3 editorial masthead 2026-05-24 — replaces the KenBurns photo
           header per Felipe. See MilkConnectHomeScreen for the pattern. */}
-      <View style={[styles.mastheadWrap, { paddingTop: insets.top + 10 }]}>
-        {/* Soft peach hero wash — ties the masthead to the Specialists tile
-            color (Village hub) so the section reads warm + colored. */}
-        <LinearGradient
-          colors={['#F5CBB2', 'rgba(245,203,178,0)']}
-          start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }}
-          style={StyleSheet.absoluteFillObject}
-          pointerEvents="none"
+      {/* Canonical shared header (identical across all verticals). Map/Saved
+          stay as text pills per Felipe; peach dot carries the Care identity. */}
+      <View style={{ marginHorizontal: -18, paddingTop: insets.top + 6 }}>
+        <HubHeader
+          name="care"
+          dotColor="#F3B79C"
+          onBack={() => navigation.getParent()?.navigate('Village' as never)}
+          backAccessibilityLabel={t('common.backToVillage')}
+          right={
+            <View style={{ flexDirection: 'row', gap: 8 }}>
+              <TouchableOpacity style={styles.utilityPill} onPress={() => navigation.navigate('SpecialistsMap')} accessibilityRole="button" accessibilityLabel="Map view">
+                <Text style={styles.utilityPillText}>Map</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.utilityPill} onPress={() => navigation.navigate('Favorites')} accessibilityRole="button" accessibilityLabel={t('expertsHome.savedBtn')}>
+                <Text style={styles.utilityPillText}>{t('expertsHome.savedBtn')}</Text>
+              </TouchableOpacity>
+            </View>
+          }
         />
-        <HoneycombBackdrop accent="#F3B79C" intensity="playful" scene="specialists" />
-        <View style={styles.mastheadUtility}>
-          <TouchableOpacity
-            onPress={() => navigation.getParent()?.navigate('Village' as never)}
-            accessibilityRole="button"
-            accessibilityLabel={t('common.backToVillage')}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          >
-            <Text style={styles.backLink}>← {t('common.backToVillage')}</Text>
-          </TouchableOpacity>
-          <View style={{ flexDirection: 'row', gap: 8 }}>
-            <TouchableOpacity
-              style={styles.utilityPill}
-              onPress={() => navigation.navigate('SpecialistsMap')}
-              accessibilityRole="button"
-              accessibilityLabel="Map view"
-            >
-              <Text style={styles.utilityPillText}>Map</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.utilityPill}
-              onPress={() => navigation.navigate('Favorites')}
-              accessibilityRole="button"
-              accessibilityLabel={t('expertsHome.savedBtn')}
-            >
-              <Text style={styles.utilityPillText}>{t('expertsHome.savedBtn')}</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-        <View style={styles.mastheadEyebrowRow}>
-          <View style={styles.mastheadEyebrowBar} />
-          <Text style={styles.mastheadEyebrowText}>{t('expertsHome.eyebrow')}</Text>
-        </View>
-        <Text style={styles.mastheadTitle}>
-          {t('expertsHome.homeTitleRoman')}{' '}
-          <Text style={styles.mastheadTitleItalic}>{t('expertsHome.homeTitleItalic')}</Text>
-        </Text>
-        <Text style={styles.mastheadDeck}>{t('expertsHome.homeSub')}</Text>
-        <View style={styles.mastheadRule} />
       </View>
 
       {/* Search + checked-only */}
@@ -221,14 +227,16 @@ export default function ExpertsHomeScreen({ navigation, route }: Props) {
           onChangeText={setQuery}
           returnKeyType="search"
         />
-        <TouchableOpacity onPress={() => setCheckedOnly((v) => !v)} style={[styles.checkedChip, checkedOnly && styles.checkedChipActive]} accessibilityRole="button" accessibilityState={{ selected: checkedOnly }}>
-          <Text style={[styles.checkedChipText, checkedOnly && styles.checkedChipTextActive]}>🛡 checked</Text>
-        </TouchableOpacity>
+        {tier !== 'daycare' && (
+          <TouchableOpacity onPress={() => setCheckedOnly((v) => !v)} style={[styles.checkedChip, checkedOnly && styles.checkedChipActive]} accessibilityRole="button" accessibilityState={{ selected: checkedOnly }}>
+            <Text style={[styles.checkedChipText, checkedOnly && styles.checkedChipTextActive]}>🛡 checked</Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       {/* Care tier toggle — clinical vs extra hands */}
       <View style={styles.tierRow}>
-        {(['all', 'clinical', 'help'] as const).map((k) => (
+        {(['all', 'clinical', 'help', 'daycare'] as const).map((k) => (
           <TouchableOpacity
             key={k}
             style={[styles.tierSeg, tier === k && styles.tierSegActive]}
@@ -236,39 +244,43 @@ export default function ExpertsHomeScreen({ navigation, route }: Props) {
             accessibilityRole="button"
             accessibilityState={{ selected: tier === k }}
           >
-            <Text style={[styles.tierSegText, tier === k && styles.tierSegTextActive]}>
-              {k === 'all' ? 'All' : k === 'clinical' ? 'Clinical' : 'Extra hands'}
+            <Text style={[styles.tierSegText, tier === k && styles.tierSegTextActive]} numberOfLines={1} adjustsFontSizeToFit>
+              {k === 'all' ? 'All' : k === 'clinical' ? 'Clinical' : k === 'help' ? 'Extra hands' : 'Daycare'}
             </Text>
           </TouchableOpacity>
         ))}
       </View>
 
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={styles.chipScroll}
-        contentContainerStyle={styles.chipContent}
-      >
-        {chips.map((chip) => {
-          const label = chip.key === 'my_insurance'
-            ? t('expertsHome.chipMyInsurance', { name: insuranceProvider })
-            : t(chip.i18nKey);
-          return (
-            <TouchableOpacity
-              key={chip.key}
-              style={[styles.chip, activeChip === chip.key && styles.chipActive]}
-              onPress={() => applyChip(chip)}
-              accessibilityLabel={t('expertsHome.filterA11y', { label })}
-              accessibilityRole="button"
-              accessibilityState={{ selected: activeChip === chip.key }}
-            >
-              <Text style={[styles.chipText, activeChip === chip.key && styles.chipTextActive]}>
-                {label}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
-      </ScrollView>
+      {tier === 'daycare' ? (
+        <Text style={styles.daycareDisclaimer}>Listings from public records. License #s are registry-listed — verify current status on FL CARES. Ages + price coming soon. villie lists, doesn't endorse or vet.</Text>
+      ) : (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.chipScroll}
+          contentContainerStyle={styles.chipContent}
+        >
+          {chips.map((chip) => {
+            const label = chip.key === 'my_insurance'
+              ? t('expertsHome.chipMyInsurance', { name: insuranceProvider })
+              : t(chip.i18nKey);
+            return (
+              <TouchableOpacity
+                key={chip.key}
+                style={[styles.chip, activeChip === chip.key && styles.chipActive]}
+                onPress={() => applyChip(chip)}
+                accessibilityLabel={t('expertsHome.filterA11y', { label })}
+                accessibilityRole="button"
+                accessibilityState={{ selected: activeChip === chip.key }}
+              >
+                <Text style={[styles.chipText, activeChip === chip.key && styles.chipTextActive]}>
+                  {label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+      )}
     </>
   );
 
@@ -282,8 +294,8 @@ export default function ExpertsHomeScreen({ navigation, route }: Props) {
         style={styles.pageWash}
       />
       <FlashList
-        data={loading ? [] : listData}
-        keyExtractor={(row) => (row.kind === 'header' ? `h-${row.title}` : row.item.id)}
+        data={(tier === 'daycare' ? daycareLoading : loading) ? [] : listData}
+        keyExtractor={(row) => (row.kind === 'header' ? `h-${row.title}` : row.kind === 'daycare' ? `d-${row.item.place_id}` : row.item.id)}
         getItemType={(row) => row.kind}
         contentContainerStyle={styles.list}
         ListHeaderComponent={ListHeader}
@@ -294,6 +306,8 @@ export default function ExpertsHomeScreen({ navigation, route }: Props) {
               <Text style={styles.careSectionTitle}>{row.title}</Text>
               <Text style={styles.careSectionTag}>{row.tag}</Text>
             </View>
+          ) : row.kind === 'daycare' ? (
+            <DaycareCard daycare={row.item} />
           ) : (
             <CareCard
               specialist={row.item}
@@ -303,13 +317,19 @@ export default function ExpertsHomeScreen({ navigation, route }: Props) {
           )
         }
         ListEmptyComponent={
-          loading ? (
+          (tier === 'daycare' ? daycareLoading : loading) ? (
             <ExpertsListSkeleton />
+          ) : tier === 'daycare' && daycareError ? (
+            <View style={styles.empty}>
+              <Text style={styles.emptyEmoji}>🗺️</Text>
+              <Text style={styles.emptyText}>Couldn't load daycares</Text>
+              <Text style={styles.emptySubText}>Check your connection or location and try again.</Text>
+            </View>
           ) : (
             <View style={styles.empty}>
-              <Text style={styles.emptyEmoji}>🔍</Text>
-              <Text style={styles.emptyText}>{t('expertsHome.emptyTitle')}</Text>
-              <Text style={styles.emptySubText}>{t('expertsHome.emptySub')}</Text>
+              <Text style={styles.emptyEmoji}>{tier === 'daycare' ? '🏠' : '🔍'}</Text>
+              <Text style={styles.emptyText}>{tier === 'daycare' ? 'No daycares nearby' : t('expertsHome.emptyTitle')}</Text>
+              <Text style={styles.emptySubText}>{tier === 'daycare' ? 'Try widening your search radius in settings.' : t('expertsHome.emptySub')}</Text>
             </View>
           )
         }
@@ -318,8 +338,65 @@ export default function ExpertsHomeScreen({ navigation, route }: Props) {
   );
 }
 
+// Daycare card — Google Places fields (name / rating / open-now / distance).
+// Tap opens directions in the maps app. No detail screen yet (MVP).
+function DaycareCard({ daycare: d }: { daycare: Daycare }) {
+  const openMaps = () => {
+    const q = encodeURIComponent(d.name);
+    const url = Platform.OS === 'ios'
+      ? `https://maps.apple.com/?q=${q}&ll=${d.lat},${d.lng}`
+      : `https://www.google.com/maps/search/?api=1&query=${d.lat},${d.lng}`;
+    Linking.openURL(url).catch(() => {});
+  };
+  // CARES is the authoritative source for CURRENT license status/hours — there's
+  // no API, so we one-tap the mom to the official search to verify herself.
+  const openCares = () => Linking.openURL('https://caressearch.myflfamilies.com/PublicSearch').catch(() => {});
+  return (
+    <TouchableOpacity style={dc.card} activeOpacity={0.85} onPress={openMaps} accessibilityRole="button" accessibilityLabel={`${d.name}, ${d.distance_mi} miles away`}>
+      <View style={dc.thumb}><Text style={dc.thumbEmoji}>🏠</Text></View>
+      <View style={{ flex: 1, minWidth: 0 }}>
+        <Text style={dc.name} numberOfLines={1}>{d.name}</Text>
+        {!!d.address && <Text style={dc.addr} numberOfLines={1}>{d.address}</Text>}
+        <View style={dc.metaRow}>
+          {typeof d.rating === 'number' && <Text style={dc.meta}>★ {d.rating.toFixed(1)}{d.ratings_count ? ` (${d.ratings_count})` : ''}</Text>}
+          {typeof d.capacity === 'number' && <Text style={dc.meta}>cap. {d.capacity}</Text>}
+          {d.open_now === true && <Text style={[dc.pill, dc.pillOpen]}>open now</Text>}
+          {d.open_now === false && <Text style={[dc.pill, dc.pillClosed]}>closed</Text>}
+        </View>
+        {!!d.license_number && (
+          <TouchableOpacity onPress={openCares} activeOpacity={0.7} hitSlop={{ top: 6, bottom: 6, left: 4, right: 4 }} accessibilityRole="link" accessibilityLabel={`Verify license ${d.license_number} on Florida CARES`}>
+            <Text style={dc.licBadge}>📋 DCF registry · Lic #{d.license_number} · <Text style={dc.licVerify}>verify ›</Text></Text>
+          </TouchableOpacity>
+        )}
+      </View>
+      <View style={{ alignItems: 'flex-end' }}>
+        <Text style={dc.chevron}>›</Text>
+        <Text style={dc.dist}>{d.distance_mi} mi</Text>
+      </View>
+    </TouchableOpacity>
+  );
+}
+
+const dc = StyleSheet.create({
+  card: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: COLORS.paper, borderRadius: 16, borderWidth: 1, borderColor: 'rgba(61,31,14,0.08)', padding: 12 },
+  thumb: { width: 52, height: 52, borderRadius: 13, backgroundColor: '#F3D9C6', alignItems: 'center', justifyContent: 'center' },
+  thumbEmoji: { fontSize: 22 },
+  name: { fontFamily: FONTS.v2_bold, fontSize: 15, color: COLORS.v2_cocoa },
+  addr: { fontFamily: FONTS.v2_body, fontSize: 12, color: '#8A6A55', marginTop: 1 },
+  metaRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 5 },
+  meta: { fontFamily: FONTS.v2_mono, fontSize: 10.5, color: '#A6957F' },
+  pill: { fontFamily: FONTS.bodySemiBold, fontSize: 10, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2, overflow: 'hidden' },
+  pillOpen: { backgroundColor: '#E7F0E2', color: '#3B7D52' },
+  pillClosed: { backgroundColor: '#F1E7D8', color: '#8A6A55' },
+  licBadge: { fontFamily: FONTS.v2_mono, fontSize: 9.5, color: '#8A6A55', marginTop: 5, letterSpacing: 0.2 },
+  licVerify: { color: '#B0234F', fontFamily: FONTS.v2_bold },
+  chevron: { fontFamily: FONTS.v2_bold, fontSize: 18, color: '#C9B7A2' },
+  dist: { fontFamily: FONTS.v2_mono, fontSize: 10, color: '#A6957F', marginTop: 2 },
+});
+
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.cream },
+  daycareDisclaimer: { fontFamily: FONTS.v2_body, fontSize: 11.5, color: '#A0895F', paddingHorizontal: 4, paddingTop: 12, paddingBottom: 4, lineHeight: 16 },
   pageWash: { position: 'absolute', top: 0, left: 0, right: 0, height: 640 },
 
   // Editorial header — cream-on-cream like Milk Hub. paddingBottom: 0 so
@@ -338,7 +415,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   backToVillage: { paddingVertical: 4, paddingRight: 8 },
-  backToVillageText: { fontSize: 14, color: '#D96C88', fontFamily: FONTS.bodySemiBold },
+  backToVillageText: { fontSize: 14, color: '#E84B79', fontFamily: FONTS.bodySemiBold },
   headerActions: { flexDirection: 'row', gap: 8 },
   savedBtn: {
     flexDirection: 'row',
@@ -462,9 +539,13 @@ const styles = StyleSheet.create({
     width: 48,
     backgroundColor: 'rgba(61,31,14,0.13)',
   },
+  // Compact Milk-Hub identity (dot + lowercase name).
+  careIdRow: { flexDirection: 'row', alignItems: 'center', gap: 9, marginTop: 2 },
+  careDot: { width: 9, height: 9, borderRadius: 5, backgroundColor: '#F3B79C' },
+  careName: { fontFamily: FONTS.v3_display, fontSize: 26, letterSpacing: -0.6, color: COLORS.v2_cocoa },
 
-  careSearchRow: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#FDF7EC', borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(61,31,14,0.14)', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 4, marginHorizontal: 16, marginTop: 14 },
-  careSearchIcon: { fontSize: 18, color: '#C2556F' },
+  careSearchRow: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#FDF7EC', borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(61,31,14,0.14)', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 4, marginTop: 2 },
+  careSearchIcon: { fontSize: 18, color: '#B0234F' },
   careSearchInput: { flex: 1, fontFamily: FONTS.v2_body, fontSize: 13.5, color: '#3D2116', paddingVertical: 9 },
   checkedChip: { backgroundColor: '#EAF0DE', borderRadius: 999, paddingHorizontal: 9, paddingVertical: 5 },
   checkedChipActive: { backgroundColor: '#7B8A46' },
@@ -474,29 +555,24 @@ const styles = StyleSheet.create({
   careSectionTitle: { fontFamily: FONTS.v2_mono, fontSize: 11, letterSpacing: 2.2, textTransform: 'uppercase', color: '#8A6A55', fontWeight: '500' },
   careSectionTag: { fontFamily: FONTS.v2_mono, fontSize: 9, letterSpacing: 1.2, textTransform: 'uppercase', color: '#7B8A46', fontWeight: '600' },
   careRowGap: { height: 10 },
-  tierRow: { flexDirection: 'row', gap: 8, paddingHorizontal: 16, paddingTop: 14 },
+  tierRow: { flexDirection: 'row', gap: 8, paddingTop: 14 },
   tierSeg: { flex: 1, alignItems: 'center', paddingVertical: 9, borderRadius: 999, backgroundColor: '#F2E6DD' },
-  tierSegActive: { backgroundColor: '#E06A88' },
+  tierSegActive: { backgroundColor: '#E84B79' },
   tierSegText: { fontFamily: FONTS.bodySemiBold, fontSize: 12.5, color: '#8A6A55' },
   tierSegTextActive: { color: '#fff' },
+  // Secondary refinements — a single LIGHT text line (not a second row of
+  // pills) so the tier toggle stays the one prominent filter, Milk-Hub clean.
   chipScroll: { flexGrow: 0 },
-  chipContent: { paddingHorizontal: 16, paddingTop: 12, paddingBottom: 12, gap: 8, flexDirection: 'row' },
-  chip: {
-    backgroundColor: '#FFFCF6',
-    borderWidth: 1.5,
-    borderColor: 'rgba(150,80,50,0.18)',
-    borderRadius: 50,
-    paddingVertical: 7,
-    paddingHorizontal: 14,
-  },
-  chipActive: { backgroundColor: COLORS.coco, borderColor: COLORS.coco },
-  chipText: { fontSize: 12, fontFamily: FONTS.bodyMedium, color: COLORS.barkSoft },
-  chipTextActive: { color: '#FFFCF6' },
+  chipContent: { paddingTop: 10, paddingBottom: 12, gap: 16, flexDirection: 'row', alignItems: 'center' },
+  chip: { paddingVertical: 2 },
+  chipActive: {},
+  chipText: { fontSize: 12.5, fontFamily: FONTS.bodySemiBold, color: COLORS.v2_walnut },
+  chipTextActive: { color: '#E84B79', textDecorationLine: 'underline' },
 
   // gap removed — FlashList doesn't apply contentContainerStyle gap to its
   // cells, so the cards read as crammed. Real spacing comes from the
   // ItemSeparatorComponent below.
-  list: { paddingHorizontal: 16, paddingTop: 0, paddingBottom: 100 },
+  list: { paddingHorizontal: 18, paddingTop: 0, paddingBottom: 100 },
   cardSeparator: { height: 16 },
 
   empty: { alignItems: 'center', paddingTop: 60 },

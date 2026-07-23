@@ -42,7 +42,7 @@ export default function PerkDetailScreen() {
   if (loading) {
     return (
       <View style={[styles.container, { justifyContent: 'center' }]}>
-        <ActivityIndicator color="#D96C88" />
+        <ActivityIndicator color="#E84B79" />
       </View>
     );
   }
@@ -161,7 +161,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.paper,
     borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.06)',
   },
-  back: { fontSize: 15, color: '#D96C88', fontFamily: FONTS.bodySemiBold },
+  back: { fontSize: 15, color: '#E84B79', fontFamily: FONTS.bodySemiBold },
   headerTitle: { fontSize: 16, fontFamily: FONTS.bodySemiBold, color: COLORS.bark },
 
   heroBlock: { padding: 20, backgroundColor: COLORS.paper },
@@ -176,7 +176,7 @@ const styles = StyleSheet.create({
   offerBanner: {
     marginTop: 14, alignSelf: 'flex-start',
     fontSize: 14, fontFamily: FONTS.bodySemiBold, color: '#FFFCF6',
-    backgroundColor: '#D96C88', borderRadius: 10,
+    backgroundColor: '#E84B79', borderRadius: 10,
     paddingHorizontal: 12, paddingVertical: 6,
   },
 
@@ -202,7 +202,7 @@ const styles = StyleSheet.create({
   metaLabel: { fontSize: 12, fontFamily: FONTS.bodySemiBold, color: COLORS.textLight, textTransform: 'uppercase', letterSpacing: 0.5 },
   metaValue: { fontSize: 13, color: COLORS.bark, fontFamily: FONTS.bodyMedium, flexShrink: 1, textAlign: 'right', marginLeft: 12 },
 
-  termsLink: { fontSize: 13, color: '#D96C88', fontFamily: FONTS.bodySemiBold, marginTop: 16 },
+  termsLink: { fontSize: 13, color: '#E84B79', fontFamily: FONTS.bodySemiBold, marginTop: 16 },
 
   footer: {
     position: 'absolute', left: 0, right: 0, bottom: 0,
@@ -212,9 +212,9 @@ const styles = StyleSheet.create({
   },
   // v9 canonical CTA
   cta: {
-    backgroundColor: '#D96C88', borderRadius: 999,
+    backgroundColor: '#E84B79', borderRadius: 999,
     paddingVertical: 15, alignItems: 'center',
-    shadowColor: '#D96C88', shadowOffset: { width: 0, height: 4 },
+    shadowColor: '#E84B79', shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.24, shadowRadius: 10, elevation: 3,
   },
   ctaText: { color: '#FFFCF6', fontSize: 15, fontFamily: FONTS.bodySemiBold, letterSpacing: 0.3 },

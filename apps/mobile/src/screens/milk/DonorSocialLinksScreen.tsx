@@ -13,6 +13,7 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { COLORS, FONTS } from '@utils/constants';
+import { BackButton } from '@components/shared/BackButton';
 import { useT } from '@/i18n';
 import { useMilkStore } from '@store/milk';
 import { updateDonorProfile, type SocialLinks, type SocialPlatform } from '@api/milk';
@@ -76,9 +77,7 @@ export default function DonorSocialLinksScreen({ route }: Props) {
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <View style={styles.container}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()} accessibilityRole="button" accessibilityLabel={t('common.back')}>
-            <Text style={styles.back}>← {t('common.back')}</Text>
-          </TouchableOpacity>
+          <BackButton color={T.rose} />
           <Text style={styles.headerTitle}>{t('donorSocial.title')}</Text>
           <View style={{ width: 56 }} />
         </View>

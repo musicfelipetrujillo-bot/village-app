@@ -64,7 +64,7 @@ export default function SavedDonorsScreen({ navigation }: Props) {
 
       {loading ? (
         <View style={styles.center}>
-          <ActivityIndicator color="#D96C88" />
+          <ActivityIndicator color="#E84B79" />
         </View>
       ) : (
         <FlashList
@@ -108,7 +108,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingTop: 56, paddingBottom: 12, paddingHorizontal: 16,
   },
-  backText: { fontSize: 15, color: '#D96C88', fontFamily: FONTS.bodySemiBold },
+  backText: { fontSize: 15, color: '#E84B79', fontFamily: FONTS.bodySemiBold },
   headerTitle: { fontSize: 17, fontFamily: FONTS.bodySemiBold, color: '#43260F' },
   list: { paddingTop: 8, paddingBottom: 40 },
   empty: { alignItems: 'center', paddingTop: 80, paddingHorizontal: 32, gap: 12 },
@@ -117,9 +117,9 @@ const styles = StyleSheet.create({
   emptyBody: { fontSize: 14, color: '#7A4A24', textAlign: 'center', lineHeight: 21, fontFamily: FONTS.body },
   // v9 canonical CTA — cinnamon + action-deep shadow.
   browseBtn: {
-    marginTop: 8, backgroundColor: '#D96C88', borderRadius: 999,
+    marginTop: 8, backgroundColor: '#E84B79', borderRadius: 999,
     paddingVertical: 13, paddingHorizontal: 28,
-    shadowColor: '#D96C88', shadowOffset: { width: 0, height: 4 },
+    shadowColor: '#E84B79', shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.24, shadowRadius: 10, elevation: 3,
   },
   browseBtnText: { fontSize: 15, color: '#FFFCF6', fontFamily: FONTS.bodySemiBold, letterSpacing: 0.3 },

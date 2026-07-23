@@ -19,6 +19,12 @@ import { WEEKS_ES } from './manualWeekContent.es';
 
 export type CardColor = 'ink' | 'rose' | 'honey' | 'caramel' | 'blush';
 export type StoryLink = { kind: 'shop' | 'learn'; label: string; url: string };
+// "things that help" = the honest picks/tips lane, split OUT of the story deck so
+// education (story cards) never mixes with commerce (product links). Populated
+// either explicitly per-week, or derived at resolve time from the story cards'
+// `shop` links (see splitHelps). FTC disclosure is rendered on the helps card.
+export type HelpPick = { tag?: string; label: string; url: string };
+export type Helps = { tips?: string[]; picks: HelpPick[] };
 export type StoryCard = {
   color: CardColor;
   eyebrow: string;
@@ -44,6 +50,7 @@ export type CategoryContent = {
   checklist: Checklist;
   articles: Article[];   // swipeable expert cards (3–4 per chapter)
   info?: Info;
+  helps?: Helps;         // "things that help" — tips + product picks (derived if absent)
   specialistQs?: string[];
 // "Ask your specialist — bring these three"
 };
@@ -15614,6 +15621,28 @@ function resolveWeekKey(week: number): number {
  * earlier seeded week (Week 1 is the baseline floor), then falls back to Week 1's
  * version of the category, so the app's chips always render something on-stage.
  */
+// splitHelps — separates commerce from education. Story cards keep their teaching
+// body but lose the `shop` link sticker; those products consolidate into the
+// `helps` lane (rendered as its own disclosed "things that help" card). `learn`
+// links stay on the story (they're educational, not products). If a week already
+// declares an explicit `helps`, we trust it and leave the story untouched.
+function splitHelps(content: CategoryContent): CategoryContent {
+  if (content.helps) return content;
+  const picks: HelpPick[] = [];
+  let touched = false;
+  const story = content.story.map((card) => {
+    if (card.link?.kind === 'shop') {
+      picks.push({ tag: card.eyebrow, label: card.link.label, url: card.link.url });
+      touched = true;
+      const { link, ...rest } = card;
+      return rest;
+    }
+    return card;
+  });
+  if (!picks.length) return content;
+  return { ...content, story: touched ? story : content.story, helps: { picks } };
+}
+
 export function getManualContent(week: number, category: string, lang: 'en' | 'es' = 'en'): CategoryContent | null {
   const wk = resolveWeekKey(week);
   const w = WEEKS[wk] ?? WEEKS[1];
@@ -15625,6 +15654,7 @@ export function getManualContent(week: number, category: string, lang: 'en' | 'e
     const esContent = WEEKS_ES[wk]?.[category];
     if (esContent) content = esContent;
   }
+  content = splitHelps(content);
   const qs = (wk === 0 ? SPECIALIST_QS_W0 : SPECIALIST_QS_W1)[category]
     ?? SPECIALIST_QS_W1[category] ?? SPECIALIST_QS_W0[category];
   return qs ? { ...content, specialistQs: qs } : content;

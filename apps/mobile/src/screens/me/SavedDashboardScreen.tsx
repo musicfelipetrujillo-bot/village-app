@@ -19,6 +19,7 @@ import {
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { COLORS, FONTS } from '@utils/constants';
+import { BackButton } from '@components/shared/BackButton';
 import { useT } from '@/i18n';
 import { useUserStore } from '@store/user';
 import { useAnalytics } from '@hooks/useAnalytics';
@@ -91,19 +92,13 @@ export default function SavedDashboardScreen({ navigation }: Props) {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          accessibilityRole="button"
-          accessibilityLabel={t('common.back')}
-        >
-          <Text style={styles.back}>← {t('common.back')}</Text>
-        </TouchableOpacity>
+        <BackButton />
         <Text style={styles.headerTitle}>{t('savedDashboard.title')}</Text>
         <View style={{ width: 60 }} />
       </View>
 
       {loading && (
-        <View style={styles.center}><ActivityIndicator color="#D96C88" /></View>
+        <View style={styles.center}><ActivityIndicator color="#E84B79" /></View>
       )}
 
       {!loading && data && data.total === 0 && (
@@ -117,7 +112,7 @@ export default function SavedDashboardScreen({ navigation }: Props) {
       {!loading && data && data.total > 0 && (
         <ScrollView
           contentContainerStyle={styles.list}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#D96C88" />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#E84B79" />}
         >
           {/* Videos */}
           {data.videos_count > 0 && (
@@ -300,7 +295,7 @@ const styles = StyleSheet.create({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
 
   emptyWrap: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
-  emptyIcon: { fontSize: 52, color: '#D96C88', marginBottom: 12 },
+  emptyIcon: { fontSize: 52, color: '#E84B79', marginBottom: 12 },
   emptyTitle: {
     fontSize: 20, fontFamily: FONTS.headerBold, color: COLORS.bark,
     textAlign: 'center', marginBottom: 8,
@@ -328,7 +323,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3, textTransform: 'uppercase',
   },
   sectionCount: {
-    fontSize: 12, fontFamily: FONTS.bodySemiBold, color: '#D96C88',
+    fontSize: 12, fontFamily: FONTS.bodySemiBold, color: '#E84B79',
     backgroundColor: 'rgba(192,120,64,0.10)',
     paddingHorizontal: 8, paddingVertical: 2,
     borderRadius: 999, minWidth: 26, textAlign: 'center',
@@ -387,7 +382,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   seeAllText: {
-    fontSize: 13, fontFamily: FONTS.bodySemiBold, color: '#D96C88',
+    fontSize: 13, fontFamily: FONTS.bodySemiBold, color: '#E84B79',
   },
 
   footerHint: {

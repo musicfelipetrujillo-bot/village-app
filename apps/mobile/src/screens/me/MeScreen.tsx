@@ -1065,7 +1065,7 @@ const s = StyleSheet.create({
     fontStyle: 'italic',
     fontSize: 24,
     lineHeight: 30,
-    color: '#D96C88',
+    color: '#E84B79',
   },
   email: {
     fontFamily: FONTS.body,
@@ -1133,7 +1133,7 @@ const s = StyleSheet.create({
   completionCta: {
     fontFamily: FONTS.bodySemiBold,
     fontSize: 12,
-    color: '#D96C88',
+    color: '#E84B79',
   },
   progressTrack: {
     height: 6,

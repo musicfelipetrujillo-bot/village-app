@@ -141,7 +141,7 @@ export default function MomHubScreen() {
         {/* Advice hero — the anchor. Filled coral→rose, same family as the home
             "your corner" card, so the two surfaces feel continuous. */}
         <TouchableOpacity activeOpacity={0.93} onPress={comingSoon} style={styles.heroShadow}>
-          <LinearGradient colors={['#E98A6A', '#D96C88']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.heroCard}>
+          <LinearGradient colors={['#E98A6A', '#E84B79']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.heroCard}>
             <LinearGradient
               colors={['rgba(255,255,255,0.20)', 'rgba(255,255,255,0)']}
               start={{ x: 0, y: 0 }} end={{ x: 0, y: 0.5 }}

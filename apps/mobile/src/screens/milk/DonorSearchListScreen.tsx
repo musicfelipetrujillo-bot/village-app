@@ -14,6 +14,7 @@ import { FilterDrawerModal } from '@components/milk/FilterDrawerModal';
 import type { MilkFilters } from '@components/milk/FilterDrawerModal';
 import { COLORS, FONTS } from '@utils/constants';
 import { V9PageBackdrop } from '@components/shared/V9PageBackdrop';
+import { BackButton } from '@components/shared/BackButton';
 import { LinearGradient } from 'expo-linear-gradient';
 import { getEffectiveCoords } from '@utils/devLocation';
 import { useT } from '@/i18n';
@@ -160,14 +161,7 @@ export default function DonorSearchListScreen({ navigation }: Props) {
       />
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backBtn}
-          onPress={() => navigation.goBack()}
-          accessibilityRole="button"
-          accessibilityLabel={t('donorSearch.back')}
-        >
-          <Text style={styles.backText}>← {t('donorSearch.back')}</Text>
-        </TouchableOpacity>
+        <BackButton color="#E84B79" style={styles.backBtn} accessibilityLabel={t('donorSearch.back')} />
         <Text style={styles.headerTitle}>{t('donorSearch.headerTitle')}</Text>
         <TouchableOpacity
           style={styles.mapBtn}
@@ -212,7 +206,7 @@ export default function DonorSearchListScreen({ navigation }: Props) {
 
       {loading ? (
         <View style={styles.center}>
-          <ActivityIndicator color="#D96C88" size="large" />
+          <ActivityIndicator color="#E84B79" size="large" />
           <Text style={styles.loadingText}>{t('donorSearch.loadingText')}</Text>
         </View>
       ) : (
@@ -262,7 +256,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F5F0E8',
   },
   backBtn: { padding: 4 },
-  backText: { fontSize: 15, color: '#D96C88', fontFamily: FONTS.bodySemiBold },
+  backText: { fontSize: 15, color: '#E84B79', fontFamily: FONTS.bodySemiBold },
   headerTitle: { fontSize: 17, fontFamily: FONTS.bodySemiBold, color: '#43260F' },
   mapBtn: {
     backgroundColor: COLORS.paper, borderRadius: 20, paddingHorizontal: 12, paddingVertical: 6,
@@ -295,5 +289,5 @@ const styles = StyleSheet.create({
   emptyEmoji: { fontSize: 48 },
   emptyTitle: { fontSize: 20, fontFamily: FONTS.bodySemiBold, color: '#43260F' },
   emptyBody: { fontSize: 14, color: '#7A4A24', textAlign: 'center', lineHeight: 21, fontFamily: FONTS.body },
-  emptyReset: { fontSize: 14, color: '#D96C88', fontFamily: FONTS.bodySemiBold, marginTop: 8 },
+  emptyReset: { fontSize: 14, color: '#E84B79', fontFamily: FONTS.bodySemiBold, marginTop: 8 },
 });

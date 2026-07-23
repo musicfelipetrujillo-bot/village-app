@@ -344,7 +344,7 @@ const styles = StyleSheet.create({
   loading: { flex: 1, alignItems: 'center', justifyContent: 'center' },
 
   backBtn: { paddingHorizontal: 20, paddingTop: 56, paddingBottom: 8 },
-  backText: { fontSize: 15, color: '#D96C88', fontFamily: FONTS.bodyMedium },
+  backText: { fontSize: 15, color: '#E84B79', fontFamily: FONTS.bodyMedium },
 
   content: { paddingBottom: 100 },
 
@@ -480,7 +480,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontFamily: FONTS.headerItalic,
     fontSize: 20,
-    color: '#D96C88',  // v9 rust-deep — unified italic accent
+    color: '#E84B79',  // v9 rust-deep — unified italic accent
     marginBottom: 12,
   },
   writeReviewBtn: {

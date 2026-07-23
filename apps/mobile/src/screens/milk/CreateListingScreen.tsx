@@ -222,7 +222,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: 'transparent' },
   content: { padding: 24, paddingTop: 8, paddingBottom: 140 },
   backRow: { paddingHorizontal: 18, paddingBottom: 2 },
-  backChevron: { fontSize: 30, color: '#C2556F', marginTop: -2 },
+  backChevron: { fontSize: 30, color: '#B0234F', marginTop: -2 },
   title: { fontSize: 28, fontFamily: FONTS.headerBold, color: '#43260F', marginBottom: 8, letterSpacing: -0.4, lineHeight: 34 },
   subtitle: { fontSize: 14, color: '#7A4A24', lineHeight: 21, marginBottom: 28, fontFamily: FONTS.body },
   label: { fontSize: 13, fontFamily: FONTS.bodySemiBold, color: '#7A4A24', marginBottom: 8, marginTop: 16, textTransform: 'uppercase', letterSpacing: 0.6 },
@@ -268,8 +268,8 @@ const styles = StyleSheet.create({
   },
   // v9 canonical CTA
   saveBtn: {
-    backgroundColor: '#D96C88', borderRadius: 999, paddingVertical: 16, alignItems: 'center',
-    shadowColor: '#D96C88', shadowOffset: { width: 0, height: 4 },
+    backgroundColor: '#E84B79', borderRadius: 999, paddingVertical: 16, alignItems: 'center',
+    shadowColor: '#E84B79', shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.24, shadowRadius: 10, elevation: 3,
   },
   saveBtnText: { fontSize: 16, fontFamily: FONTS.bodySemiBold, color: '#FFFCF6', letterSpacing: 0.3 },

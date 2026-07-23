@@ -115,27 +115,8 @@ export function WarmGlowBackdrop({ style, hideClusters = false }: Props) {
         style={StyleSheet.absoluteFill}
       />
 
-      {/* Honeycomb echoes — rendered behind the bees so the bees stay the
-          focal marks and the combs sit as quiet hive texture. */}
-      {!hideClusters
-        ? COMBS.map((c, i) => (
-            <View
-              key={`comb-${i}`}
-              style={{
-                position: 'absolute',
-                top: c.top, bottom: c.bottom, left: c.left, right: c.right,
-                width: c.size, height: c.size,
-                opacity: c.opacity,
-                transform: [{ rotate: c.rotate }],
-              }}
-            >
-              <Svg width={c.size} height={c.size}>
-                <Polygon points={hexPts(c.size)} fill="none" stroke={HONEY} strokeWidth={1.6} />
-              </Svg>
-            </View>
-          ))
-        : null}
-
+      {/* Honeycomb echoes removed 2026-07-11 (Felipe: cleaner UI for now — keep
+          the bees as the atmosphere; combs can come back later). */}
       {!hideClusters
         ? BEES.map((b, i) => (
             <Image

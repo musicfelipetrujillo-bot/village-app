@@ -87,7 +87,7 @@ export default function EditProfileScreen({ navigation }: Props) {
     return (
       <SafeAreaView style={s.safe}>
         <View style={s.centerMsg}>
-          <ActivityIndicator color="#D96C88" />
+          <ActivityIndicator color="#E84B79" />
           <Text style={s.emptyText}>{t('editProfile.loadingProfile')}</Text>
         </View>
       </SafeAreaView>
@@ -282,7 +282,7 @@ function EditProfileForm({
           accessibilityState={{ disabled: !dirty || saving }}
         >
           {saving ? (
-            <ActivityIndicator color="#D96C88" />
+            <ActivityIndicator color="#E84B79" />
           ) : (
             <Text style={[s.topLink, s.topLinkPrimary, (!dirty) && s.topLinkDisabled]}>{t('editProfile.topSave')}</Text>
           )}
@@ -458,7 +458,7 @@ const s = StyleSheet.create({
     backgroundColor: COLORS.paper,
   },
   stageChipActive: {
-    borderColor: '#D96C88',                                            // v9 active = cinnamon
+    borderColor: '#E84B79',                                            // v9 active = cinnamon
     backgroundColor: 'rgba(192,120,64,0.08)',
   },
   stageChipText: {
@@ -497,11 +497,11 @@ const s = StyleSheet.create({
   },
   // v9 canonical CTA — cinnamon + action-deep shadow.
   retryBtn: {
-    backgroundColor: '#D96C88',
+    backgroundColor: '#E84B79',
     paddingHorizontal: 28,
     paddingVertical: 12,
     borderRadius: 999,
-    shadowColor: '#D96C88', shadowOffset: { width: 0, height: 4 },
+    shadowColor: '#E84B79', shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.24, shadowRadius: 10, elevation: 3,
   },
   retryBtnText: {
@@ -533,7 +533,7 @@ const s = StyleSheet.create({
   avatarBadge: {
     position: 'absolute', right: 0, bottom: 0,
     width: 30, height: 30, borderRadius: 15,
-    backgroundColor: '#D96C88',
+    backgroundColor: '#E84B79',
     alignItems: 'center', justifyContent: 'center',
     borderWidth: 2, borderColor: COLORS.cream,
   },

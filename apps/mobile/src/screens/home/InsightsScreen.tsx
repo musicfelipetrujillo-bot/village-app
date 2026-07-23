@@ -16,10 +16,11 @@ import { homeApi } from '@api/home';
 import { useHomeStore } from '@store/home';
 import { useMilkVaultStore } from '@store/milkVault';
 import { FONTS } from '@utils/constants';
+import { BackButton } from '@components/shared/BackButton';
 
 const C = {
   cream: '#FCF7EF', paper: '#FFFCF6',
-  rose: '#E06A88', roseInk: '#C2556F', roseTint: '#FDECEF',
+  rose: '#E84B79', roseInk: '#B0234F', roseTint: '#FDECEF',
   honey: '#F5C842', honeyCard: '#FBE9BE', honeyInk: '#B98A1E',
   cocoa: '#3D2116', walnut: '#8A6A55', sage: '#7B8A46', muted: '#A6957F',
   hair: 'rgba(61,31,14,0.08)',
@@ -41,7 +42,7 @@ function fmtMin(m: number | null | undefined): string {
   const h = Math.floor(m / 60), mm = Math.round(m % 60);
   return h > 0 ? `${h}h ${mm}m` : `${mm}m`;
 }
-const MOOD_DOT = ['#E0D6BE', '#E06A88', '#F3B9C8', '#FBE0A6', '#C3D19A', '#A7C070'];
+const MOOD_DOT = ['#E0D6BE', '#E84B79', '#F3B9C8', '#FBE0A6', '#C3D19A', '#A7C070'];
 
 export default function InsightsScreen() {
   const nav = useNavigation<any>();
@@ -87,9 +88,7 @@ export default function InsightsScreen() {
     <View style={styles.container}>
       <SafeAreaView style={{ flex: 1 }} edges={['top']}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => nav.goBack()} accessibilityRole="button" accessibilityLabel="Back" hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-            <Text style={styles.back}>‹</Text>
-          </TouchableOpacity>
+          <BackButton color={C.roseInk} />
           <Text style={styles.title}>insights</Text>
           <View style={styles.weekChip}><Text style={styles.weekChipText}>this week</Text></View>
         </View>
@@ -99,7 +98,7 @@ export default function InsightsScreen() {
         ) : (
           <ScrollView contentContainerStyle={{ paddingBottom: 90 }} showsVerticalScrollIndicator={false}>
             {/* Villie's read — the gradient "Villie moment" */}
-            <LinearGradient colors={['#EE94AC', '#F6C94F']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.narrCard}>
+            <LinearGradient colors={['#E84B79', '#F6C94F']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.narrCard}>
               <View style={styles.narrHead}>
                 <View style={styles.narrBee}><Glyph d={ICON.spark} color={C.honeyInk} size={15} /></View>
                 <Text style={styles.narrEyebrow}>villie's read on your week</Text>

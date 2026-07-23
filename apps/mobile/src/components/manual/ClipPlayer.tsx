@@ -36,7 +36,7 @@ import {
   type ManualAudience,
 } from '@/api/manual';
 
-const ROSE = '#D96C88';
+const ROSE = '#E84B79';
 
 // playbackId (+ title/poster/duration) lets a clip carry its Mux asset directly,
 // for videos that live outside manual_videos (e.g. the week-level intro video) —

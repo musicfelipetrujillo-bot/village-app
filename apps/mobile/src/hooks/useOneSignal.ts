@@ -12,11 +12,19 @@
 import { useEffect } from 'react';
 import Constants, { ExecutionEnvironment } from 'expo-constants';
 import { useAuthStore } from '@store/auth';
-import { useUserStore } from '@store/user';
+import { DEFAULT_NOTIF_PREFS, useUserStore } from '@store/user';
+import type { NotifPrefKey } from '@store/user';
 
 const ONESIGNAL_APP_ID = process.env.EXPO_PUBLIC_ONESIGNAL_APP_ID ?? '';
 // OneSignal requires a custom dev/prod build — native module is not present in Expo Go.
 const IS_EXPO_GO = Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
+
+// Derived from DEFAULT_NOTIF_PREFS (not hardcoded) so a new NotifPrefKey
+// added in store/user.ts is picked up here automatically — no more silent
+// drift when a notif_prefs key ships without its pref_* tag counterpart.
+const NOTIF_PREF_TAG_KEYS = Object.keys(DEFAULT_NOTIF_PREFS).filter(
+  (key): key is NotifPrefKey => key !== 'quiet_hours'
+);
 
 export function useOneSignal() {
   const user = useAuthStore((s) => s.user);
@@ -65,20 +73,17 @@ export function useOneSignal() {
       pregnancy_stage: profile.pregnancy_stage ?? '',
       preferred_language: profile.preferred_language ?? 'en',
 
-      // Notif prefs — name them `pref_*` so they're easy to filter on
-      // (e.g. `pref_promotions = "true"`).
-      pref_events:      String(np.events),
-      pref_groups:      String(np.groups),
-      pref_specialists: String(np.specialists),
-      pref_milk_hub:    String(np.milk_hub),
-      pref_articles:    String(np.articles),
-      pref_ai:          String(np.ai),
-      pref_promotions:  String(np.promotions),
-
       // Quiet hours surface as flags only — full window logic lives
       // server-side in supabase/functions/_shared/quiet-hours.ts.
       quiet_hours_enabled: String(np.quiet_hours.enabled),
     };
+
+    // Notif prefs — name them `pref_*` so they're easy to filter on
+    // (e.g. `pref_promotions = "true"`). Iterates every NotifPrefKey so a
+    // newly added key syncs without touching this file.
+    for (const key of NOTIF_PREF_TAG_KEYS) {
+      tags[`pref_${key}`] = String(np[key]);
+    }
 
     // OneSignal v5 supports `addTags(object)` — single round-trip.
     OneSignal.User.addTags(tags);

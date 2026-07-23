@@ -32,6 +32,11 @@ import BoxesCartScreen from '@screens/boxes/BoxesCartScreen';
 import BoxesCheckoutScreen from '@screens/boxes/BoxesCheckoutScreen';
 import BoxOrderConfirmScreen from '@screens/boxes/BoxOrderConfirmScreen';
 import BoxOrdersScreen from '@screens/boxes/BoxOrdersScreen';
+// Day Sheet (2026-07-11) — caregiver handoff (schedule + tips + QR/PDF).
+import DaySheetListScreen from '@screens/daySheet/DaySheetListScreen';
+import DayPlanScreen from '@screens/dayPlan/DayPlanScreen';
+import DaySheetBuilderScreen from '@screens/daySheet/DaySheetBuilderScreen';
+import DaySheetShareScreen from '@screens/daySheet/DaySheetShareScreen';
 import type { BoxId } from '@api/boxes';
 
 export type HomeStackParamList = {
@@ -61,6 +66,10 @@ export type HomeStackParamList = {
   BoxesCheckout: undefined;
   BoxOrderConfirm: { orderId: string; amountCents: number };
   BoxOrders: undefined;
+  DaySheetList: undefined;
+  DaySheetBuilder: { id?: string } | undefined;
+  DaySheetShare: { id: string };
+  DayPlan: undefined;
 };
 
 const Stack = createNativeStackNavigator<HomeStackParamList>();
@@ -69,6 +78,10 @@ export function HomeNavigator() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="HomeRoot" component={HomeScreen} />
+      <Stack.Screen name="DayPlan" component={DayPlanScreen} />
+      <Stack.Screen name="DaySheetList" component={DaySheetListScreen} />
+      <Stack.Screen name="DaySheetBuilder" component={DaySheetBuilderScreen} />
+      <Stack.Screen name="DaySheetShare" component={DaySheetShareScreen} />
       <Stack.Screen name="BabyProfileSetup" component={BabyProfileSetupScreen} options={{ presentation: 'modal' }} />
       <Stack.Screen name="MilestoneDetail" component={MilestoneDetailScreen} />
       <Stack.Screen name="MilestoneTimeline" component={MilestoneTimelineScreen} />

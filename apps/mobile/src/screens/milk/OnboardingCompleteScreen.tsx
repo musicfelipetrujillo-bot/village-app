@@ -103,11 +103,11 @@ const styles = StyleSheet.create({
   summaryBadgeText: { fontSize: 12, color: COLORS.statusSuccess, fontFamily: FONTS.bodySemiBold },
   // v9 canonical CTA — rect variant
   doneBtn: {
-    backgroundColor: '#D96C88', borderRadius: 14, paddingVertical: 16, paddingHorizontal: 40,
-    shadowColor: '#D96C88', shadowOffset: { width: 0, height: 4 },
+    backgroundColor: '#E84B79', borderRadius: 14, paddingVertical: 16, paddingHorizontal: 40,
+    shadowColor: '#E84B79', shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.24, shadowRadius: 10, elevation: 3,
   },
   doneBtnText: { fontSize: 16, fontFamily: FONTS.bodySemiBold, color: '#FFFCF6' },
   socialLink: { marginTop: 16, paddingVertical: 8 },
-  socialLinkText: { fontSize: 14, fontFamily: FONTS.bodySemiBold, color: '#D96C88' },
+  socialLinkText: { fontSize: 14, fontFamily: FONTS.bodySemiBold, color: '#E84B79' },
 });

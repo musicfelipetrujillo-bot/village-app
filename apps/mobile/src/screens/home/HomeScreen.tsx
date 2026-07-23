@@ -294,7 +294,7 @@ export default function HomeScreen() {
 
       {loading && !babyProfile ? (
         <View style={styles.loadingWrap}>
-          <ActivityIndicator color="#D96C88" />
+          <ActivityIndicator color="#E84B79" />
         </View>
       ) : !babyProfile ? (
         <EmptyBabyProfileCard onSetup={() => navigation.navigate('BabyProfileSetup')} />
@@ -1067,7 +1067,7 @@ const MANUAL_PILL_COLORS: Record<ManualPillTone, { bg: string; fg: string }> = {
   heal:    { bg: '#E98A6A', fg: '#43260F' }, // moss     — card fg
   nourish: { bg: '#F4C53C', fg: '#43260F' }, // butter   — cocoa fg
   rest:    { bg: '#F2E6DD', fg: '#43260F' }, // sage     — cocoa fg
-  tips:    { bg: '#C25A78', fg: '#FFFCF6' }, // marigold — cocoa fg
+  tips:    { bg: '#B0234F', fg: '#FFFCF6' }, // marigold — cocoa fg
 };
 function ManualBlockHome({
   onManualPress, onCategoryPress,
@@ -1767,7 +1767,7 @@ const styles = StyleSheet.create({
   // brown gives the masthead a single warm pivot point per Brand Kit.
   greetingNameAccent: {
     fontFamily: FONTS.headerItalic, fontStyle: 'italic',
-    color: '#D96C88',  // v9 italic flourish — cinnamon per brand kit
+    color: '#E84B79',  // v9 italic flourish — cinnamon per brand kit
   },
   // Editorial rule — slightly wider and a touch warmer than pure black
   // (uses bark @ 18%) so it ties the masthead block together as one
@@ -1836,7 +1836,7 @@ const styles = StyleSheet.create({
   ppCrisisCta: {
     fontSize: 13,
     fontFamily: FONTS.bodySemiBold,
-    color: '#D96C88',
+    color: '#E84B79',
     marginTop: 10,
   },
 
@@ -1869,7 +1869,7 @@ const styles = StyleSheet.create({
     left: 14,                      // matches welcomeCard.paddingLeft
     width: 22,                     // compact-card dash width (22 / 24 / 32 scale)
     height: 2,
-    backgroundColor: '#D96C88',    // action-deep
+    backgroundColor: '#E84B79',    // action-deep
   },
   welcomeRowTop: {
     flexDirection: 'row',
@@ -1919,7 +1919,7 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.body,
     maxWidth: '96%',
   },
-  // Action pill — uses action-deep #D96C88 instead of the lighter muted
+  // Action pill — uses action-deep #E84B79 instead of the lighter muted
   // clay #E98A6A so paper text on top reaches WCAG AA contrast (4.85:1
   // vs the previous 3.77:1). Still noticeably less saturated than full
   // rust so it doesn't read alarmist for a postpartum mom.
@@ -1927,8 +1927,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 11,
     paddingVertical: 4,
     borderRadius: 999,
-    backgroundColor: '#D96C88',
-    shadowColor: '#D96C88',
+    backgroundColor: '#E84B79',
+    shadowColor: '#E84B79',
     shadowOpacity: 0.40,
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 6,
@@ -1949,7 +1949,7 @@ const styles = StyleSheet.create({
   checkinEyebrowCrisis: { color: COLORS.cocoDeep },
   checkinTitle: { fontSize: 16, fontFamily: FONTS.bodySemiBold, color: COLORS.bark, marginTop: 4 },
   checkinBody: { fontSize: 13, color: COLORS.barkSoft, marginTop: 4, lineHeight: 18, fontFamily: FONTS.body },
-  checkinCta: { fontSize: 13, fontFamily: FONTS.bodySemiBold, color: '#D96C88', marginTop: 10 },
+  checkinCta: { fontSize: 13, fontFamily: FONTS.bodySemiBold, color: '#E84B79', marginTop: 10 },
 
   // Compact pill variant of CheckinBanner — used for pending/answered states so
   // the daily check-in reads as a calm prompt rather than a hero block. Crisis
@@ -2013,9 +2013,9 @@ const styles = StyleSheet.create({
   // v9 canonical empty-state CTA pill — action-deep, matching the
   // global CTA recipe used everywhere else in the app.
   emptyCta: {
-    backgroundColor: '#D96C88', borderRadius: 999,
+    backgroundColor: '#E84B79', borderRadius: 999,
     paddingHorizontal: 24, paddingVertical: 12,
-    shadowColor: '#D96C88', shadowOffset: { width: 0, height: 4 },
+    shadowColor: '#E84B79', shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.24, shadowRadius: 10, elevation: 3,
   },
   emptyCtaText: { color: '#FFFCF6', fontSize: 14, fontFamily: FONTS.bodySemiBold, letterSpacing: 0.3 },
@@ -2100,7 +2100,7 @@ const styles = StyleSheet.create({
   },
   twinHalfCta: {
     fontSize: 12, fontFamily: FONTS.bodySemiBold,
-    color: '#D96C88', letterSpacing: 0.3,
+    color: '#E84B79', letterSpacing: 0.3,
     marginTop: 'auto',
   },
 
@@ -2150,7 +2150,7 @@ const styles = StyleSheet.create({
   heroCtaPill: {
     alignSelf: 'flex-end',
     marginTop: 12,
-    backgroundColor: '#D96C88',
+    backgroundColor: '#E84B79',
     borderRadius: 999,
     paddingHorizontal: 14,
     paddingVertical: 9,
@@ -2239,7 +2239,7 @@ const styles = StyleSheet.create({
   },
   statementTitleItalic: {
     fontFamily: FONTS.headerItalic, fontStyle: 'italic',
-    color: '#D96C88',
+    color: '#E84B79',
   },
   statementBody: {
     fontSize: 14, fontFamily: FONTS.body, color: COLORS.barkSoft,
@@ -2292,7 +2292,7 @@ const styles = StyleSheet.create({
     left: 14,                      // aligned to weekHeroCard.paddingHorizontal:14
     width: 32,                     // hero-card dash width (largest in 22/24/32 scale)
     height: 2,
-    backgroundColor: '#7A4A24',    // rust-deep — matches weekHeroEyebrow color (was #D96C88)
+    backgroundColor: '#7A4A24',    // rust-deep — matches weekHeroEyebrow color (was #E84B79)
     zIndex: 3,
   },
   weekHeroYolk: {
@@ -2405,18 +2405,18 @@ const styles = StyleSheet.create({
   weekHeroCtaText: {
     fontFamily: FONTS.bodyBold,
     fontSize: 11.5,
-    color: '#D96C88', // action-deep (muted clay)
+    color: '#E84B79', // action-deep (muted clay)
     letterSpacing: 0.4,
     fontWeight: '700',
   },
   weekHeroArrow: {
-    // Bumped from #E98A6A (3.77:1 paper) to #D96C88 action-deep (4.85:1
+    // Bumped from #E98A6A (3.77:1 paper) to #E84B79 action-deep (4.85:1
     // paper) so the glyph reaches WCAG AA. Still noticeably less
     // saturated than full rust.
     width: 28, height: 28, borderRadius: 14,
-    backgroundColor: '#D96C88',
+    backgroundColor: '#E84B79',
     alignItems: 'center', justifyContent: 'center',
-    shadowColor: '#D96C88',
+    shadowColor: '#E84B79',
     shadowOpacity: 0.42,
     shadowOffset: { width: 0, height: 3 },
     shadowRadius: 10,
@@ -2473,12 +2473,12 @@ const styles = StyleSheet.create({
     letterSpacing: -0.2,
   },
   checkinStripArrow: {
-    // Same WCAG fix as Week arrow — #D96C88 action-deep gives 4.85:1
+    // Same WCAG fix as Week arrow — #E84B79 action-deep gives 4.85:1
     // paper text contrast (was 3.77:1 with #E98A6A muted clay).
     width: 24, height: 24, borderRadius: 12,
-    backgroundColor: '#D96C88',
+    backgroundColor: '#E84B79',
     alignItems: 'center', justifyContent: 'center',
-    shadowColor: '#D96C88',
+    shadowColor: '#E84B79',
     shadowOpacity: 0.42,
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 8,
@@ -2568,7 +2568,7 @@ const styles = StyleSheet.create({
   manualBlockLink: {
     fontFamily: FONTS.bodySemiBold,
     fontSize: 11,
-    color: '#D96C88',  // v9 cinnamon — link per brand kit
+    color: '#E84B79',  // v9 cinnamon — link per brand kit
   },
   // Goal line — one short sentence between eyebrow and pills, framing
   // what the chapters are for. Body-sized, bark-soft, no italic; the
@@ -2662,7 +2662,7 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.headerItalic,
     fontStyle: 'italic',
     fontSize: 16,
-    color: '#D96C88',
+    color: '#E84B79',
     letterSpacing: 0.2,
     marginBottom: 6,
   },
@@ -2738,7 +2738,7 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.bodySemiBold,
     fontSize: 10,
     letterSpacing: 0.2,
-    color: '#D96C88',
+    color: '#E84B79',
   },
   // Body section: ivory-warm background below the gradient band.
   combinedCardBody: {
@@ -2793,7 +2793,7 @@ const styles = StyleSheet.create({
   combinedFooterLinkText: {
     fontSize: 11,
     fontFamily: FONTS.bodySemiBold,
-    color: '#D96C88',
+    color: '#E84B79',
     flexShrink: 0,
   },
 
@@ -3044,7 +3044,7 @@ const styles = StyleSheet.create({
   // Terra-italic accent on the week count. Mirrors the design artifact's
   // `<em>` accent pattern (rust Playfair italic on the key word).
   snapshotAgeAccent: {
-    color: '#D96C88',
+    color: '#E84B79',
     fontFamily: FONTS.headerItalic,
     fontStyle: 'italic',
   },
@@ -3113,7 +3113,7 @@ const styles = StyleSheet.create({
     fontSize: 14, fontFamily: FONTS.bodySemiBold, color: COLORS.bark,
   },
   feedHeaderLink: {
-    fontSize: 12, color: '#D96C88', fontFamily: FONTS.bodySemiBold,
+    fontSize: 12, color: '#E84B79', fontFamily: FONTS.bodySemiBold,
   },
   eventRow: {
     paddingVertical: 10, borderTopWidth: 1,
@@ -3152,7 +3152,7 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.body,
   },
   tipLink: {
-    fontSize: 12, color: '#D96C88', fontFamily: FONTS.bodySemiBold,
+    fontSize: 12, color: '#E84B79', fontFamily: FONTS.bodySemiBold,
     marginTop: 8,
   },
 

@@ -17,13 +17,14 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Linking, Alert } 
 import Svg, { Path } from 'react-native-svg';
 import { useNavigation } from '@react-navigation/native';
 import { COLORS, FONTS } from '@utils/constants';
+import { BackButton } from '@components/shared/BackButton';
 import { useUserStore } from '@store/user';
 
 type Lang = 'en' | 'es';
 
 const C = {
   cream: COLORS.v2_cream, paper: COLORS.v2_paper, cocoa: COLORS.v2_cocoa, walnut: COLORS.v2_walnut,
-  rose: COLORS.v2_cinnamon, roseDeep: '#C2556F', red: '#BE3A2E',
+  rose: COLORS.v2_cinnamon, roseDeep: '#B0234F', red: '#BE3A2E',
 };
 
 const ICON = {
@@ -152,9 +153,7 @@ export default function QuickReferenceScreen() {
     <View style={s.container}>
       <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
         <View style={s.headRow}>
-          <TouchableOpacity onPress={() => navigation.goBack()} accessibilityRole="button" accessibilityLabel={CT.close[lang]}>
-            <Text style={s.close}>{CT.back[lang]}</Text>
-          </TouchableOpacity>
+          <BackButton accessibilityLabel={CT.close[lang]} />
           <Glyph d={ICON.shield} color={C.red} size={16} />
         </View>
 
@@ -244,7 +243,7 @@ const s = StyleSheet.create({
   sectionLabel: { fontFamily: FONTS.v2_mono, fontSize: 9.5, letterSpacing: 1.8, color: C.walnut, marginTop: 20, marginBottom: 10 },
 
   cprCard: { borderRadius: 18, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(217,108,136,0.25)', marginBottom: 11 },
-  cprMedia: { height: 92, backgroundColor: '#D96C88', alignItems: 'center', justifyContent: 'center' },
+  cprMedia: { height: 92, backgroundColor: '#E84B79', alignItems: 'center', justifyContent: 'center' },
   cprPlay: { width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(255,255,255,0.92)', alignItems: 'center', justifyContent: 'center' },
   cprBody: { padding: 12, backgroundColor: C.paper },
   cprTitle: { fontFamily: FONTS.v3_display, fontSize: 15, color: C.cocoa },

@@ -112,7 +112,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.paper,
     borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.06)',
   },
-  back: { fontSize: 15, color: '#D96C88', fontFamily: FONTS.bodySemiBold },
+  back: { fontSize: 15, color: '#E84B79', fontFamily: FONTS.bodySemiBold },
   headerTitle: { fontSize: 16, fontFamily: FONTS.bodySemiBold, color: COLORS.bark },
 
   // Honeycomb masthead (mirrors EventsList "plansMasthead").
@@ -139,7 +139,7 @@ const styles = StyleSheet.create({
   },
 
   empty: { alignItems: 'center', paddingTop: 72, paddingHorizontal: 32 },
-  emptyEmoji: { fontSize: 52, color: '#D96C88', marginBottom: 12 },
+  emptyEmoji: { fontSize: 52, color: '#E84B79', marginBottom: 12 },
   emptyTitle: { fontSize: 20, fontFamily: FONTS.v3_display, color: COLORS.bark, marginBottom: 8, textAlign: 'center' },
   emptyBody: { fontSize: 14, lineHeight: 21, color: COLORS.v2_walnut, textAlign: 'center', marginBottom: 24 },
   emptyCta: { backgroundColor: '#C07840', borderRadius: 14, paddingHorizontal: 24, paddingVertical: 14 },

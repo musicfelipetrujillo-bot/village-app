@@ -30,8 +30,8 @@ const T = {
   parchment: COLORS.v2_parchment,
   cocoa:     COLORS.v2_cocoa,
   walnut:    COLORS.v2_walnut,
-  rose:      '#E06A88',
-  roseInk:   '#C2556F',
+  rose:      '#E84B79',
+  roseInk:   '#B0234F',
   honey:     '#F5C842',
   rule:      'rgba(61,31,14,0.13)',
 };
