@@ -38,7 +38,9 @@
     "pdfComingBody": "Próximamente — generaremos un PDF listo para imprimir del capítulo actual.",
     "pdfShareDialogTitle": "Guarda tu capítulo",
     "pdfErrorTitle": "No pudimos generar el PDF",
-    "pdfErrorBody": "Algo salió mal en este dispositivo. Inténtalo de nuevo o guarda el capítulo de otra semana."
+    "pdfErrorBody": "Algo salió mal en este dispositivo. Inténtalo de nuevo o guarda el capítulo de otra semana.",
+    "buzzArchive": "Archivo de The Buzz",
+    "buzzArchiveSub": "ediciones pasadas de temas de la semana"
   },
   "momHub": {
     "homeCardEyebrow": "PARA TI, MAMÁ",
@@ -330,7 +332,9 @@
     "dischargeWelcomeBody": "Las primeras seis semanas son las más difíciles — y las más importantes. Mantendremos cerca tu recuperación, la alimentación y los chequeos de ánimo, para que encuentres lo que necesitas sin buscar.",
     "dischargeWelcomeCta": "Entendido",
     "dischargeWelcomeA11y": "Bienvenida a casa — orientación tras el alta",
-    "dischargeWelcomeDismissA11y": "Cerrar tarjeta de bienvenida"
+    "dischargeWelcomeDismissA11y": "Cerrar tarjeta de bienvenida",
+    "buzzCardTitle": "ya llegó the buzz",
+    "buzzCardSub": "los temas de la semana →"
   },
   "babyProfile": {
     "stepLabel": "Paso {{n}} de {{total}}",
@@ -475,7 +479,9 @@
     "timezone": "Zona horaria",
     "footer": "Puedes darte de baja desde cualquier correo en el pie del mensaje. Las preferencias de notificaciones push y SMS se pueden cambiar aquí en cualquier momento.",
     "saveErrorTitle": "No se pudo guardar",
-    "saveErrorBody": "Por favor intenta nuevamente."
+    "saveErrorBody": "Por favor intenta nuevamente.",
+    "rowTrendingTitle": "the buzz",
+    "rowTrendingDesc": "Un aviso semanal cuando sale la edición de temas de la semana."
   },
   "account": {
     "back": "Atrás",
@@ -2182,5 +2188,24 @@
     "ctaA11y": "Entendido, escribir a la donante",
     "ctaReady": "Entendido — escribir a la donante",
     "ctaScroll": "Desplázate hasta el final"
+  },
+  "theBuzz": {
+    "title": "the buzz",
+    "trendingEyebrow": "de lo que se habla esta semana",
+    "mythEyebrow": "mito vs realidad",
+    "factLabel": "lo que realmente se sabe",
+    "groundedIn": "basado en {{source}} →",
+    "viaSource": "vía {{source}} →",
+    "evidenceLinkA11y": "Abrir fuente: {{source}}",
+    "trendLinkA11y": "Abrir fuente: {{source}}",
+    "disclaimer": "Esto es de lo que se está hablando — no es consejo médico. Consulta siempre con tu proveedor.",
+    "emptyTitle": "todavía no hay nada",
+    "emptyBody": "vuelve pronto — cada semana sale una edición nueva.",
+    "loadError": "No pudimos cargar la edición de esta semana. Intenta de nuevo."
+  },
+  "buzzArchive": {
+    "title": "the buzz — archivo",
+    "emptyTitle": "aún no hay ediciones pasadas",
+    "emptyBody": "en cuanto se publique la primera edición, aparecerá aquí."
   }
 }

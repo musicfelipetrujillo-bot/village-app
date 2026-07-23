@@ -1,22 +1,27 @@
 # Supabase local dev config — https://supabase.com/docs/guides/cli/config
+# NOTE: ports bumped +1000 in this worktree so its local Supabase stack can
+# run alongside the main village-app directory's stack without colliding.
 [api]
-port = 54321
+port = 55321
 schemas = ["public", "storage", "graphql_public"]
 extra_search_path = ["public", "extensions"]
 max_rows = 1000
 
 [db]
-port = 54322
-shadow_port = 54320
+port = 55322
+shadow_port = 55320
 major_version = 15
 
 [studio]
-port = 54323
+port = 55323
 
 [inbucket]
-port = 54324
-smtp_port = 54325
-pop3_port = 54326
+port = 55324
+smtp_port = 55325
+pop3_port = 55326
+
+[analytics]
+port = 55327
 
 [storage]
 file_size_limit = "50MiB"

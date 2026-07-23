@@ -32,6 +32,7 @@ import { usePicksStore } from '@store/picks';
 import { useT } from '@/i18n';
 import { homeApi, type Milestone } from '@api/home';
 import { isExpecting } from '@/manual/beforeBaby';
+import { theBuzzApi, type TheBuzzArchiveRow } from '@api/theBuzz';
 import { WarmGlowBackdrop } from '@components/shared/WarmGlowBackdrop';
 import { useFocusEffect } from '@react-navigation/native';
 
@@ -430,6 +431,7 @@ const VILLIE_BOXES_ENABLED = process.env.EXPO_PUBLIC_VILLIE_BOXES_ENABLED === '1
 export default function HomeScreenV3() {
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
+  const t = useT();
   const profile = useUserStore((s) => s.profile);
   const babyProfile = useHomeStore((s) => s.babyProfile);
   const currentMilestone = useHomeStore((s) => s.currentMilestone);
@@ -468,6 +470,8 @@ export default function HomeScreenV3() {
   const [triggerAnim, setTriggerAnim] = React.useState(0);
 
   const [weekMilestones, setWeekMilestones] = React.useState<Milestone[]>([]);
+  // The Buzz — this week's published trending-topics issue, if any.
+  const [buzzIssue, setBuzzIssue] = React.useState<TheBuzzArchiveRow | null>(null);
   useFocusEffect(
     React.useCallback(() => {
       setTriggerAnim((n) => n + 1);
@@ -476,6 +480,9 @@ export default function HomeScreenV3() {
           .then(setWeekMilestones)
           .catch(() => setWeekMilestones([]));
       }
+      theBuzzApi.getCurrentIssue()
+        .then((issue) => setBuzzIssue(issue))
+        .catch(() => setBuzzIssue(null));
       return () => {};
     }, [weekNumber]),
   );
@@ -556,6 +563,24 @@ export default function HomeScreenV3() {
           onBoxes={() => navigation.navigate('BoxesHub' as never)}
           onPicks={() => navigation.navigate('PerksList' as never)}
         />
+
+        {buzzIssue ? (
+          <TouchableOpacity
+            activeOpacity={0.9}
+            onPress={() => navigation.navigate('TheBuzz' as never, { issueId: buzzIssue.id } as never)}
+            accessibilityRole="button"
+            accessibilityLabel={t('home.buzzCardTitle')}
+            style={{ flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: '#FDECEF', borderRadius: 16, padding: 15, marginHorizontal: 16, marginTop: 14, borderWidth: 1, borderColor: 'rgba(194,85,111,0.25)' }}
+          >
+            <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: 'rgba(255,252,246,0.7)', alignItems: 'center', justifyContent: 'center' }}>
+              <Text style={{ fontSize: 19 }}>🐝</Text>
+            </View>
+            <View style={{ flex: 1, minWidth: 0 }}>
+              <Text style={{ fontFamily: FONTS.v3_display, fontSize: 16, color: '#3D2116', letterSpacing: -0.3 }}>{t('home.buzzCardTitle')}</Text>
+              <Text style={{ fontFamily: FONTS.v2_body, fontSize: 12, color: '#8A4A5A', marginTop: 2, lineHeight: 16 }} numberOfLines={1}>{t('home.buzzCardSub')}</Text>
+            </View>
+          </TouchableOpacity>
+        ) : null}
 
         <MomCornerCard onPress={() => navigation.navigate('MomHub' as never)} />
 

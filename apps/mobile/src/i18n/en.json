@@ -38,7 +38,9 @@
     "pdfComingBody": "Coming soon — we'll generate a print-ready PDF of the current chapter.",
     "pdfShareDialogTitle": "Save your chapter",
     "pdfErrorTitle": "Couldn't generate the PDF",
-    "pdfErrorBody": "Something went wrong on this device. Try again, or save the chapter from a different week."
+    "pdfErrorBody": "Something went wrong on this device. Try again, or save the chapter from a different week.",
+    "buzzArchive": "The Buzz archive",
+    "buzzArchiveSub": "past weekly trending-topics issues"
   },
   "momHub": {
     "homeCardEyebrow": "FOR YOU, MAMA",
@@ -330,7 +332,9 @@
     "dischargeWelcomeBody": "The first six weeks are the hardest — and the most important. We'll keep recovery, feeding, and emotional check-ins close so you can find what you need without searching.",
     "dischargeWelcomeCta": "Got it",
     "dischargeWelcomeA11y": "Welcome home — discharge orientation",
-    "dischargeWelcomeDismissA11y": "Dismiss welcome card"
+    "dischargeWelcomeDismissA11y": "Dismiss welcome card",
+    "buzzCardTitle": "the buzz is here",
+    "buzzCardSub": "this week's trending topics →"
   },
   "babyProfile": {
     "stepLabel": "Step {{n}} of {{total}}",
@@ -475,7 +479,9 @@
     "timezone": "Timezone",
     "footer": "You can unsubscribe from any email at the bottom of the message. Push and SMS preferences can be changed here at any time.",
     "saveErrorTitle": "Could not save",
-    "saveErrorBody": "Please try again."
+    "saveErrorBody": "Please try again.",
+    "rowTrendingTitle": "the buzz",
+    "rowTrendingDesc": "A weekly nudge when this week's trending-topics issue drops."
   },
   "account": {
     "back": "Back",
@@ -2182,5 +2188,24 @@
     "ctaA11y": "I understand, message the donor",
     "ctaReady": "I understand — message the donor",
     "ctaScroll": "Scroll to the bottom"
+  },
+  "theBuzz": {
+    "title": "the buzz",
+    "trendingEyebrow": "trending this week",
+    "mythEyebrow": "myth vs fact",
+    "factLabel": "what's actually known",
+    "groundedIn": "grounded in {{source}} →",
+    "viaSource": "via {{source}} →",
+    "evidenceLinkA11y": "Open source: {{source}}",
+    "trendLinkA11y": "Open source: {{source}}",
+    "disclaimer": "This is what's being talked about — not medical advice. Always check with your provider.",
+    "emptyTitle": "nothing buzzing yet",
+    "emptyBody": "check back soon — a new issue drops weekly.",
+    "loadError": "Couldn't load this week's issue. Please try again."
+  },
+  "buzzArchive": {
+    "title": "the buzz — archive",
+    "emptyTitle": "no past issues yet",
+    "emptyBody": "once the first issue publishes, it'll show up here."
   }
 }

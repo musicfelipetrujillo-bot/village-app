@@ -13,13 +13,14 @@ import { supabase } from '@/lib/supabase';
 export type ReviewableSourceTable =
   | 'maternal_insights'
   | 'village_supports'
-  | 'week_checklists';
+  | 'week_checklists'
+  | 'trending_items';
 
 export interface PendingReviewRow {
   source_table: ReviewableSourceTable;
   row_id: string;
   week_number: number;
-  category: string;             // mi.category | vs.support_type | wc.category
+  category: string;             // mi.category | vs.support_type | wc.category | ti.kind
   title: string;                // wc rows: same as body_en (item_text)
   body_en: string;
   body_es: string | null;
@@ -28,10 +29,18 @@ export interface PendingReviewRow {
   cta_label: string | null;
   cta_target: string | null;
   is_essential: boolean | null;
-  review_status: 'pending' | 'approved' | 'rejected';
+  review_status: 'pending' | 'approved' | 'rejected' | 'draft' | 'agent_cleared' | 'in_review';
   clinical_advisor_reviewed: boolean;
   review_notes: string | null;
   created_at: string;
+  // The Buzz — only populated when source_table === 'trending_items'.
+  is_medical_claim: boolean | null;
+  trend_source_name: string | null;
+  trend_source_url: string | null;
+  evidence_source_name: string | null;
+  evidence_source_url: string | null;
+  myth_claim_en: string | null;
+  fact_en: string | null;
 }
 
 export const clinicalReviewApi = {
@@ -74,6 +83,7 @@ export function sourceTableLabel(t: ReviewableSourceTable): string {
     case 'maternal_insights': return 'Insight';
     case 'village_supports':  return 'Support';
     case 'week_checklists':   return 'Checklist';
+    case 'trending_items':    return 'The Buzz';
   }
 }
 

@@ -867,6 +867,7 @@ export default function ManualScrollV3() {
   const goToSavedChapters = () => navigation.navigate('SavedManual' as never);
   const goToBeforeBaby = () => navigation.navigate('BeforeBaby' as never);
   const expecting = isExpecting(profile?.due_date, profile?.pregnancy_stage);
+  const goToBuzzArchive = () => navigation.navigate('BuzzArchive' as never);
   const placeholder = (titleKey: string, bodyKey: string) =>
     Alert.alert(t(titleKey), t(bodyKey));
   const shareChapter = async () => {
@@ -1469,6 +1470,12 @@ export default function ManualScrollV3() {
             sub={t('manualMenu.savedChaptersSub')}
             icon={MENU_ICONS.bookmark}
             onPress={closeAnd(goToSavedChapters)}
+          />
+          <MenuItem
+            title={t('manualMenu.buzzArchive')}
+            sub={t('manualMenu.buzzArchiveSub')}
+            icon={MENU_ICONS.bookOpen}
+            onPress={closeAnd(goToBuzzArchive)}
           />
           <MenuItem
             title={t('manualMenu.readingHistory')}

@@ -34,7 +34,9 @@ export type NotifPrefKey =
   | 'promotions'
   // Weekly Sunday newsletter (migration 067). Default OFF per CAN-SPAM;
   // users opt in via NotificationPreferencesScreen.
-  | 'newsletter';
+  | 'newsletter'
+  // The Buzz weekly trending-topics digest (migration 105).
+  | 'trending';
 
 // Shape must mirror `supabase/functions/_shared/quiet-hours.ts::QuietHours`
 // and the JSONB default in migration 033. Timezone is an IANA string — set
@@ -66,6 +68,7 @@ export const DEFAULT_NOTIF_PREFS: NotifPrefs = {
   ai: true,
   promotions: false,
   newsletter: false,
+  trending: true,
   quiet_hours: DEFAULT_QUIET_HOURS,
 };
 
