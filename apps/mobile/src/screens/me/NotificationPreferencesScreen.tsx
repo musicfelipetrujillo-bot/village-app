@@ -43,6 +43,7 @@ const ROWS: ToggleRow[] = [
   { key: 'specialists', titleKey: 'notifPrefs.rowSpecialistsTitle', descKey: 'notifPrefs.rowSpecialistsDesc' },
   { key: 'milk_hub',    titleKey: 'notifPrefs.rowMilkHubTitle',     descKey: 'notifPrefs.rowMilkHubDesc' },
   { key: 'articles',    titleKey: 'notifPrefs.rowArticlesTitle',    descKey: 'notifPrefs.rowArticlesDesc' },
+  { key: 'trending',    titleKey: 'notifPrefs.rowTrendingTitle',    descKey: 'notifPrefs.rowTrendingDesc' },
   { key: 'ai',          titleKey: 'notifPrefs.rowAiTitle',          descKey: 'notifPrefs.rowAiDesc' },
   {
     key: 'promotions',
