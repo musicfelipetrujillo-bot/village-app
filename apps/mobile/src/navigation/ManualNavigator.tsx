@@ -14,6 +14,8 @@ import ManualChapterReadScreen from '@screens/manual/ManualChapterReadScreen';
 import ManualVideoScreen from '@screens/manual/ManualVideoScreen';
 import SavedManualScreen from '@screens/manual/SavedManualScreen';
 import ManualWeekIndexScreen from '@screens/manual/ManualWeekIndexScreen';
+import BuzzArchiveScreen from '@screens/manual/BuzzArchiveScreen';
+import TheBuzzScreen from '@screens/home/TheBuzzScreen';
 import WeeklyJourneyScreen from '@screens/home/WeeklyJourneyScreen';
 import MilestoneDetailScreen from '@screens/home/MilestoneDetailScreen';
 import MilestoneTimelineScreen from '@screens/home/MilestoneTimelineScreen';
@@ -32,6 +34,8 @@ export function ManualNavigator() {
       <Stack.Screen name="ManualVideo" component={ManualVideoScreen} options={{ gestureEnabled: false }} />
       <Stack.Screen name="SavedManual" component={SavedManualScreen} />
       <Stack.Screen name="ManualWeekIndex" component={ManualWeekIndexScreen} />
+      <Stack.Screen name="BuzzArchive" component={BuzzArchiveScreen} />
+      <Stack.Screen name="TheBuzz" component={TheBuzzScreen} />
       <Stack.Screen name="WeeklyJourney" component={WeeklyJourneyScreen} />
       <Stack.Screen name="MilestoneDetail" component={MilestoneDetailScreen} />
       <Stack.Screen name="MilestoneTimeline" component={MilestoneTimelineScreen} />
