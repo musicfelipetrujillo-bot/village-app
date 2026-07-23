@@ -2368,7 +2368,6 @@ import React from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, RefreshControl } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { COLORS, FONTS } from '@utils/constants';
-import { BackButton } from '@components/shared/BackButton';
 import { useT } from '@/i18n';
 import { theBuzzApi, type TheBuzzArchiveRow } from '@api/theBuzz';
 
@@ -2398,7 +2397,9 @@ export default function BuzzArchiveScreen() {
   return (
     <View style={s.container}>
       <View style={s.header}>
-        <BackButton color={COLORS.v2_cinnamon} />
+        <TouchableOpacity onPress={() => navigation.goBack()} accessibilityRole="button" accessibilityLabel={t('common.back')}>
+          <Text style={s.back}>← {t('common.back')}</Text>
+        </TouchableOpacity>
         <Text style={s.headerTitle}>{t('buzzArchive.title')}</Text>
         <View style={{ width: 44 }} />
       </View>
@@ -2443,6 +2444,7 @@ const s = StyleSheet.create({
     backgroundColor: COLORS.v2_cream,
     borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(61,31,14,0.13)',
   },
+  back: { fontSize: 15, color: COLORS.v2_cinnamon, fontFamily: FONTS.v2_link },
   headerTitle: { fontFamily: FONTS.v2_bold, fontSize: 17, color: COLORS.v2_cocoa },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
   emptyEmoji: { fontSize: 48, marginBottom: 8 },
