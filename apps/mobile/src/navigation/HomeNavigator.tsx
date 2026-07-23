@@ -12,6 +12,7 @@ import MilestoneTimelineScreen from '@screens/home/MilestoneTimelineScreen';
 import DailyCheckinScreen from '@screens/home/DailyCheckinScreen';
 import CheckinResponseScreen from '@screens/home/CheckinResponseScreen';
 import DiscoverHomeScreen from '@screens/home/DiscoverHomeScreen';
+import TheBuzzScreen from '@screens/home/TheBuzzScreen';
 import InsightsScreen from '@screens/home/InsightsScreen';
 import MomHubScreen from '@screens/home/MomHubScreen';
 import NotificationsScreen from '@screens/home/NotificationsScreen';
@@ -42,6 +43,7 @@ export type HomeStackParamList = {
   DailyCheckin: undefined;
   CheckinResponse: { checkinId: string };
   DiscoverHome: undefined;
+  TheBuzz: { issueId?: string } | undefined;
   Insights: undefined;
   Notifications: undefined;
   WeeklyJourney: { week?: number } | undefined;
@@ -75,6 +77,7 @@ export function HomeNavigator() {
       <Stack.Screen name="DailyCheckin" component={DailyCheckinScreen} options={{ presentation: 'modal' }} />
       <Stack.Screen name="CheckinResponse" component={CheckinResponseScreen} />
       <Stack.Screen name="DiscoverHome" component={DiscoverHomeScreen} />
+      <Stack.Screen name="TheBuzz" component={TheBuzzScreen} />
       <Stack.Screen name="Insights" component={InsightsScreen} />
       <Stack.Screen name="Notifications" component={NotificationsScreen} />
       <Stack.Screen name="WeeklyJourney" component={WeeklyJourneyScreen} />
