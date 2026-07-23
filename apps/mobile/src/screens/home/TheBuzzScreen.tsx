@@ -48,7 +48,11 @@ export default function TheBuzzScreen() {
       }
     })();
     return () => { cancelled = true; };
-  }, [route.params?.issueId, t]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `t` is a new
+    // closure every render (useT() has no memoization); including it here
+    // would refetch on every render, an infinite loop. Only issueId should
+    // retrigger the fetch.
+  }, [route.params?.issueId]);
 
   const newsItems = (issue?.items ?? []).filter((i) => i.kind === 'news');
   const mythItem = (issue?.items ?? []).find((i) => i.kind === 'myth_buster');

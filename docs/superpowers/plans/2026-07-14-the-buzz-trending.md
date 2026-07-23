@@ -1978,7 +1978,10 @@ export default function TheBuzzScreen() {
       }
     })();
     return () => { cancelled = true; };
-  }, [route.params?.issueId, t]);
+    // `t` is intentionally excluded — useT() returns a new closure every
+    // render (no memoization), so including it here would refetch on every
+    // render (infinite loop). Only issueId should retrigger the fetch.
+  }, [route.params?.issueId]);
 
   const newsItems = (issue?.items ?? []).filter((i) => i.kind === 'news');
   const mythItem = (issue?.items ?? []).find((i) => i.kind === 'myth_buster');
