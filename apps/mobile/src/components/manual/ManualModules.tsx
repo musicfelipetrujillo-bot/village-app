@@ -3,12 +3,15 @@
 // Driven entirely by a CategoryContent (manualWeekContent), so every week +
 // category renders the same structure. The infographic switches on `kind`.
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Share, ScrollView, Dimensions, Linking } from 'react-native';
+import { View, Text, StyleSheet, Share, ScrollView, Dimensions, Linking, Alert } from 'react-native';
 import { TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Path, Circle, Defs, LinearGradient as SvgGrad, Stop } from 'react-native-svg';
+import { useNavigation } from '@react-navigation/native';
 import { FONTS } from '@utils/constants';
 import { select, tap } from '@utils/haptics';
+import { isProUser } from '@/lib/pro';
+import DeepDiveVideoCard from './DeepDiveVideoCard';
 import type { CategoryContent, Checklist, Article, Info, Helps } from '@/manual/manualWeekContent';
 
 const SAGE = '#6F7A43';
@@ -25,6 +28,11 @@ const ROSE = '#E84B79';
 const BERRY = '#B0234F';
 
 type Lang = 'en' | 'es';
+
+// villie+ specialist deep-dive videos — hidden from users until footage is
+// filmed + the paywall UX ships. Flip EXPO_PUBLIC_MANUAL_DEEPDIVE_ENABLED=1
+// (in apps/mobile/.env) to preview the card in dev / the simulator.
+const DEEPDIVE_ENABLED = process.env.EXPO_PUBLIC_MANUAL_DEEPDIVE_ENABLED === '1';
 
 // Localized chrome (labels + fixed copy). Content itself is translated upstream
 // in getManualContent(week, cat, lang); this only covers the module UI text.
@@ -330,12 +338,56 @@ function AskVillieModule({ onPress, lang }: { onPress: () => void; lang: Lang })
   );
 }
 
-export default function ManualModules({ content, onAskVillie, lang = 'en' }: { content: CategoryContent; onAskVillie?: () => void; lang?: Lang }) {
+export default function ManualModules({ content, onAskVillie, lang = 'en', week, category, audience = 'baby' }: { content: CategoryContent; onAskVillie?: () => void; lang?: Lang; week?: number; category?: string; audience?: 'mom' | 'baby' }) {
+  const navigation = useNavigation<any>();
+
+  // villie+ deep-dive: play (pro) / preview (tease) → the shared ClipPlayer.
+  const openDeepDive = (mode: 'play' | 'preview') => {
+    const dd = content.deepDive;
+    if (!dd) return;
+    if (!dd.playbackId && !dd.videoId) {
+      Alert.alert(
+        lang === 'es' ? 'Muy pronto' : 'Coming soon',
+        lang === 'es'
+          ? `El video de ${content.label} de esta semana se está grabando.`
+          : `This week's ${content.label} video is being filmed.`,
+      );
+      return;
+    }
+    const cat = category ?? 'grow';
+    const id = dd.videoId ?? `dd-${cat}-${week ?? 0}`;
+    // TODO(next): pass `preview: mode === 'preview'` once ClipPlayer supports a
+    // ~previewSeconds cutoff. For now both open the clip (content is pre-film).
+    navigation.navigate('ManualVideo', {
+      audience, category: cat, videoId: id,
+      clips: [{ id, audience, category: cat, playbackId: dd.playbackId, title: dd.title, posterUrl: dd.posterUrl }],
+    });
+  };
+
+  const promptPro = () => {
+    Alert.alert(
+      'villie+',
+      lang === 'es'
+        ? 'Desbloquea todos los videos de especialistas — el agarre, los eructos, el giro — filmados paso a paso.'
+        : 'Unlock every specialist deep-dive — the latch, the burp, the rollover — filmed step by step.',
+      [{ text: lang === 'es' ? 'Ahora no' : 'Not now', style: 'cancel' }],
+    );
+  };
+
   return (
     <View style={s.wrap}>
       {content.info && <InfographicModule data={content.info} lang={lang} />}
       <ArticleModule articles={content.articles} lang={lang} />
       <ChecklistModule data={content.checklist} lang={lang} />
+      {DEEPDIVE_ENABLED && content.deepDive && (
+        <DeepDiveVideoCard
+          data={content.deepDive}
+          lang={lang}
+          isPro={isProUser()}
+          onOpen={openDeepDive}
+          onUnlock={promptPro}
+        />
+      )}
       {!!content.helps?.picks.length && <HelpsModule data={content.helps} lang={lang} />}
       {onAskVillie && <AskVillieModule onPress={onAskVillie} lang={lang} />}
     </View>

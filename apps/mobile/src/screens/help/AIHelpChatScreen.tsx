@@ -241,7 +241,7 @@ export default function AIHelpChatScreen() {
 
       {sending && (
         <View style={styles.typingRow}>
-          <ActivityIndicator color="#D96C88" size="small" />
+          <ActivityIndicator color="#E84B79" size="small" />
           <Text style={styles.typingText}>{t('help.typing')}</Text>
         </View>
       )}
@@ -349,7 +349,7 @@ const styles = StyleSheet.create({
   },
   sendBtn: {
     width: 44, height: 44, borderRadius: 22,
-    backgroundColor: '#D96C88', alignItems: 'center', justifyContent: 'center',
+    backgroundColor: '#E84B79', alignItems: 'center', justifyContent: 'center',
   },
   sendBtnDisabled: { opacity: 0.4 },
   sendBtnText: { color: '#FFFCF6', fontSize: 22, fontFamily: FONTS.bodySemiBold },

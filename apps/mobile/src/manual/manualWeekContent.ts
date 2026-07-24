@@ -16,6 +16,7 @@
 // it gets its own distinct pills + reachability in a follow-up.
 
 import { WEEKS_ES } from './manualWeekContent.es';
+import { getDeepDive, type DeepDive } from './manualDeepDives';
 
 export type CardColor = 'ink' | 'rose' | 'honey' | 'caramel' | 'blush';
 export type StoryLink = { kind: 'shop' | 'learn'; label: string; url: string };
@@ -53,6 +54,7 @@ export type CategoryContent = {
   helps?: Helps;         // "things that help" — tips + product picks (derived if absent)
   specialistQs?: string[];
 // "Ask your specialist — bring these three"
+  deepDive?: DeepDive;   // villie+ filmed specialist video (attached in getManualContent)
 };
 
 // TODO(links): replace per-link once brand/affiliate URLs are provided.
@@ -15657,7 +15659,9 @@ export function getManualContent(week: number, category: string, lang: 'en' | 'e
   content = splitHelps(content);
   const qs = (wk === 0 ? SPECIALIST_QS_W0 : SPECIALIST_QS_W1)[category]
     ?? SPECIALIST_QS_W1[category] ?? SPECIALIST_QS_W0[category];
-  return qs ? { ...content, specialistQs: qs } : content;
+  const deepDive = getDeepDive(week, category);
+  const withQs = qs ? { ...content, specialistQs: qs } : content;
+  return deepDive ? { ...withQs, deepDive } : withQs;
 }
 
 /*

@@ -1433,6 +1433,9 @@ export default function ManualScrollV3() {
           <ManualModules
             content={manualContent}
             lang={lang}
+            week={week}
+            category={chapter.cat}
+            audience={who}
             onAskVillie={() => {
               const topic = chapter.ch.toLowerCase();
               const seed = lang === 'es'
