@@ -306,6 +306,13 @@ export default function MeScreen() {
     navigation.navigate('EditProfile');
   }, [navigation]);
 
+  // BabyProfileSetup lives in the Home tab's stack, so we deep-link cross-tab
+  // (same pattern as goToTab). This is the reliable "set up / edit your baby"
+  // entry point — the AI-native Home (V3) no longer surfaces one.
+  const goBabySetup = useCallback(() => {
+    (navigation.getParent() as any)?.navigate('Home', { screen: 'BabyProfileSetup' });
+  }, [navigation]);
+
   const goRadiusPref = useCallback(() => {
     navigation.navigate('RadiusPreference');
   }, [navigation]);
@@ -525,10 +532,16 @@ export default function MeScreen() {
           );
         })() : null}
 
-        {/* Baby card */}
+        {/* Baby card — tap to open BabyProfileSetup (lives in the Home tab's stack). */}
         <Section title={t('me.yourBaby')}>
           {babyProfile ? (
-            <View style={s.babyRow}>
+            <TouchableOpacity
+              style={s.babyRow}
+              activeOpacity={0.7}
+              onPress={goBabySetup}
+              accessibilityRole="button"
+              accessibilityLabel={t('me.editBabyCta')}
+            >
               <View style={s.babyAvatar}>
                 <Text style={s.babyAvatarTxt}>👶</Text>
               </View>
@@ -543,16 +556,26 @@ export default function MeScreen() {
                   })}
                 </Text>
               </View>
-            </View>
+              <Text style={s.babyChevron}>›</Text>
+            </TouchableOpacity>
           ) : (
-            <View style={s.emptyCard}>
+            <TouchableOpacity
+              style={s.emptyCard}
+              activeOpacity={0.85}
+              onPress={goBabySetup}
+              accessibilityRole="button"
+              accessibilityLabel={t('me.setUpBabyCta')}
+            >
               <Text style={s.emptyText}>
                 {t('me.yourBabyEmpty')}
               </Text>
               <Text style={s.emptyHint}>
                 {t('me.yourBabyEmptyHint')}
               </Text>
-            </View>
+              <View style={s.babySetupBtn}>
+                <Text style={s.babySetupBtnTxt}>{t('me.setUpBabyCta')}</Text>
+              </View>
+            </TouchableOpacity>
           )}
         </Section>
 
@@ -1280,6 +1303,16 @@ const s = StyleSheet.create({
     color: COLORS.barkSoft,
     marginTop: 2,
   },
+  babyChevron: { fontSize: 26, color: '#C9B7A8', marginLeft: 8, fontFamily: FONTS.body },
+  babySetupBtn: {
+    marginTop: 12,
+    alignSelf: 'flex-start',
+    backgroundColor: '#B0234F',
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+    borderRadius: 22,
+  },
+  babySetupBtnTxt: { color: '#FFFCF6', fontSize: 14, fontFamily: FONTS.bodySemiBold },
 
   emptyCard: { paddingHorizontal: 14, paddingVertical: 16 },
   emptyText: {
