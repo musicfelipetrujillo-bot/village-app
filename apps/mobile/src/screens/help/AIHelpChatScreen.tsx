@@ -252,6 +252,8 @@ export default function AIHelpChatScreen() {
         ref={listRef}
         data={messages}
         keyExtractor={(m) => m.id}
+        style={styles.list}
+        keyboardShouldPersistTaps="handled"
         contentContainerStyle={styles.listContent}
         renderItem={renderItem}
         ListFooterComponent={
@@ -326,6 +328,7 @@ const styles = StyleSheet.create({
   titleHeader: { fontSize: 19, fontFamily: FONTS.bodySemiBold, color: '#3D2116', letterSpacing: 0.2 },
   subtitle: { fontSize: 11, color: '#B0855E', marginTop: 3, letterSpacing: 0.4, fontFamily: FONTS.body },
 
+  list: { flex: 1 },
   listContent: { paddingHorizontal: 12, paddingTop: 12, paddingBottom: 12, gap: 6 },
   bubbleRow: { flexDirection: 'row' },
   bubbleRowMine: { justifyContent: 'flex-end' },
