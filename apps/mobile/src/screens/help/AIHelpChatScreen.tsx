@@ -39,12 +39,12 @@ interface UIMessage {
   quickReplies?: string[];
 }
 
-// Billy-facing nav key → concrete React Navigation target. Cross-tab jumps use the
-// getParent() pattern (chat is a modal over the tabs). params pass pre-fill hints.
-// Verified against the live navigators (2026-07-22): Booking→Experts, CreateListing/
-// MyListings→Gear, BoxesHub→Home (paramless hub so a generic "buy a box" intent lands
-// somewhere she can pick + check out), BecomeDonorIntro/TrustBadgeBuilder→Milk, MeRoot→Profile
-// (the Me tab is registered under the name 'Profile' in AppNavigator).
+// Billy-facing nav key → concrete React Navigation target. The chat is a Root-stack
+// modal; the bottom tabs live under the Root screen named 'App' (see RootNavigator),
+// so a cross-tab jump is a NESTED navigate: navigation.navigate('App', { screen: tab,
+// params: { screen, params } }). Verified against the live navigators (2026-07-29):
+// Booking→Experts, CreateListing/MyListings→Gear, BoxesHub/BabyProfileSetup→Home,
+// BecomeDonorIntro/TrustBadgeBuilder→Milk, MeRoot→Profile (Me tab is registered 'Profile').
 const NAV_ROUTES: Record<string, { tab?: string; screen: string }> = {
   booking:            { tab: 'Experts', screen: 'Booking' },
   appointment_book:   { tab: 'Experts', screen: 'Booking' },
@@ -54,14 +54,23 @@ const NAV_ROUTES: Record<string, { tab?: string; screen: string }> = {
   become_donor:       { tab: 'Milk',    screen: 'BecomeDonorIntro' },
   donor_profile_edit: { tab: 'Milk',    screen: 'TrustBadgeBuilder' },
   account_settings:   { tab: 'Profile', screen: 'MeRoot' },
+  baby_profile_setup: { tab: 'Home',    screen: 'BabyProfileSetup' },
 };
+
+// Root-stack screen that hosts the bottom-tab navigator.
+const TABS_ROUTE = 'App';
 
 function runNavigate(navigation: any, action: { screen: string; params?: Record<string, unknown> }) {
   const target = NAV_ROUTES[action.screen];
   if (!target) return;
-  const parent = navigation.getParent?.();
-  if (target.tab && parent) parent.navigate(target.tab, { screen: target.screen, params: action.params });
-  else navigation.navigate(target.screen, action.params);
+  if (target.tab) {
+    // Nested navigate down into the tab's stack, then dismiss the chat so the
+    // destination is actually visible (the chat is a modal sitting on top of the tabs).
+    navigation.navigate(TABS_ROUTE, { screen: target.tab, params: { screen: target.screen, params: action.params } });
+  } else {
+    navigation.navigate(target.screen, action.params);
+  }
+  if (navigation.canGoBack?.()) navigation.goBack();
 }
 
 export default function AIHelpChatScreen() {

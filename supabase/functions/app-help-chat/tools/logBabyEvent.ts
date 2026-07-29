@@ -13,7 +13,7 @@ async function resolveBaby(ctx: ToolContext): Promise<{ user_id: string; baby_pr
 async function run(ctx: ToolContext, input: any) {
   const kind = String(input?.kind ?? '');
   const ids = await resolveBaby(ctx);
-  if (!ids) return { error: 'no_baby_profile', message: "She hasn't set up a baby profile yet — send her to Home to add one." };
+  if (!ids) return { error: 'no_baby_profile', message: "She hasn't set up a baby profile yet. Offer to take her there and call navigate with screen 'baby_profile_setup' — do NOT tell her to find a button on Home herself." };
   const now = new Date();
   const at = input?.minutes_ago ? new Date(now.getTime() - Number(input.minutes_ago) * 60000) : now;
 
@@ -56,6 +56,8 @@ export const logBabyEvent: ToolDef = {
       "Use when she says she just did one, e.g. 'log a 30 min nap', 'he took 4 oz', 'wet diaper'. " +
       "This WRITES to her data — only call it when she's clearly asking to record something, not when she's " +
       "asking a question. After it returns ok, confirm warmly what you logged. If it returns no_baby_profile, " +
+      "call the navigate tool with screen 'baby_profile_setup' to take her straight to the baby-card setup, " +
+      "and say you're taking her there — " +
       "tell her to add her baby on Home first.",
     input_schema: {
       type: 'object',
