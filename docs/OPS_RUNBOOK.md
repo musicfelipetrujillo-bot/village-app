@@ -72,6 +72,7 @@ Companion docs (don't duplicate, just link):
 | `EBAY_APP_ID` + `EBAY_CERT_ID` | gear-price-suggest | optional | eBay Developer Program → Production Keyset | absent → function returns heuristic-only `source: 'heuristic'`. Adding both auto-promotes to live eBay Browse-API comps without any client change. Waiting on Developer account approval (~1 day) as of 2026-05-15. |
 | `ADMIN_USER_IDS` | admin-specialist-invite | yes (for in-app admin invite UI) | comma-separated user UUIDs allowed to issue specialist invites from the mobile Me → Admin tab. Felipe: `8c6b38eb-f5dd-4231-8426-83c7d31453fb`. Empty / missing → all callers rejected (mobile screen surfaces friendly 403). |
 | `PERKS_WEBHOOK_SECRET` / `IMPACT_WEBHOOK_SECRET` / `SHAREASALE_API_SECRET` / `CJ_ALLOWED_IPS` | perks-redemption-webhook | optional | per affiliate network | not active until G3 affiliate contracts |
+| `TRENDING_INGEST_SECRET` | trending-ingest (The Buzz Step-B sourcing agent) | **yes (before The Buzz go-live)** | generate a random 32+ char token (`openssl rand -hex 32`) | shared-secret sent as header `x-village-webhook-token`. The **same value** must be exported to the `villie-buzz-sourcing-ingest-weekly` scheduled-task env. Until set, `trending-ingest` rejects every POST 403 and no issues are ever drafted. |
 
 ### 2.3 · GitHub Actions secrets
 
@@ -306,6 +307,49 @@ curl -i -X POST \
 **End-to-end (test mode):** with `pk_test_…`/`sk_test_…`, run a checkout in the app using Stripe test card `4242 4242 4242 4242`. Then in the Stripe Dashboard → Webhooks → your endpoint, confirm the `payment_intent.succeeded` delivery shows `200`. In Supabase Studio, the matching `villie_box_orders` row should flip `pending_payment → paid` with `paid_at` set. The app's "My orders" screen (hub header or Me → My stuff → "Villie Boxes orders") should show the **Paid** pill.
 
 **Still-open pre-launch gates (not ops — flagged in memory `project_villie_boxes.md`):** FL sales-tax obligation on physical goods (shipping/tax are $0 at launch, baked into box pricing); Risk & Compliance review pass (first first-party physical-goods sale, not in the Risk doc); real retail prices + product photos (current tiles are gradient swatches, prices are placeholders).
+
+### 3.9 · The Buzz (weekly trending digest) — deploy + smoke test
+
+**Code lives on disk, nothing is deployed yet (as of 2026-07-29).** The feature is built end-to-end (migration `105_v7_the_buzz.sql`, 3 edge functions, full mobile surface, EN+ES i18n, both scheduled tasks) but the hosted DB is at migration `103` and no `trending-*` function is deployed. Ship order:
+
+```bash
+# 1. Apply the pending migrations (104 is an idempotent no-op on hosted; 105 is the Buzz schema).
+#    Via Supabase MCP apply_migration, or `supabase db push` from the repo.
+#    NOTE: 105 DROP+recreates list_pending_review() with a NEW return shape. The live
+#    ClinicalReviewScreen must be on the matching mobile build/OTA before this lands, or the
+#    internal review queue errors for reviewer accounts. Confirm which OTA/build is live first.
+
+# 2. Deploy the 3 edge functions
+supabase functions deploy trending-ingest
+supabase functions deploy trending-compliance-pass
+supabase functions deploy trending-publish-notify
+
+# 3. Set secrets (Dashboard → Edge Functions → Manage Secrets)
+#    TRENDING_INGEST_SECRET = <openssl rand -hex 32>   (§2.2)
+#    ANTHROPIC_API_KEY already set (shared) — used by trending-compliance-pass.
+#    Also set app.supabase_url + app.service_role_key Postgres GUCs so the publish
+#    trigger's pg_net POST to trending-publish-notify can fire (same GUCs the other crons need).
+
+# 4. Export the SAME TRENDING_INGEST_SECRET into the villie-buzz-sourcing-ingest-weekly
+#    scheduled-task env (~/.claude/scheduled-tasks/…) so Step-B can authenticate to trending-ingest.
+
+# 5. Give yourself the reviewer flag so medical-claim items reach the review screen:
+#    UPDATE public.users SET is_clinical_reviewer = TRUE WHERE email = '<you>';
+
+# 6. Smoke test: a bad token must be rejected (proves auth is live).
+curl -i -X POST \
+  "https://albyndcruwopulazvpjs.supabase.co/functions/v1/trending-ingest" \
+  -H 'Content-Type: application/json' \
+  -H 'x-village-webhook-token: wrong' \
+  -d '{"issue_date":"2026-07-29","issue_title":"t","issue_intro":"i","items":[]}'
+# Expect: HTTP/2 403 {"error":"forbidden"} — a 403 here is GOOD (auth enforced).
+# With the real token + a valid items[] payload (see body shape in the fn header),
+# expect {"issue_id":"…","results":[…]} and draft/in_review rows in trending_items.
+```
+
+**End-to-end:** let the two scheduled tasks run (discovery Fri → sourcing+ingest 30 min later), or hand-POST a test issue. Medical-claim items land `in_review` → appear in ClinicalReviewScreen (reviewer accounts) → approve → the last approve auto-publishes the issue → Home shows the "the buzz is here" card. Non-medical items auto-clear via `trending-compliance-pass`.
+
+**Pre-launch gates (not ops — from spec §6 + memory):** clinical-advisor sign-off on the review gate; confirm the source allowlist domains with counsel; the standing editorial disclaimer must render on every Buzz surface (it does — `theBuzz.disclaimer` key).
 
 ---
 
