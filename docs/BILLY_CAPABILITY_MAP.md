@@ -20,12 +20,13 @@ via the `log_baby_event` tool, and 6 route deep-links via the generic `navigate`
 | Find events nearby | read | rpc:list_events_near | N | yes | E-find-events |
 | Find daycares nearby | read | fn:daycares-nearby | N | yes | E-find-daycares |
 | Read my baby tracking stats | read | (client) baby_sleep/feed/diaper_logs aggregate | N | yes | E-read-tracking-stats |
-| Log a nap / start sleep timer | do | insert:baby_sleep_logs | N | code | E-start-sleep |
+| Log a nap / start sleep timer | do | insert:baby_sleep_logs | N | yes | E-start-sleep |
 | Stop / end a sleep timer | do | update:baby_sleep_logs | N | no | E-stop-sleep |
 | Log a nursing session / start feed timer | do | insert:baby_feed_logs | N | no | E-start-feed |
 | Stop / end a feed timer | do | update:baby_feed_logs | N | no | E-stop-feed |
-| Log a bottle feed | do | insert:baby_feed_logs | N | code | E-log-bottle |
-| Log a diaper change | do | insert:baby_diaper_logs | N | code | E-log-diaper |
+| Log a bottle feed | do | insert:baby_feed_logs | N | yes | E-log-bottle |
+| Log a diaper change | do | insert:baby_diaper_logs | N | yes | E-log-diaper |
+| Remember a fact from conversation (Billy's brain) | do | insert:villie_memories (mig 109) | N | code | E-remember-fact |
 | Jot a freeform baby note | do | insert:baby_log_notes | N | no | E-log-note |
 | Parse a voice/text jot into structured logs | do | fn:playbook-parse-note | N | no | E-parse-note |
 | Read today's logs (feeds/naps/diapers) | read | (client) baby_sleep/feed/diaper_logs | N | no | E-read-today-logs |
