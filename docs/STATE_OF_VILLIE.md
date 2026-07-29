@@ -4,10 +4,12 @@
 Read this first. Update it last. When sessions collide (duplicate migration numbers, duplicate
 feature builds, stepping on shared files), the fix is: everyone coordinates *here*.
 
-- **Last updated:** 2026-07-10 (waitlist migration 100 committed, merged, and applied to prod)
-- **`origin/main` head:** `c289456` (waitlist migration, #5). Local main was fast-forwarded to match — no drift.
+- **Last updated:** 2026-07-29 (git reconciliation + deploy-state correction — see banner below)
+- **`main` head:** `7ccd612` (merge: Billy Wave 1 client integrated into the boxes lineage for OTA). Local `main` fast-forwarded to this on 2026-07-29; **not yet pushed to `origin/main`** (was `c289456`).
 - **Authoritative for:** in-flight work, migration numbers, deploy queue, launch sequence.
 - **NOT authoritative for:** per-phase build history (`CLAUDE.md`), env/key setup (`docs/OPS_RUNBOOK.md`), product intent (`docs/source/*`). This doc points at those; it doesn't replace them.
+
+> 🔴 **2026-07-29 CORRECTION — much of §2–§4 below (dated 2026-07-10) is STALE.** Verified against live hosted Supabase (`albyndcruwopulazvpjs`) via read-only MCP: **ALL migrations `001`→`105` are applied on prod** (not "highest applied 100 / 098+099 unapplied" as the old text says) and **every edge function is ACTIVE** — Billy Wave 1 (`app-help-chat` v25), The Buzz trio, `milk-vault-scan` v2, etc. **The backend deploy queue is EMPTY. Next free migration = 106.** The git drift is also resolved: `feat/billy-capability-coverage` + `feat/villie-boxes-home-polish` are reconciled and `main` now contains both (head `7ccd612`, typecheck-clean). **The only remaining "ship it" step is the OTA JS bundle** (`eas update --channel production` from `main`/`integration/ota-2026-07-29`). Trust this banner + memory `project_deploy_state_2026_07` over the older per-line claims below until those lines are individually rewritten.
 
 > ⚠️ **Before you create a migration, claim its number in §3.** Before you start building a feature, check §2 that no other session already owns it. At the end of your session, update §2, §3, §4.
 
@@ -56,9 +58,9 @@ Villie is a **pre-launch** maternal-health platform (React Native + Expo + Supab
 
 **This is the section that stops sessions from stepping on each other. Claim your number HERE before you create the file.**
 
-- **Highest APPLIED on prod:** **100** (`100_waitlist.sql`, applied 2026-07-10 via SQL editor — `public.waitlist` live, RLS on, already has a real signup). Also applied: 097, 096, 095, 093. **098 + 099 are merged but NOT yet applied** — gap in the sequence, top of the apply queue (§4). A `supabase db push` catches up 098/099 (095–097/100 re-run idempotently).
-- **Highest ON DISK (`origin/main`):** **100.**
-- **Highest CLAIMED:** **100.**
+- **Highest APPLIED on prod:** **105** (verified 2026-07-29 via read-only MCP `list_migrations`). **ALL of `001`→`105` are applied** — including 098 (retire milk Stripe), 099 (Milk Vault), 101 (Care help tier), 102 (day sheets), 103 (daycares), 104 (RLS backfill), 105 (The Buzz). The old "098+099 unapplied" gap is closed. The apply queue is **empty**.
+- **Highest ON DISK (`main`):** **105.**
+- **Highest CLAIMED:** **105. → NEXT FREE = 106.**
 
 | # | Name | What | Status |
 |---|---|---|---|
@@ -76,7 +78,7 @@ Villie is a **pre-launch** maternal-health platform (React Native + Expo + Supab
 
 **Rule (enforced):**
 1. Before creating any migration, add a row to the table above with your number, name, and "CLAIMED — <branch>".
-2. Use the **next free number** (currently **101**). Never reuse 098/099/100 — 098/099 are merged-but-unapplied, 100 is an uncommitted file already on disk.
+2. Use the **next free number** (currently **106**). Never reuse 001–105 — all are on disk in `main` and applied to prod.
 3. Filenames are **numeric-prefix only** (`101_...sql`) — the CLI silently skips `101b`.
 4. After your PR merges + the migration applies, update the row to ✅ APPLIED.
 
