@@ -9,7 +9,8 @@ import Anthropic from 'npm:@anthropic-ai/sdk';
 import { createClient } from 'npm:@supabase/supabase-js';
 import { dispatch, TOOLS } from './tools/registry.ts';
 import { isNavigate } from './tools/types.ts';
-import type { Loc } from './tools/types.ts';
+import type { BabyCtx, Loc } from './tools/types.ts';
+import { NAV_TARGETS } from './tools/navigate.ts';
 
 const anthropic = new Anthropic({ apiKey: Deno.env.get('ANTHROPIC_API_KEY')! });
 
@@ -68,7 +69,7 @@ Return ONLY valid JSON:
 // AI-native Phase 1 — tool guidance appended as a second system block so the big
 // SYSTEM_PROMPT stays untouched. Also corrects a few stale facts in that prompt.
 const TOOL_GUIDE = `## Live look-ups (tools)
-You can read the mom's OWN logged data. Call get_baby_tracking_stats when she asks about her baby's sleep / feeding / diaper PATTERNS — e.g. "is he ready to drop to 2 naps?", "how are his wake windows?", "is he sleeping enough?", "how many diapers is normal for us?". Then ground your answer in the numbers it returns, framed as supportive patterns from HER logs — NOT medical advice. If it returns has_data:false, tell her the Playbook tracker has nothing logged yet and invite her to start under Manual → Playbook. Do NOT call the tool for general-knowledge questions.
+You can read the mom's OWN logged data. Call get_baby_tracking_stats when she asks about her baby's sleep / feeding / diaper PATTERNS or "how were his feeds/naps today" — CALL IT IMMEDIATELY, never ask her whether she has a baby profile or logged data first (the tool tells you). Ground your answer in the numbers it returns, framed as supportive patterns from HER logs — NOT medical advice. If it returns has_data:false, say nothing's logged yet and invite her to start (cta "playbook"). Do NOT call the tool for general-knowledge questions.
 
 Call find_specialists / search_gear / find_donors when she asks to FIND a provider, used gear, or donor milk near her — then summarize the top few results warmly (name, distance, price/rating) and tell her where to tap to go further (Experts / Gear / Milk tab). If a tool returns need_location:true, don't guess — ask her to enable location for the app or tell you her ZIP/city, and offer to still explain how to search that tab herself. If count is 0, say nothing's listed nearby right now and suggest widening later or checking the tab.
 
@@ -83,7 +84,17 @@ When your reply asks the mom a question that has a SMALL, COMMON set of answers 
 - Yes/no forks → ["Yes", "No", "Not sure yet"]
 - Picking a baby age / stage / count when you need it and don't already know.
 Rules: options must be things SHE would say (first person / short noun), mutually distinct, and genuinely answer the question you just asked. OMIT quick_replies entirely for open-ended questions, for statements, or when you're giving info rather than asking. Never pad with a filler option just to hit a count.
-Always return ONLY the JSON object described above (even after using a tool). You MAY add the optional "quick_replies" key to that same JSON.`;
+
+## Her baby + what you remember (context you already have)
+The context line on her message may include her baby (name, week, feeding_method) and "things you've learned" from past chats. USE them: call the baby by name, and NEVER re-ask anything already there. Logging rules: when she asks to log something and gave you the essentials (kind + amount/duration), log it IMMEDIATELY with log_baby_event — no follow-up questions. Never ask what was in a bottle (contents aren't recorded; her feeding_method is already in context).
+When she tells you a small durable practical fact about her routines or preferences ("he only takes pumped-milk bottles", "we do bath at 7", "she naps in the carrier"), silently call remember_fact so future chats know it. NEVER store medical symptoms, crisis content, or another person's personal details.
+
+## Plain text, short
+"reply" is rendered VERBATIM — plain text only, no markdown (**bold**, bullets, headers). 1–2 short paragraphs max.
+
+## Tappable open-button (cta)
+You MAY add an optional "cta" key to the response JSON: {"label": "short label ≤24 chars", "screen": "one of: playbook | booking | appointment_book | gear_create | box_checkout | gear_boost | become_donor | donor_profile_edit | account_settings | baby_profile_setup"}. Use it whenever a screen lets her SEE or FINISH what you just did — after logging anything → {"label":"Open Playbook","screen":"playbook"}; after starting the nap timer → {"label":"See the timer","screen":"playbook"}. At most one; omit when irrelevant.
+Always return ONLY the JSON object described above (even after using a tool). You MAY add the optional "quick_replies" and "cta" keys to that same JSON.`;
 
 interface InboundMessage {
   role: 'user' | 'assistant';
@@ -123,25 +134,47 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Keep last 12 turns to bound token cost
-    const trimmed = messages.slice(-12).map((m) => ({
-      role: m.role,
-      content: m.role === 'user' && m === messages[messages.length - 1]
-        ? `${m.content}
-
-(context — user's pregnancy_stage: ${userContext.pregnancy_stage ?? 'unknown'}, due_date: ${userContext.due_date ?? 'unknown'})${availabilityLine}
-
-Reply with JSON only.`
-        : m.content,
-    }));
-
-    // User-scoped client so the tracking tool reads ONLY her rows (RLS).
+    // User-scoped client so every tool reads/writes ONLY her rows (RLS).
     const authHeader = req.headers.get('Authorization') ?? '';
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_ANON_KEY')!,
       { global: { headers: { Authorization: authHeader } } },
     );
+
+    // Baby profile + learned memories, fetched fresh each request (both RLS-scoped,
+    // both fail-soft so chat keeps working if either is missing or the memories
+    // table hasn't been migrated yet).
+    const [babyR, memR] = await Promise.all([
+      supabase.from('baby_profiles_with_week')
+        .select('id, baby_name, feeding_method, current_week_number')
+        .order('created_at', { ascending: true }).limit(1).maybeSingle()
+        .then((r: any) => r?.data ?? null).catch(() => null),
+      supabase.from('villie_memories')
+        .select('fact').order('created_at', { ascending: false }).limit(20)
+        .then((r: any) => (r?.data ?? []) as { fact: string }[]).catch(() => []),
+    ]);
+    const baby: BabyCtx = babyR?.id
+      ? { id: babyR.id, name: babyR.baby_name ?? null, feeding_method: babyR.feeding_method ?? null, week: babyR.current_week_number ?? null }
+      : null;
+    const babyLine = baby
+      ? `\n(her baby: name ${baby.name ?? 'not set'}, week ${baby.week ?? '?'}, feeding_method ${baby.feeding_method ?? 'unknown'} — a baby profile EXISTS; never ask whether she has one, and never re-ask anything listed here.)`
+      : '';
+    const memoryLine = memR.length
+      ? `\n(things you've learned about her from past chats — use naturally, never re-ask: ${memR.map((m) => m.fact).join(' | ')})`
+      : '';
+
+    // Keep last 12 turns to bound token cost
+    const trimmed = messages.slice(-12).map((m) => ({
+      role: m.role,
+      content: m.role === 'user' && m === messages[messages.length - 1]
+        ? `${m.content}
+
+(context — user's pregnancy_stage: ${userContext.pregnancy_stage ?? 'unknown'}, due_date: ${userContext.due_date ?? 'unknown'})${babyLine}${memoryLine}${availabilityLine}
+
+Reply with JSON only.`
+        : m.content,
+    }));
 
     const systemBlocks = [
       { type: 'text', text: SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } },
@@ -166,7 +199,7 @@ Reply with JSON only.`
       if (toolUses.length === 0) { aiResponse = resp; break; }
       convo.push({ role: 'assistant', content: resp.content });
       const toolResults: any[] = [];
-      const ctx = { supabase, loc: userLocation };
+      const ctx = { supabase, loc: userLocation, baby };
       for (const tu of toolUses as any[]) {
         const out = await dispatch(tu.name, ctx, tu.input);
         if (isNavigate(out)) {
@@ -207,6 +240,14 @@ Reply with JSON only.`
           .slice(0, 5)
       : undefined;
 
+    // Optional tappable "open" button — allowlist-validated against NAV_TARGETS,
+    // suppressed on crisis turns (the crisis card must be the only reach).
+    const cta = (!parsed.crisis
+        && parsed.cta && typeof parsed.cta.label === 'string'
+        && (NAV_TARGETS as readonly string[]).includes(String(parsed.cta.screen)))
+      ? { label: String(parsed.cta.label).trim().slice(0, 28), screen: String(parsed.cta.screen) }
+      : undefined;
+
     return new Response(
       JSON.stringify({
         reply: parsed.reply ?? '',
@@ -214,6 +255,7 @@ Reply with JSON only.`
         crisis_resources: resolvedResources,
         quick_replies: quickReplies && quickReplies.length > 0 ? quickReplies : undefined,
         navigate: navigateAction ?? undefined,
+        cta,
       }),
       { headers: { ...CORS, 'Content-Type': 'application/json' } },
     );

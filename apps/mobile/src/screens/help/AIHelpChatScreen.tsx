@@ -37,7 +37,12 @@ interface UIMessage {
   content: string;
   crisisResources?: Record<string, CrisisResource>;
   quickReplies?: string[];
+  cta?: { label: string; screen: string };
 }
+
+// The model is told plain-text-only, but strip any markdown emphasis that slips
+// through so the mom never sees literal ** or * asterisks in a bubble.
+const stripMd = (s: string) => s.replace(/\*\*(.+?)\*\*/g, '$1').replace(/(^|\s)\*(\S[^*]*?)\*(?=\s|$|[.,!?])/g, '$1$2');
 
 // Billy-facing nav key → concrete React Navigation target. The chat is a Root-stack
 // modal; the bottom tabs live under the Root screen named 'App' (see RootNavigator),
@@ -45,7 +50,7 @@ interface UIMessage {
 // params: { screen, params } }). Verified against the live navigators (2026-07-29):
 // Booking→Experts, CreateListing/MyListings→Gear, BoxesHub/BabyProfileSetup→Home,
 // BecomeDonorIntro/TrustBadgeBuilder→Milk, MeRoot→Profile (Me tab is registered 'Profile').
-const NAV_ROUTES: Record<string, { tab?: string; screen: string }> = {
+const NAV_ROUTES: Record<string, { tab?: string; screen: string; params?: Record<string, unknown> }> = {
   booking:            { tab: 'Experts', screen: 'Booking' },
   appointment_book:   { tab: 'Experts', screen: 'Booking' },
   gear_create:        { tab: 'Gear',    screen: 'CreateListing' },
@@ -55,6 +60,8 @@ const NAV_ROUTES: Record<string, { tab?: string; screen: string }> = {
   donor_profile_edit: { tab: 'Milk',    screen: 'TrustBadgeBuilder' },
   account_settings:   { tab: 'Profile', screen: 'MeRoot' },
   baby_profile_setup: { tab: 'Home',    screen: 'BabyProfileSetup' },
+  // Playbook tracker lives inside the Manual tab's home as a view toggle.
+  playbook:           { tab: 'Manual',  screen: 'ManualHome', params: { view: 'playbook' } },
 };
 
 // Root-stack screen that hosts the bottom-tab navigator.
@@ -63,12 +70,13 @@ const TABS_ROUTE = 'App';
 function runNavigate(navigation: any, action: { screen: string; params?: Record<string, unknown> }) {
   const target = NAV_ROUTES[action.screen];
   if (!target) return;
+  const params = { ...(target.params ?? {}), ...(action.params ?? {}) };
   if (target.tab) {
     // Nested navigate down into the tab's stack, then dismiss the chat so the
     // destination is actually visible (the chat is a modal sitting on top of the tabs).
-    navigation.navigate(TABS_ROUTE, { screen: target.tab, params: { screen: target.screen, params: action.params } });
+    navigation.navigate(TABS_ROUTE, { screen: target.tab, params: { screen: target.screen, params } });
   } else {
-    navigation.navigate(target.screen, action.params);
+    navigation.navigate(target.screen, params);
   }
   if (navigation.canGoBack?.()) navigation.goBack();
 }
@@ -154,11 +162,12 @@ export default function AIHelpChatScreen() {
         {
           id: `a-${Date.now()}`,
           role: 'assistant',
-          content: res.reply,
+          content: stripMd(res.reply),
           crisisResources: res.crisis ? res.crisis_resources : undefined,
           // Suppress the tap-pills in a crisis turn — the crisis card must be the
           // only thing she reaches for there.
           quickReplies: res.crisis ? undefined : res.quick_replies,
+          cta: res.crisis ? undefined : res.cta,
         },
       ]);
       if (res.navigate) {
@@ -220,6 +229,19 @@ export default function AIHelpChatScreen() {
                 <Text style={styles.qrText}>{qr}</Text>
               </TouchableOpacity>
             ))}
+          </View>
+        )}
+        {!mine && item.cta && NAV_ROUTES[item.cta.screen] && (
+          <View style={styles.qrWrap}>
+            <TouchableOpacity
+              style={styles.ctaPill}
+              activeOpacity={0.85}
+              onPress={() => runNavigate(navigation, { screen: item.cta!.screen })}
+              accessibilityRole="button"
+              accessibilityLabel={item.cta.label}
+            >
+              <Text style={styles.ctaText}>{item.cta.label} ›</Text>
+            </TouchableOpacity>
           </View>
         )}
         {item.crisisResources && (
@@ -357,6 +379,14 @@ const styles = StyleSheet.create({
     shadowColor: '#B4785A', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 1,
   },
   qrText: { fontSize: 14, color: '#B0234F', fontFamily: FONTS.bodySemiBold, letterSpacing: 0.1 },
+
+  // Deep-link CTA pill — filled (vs the outlined send-a-reply pills) so it
+  // reads as "this takes you somewhere", not "this answers the question".
+  ctaPill: {
+    backgroundColor: '#B0234F', borderRadius: 18, paddingHorizontal: 16, paddingVertical: 10,
+    shadowColor: '#B4785A', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.10, shadowRadius: 6, elevation: 2,
+  },
+  ctaText: { fontSize: 14, color: '#FFFCF6', fontFamily: FONTS.bodySemiBold, letterSpacing: 0.1 },
 
   // Crisis card — was flat blush bg, low contrast in the chat scroll.
   // Lift recipe + paper bg so it reads as a deliberate intervention.

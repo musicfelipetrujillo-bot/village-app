@@ -3,10 +3,12 @@ import type { SupabaseClient } from 'npm:@supabase/supabase-js';
 
 export type ToolTier = 'read' | 'do' | 'route';
 export type Loc = { lat: number; lng: number } | null;
+export type BabyCtx = { id: string; name: string | null; feeding_method: string | null; week: number | null } | null;
 
 export interface ToolContext {
   supabase: SupabaseClient;      // user-scoped (RLS) — reads/writes ONLY her rows
   loc: Loc;                      // best-effort device location
+  baby?: BabyCtx;                // her baby profile, pre-fetched per request (null = none yet)
 }
 
 // A do/read tool returns any JSON (becomes the tool_result the model reads).

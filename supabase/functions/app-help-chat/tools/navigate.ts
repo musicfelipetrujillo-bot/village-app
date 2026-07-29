@@ -5,7 +5,7 @@ import type { ToolDef } from './types.ts';
 export const NAV_TARGETS = [
   'booking', 'gear_create', 'box_checkout', 'gear_boost',
   'become_donor', 'donor_profile_edit', 'appointment_book', 'account_settings',
-  'baby_profile_setup',
+  'baby_profile_setup', 'playbook',
 ] as const;
 
 export const navigate: ToolDef = {

@@ -4,6 +4,8 @@ async function resolveBaby(ctx: ToolContext): Promise<{ user_id: string; baby_pr
   const { data: auth } = await ctx.supabase.auth.getUser();
   const user_id = auth?.user?.id;
   if (!user_id) return null;
+  // Prefer the per-request pre-fetched profile (index.ts); fall back to a query.
+  if (ctx.baby?.id) return { user_id, baby_profile_id: ctx.baby.id };
   const { data } = await ctx.supabase
     .from('baby_profiles').select('id').order('created_at', { ascending: true }).limit(1).maybeSingle();
   if (!data?.id) return null;
@@ -54,11 +56,14 @@ export const logBabyEvent: ToolDef = {
     description:
       "Log ONE baby event to the mom's Playbook tracker for HER baby: a nap, a feed, or a diaper. " +
       "Use when she says she just did one, e.g. 'log a 30 min nap', 'he took 4 oz', 'wet diaper'. " +
+      "Call it IMMEDIATELY once you know kind (+ amount/duration if she gave one) — do NOT ask follow-up " +
+      "questions first. Never ask what was in a bottle: contents aren't recorded (only method + oz), and her " +
+      "feeding_method is already in your context. " +
       "This WRITES to her data — only call it when she's clearly asking to record something, not when she's " +
-      "asking a question. After it returns ok, confirm warmly what you logged. If it returns no_baby_profile, " +
+      "asking a question. After it returns ok, confirm warmly what you logged and add cta " +
+      '{"label":"Open Playbook","screen":"playbook"}. If it returns no_baby_profile, ' +
       "call the navigate tool with screen 'baby_profile_setup' to take her straight to the baby-card setup, " +
-      "and say you're taking her there — " +
-      "tell her to add her baby on Home first.",
+      "and say you're taking her there.",
     input_schema: {
       type: 'object',
       properties: {

@@ -32,6 +32,8 @@ export interface HelpChatResponse {
   quick_replies?: string[];
   /** Route-to action: Billy deep-links the mom to a screen to finish a sensitive task herself. */
   navigate?: { screen: string; params?: Record<string, unknown> };
+  /** Optional tappable open-button under the reply — deep-links via the same NAV_ROUTES map. */
+  cta?: { label: string; screen: string };
 }
 
 export const appHelpApi = {
