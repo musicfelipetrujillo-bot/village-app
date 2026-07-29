@@ -308,48 +308,32 @@ curl -i -X POST \
 
 **Still-open pre-launch gates (not ops — flagged in memory `project_villie_boxes.md`):** FL sales-tax obligation on physical goods (shipping/tax are $0 at launch, baked into box pricing); Risk & Compliance review pass (first first-party physical-goods sale, not in the Risk doc); real retail prices + product photos (current tiles are gradient swatches, prices are placeholders).
 
-### 3.9 · The Buzz (weekly trending digest) — deploy + smoke test
+### 3.9 · The Buzz (weekly trending digest) — deploy state + smoke test
 
-**Code lives on disk, nothing is deployed yet (as of 2026-07-29).** The feature is built end-to-end (migration `105_v7_the_buzz.sql`, 3 edge functions, full mobile surface, EN+ES i18n, both scheduled tasks) but the hosted DB is at migration `103` and no `trending-*` function is deployed. Ship order:
+**✅ BACKEND FULLY DEPLOYED (2026-07-29).** Migrations `104` + `105` recorded on hosted; all three edge functions ACTIVE (`trending-ingest` `--no-verify-jwt` / shared-secret, `trending-compliance-pass` + `trending-publish-notify` verify_jwt=true / service-role-locked); `TRENDING_INGEST_SECRET` set in Edge Function Secrets **and** mirrored to gitignored `supabase/.env.local` (where the Step-B scheduled task reads it); `ANTHROPIC_API_KEY` + `SUPABASE_URL/SERVICE_ROLE_KEY` set; `felitrujillo95@hotmail.com` is `is_clinical_reviewer`. First real issue already ingested (`c3cc6efb…`, 4 medical items sitting `in_review`).
 
+Deployed with the authenticated Supabase CLI (`supabase functions deploy <name>` — bundles via API, no Docker). The MCP token is **read-only** (`apply_migration`/`deploy_edge_function` fail "read-only mode") — use the CLI for any hosted write.
+
+**Health check (any time):**
 ```bash
-# 1. Apply the pending migrations (104 is an idempotent no-op on hosted; 105 is the Buzz schema).
-#    Via Supabase MCP apply_migration, or `supabase db push` from the repo.
-#    NOTE: 105 DROP+recreates list_pending_review() with a NEW return shape. The live
-#    ClinicalReviewScreen must be on the matching mobile build/OTA before this lands, or the
-#    internal review queue errors for reviewer accounts. Confirm which OTA/build is live first.
-
-# 2. Deploy the 3 edge functions
-supabase functions deploy trending-ingest
-supabase functions deploy trending-compliance-pass
-supabase functions deploy trending-publish-notify
-
-# 3. Set secrets (Dashboard → Edge Functions → Manage Secrets)
-#    TRENDING_INGEST_SECRET = <openssl rand -hex 32>   (§2.2)
-#    ANTHROPIC_API_KEY already set (shared) — used by trending-compliance-pass.
-#    Also set app.supabase_url + app.service_role_key Postgres GUCs so the publish
-#    trigger's pg_net POST to trending-publish-notify can fire (same GUCs the other crons need).
-
-# 4. Export the SAME TRENDING_INGEST_SECRET into the villie-buzz-sourcing-ingest-weekly
-#    scheduled-task env (~/.claude/scheduled-tasks/…) so Step-B can authenticate to trending-ingest.
-
-# 5. Give yourself the reviewer flag so medical-claim items reach the review screen:
-#    UPDATE public.users SET is_clinical_reviewer = TRUE WHERE email = '<you>';
-
-# 6. Smoke test: a bad token must be rejected (proves auth is live).
-curl -i -X POST \
-  "https://albyndcruwopulazvpjs.supabase.co/functions/v1/trending-ingest" \
-  -H 'Content-Type: application/json' \
-  -H 'x-village-webhook-token: wrong' \
-  -d '{"issue_date":"2026-07-29","issue_title":"t","issue_intro":"i","items":[]}'
-# Expect: HTTP/2 403 {"error":"forbidden"} — a 403 here is GOOD (auth enforced).
-# With the real token + a valid items[] payload (see body shape in the fn header),
-# expect {"issue_id":"…","results":[…]} and draft/in_review rows in trending_items.
+# Function auth posture — a bad token must be rejected.
+for fn in trending-ingest trending-compliance-pass trending-publish-notify; do
+  printf "%s -> " "$fn"
+  curl -s -o /dev/null -w "%{http_code}\n" -X POST \
+    "https://albyndcruwopulazvpjs.supabase.co/functions/v1/$fn" \
+    -H 'Content-Type: application/json' -H 'x-village-webhook-token: wrong' -d '{"probe":true}'
+done
+# Expect: trending-ingest -> 403 (its shared-secret guard, GOOD);
+#         trending-compliance-pass -> 401, trending-publish-notify -> 401 (JWT-locked, GOOD).
+# With the real token (supabase/.env.local) + a valid items[] payload (body shape in the fn
+# header) trending-ingest returns {"issue_id":"…","results":[…]}.
 ```
 
-**End-to-end:** let the two scheduled tasks run (discovery Fri → sourcing+ingest 30 min later), or hand-POST a test issue. Medical-claim items land `in_review` → appear in ClinicalReviewScreen (reviewer accounts) → approve → the last approve auto-publishes the issue → Home shows the "the buzz is here" card. Non-medical items auto-clear via `trending-compliance-pass`.
+**End-to-end:** the two scheduled tasks run weekly (discovery Fri → sourcing+ingest 30 min later). Medical-claim items land `in_review` → appear in ClinicalReviewScreen (reviewer accounts) → approve → the last approve auto-publishes the issue → Home shows the "the buzz is here" card. Non-medical items auto-clear via `trending-compliance-pass`. **To finish the current dry run:** sign in as `felitrujillo95@hotmail.com`, open ClinicalReviewScreen, approve all 4 items on issue `c3cc6efb…` → it auto-publishes.
 
-**Pre-launch gates (not ops — from spec §6 + memory):** clinical-advisor sign-off on the review gate; confirm the source allowlist domains with counsel; the standing editorial disclaimer must render on every Buzz surface (it does — `theBuzz.disclaimer` key).
+**Known limitations / remaining gates:**
+- **Push-on-publish is OFF (Free-Tier GUC lock).** The publish trigger's `pg_net` POST to `trending-publish-notify` needs `app.supabase_url` + `app.service_role_key` Postgres GUCs, which Supabase Free Tier locks (same reason crons moved to GitHub Actions — see `project_hosted_deploy`). The POST is wrapped in `EXCEPTION → NULL`, so **publishing and the Home card still work; only the proactive push is skipped.** To enable: Pro tier + set the GUCs, or drive the notify from the GH-Actions path.
+- **Clinical-advisor sign-off** on the review gate before real medical-claim content goes out to users (existing launch-blocker; infra + dry run don't need it). Confirm the source-allowlist domains with counsel. The standing editorial disclaimer renders on every Buzz surface (`theBuzz.disclaimer`).
 
 ---
 
