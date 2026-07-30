@@ -83,6 +83,10 @@ const NAV_ROUTES: Record<string, { tab?: string; screen: string; params?: Record
   // Reporting lives in a modal on GearListingDetail, which needs a listing id —
   // the browse list is the safe paramless entry.
   report_gear:        { tab: 'Gear',    screen: 'GearBrowse' },
+  // Day Sheet caregiver handoff. The list is the safe paramless entry — a
+  // Billy-drafted sheet sorts to the top (updated_at desc); DaySheetBuilder
+  // without an id would start a fresh draft instead of opening Billy's.
+  day_sheet:          { tab: 'Home',    screen: 'DaySheetList' },
 };
 
 // Root-stack screen that hosts the bottom-tab navigator.

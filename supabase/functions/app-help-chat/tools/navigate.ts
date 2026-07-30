@@ -9,6 +9,7 @@ export const NAV_TARGETS = [
   // Wave 2 route batch
   'write_review', 'message_specialist', 'create_milk_listing', 'milk_messages',
   'vault_create_listing', 'gear_status', 'gear_messages', 'report_gear',
+  'day_sheet',
 ] as const;
 
 export const navigate: ToolDef = {
@@ -26,7 +27,7 @@ export const navigate: ToolDef = {
       "post a milk listing ('create_milk_listing'), open her milk messages ('milk_messages'), " +
       "sell or donate stashed vault milk ('vault_create_listing'), manage her gear listings / mark one " +
       "sold ('gear_status'), open her gear messages ('gear_messages'), report a gear listing " +
-      "('report_gear'), or " +
+      "('report_gear'), review / edit / share her caregiver day sheets ('day_sheet'), or " +
       "set up her baby's profile / baby card ('baby_profile_setup') — use this whenever she needs a " +
       "baby profile before you can log naps/feeds/diapers. " +
       "In your reply, tell her you're taking her there and what she'll do on that screen.",
