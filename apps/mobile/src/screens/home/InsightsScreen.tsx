@@ -17,6 +17,8 @@ import { useHomeStore } from '@store/home';
 import { useMilkVaultStore } from '@store/milkVault';
 import { FONTS } from '@utils/constants';
 import { BackButton } from '@components/shared/BackButton';
+import { useUserStore } from '@store/user';
+import PlaybookTracker from '@/components/manual/PlaybookTracker';
 
 const C = {
   cream: '#FCF7EF', paper: '#FFFCF6',
@@ -73,6 +75,7 @@ export default function InsightsScreen() {
 
   const babyName = babyProfile?.baby_name ?? 'your baby';
   const week = babyProfile?.current_week_number ?? null;
+  const lang = (useUserStore.getState().profile?.preferred_language ?? 'en') as 'en' | 'es';
   const ww = stats?.avgWakeWindowMin ?? null;
   const milkAdded = vault?.weeklyOuncesAdded ?? 0;
   const goodDays = moods.filter((m) => m.mood_score >= 3).length;
@@ -97,6 +100,17 @@ export default function InsightsScreen() {
           <View style={styles.center}><ActivityIndicator color={C.rose} /></View>
         ) : (
           <ScrollView contentContainerStyle={{ paddingBottom: 90 }} showsVerticalScrollIndicator={false}>
+            {/* Log first (2026-07-15 — the retired Manual/Playbook view's tracker
+                now lives HERE): quick-log on Home lands on this screen, so the
+                sleep/feed/diaper logger sits at the top, and everything below
+                is the read-back on what she logged. */}
+            <PlaybookTracker
+              babyProfileId={babyProfile?.id ?? null}
+              babyName={babyProfile?.baby_name ?? 'baby'}
+              week={week ?? 1}
+              lang={lang}
+            />
+
             {/* Villie's read — the gradient "Villie moment" */}
             <LinearGradient colors={['#E84B79', '#F6C94F']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.narrCard}>
               <View style={styles.narrHead}>
@@ -175,7 +189,9 @@ const styles = StyleSheet.create({
 
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: 4, paddingBottom: 14 },
   back: { fontSize: 30, color: C.roseInk, marginTop: -4 },
-  title: { fontFamily: FONTS.v2_bold, fontSize: 17, color: C.cocoa },
+  // Editorial masthead (not the 17px HubHeader spec — Insights is a destination
+  // screen, not a vertical hub): Bricolage display at 28, lowercase brand voice.
+  title: { fontFamily: FONTS.headerBold, fontSize: 28, color: C.cocoa, letterSpacing: -0.5 },
   weekChip: { backgroundColor: '#F2E6DD', borderRadius: 999, paddingHorizontal: 11, paddingVertical: 5 },
   weekChipText: { fontFamily: FONTS.v2_mono, fontSize: 9, letterSpacing: 1.3, textTransform: 'uppercase', color: C.walnut, fontWeight: '600' },
 
