@@ -51,8 +51,10 @@ const stripMd = (s: string) => s.replace(/\*\*(.+?)\*\*/g, '$1').replace(/(^|\s)
 // Booking→Experts, CreateListing/MyListings→Gear, BoxesHub/BabyProfileSetup→Home,
 // BecomeDonorIntro/TrustBadgeBuilder→Milk, MeRoot→Profile (Me tab is registered 'Profile').
 const NAV_ROUTES: Record<string, { tab?: string; screen: string; params?: Record<string, unknown> }> = {
-  booking:            { tab: 'Experts', screen: 'Booking' },
-  appointment_book:   { tab: 'Experts', screen: 'Booking' },
+  // Booking needs a chosen specialist, so "book me…" lands on the Care
+  // directory (pick a provider → Book) rather than a param-less Booking screen.
+  booking:            { tab: 'Experts', screen: 'ExpertsHome' },
+  appointment_book:   { tab: 'Experts', screen: 'ExpertsHome' },
   gear_create:        { tab: 'Gear',    screen: 'CreateListing' },
   gear_boost:         { tab: 'Gear',    screen: 'MyListings' },
   box_checkout:       { tab: 'Home',    screen: 'BoxesHub' },
@@ -60,8 +62,9 @@ const NAV_ROUTES: Record<string, { tab?: string; screen: string; params?: Record
   donor_profile_edit: { tab: 'Milk',    screen: 'TrustBadgeBuilder' },
   account_settings:   { tab: 'Profile', screen: 'MeRoot' },
   baby_profile_setup: { tab: 'Home',    screen: 'BabyProfileSetup' },
-  // Playbook tracker lives inside the Manual tab's home as a view toggle.
-  playbook:           { tab: 'Manual',  screen: 'ManualHome', params: { view: 'playbook' } },
+  // The Playbook tracker lives on Insights since the Manual/Playbook toggle
+  // was retired (2026-07-15) — the tracker is embedded at the top there.
+  playbook:           { tab: 'Home',    screen: 'Insights' },
 };
 
 // Root-stack screen that hosts the bottom-tab navigator.
@@ -72,13 +75,14 @@ function runNavigate(navigation: any, action: { screen: string; params?: Record<
   if (!target) return;
   const params = { ...(target.params ?? {}), ...(action.params ?? {}) };
   if (target.tab) {
-    // Nested navigate down into the tab's stack, then dismiss the chat so the
-    // destination is actually visible (the chat is a modal sitting on top of the tabs).
+    // Nested navigate down into the tab's stack. Navigating to the 'App' screen
+    // (which sits BELOW this chat modal in the Root stack) also dismisses the
+    // modal — do NOT call goBack() here: it races the dismissal and cancels the
+    // jump (that bug shipped once; the CTA pill tapped and went nowhere).
     navigation.navigate(TABS_ROUTE, { screen: target.tab, params: { screen: target.screen, params } });
   } else {
     navigation.navigate(target.screen, params);
   }
-  if (navigation.canGoBack?.()) navigation.goBack();
 }
 
 export default function AIHelpChatScreen() {

@@ -93,7 +93,10 @@ When she tells you a small durable practical fact about her routines or preferen
 "reply" is rendered VERBATIM — plain text only, no markdown (**bold**, bullets, headers). 1–2 short paragraphs max.
 
 ## Tappable open-button (cta)
-You MAY add an optional "cta" key to the response JSON: {"label": "short label ≤24 chars", "screen": "one of: playbook | booking | appointment_book | gear_create | box_checkout | gear_boost | become_donor | donor_profile_edit | account_settings | baby_profile_setup"}. Use it whenever a screen lets her SEE or FINISH what you just did — after logging anything → {"label":"Open Playbook","screen":"playbook"}; after starting the nap timer → {"label":"See the timer","screen":"playbook"}. At most one; omit when irrelevant.
+You MAY add an optional "cta" key to the response JSON: {"label": "short label ≤24 chars", "screen": "one of: playbook | booking | appointment_book | gear_create | box_checkout | gear_boost | become_donor | donor_profile_edit | account_settings | baby_profile_setup"}. Use it whenever a screen lets her SEE or FINISH what you just did. NOT optional after logging: EVERY successful log_baby_event reply MUST carry {"label":"Open Playbook","screen":"playbook"} (label "See the timer" when a timer is running). At most one cta; omit when irrelevant.
+
+## Booking = navigate, not just search
+When she asks to BOOK an appointment, ALWAYS call the navigate tool with screen 'booking' — it lands her on the Care directory where she picks a provider and taps Book. You may also mention nearby matches from find_specialists, but never answer a "book me" request with search results alone, even when nothing is nearby (the directory lets her widen the search herself).
 Always return ONLY the JSON object described above (even after using a tool). You MAY add the optional "quick_replies" and "cta" keys to that same JSON.`;
 
 interface InboundMessage {
