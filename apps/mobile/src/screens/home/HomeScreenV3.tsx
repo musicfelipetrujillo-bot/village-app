@@ -584,36 +584,8 @@ export default function HomeScreenV3() {
 
         <MomCornerCard onPress={() => navigation.navigate('MomHub' as never)} />
 
-        {/* Plan my day — calendar-aware daily plan (naps/feeds/pump woven
-            around your meetings). */}
-        <TouchableOpacity
-          activeOpacity={0.9}
-          onPress={() => navigation.navigate('DayPlan' as never)}
-          style={styles.planDayCard}
-          accessibilityRole="button"
-          accessibilityLabel="Plan my day — weave naps, feeds and pumping around your calendar"
-        >
-          <View style={styles.planDayIcon}><Text style={{ fontSize: 19 }}>🗓️</Text></View>
-          <View style={{ flex: 1, minWidth: 0 }}>
-            <Text style={styles.planDayTitle}>Plan my day</Text>
-            <Text style={styles.planDaySub} numberOfLines={2}>Nap, feed + pump slots woven around your calendar →</Text>
-          </View>
-        </TouchableOpacity>
-
-        {/* Day Sheet — caregiver handoff (schedule + tips + QR/PDF). */}
-        <TouchableOpacity
-          activeOpacity={0.9}
-          onPress={() => navigation.navigate('DaySheetList' as never)}
-          style={styles.handoffCard}
-          accessibilityRole="button"
-          accessibilityLabel={`Make a day sheet — hand off ${heroBabyName}'s routine to a sitter or grandparent`}
-        >
-          <View style={styles.handoffIcon}><Text style={{ fontSize: 20 }}>📋</Text></View>
-          <View style={{ flex: 1, minWidth: 0 }}>
-            <Text style={styles.handoffTitle}>Make a day sheet</Text>
-            <Text style={styles.handoffSub} numberOfLines={2}>Hand off {heroBabyName}'s routine to a sitter or grandparent →</Text>
-          </View>
-        </TouchableOpacity>
+        {/* Plan my day + Day Sheet moved to mamas corner (2026-07-15) — Home
+            stays lighter; MomCornerCard above is the door to both. */}
 
         <TouchableOpacity
           style={styles.emergencyRow}
@@ -651,10 +623,10 @@ export default function HomeScreenV3() {
           onWhatsChanging={() => goManualView('manual')}
         />
         <QuickLog
-          onFeed={() => goManualView('playbook')}
-          onSleep={() => goManualView('playbook')}
+          onFeed={() => navigation.navigate('Insights' as never)}
+          onSleep={() => navigation.navigate('Insights' as never)}
           onMilk={scanMilk}
-          onDiaper={() => goManualView('playbook')}
+          onDiaper={() => navigation.navigate('Insights' as never)}
         />
       </Animated.View>
 

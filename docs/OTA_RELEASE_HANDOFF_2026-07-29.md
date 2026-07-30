@@ -1,100 +1,91 @@
-# OTA Release Handoff — ship the live backends to users
+# OTA Release — 2026-07-29 (SHIPPED)
 
-**Created:** 2026-07-29 · **For:** a fresh, dedicated deploy session · **Owner:** Felipe
+**Status:** ✅ **Released.** What started as a handoff checklist was executed the same day. This is now the post-release record. **Read §0 + §6 for what's still open.**
 
-> Drop this whole file into the new session as the first message. It is self-contained.
+> Verified against the live hosted project + git on 2026-07-29. Canonical deploy state lives in memory `project_deploy_state_2026_07`.
 
 ---
 
 ## 0. TL;DR
 
-The **backend is already fully deployed** (all migrations →105, every edge function ACTIVE, Billy Wave 1 live). Nothing to deploy on Supabase. What's missing is the **mobile JS bundle** — an `eas update` on the `production` channel so users actually get Milk Vault, the Billy assistant UI, and the milk PII fix. **Do NOT run the update until the git reconciliation in §2 is done** — the feature work is split across two unmerged branches and the wrong bundle would ship a client that doesn't match the deployed backend.
+The backend was already fully live (all migrations →105, every edge function ACTIVE, Billy Wave 1 deployed). The remaining work was the **mobile JS bundle**, and it shipped:
+
+- **Git reconciled** onto `integration/ota-2026-07-29` (head `7ccd612`); local `main` fast-forwarded to it. **Not pushed to `origin`** — that publish is left to the founder.
+- **OTA published** to the `production` channel — update group **`d968fa36-27e1-400c-953e-36284d575c72`** (runtime 1.0.0, iOS + Android).
+- Ships **Milk Vault**, the **Billy assistant client**, **The Buzz** surface (empty until items are approved), and the **milk C-1 PII fix**.
+- **Villie Boxes intentionally left DARK** this release (Stripe config incomplete).
+
+**Still open:** light up Boxes, publish The Buzz's first issue, confirm config secrets, native builds, and the `origin` push decision. See §6.
 
 ---
 
-## 1. Verified current state (2026-07-29)
+## 1. What the release contained
 
-**Hosted Supabase (`albyndcruwopulazvpjs`) — confirmed via read-only MCP:**
-- Migrations `001`→`105` ALL applied (incl. 098 retire-Stripe, 099 Milk Vault, 104 RLS backfill, 105 The Buzz). Next free = **106**.
-- Edge functions all ACTIVE: `app-help-chat` v25 (**contains full Billy Wave 1** — 8 tools + registry), `milk-vault-scan` v2, `playbook-parse-note` v2, `appointment-reminder` v21 (push-only), `calendly-webhook` v21, `day-sheet-page` v4, `daycares-nearby` v4, `resend-webhook`, The Buzz trio (`trending-ingest`/`trending-compliance-pass`/`trending-publish-notify`).
-- 5 dead milk-Stripe functions already deleted.
-
-**EAS / app config (`apps/mobile`):**
-- `slug` the-village-app · `version` 1.0.0 · **`runtimeVersion` "1.0.0"** (fixed string) · owner `villagepeople` · EAS projectId `4b786f88-d387-4aba-a420-dfae6db88671`.
-- Production channel = **`production`** (both `eas.json` and `app.json` → `expo-channel-name`).
-- Because runtimeVersion is a fixed `"1.0.0"`, an OTA on `production` reaches all current store builds. ✅
-
-**Git (the problem):**
-- Current branch `feat/villie-boxes-home-polish` — **75 commits ahead of `main`, 0 behind**; dirty tree (`docs/OPS_RUNBOOK.md` modified, untracked `docs/audits/buzz-discovery-2026-07-29.md`).
-- `feat/billy-capability-coverage` — **deployed to prod but NEVER merged to `main`** (head `5344a57`).
-- **Billy's client + tool code is ABSENT from the boxes branch.** So neither long-lived branch alone contains everything that's live on the backend.
+**Milk Vault** — 8 screens present in the bundle, `milk-vault-scan` v2 backend live.
+**Billy assistant** — client footprint was just 2 files (`api/appHelp.ts` + `screens/help/AIHelpChatScreen.tsx`); the 8 tools are server-side in `app-help-chat` v25, already deployed. The 3-way merge kept both Billy's `navigate`/`quick_replies` route-to logic **and** the bold-rose `#E84B79` rebrand color in the chat screen.
+**The Buzz** — mobile surface shipped but shows empty until the 4 `in_review` items on issue `c3cc6efb…` are approved (auto-publishes on approval → Home "the buzz is here" card lights up).
+**Milk C-1 PII fix** — `DONOR_SELECT_COLUMNS` column-scoped read confirmed present on every branch incl. `main`; no `select('*')` 403 risk in the shipped bundle.
 
 ---
 
-## 2. The crux — reconcile git BEFORE any OTA
+## 2. Git reconciliation (DONE)
 
-The deployed backend (`app-help-chat` v25) returns `navigate`, `quick_replies`, and tool results that the **Billy client screen** (`AIHelpChatScreen` + navigate target mapping) must handle. That client code is on `feat/billy-capability-coverage` only. The boxes branch has 75 commits of other work but not Billy. **You must produce one branch that contains both**, then OTA from it.
+Branch shape was `main 97f63f4 → shared a2e38a6 → { billy 5344a57, boxes bfff7af }`.
 
-Do this carefully (in the new session, with a human confirming each merge):
-1. `git fetch && git status` — confirm what's uncommitted; commit or stash the loose OPS_RUNBOOK/audit changes deliberately.
-2. Decide the integration branch. Likely: bring `feat/billy-capability-coverage` **into `main`** first (it's already live on the backend — main should reflect reality), then rebase/merge `feat/villie-boxes-home-polish` on top.
-3. **Resolve conflicts with eyes open** — 75 commits of Boxes work + Billy + the retired-Stripe changes (098) all touch overlapping areas (`api/milk.ts`, milk screens). Confirm the retired milk-Stripe client code is NOT reintroduced.
-4. Typecheck clean: `pnpm typecheck` (or the repo's script) before proceeding.
-5. Confirm the resulting bundle contains: Milk Vault screens, Billy `AIHelpChatScreen` w/ navigate handling, and the `api/milk.ts` `DONOR_SELECT_COLUMNS` column-scoped read (the C-1 fix — `select('*')` 403s under the grant).
-
----
-
-## 3. Config secrets — confirm set on hosted (dashboard)
-
-Can't be verified via read-only MCP. Confirm each exists in Supabase → Edge Functions → Secrets:
-- [ ] `TRENDING_INGEST_SECRET` (The Buzz ingest)
-- [ ] `RESEND_WEBHOOK_SECRET` (newsletter open/click) + the webhook endpoint added in the Resend dashboard
-- [ ] `CALENDLY_WEBHOOK_SECRET` (already set per prior notes — reconfirm)
+- Committed loose docs (this handoff, the Buzz audit, OPS runbook edits) onto the boxes branch first.
+- Merged `feat/billy-capability-coverage` into a boxes-derived branch → **auto-resolved, zero conflicts** (billy's mobile footprint was only the 2 files above).
+- Result: **`integration/ota-2026-07-29`** head `7ccd612` — the one branch the OTA came from.
+- Verified on HEAD: 8 Milk Vault screens, C-1 fix intact, **no milk-Stripe client code reintroduced**, `pnpm --filter mobile type-check` clean.
+- Safety tags exist: `backup/{main,billy,boxes}-pre-recon-20260729`.
+- Local `main` fast-forwarded to `7ccd612` (now **89 commits ahead of `origin/main`** `c289456`). `STATE_OF_VILLIE.md` corrected on main in commit `b2376eb` (dated banner + migration numbers → highest applied 105 / next free 106). Typecheck clean on main.
+- ⚠️ **`main` ≠ live.** Main now carries the not-yet-approved Buzz surface; the OTA channel + the review-queue gate go-live, not the branch.
 
 ---
 
-## 4. Ship the OTA
+## 3. Config / env handling
 
-From the reconciled branch, in `apps/mobile`:
+- Env resolved via a **new gitignored `apps/mobile/.env.production`** (`APP_ENV=production`, `INTERNAL_AGENTS=0`, `VILLIE_BOXES_ENABLED=0`). This was necessary — the dev `.env` alone would have poisoned the bundle (`APP_ENV=development`, `INTERNAL_AGENTS=1`).
+- Secrets to (re)confirm in the Supabase dashboard — not verifiable via read-only MCP:
+  - [ ] `TRENDING_INGEST_SECRET` · [ ] `RESEND_WEBHOOK_SECRET` (+ Resend endpoint) · [ ] `CALENDLY_WEBHOOK_SECRET`
+  - [ ] `STRIPE_WEBHOOK_SECRET` (needed before Boxes can go live)
+
+---
+
+## 4. The OTA command that shipped
+
 ```
-# sanity
-git branch --show-current            # the reconciled integration branch
-git status -s                        # clean
-pnpm typecheck
-
-# publish the JS bundle to the production channel
-eas update --channel production --message "Milk Vault + Billy assistant + milk PII fix"
+eas update --channel production --message "Milk Vault + Billy assistant + The Buzz + milk PII fix"
+# → update group d968fa36-27e1-400c-953e-36284d575c72 (runtime 1.0.0, iOS+Android)
 ```
-Notes:
-- `appVersionSource` is `local` and runtimeVersion is fixed `"1.0.0"` — no native rebuild needed for these JS-only features.
-- If any feature is behind an `EXPO_PUBLIC_*` flag (e.g. Milk Vault), verify the flag is ON in the `production` env block of `eas.json` before publishing. Milk Vault also needs **founder go-ahead** to go live — confirm that's a yes.
+`appVersionSource` is `local`, runtimeVersion fixed `"1.0.0"` → JS-only, no native rebuild, reaches all current store builds.
 
 ---
 
-## 5. Post-update verification
+## 5. Post-release verification
 
-- [ ] `eas update:list --channel production` shows the new update at the top, runtime 1.0.0.
-- [ ] On a device on the production build: force-close/reopen twice to pull the update. Confirm:
-  - [ ] Milk Vault screens load (scan → add bag → dashboard).
-  - [ ] Billy answers, and a "find a doula near me" style ask returns real results + a working `navigate` deep-link.
-  - [ ] Donor profiles load with no PII 403s (C-1 fix in bundle).
-- [ ] Sentry (org `villie-app`, project `mobile`) shows no new crash spike post-release.
+- [ ] `eas update:list --channel production` shows group `d968fa36…` at top, runtime 1.0.0.
+- [ ] On a production-build device (force-close/reopen twice to pull): Milk Vault loads; Billy answers + a "find a doula near me" ask returns results with a working `navigate` deep-link; donor profiles load with no PII 403s.
+- [ ] Sentry (org `villie-app`, project `mobile`) — no new crash spike post-release.
 
 ---
 
-## 6. Rollback
+## 6. Still open (post-release)
 
-OTA is reversible: `eas update:rollback` (or republish the prior update to `production`). Because runtimeVersion is unchanged, rollback reaches the same builds. No store review needed.
+1. **Light up Villie Boxes** — set `EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY` (in `.env.production`/EAS env) + `STRIPE_WEBHOOK_SECRET` on Supabase, flip `EXPO_PUBLIC_VILLIE_BOXES_ENABLED=1`, re-OTA. See OPS_RUNBOOK §2.1/§3.8. (Left dark because checkout would ship broken without the Stripe keys.)
+2. **Publish The Buzz's first issue** — founder (already `is_clinical_reviewer`) approves the 4 `in_review` items on issue `c3cc6efb…` in ClinicalReviewScreen → auto-publishes. Push-on-publish no-ops on Free tier (GUC lock), but the Home card works.
+3. **`origin` push decision (founder)** — push `integration/ota-2026-07-29`? push the fast-forwarded `main` (89 ahead of origin)? Delete the `backup/*-pre-recon-20260729` tags once satisfied.
+4. **Native builds (separate track)** — Playbook iOS Lock-Screen widget; Gear Boost (RevenueCat, Build 14). EAS Build + store submit, not OTA.
 
----
+## 7. Explicitly NOT shipped
 
-## 7. Explicitly NOT in this release (separate tracks)
-
-- **Native builds** — Playbook iOS Lock-Screen widget; Gear Boost (RevenueCat, Build 14). Need EAS Build + store submit, not OTA.
-- **Legal/clinical-gated** — Gear Terms Addendum, Emergency CPR video/review. Do not ship.
-- **The Buzz go-live** — backend deployed, but set `users.is_clinical_reviewer=TRUE` for Felipe to clear the review queue first; mobile surface can OTA once reviewed.
-- **Fix `STATE_OF_VILLIE.md`** — it's stale (says migrations at 100/103). Update it on `main` as part of §2 so the canonical doc matches reality.
+- Native builds (above). Legal/clinical-gated features (Gear Terms Addendum, Emergency CPR). Milk Vault sell/donate remains cash-only.
 
 ---
 
-*State verified against live hosted project + EAS/app config on 2026-07-29. See memory `project_deploy_state_2026_07`.*
+## 8. Rollback
+
+OTA is reversible: `eas update:rollback --channel production`, or republish the prior update. runtimeVersion unchanged → reaches the same builds, no store review.
+
+---
+
+*Executed 2026-07-29. Deploy state of record: memory `project_deploy_state_2026_07`.*
