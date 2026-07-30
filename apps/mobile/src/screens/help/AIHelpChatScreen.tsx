@@ -78,6 +78,8 @@ const NAV_ROUTES: Record<string, { tab?: string; screen: string; params?: Record
   create_milk_listing: { tab: 'Milk',   screen: 'DonorListingManager' },
   milk_messages:      { tab: 'Milk',    screen: 'MilkMessageThreads' },
   vault_create_listing: { tab: 'Milk',  screen: 'MilkVaultKeepSell' },
+  // Private freezer-stash dashboard (paramless) — landing route of the Milk tab.
+  milk_vault:         { tab: 'Milk',    screen: 'MilkVaultDashboard' },
   gear_status:        { tab: 'Gear',    screen: 'MyListings' },
   gear_messages:      { tab: 'Gear',    screen: 'GearMessageThreads' },
   // Reporting lives in a modal on GearListingDetail, which needs a listing id —
