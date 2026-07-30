@@ -23,6 +23,14 @@ manager (CreateListing needs donorProfileId), and `report_gear` lands on Gear br
 (the report modal lives on a listing detail). `E-post-room-message` stays unwired —
 the Connect tab is hidden per standing rule, so rooms have no reachable route.
 
+**Wave 2 write tools — run after the same deploy** (map `code` → `yes` on green):
+`E-toggle-favorite-specialist`, `E-toggle-save-donor`, `E-toggle-save-gear` (via
+`save_item` — search first so Billy has ids, then "save the first one");
+`E-draft-day-sheet` + `E-create-day-sheet` (via `draft_day_sheet` — "make a day sheet
+for tomorrow" → private draft + "Review day sheet" pill → lands on DaySheetList);
+`E-vault-add-bag` (via `log_milk_stash` — "add 5 oz to my stash" → confirms with the
+new freezer total + "Open Milk Vault" pill).
+
 ## Read (shipped)
 
 - [x] E-find-specialists — "Find me a lactation consultant near me." → calls specialists_near and lists nearby specialists with distance.

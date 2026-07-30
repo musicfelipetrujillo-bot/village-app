@@ -61,7 +61,7 @@ report_gear) is `code` too.
 | Read a specialist profile | read | (client) specialists | N | no | E-read-specialist |
 | Read a specialist's reviews | read | (client) reviews | N | no | E-read-specialist-reviews |
 | Read my saved specialists | read | (client) favorites | N | no | E-read-saved-specialists |
-| Save / unsave (favorite) a specialist | do | insert/delete:favorites | N | no | E-toggle-favorite-specialist |
+| Save / unsave (favorite) a specialist | do | insert/delete:favorites | N | code | E-toggle-favorite-specialist |
 | Write a specialist review | route | insert:reviews | Y | code | E-write-specialist-review |
 | AI-match me to best-fit specialists | read | fn:ai-match | N | no | E-ai-match-specialists |
 | Ask AI a question about a specialist | read | fn:ai-profile-qa | N | no | E-ai-profile-qa |
@@ -75,7 +75,7 @@ report_gear) is `code` too.
 | Read a milk donor profile | read | (client) milk_donor_profiles | N | no | E-read-donor-profile |
 | Read a donor's active listing | read | (client) milk_listings | N | no | E-read-donor-listing |
 | Read my saved donors | read | (client) milk_saved_donors | N | no | E-read-saved-donors |
-| Save / unsave a milk donor | do | insert/delete:milk_saved_donors | N | no | E-toggle-save-donor |
+| Save / unsave a milk donor | do | insert/delete:milk_saved_donors | N | code | E-toggle-save-donor |
 | AI-match me to best-fit donors | read | fn:milk-match-donors | N | no | E-milk-match-donors |
 | Ask AI a question about a donor | read | fn:milk-donor-qa | N | no | E-milk-donor-qa |
 | Become a milk donor (create donor profile) | route | insert:milk_donor_profiles | Y | code | E-create-donor-profile |
@@ -97,7 +97,7 @@ report_gear) is `code` too.
 | Choose Milk Vault mode (keep vs sell/donate) | do | update:milk_vault_settings | N | no | E-vault-choose-mode |
 | Update Milk Vault settings | do | update:milk_vault_settings | N | no | E-vault-update-settings |
 | List my Milk Vault bags | read | (client) milk_vault_bags | N | no | E-read-vault-bags |
-| Add a Milk Vault bag | do | insert:milk_vault_bags | N | no | E-vault-add-bag |
+| Add a Milk Vault bag | do | insert:milk_vault_bags | N | code | E-vault-add-bag |
 | Update a Milk Vault bag | do | update:milk_vault_bags | N | no | E-vault-update-bag |
 | Delete a Milk Vault bag | do | delete:milk_vault_bags | N | no | E-vault-delete-bag |
 | Record a bag outcome (used/donated/sold) | do | insert:milk_vault_transactions | N | no | E-vault-bag-outcome |
@@ -110,7 +110,7 @@ report_gear) is `code` too.
 | Read a gear listing detail | read | rpc:get_gear_listing | N | no | E-read-gear-listing |
 | Read my gear listings | read | rpc:list_my_gear_listings | N | no | E-read-my-gear-listings |
 | Read my saved gear | read | rpc:list_my_saved_gear | N | no | E-read-saved-gear |
-| Save / unsave a gear listing | do | insert/delete:gear_saved_listings | N | no | E-toggle-save-gear |
+| Save / unsave a gear listing | do | insert/delete:gear_saved_listings | N | code | E-toggle-save-gear |
 | Create a gear listing | route | rpc:create_gear_listing + insert:gear_listing_images | Y | code | E-create-gear-listing |
 | Change a gear listing status (sold/withdraw/reactivate) | route | rpc:update_gear_status (updateStatus) | Y | code | E-update-gear-status |
 | UPC-lookup to prefill a gear listing | do | fn:gear-upc-lookup | N | no | E-gear-upc-lookup |
@@ -155,8 +155,8 @@ report_gear) is `code` too.
 | Generate an anonymous room alias | do | fn:room-alias-generate | N | no | E-anon-alias |
 | Read my anonymous identities | read | rpc:list_my_anon_identities / get_my_anon_identity | N | no | E-read-anon-identities |
 | Set anonymous-mode default | do | rpc:set_anonymous_mode_default | N | no | E-set-anon-default |
-| Draft a caregiver day sheet (from logs) | do | (client) draftScheduleFromLogs | N | no | E-draft-day-sheet |
-| Create / save a day sheet | do | insert:day_sheets | N | no | E-create-day-sheet |
+| Draft a caregiver day sheet (from logs) | do | (client) draftScheduleFromLogs | N | code | E-draft-day-sheet |
+| Create / save a day sheet | do | insert:day_sheets | N | code | E-create-day-sheet |
 | Update a day sheet | do | update:day_sheets | N | no | E-update-day-sheet |
 | Delete a day sheet (revoke public share) | do | delete:day_sheets | N | no | E-delete-day-sheet |
 | Upload a day-sheet tip photo | do | (storage) day-sheets bucket | N | no | E-day-sheet-photo |
