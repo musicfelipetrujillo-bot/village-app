@@ -2,6 +2,7 @@ import React from 'react';
 import { Platform, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { navigationRef } from './navigationRef';
 import { useAuthStore } from '@store/auth';
 import { useUserStore } from '@store/user';
 import { useOneSignal } from '@hooks/useOneSignal';
@@ -65,6 +66,7 @@ export function RootNavigator() {
 
   return (
     <NavigationContainer
+      ref={navigationRef}
       onStateChange={(state) => {
         if (!state) return;
         // Walk to the deepest active route name for screen tracking

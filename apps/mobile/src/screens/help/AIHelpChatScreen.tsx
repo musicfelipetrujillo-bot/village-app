@@ -14,6 +14,7 @@ import { getUpcomingBusy } from '@utils/calendar';
 import { useAuthStore } from '@store/auth';
 import { useUserStore } from '@store/user';
 import { appHelpApi, type HelpMessage, type HelpUserContext, type CrisisResource } from '@api/appHelp';
+import { navigationRef } from '@/navigation/navigationRef';
 
 // Guided example prompts for the empty state — teach moms the bot's range across
 // every capability (milk vault, development, specialists, tracking, gear). Tapping
@@ -74,14 +75,16 @@ function runNavigate(navigation: any, action: { screen: string; params?: Record<
   const target = NAV_ROUTES[action.screen];
   if (!target) return;
   const params = { ...(target.params ?? {}), ...(action.params ?? {}) };
+  // Dispatch at the CONTAINER level (navigationRef), not through this modal's
+  // own navigation prop: navigating to 'App' (below the chat in the Root stack)
+  // dismisses the modal, and a dispatch tied to a dismissing screen can be
+  // dropped — that bug shipped once ("Open Playbook" tapped and went nowhere).
+  // The ref survives the modal's unmount, so the jump always lands.
+  const nav: any = navigationRef.isReady() ? navigationRef : navigation;
   if (target.tab) {
-    // Nested navigate down into the tab's stack. Navigating to the 'App' screen
-    // (which sits BELOW this chat modal in the Root stack) also dismisses the
-    // modal — do NOT call goBack() here: it races the dismissal and cancels the
-    // jump (that bug shipped once; the CTA pill tapped and went nowhere).
-    navigation.navigate(TABS_ROUTE, { screen: target.tab, params: { screen: target.screen, params } });
+    nav.navigate(TABS_ROUTE, { screen: target.tab, params: { screen: target.screen, params } });
   } else {
-    navigation.navigate(target.screen, params);
+    nav.navigate(target.screen, params);
   }
 }
 
