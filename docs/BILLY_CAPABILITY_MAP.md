@@ -11,6 +11,9 @@ Tier values: `read` = pure read/search, `do` = reversible low-stakes write (Bill
 branch `feat/billy-capability-coverage`, pending `supabase functions deploy` + eval run;
 `no` = not built yet. The 6 shipped read tools are `yes`; Wave 1 (log-a-nap/bottle/diaper
 via the `log_baby_event` tool, and 6 route deep-links via the generic `navigate` tool) is `code`.
+The Wave 2 route batch (8 more `navigate` deep-link keys: write_review, message_specialist,
+create_milk_listing, milk_messages, vault_create_listing, gear_status, gear_messages,
+report_gear) is `code` too.
 
 | action | tier | backing RPC / edge fn | confirm? | wired? | eval id |
 |--------|------|-----------------------|----------|--------|---------|
@@ -59,7 +62,7 @@ via the `log_baby_event` tool, and 6 route deep-links via the generic `navigate`
 | Read a specialist's reviews | read | (client) reviews | N | no | E-read-specialist-reviews |
 | Read my saved specialists | read | (client) favorites | N | no | E-read-saved-specialists |
 | Save / unsave (favorite) a specialist | do | insert/delete:favorites | N | no | E-toggle-favorite-specialist |
-| Write a specialist review | route | insert:reviews | Y | no | E-write-specialist-review |
+| Write a specialist review | route | insert:reviews | Y | code | E-write-specialist-review |
 | AI-match me to best-fit specialists | read | fn:ai-match | N | no | E-ai-match-specialists |
 | Ask AI a question about a specialist | read | fn:ai-profile-qa | N | no | E-ai-profile-qa |
 | Generate questions to ask at an appointment | read | fn:ai-followup-questions | N | no | E-ai-followup-questions |
@@ -67,7 +70,7 @@ via the `log_baby_event` tool, and 6 route deep-links via the generic `navigate`
 | Refresh a specialist's AI review summary | do | fn:ai-review-summary | N | no | E-ai-review-summary |
 | Book an appointment with a specialist | route | fn:create-payment-intent + insert:appointments | Y | code | E-book-appointment |
 | Read my appointments | read | (client) appointments | N | no | E-read-appointments |
-| Message a specialist (send DM) | route | insert:messages | Y | no | E-message-specialist |
+| Message a specialist (send DM) | route | insert:messages | Y | code | E-message-specialist |
 | Read my specialist message thread | read | (client) messages | N | no | E-read-specialist-thread |
 | Read a milk donor profile | read | (client) milk_donor_profiles | N | no | E-read-donor-profile |
 | Read a donor's active listing | read | (client) milk_listings | N | no | E-read-donor-listing |
@@ -81,12 +84,12 @@ via the `log_baby_event` tool, and 6 route deep-links via the generic `navigate`
 | Set my donor diet flags | route | upsert:milk_donor_diet_flags | Y | no | E-donor-diet-flags |
 | Add a donor medication (trust badge) | route | insert:milk_donor_medications | Y | no | E-donor-add-med |
 | Remove a donor medication | route | delete:milk_donor_medications | Y | no | E-donor-remove-med |
-| Create a milk listing | route | insert:milk_listings | Y | no | E-create-milk-listing |
+| Create a milk listing | route | insert:milk_listings | Y | code | E-create-milk-listing |
 | Run the donor safety screener (AI self-check) | do | fn:milk-safety-screener | N | no | E-milk-safety-screener |
 | Run the donor questionnaire coach (AI) | do | fn:milk-questionnaire-coach | N | no | E-milk-questionnaire-coach |
 | Generate my donor trust narrative (AI) | do | fn:milk-trust-narrative | N | no | E-milk-trust-narrative |
 | Open / start a milk message thread | do | insert:milk_message_threads | N | no | E-milk-open-thread |
-| Send a milk message (DM) | route | insert:milk_messages | Y | no | E-send-milk-message |
+| Send a milk message (DM) | route | insert:milk_messages | Y | code | E-send-milk-message |
 | Mark a milk thread read | do | rpc:mark_thread_read | N | no | E-mark-milk-thread-read |
 | Read my milk message threads | read | rpc:list_my_milk_threads | N | no | E-read-milk-threads |
 | Record milk legal-disclosure acceptance | route | insert:milk_legal_acceptances | Y | no | E-milk-legal-accept |
@@ -101,7 +104,7 @@ via the `log_baby_event` tool, and 6 route deep-links via the generic `navigate`
 | Scan a milk bag photo to prefill (AI) | do | fn:milk-vault-scan | N | no | E-vault-scan-bag |
 | Read my Milk Vault transactions | read | (client) milk_vault_transactions | N | no | E-read-vault-transactions |
 | List my Milk Vault sell/donate listings | read | (client) milk_vault_listings | N | no | E-read-vault-listings |
-| Create a Milk Vault sell/donate listing | route | insert:milk_vault_listings | Y | no | E-vault-create-listing |
+| Create a Milk Vault sell/donate listing | route | insert:milk_vault_listings | Y | code | E-vault-create-listing |
 | Update a Milk Vault listing status | route | update:milk_vault_listings | Y | no | E-vault-update-listing |
 | Configure a Milk Vault shipping kit | route | upsert:milk_vault_shipping_kits | Y | no | E-vault-shipping-kit |
 | Read a gear listing detail | read | rpc:get_gear_listing | N | no | E-read-gear-listing |
@@ -109,17 +112,17 @@ via the `log_baby_event` tool, and 6 route deep-links via the generic `navigate`
 | Read my saved gear | read | rpc:list_my_saved_gear | N | no | E-read-saved-gear |
 | Save / unsave a gear listing | do | insert/delete:gear_saved_listings | N | no | E-toggle-save-gear |
 | Create a gear listing | route | rpc:create_gear_listing + insert:gear_listing_images | Y | code | E-create-gear-listing |
-| Change a gear listing status (sold/withdraw/reactivate) | route | rpc:update_gear_status (updateStatus) | Y | no | E-update-gear-status |
+| Change a gear listing status (sold/withdraw/reactivate) | route | rpc:update_gear_status (updateStatus) | Y | code | E-update-gear-status |
 | UPC-lookup to prefill a gear listing | do | fn:gear-upc-lookup | N | no | E-gear-upc-lookup |
 | Identify gear from a photo (AI) | do | fn:gear-vision-identify | N | no | E-gear-vision-identify |
 | CPSC recall check on a gear item | do | fn:gear-cpsc-check | N | no | E-gear-cpsc-check |
 | Suggest a fair price for gear (AI) | do | fn:gear-price-suggest | N | no | E-gear-price-suggest |
 | Open / start a gear message thread | do | rpc:get_or_create_gear_thread | N | no | E-gear-open-thread |
-| Send a gear message (DM to seller) | route | insert:gear_messages | Y | no | E-send-gear-message |
+| Send a gear message (DM to seller) | route | insert:gear_messages | Y | code | E-send-gear-message |
 | Mark a gear thread read | do | rpc:mark_gear_thread_read | N | no | E-mark-gear-thread-read |
 | Read my gear message threads | read | rpc:list_my_gear_threads | N | no | E-read-gear-threads |
 | Acknowledge the safe-meeting guide | do | rpc:ack_gear_safe_meeting | N | no | E-gear-ack-safe-meeting |
-| Report a gear listing | route | insert:gear_listing_reports | Y | no | E-report-gear-listing |
+| Report a gear listing | route | insert:gear_listing_reports | Y | code | E-report-gear-listing |
 | Record gear legal-addendum acceptance | route | insert:gear_legal_acceptances | Y | no | E-gear-legal-accept |
 | Activate a paid gear boost (IAP payment) | route | fn:gear-boost-activate | Y | code | E-gear-boost |
 | RSVP to an event | do | insert:event_rsvps | N | no | E-event-rsvp |
@@ -140,7 +143,7 @@ via the `log_baby_event` tool, and 6 route deep-links via the generic `navigate`
 | Read room messages | read | rpc:list_room_messages | N | no | E-read-room-messages |
 | Join a community room | do | rpc:join_room | N | no | E-join-room |
 | Leave a community room | do | rpc:leave_room | N | no | E-leave-room |
-| Post a community message | route | insert:room_messages | Y | no | E-post-room-message |
+| Post a community message (Wave 2: deliberately NOT wired — the Connect tab is hidden per standing rule, so community rooms have no reachable route target) | route | insert:room_messages | Y | no | E-post-room-message |
 | React / un-react to a room message | do | insert/delete:room_message_reactions | N | no | E-toggle-room-reaction |
 | Mark a room read | do | rpc:mark_room_read | N | no | E-mark-room-read |
 | Get / dismiss a room icebreaker | do | rpc:get_icebreaker / dismiss_icebreaker | N | no | E-room-icebreaker |

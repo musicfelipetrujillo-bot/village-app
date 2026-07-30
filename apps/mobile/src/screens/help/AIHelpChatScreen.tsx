@@ -66,6 +66,23 @@ const NAV_ROUTES: Record<string, { tab?: string; screen: string; params?: Record
   // The Playbook tracker lives on Insights since the Manual/Playbook toggle
   // was retired (2026-07-15) — the tracker is embedded at the top there.
   playbook:           { tab: 'Home',    screen: 'Insights' },
+  // Wave 2 route batch.
+  // ReviewSubmit + Messaging both require a specialistId param Billy can't
+  // supply (find_specialists returns no ids) — ReviewSubmit even renders
+  // spec.full_name unguarded — so, like booking above, both land on the Care
+  // directory (pick a provider → review / message).
+  write_review:       { tab: 'Experts', screen: 'ExpertsHome' },
+  message_specialist: { tab: 'Experts', screen: 'ExpertsHome' },
+  // Milk's CreateListing requires donorProfileId; DonorListingManager resolves
+  // the donor profile from the store and its "+" passes the id along.
+  create_milk_listing: { tab: 'Milk',   screen: 'DonorListingManager' },
+  milk_messages:      { tab: 'Milk',    screen: 'MilkMessageThreads' },
+  vault_create_listing: { tab: 'Milk',  screen: 'MilkVaultKeepSell' },
+  gear_status:        { tab: 'Gear',    screen: 'MyListings' },
+  gear_messages:      { tab: 'Gear',    screen: 'GearMessageThreads' },
+  // Reporting lives in a modal on GearListingDetail, which needs a listing id —
+  // the browse list is the safe paramless entry.
+  report_gear:        { tab: 'Gear',    screen: 'GearBrowse' },
 };
 
 // Root-stack screen that hosts the bottom-tab navigator.

@@ -12,6 +12,17 @@ Source of truth for coverage: docs/BILLY_CAPABILITY_MAP.md.
 `E-buy-box`, `E-gear-boost`, `E-create-donor-profile`, `E-update-donor-profile` (via the
 generic `navigate` route-to tool — Billy should deep-link, not perform them).
 
+**Wave 2 route batch — run after the next `supabase functions deploy app-help-chat`**
+(map state `code` → flip to `yes` on green): `E-write-specialist-review`,
+`E-message-specialist`, `E-create-milk-listing`, `E-send-milk-message`,
+`E-vault-create-listing`, `E-update-gear-status`, `E-send-gear-message`,
+`E-report-gear-listing` (all via the generic `navigate` tool). Note: `write_review` /
+`message_specialist` land on the Care directory (ReviewSubmit/Messaging need a
+specialistId Billy can't supply), `create_milk_listing` lands on the donor listing
+manager (CreateListing needs donorProfileId), and `report_gear` lands on Gear browse
+(the report modal lives on a listing detail). `E-post-room-message` stays unwired —
+the Connect tab is hidden per standing rule, so rooms have no reachable route.
+
 ## Read (shipped)
 
 - [x] E-find-specialists — "Find me a lactation consultant near me." → calls specialists_near and lists nearby specialists with distance.
