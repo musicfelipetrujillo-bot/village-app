@@ -3,12 +3,12 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View, Text, StyleSheet, TextInput, TouchableOpacity, Image,
-  KeyboardAvoidingView, Platform, ActivityIndicator,
+  Keyboard, Platform, ActivityIndicator,
   FlatList, Linking,
 } from 'react-native';
 
 const VILLIE_BEE = require('../../../assets/brand/villie-bee.png');
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { StackActions, useNavigation, useRoute } from '@react-navigation/native';
 import * as Location from 'expo-location';
 import { getUpcomingBusy } from '@utils/calendar';
 import { useAuthStore } from '@store/auth';
@@ -76,12 +76,14 @@ function runNavigate(navigation: any, action: { screen: string; params?: Record<
   if (!target) return;
   const params = { ...(target.params ?? {}), ...(action.params ?? {}) };
   // Dispatch at the CONTAINER level (navigationRef), not through this modal's
-  // own navigation prop: navigating to 'App' (below the chat in the Root stack)
-  // dismisses the modal, and a dispatch tied to a dismissing screen can be
-  // dropped — that bug shipped once ("Open Playbook" tapped and went nowhere).
-  // The ref survives the modal's unmount, so the jump always lands.
+  // own navigation prop: a dispatch tied to a dismissing screen can be dropped.
+  // React Navigation v7: navigate() PUSHES a new instance instead of going back
+  // (that shipped once as "three stacked sheets"), so first popTo the ORIGINAL
+  // 'App' screen (dismisses this chat modal), then navigate — now that 'App' is
+  // focused, navigate updates it in place and the nested tab jump resolves.
   const nav: any = navigationRef.isReady() ? navigationRef : navigation;
   if (target.tab) {
+    nav.dispatch(StackActions.popTo(TABS_ROUTE));
     nav.navigate(TABS_ROUTE, { screen: target.tab, params: { screen: target.screen, params } });
   } else {
     nav.navigate(target.screen, params);
@@ -148,6 +150,21 @@ export default function AIHelpChatScreen() {
       setTimeout(() => listRef.current?.scrollToEnd({ animated: true }), 50);
     }
   }, [messages.length]);
+
+  // Manual keyboard tracking — KeyboardAvoidingView is unreliable inside an
+  // iOS native-stack MODAL (pageSheet coordinate space), which left the
+  // composer buried under the keyboard while typing. Pad the container by the
+  // real keyboard height instead. Android keeps the OS adjustResize behavior.
+  const [kbHeight, setKbHeight] = useState(0);
+  useEffect(() => {
+    if (Platform.OS !== 'ios') return;
+    const show = Keyboard.addListener('keyboardWillShow', (e) => {
+      setKbHeight(e.endCoordinates?.height ?? 0);
+      setTimeout(() => listRef.current?.scrollToEnd({ animated: true }), 80);
+    });
+    const hide = Keyboard.addListener('keyboardWillHide', () => setKbHeight(0));
+    return () => { show.remove(); hide.remove(); };
+  }, []);
 
   const send = useCallback(async (text: string) => {
     const body = text.trim();
@@ -267,11 +284,7 @@ export default function AIHelpChatScreen() {
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      style={styles.container}
-      keyboardVerticalOffset={0}
-    >
+    <View style={[styles.container, kbHeight > 0 && { paddingBottom: kbHeight }]}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerSide} accessibilityRole="button" accessibilityLabel={t('help.closeA11y')}>
           <Text style={styles.headerClose}>‹</Text>
@@ -346,7 +359,7 @@ export default function AIHelpChatScreen() {
           <Text style={styles.sendBtnText}>{sending ? '…' : '↑'}</Text>
         </TouchableOpacity>
       </View>
-    </KeyboardAvoidingView>
+    </View>
   );
 }
 

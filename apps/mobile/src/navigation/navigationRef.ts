@@ -7,4 +7,8 @@
 // through RootNavigator.
 import { createNavigationContainerRef } from '@react-navigation/native';
 
-export const navigationRef = createNavigationContainerRef();
+// Exported as `any`: consumed by independent surfaces (Billy chat CTAs +
+// deep-links) whose targets span every tab's stack — no RootParamList union
+// is exported today, and v7's tuple-typed navigate() rejects both untyped
+// and `as never`-cast calls otherwise. Runtime shape is the real ref.
+export const navigationRef: any = createNavigationContainerRef();
