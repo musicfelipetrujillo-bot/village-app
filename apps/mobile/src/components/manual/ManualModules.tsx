@@ -10,7 +10,7 @@ import Svg, { Path, Circle, Defs, LinearGradient as SvgGrad, Stop } from 'react-
 import { useNavigation } from '@react-navigation/native';
 import { FONTS } from '@utils/constants';
 import { select, tap } from '@utils/haptics';
-import { isProUser } from '@/lib/pro';
+import { isProUser, isProEnabled } from '@/lib/pro';
 import DeepDiveVideoCard from './DeepDiveVideoCard';
 import type { CategoryContent, Checklist, Article, Info, Helps } from '@/manual/manualWeekContent';
 
@@ -365,8 +365,17 @@ export default function ManualModules({ content, onAskVillie, lang = 'en', week,
   };
 
   const promptPro = () => {
+    // Build 14+: the real paywall (root-level modal). The Alert stays as the
+    // fallback for OTA bundles where the paywall route can't sell anything
+    // (no StoreKit SDK) — same copy as before.
+    if (isProEnabled()) {
+      let root: any = navigation;
+      while (root?.getParent?.()) root = root.getParent();
+      root?.navigate('Paywall', { source: 'manual_deepdive' });
+      return;
+    }
     Alert.alert(
-      'villie+',
+      'villie pro',
       lang === 'es'
         ? 'Desbloquea todos los videos de especialistas — el agarre, los eructos, el giro — filmados paso a paso.'
         : 'Unlock every specialist deep-dive — the latch, the burp, the rollover — filmed step by step.',

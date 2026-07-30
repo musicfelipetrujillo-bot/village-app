@@ -13,6 +13,7 @@ import AIHelpChatScreen from '@screens/help/AIHelpChatScreen';
 import QuickReferenceScreen from '@screens/safety/QuickReferenceScreen';
 import FloatingHelpButton from '@components/shared/FloatingHelpButton';
 import InternalAgentsScreen from '@screens/internal/InternalAgentsScreen';
+import PaywallScreen from '@screens/paywall/PaywallScreen';
 import ClinicalReviewScreen from '@screens/internal/ClinicalReviewScreen';
 import EventReviewScreen from '@screens/internal/EventReviewScreen';
 
@@ -94,6 +95,14 @@ export function RootNavigator() {
             <Stack.Screen
               name="QuickReference"
               component={QuickReferenceScreen}
+              options={{ presentation: 'modal' }}
+            />
+            {/* villie pro paywall — always registered (locked-card entry
+                points only render when the pro gate is active, but a stale
+                deep-link should land on the paywall, not crash). */}
+            <Stack.Screen
+              name="Paywall"
+              component={PaywallScreen}
               options={{ presentation: 'modal' }}
             />
             {INTERNAL_AGENTS_ENABLED ? (

@@ -17,6 +17,7 @@ import {
   Animated, PanResponder, Dimensions, Pressable,
 } from 'react-native';
 import { WebView } from 'react-native-webview';
+import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS, FONTS } from '@utils/constants';
@@ -55,6 +56,13 @@ interface ClipPlayerProps {
 export default function ClipPlayer({ clips, startIndex = 0, onClose }: ClipPlayerProps) {
   const insets = useSafeAreaInsets();
   const t = useT();
+  // Root navigator — the Paywall is a root-level modal, so walk to the top.
+  const nav = useNavigation<any>();
+  const rootNav = useMemo(() => {
+    let n: any = nav;
+    while (n?.getParent?.()) n = n.getParent();
+    return n;
+  }, [nav]);
   const lang = useUserStore((s) => s.profile?.preferred_language ?? 'en') as 'en' | 'es';
   const { trackEvent } = useAnalytics();
 
@@ -348,6 +356,24 @@ export default function ClipPlayer({ clips, startIndex = 0, onClose }: ClipPlaye
           <Text style={styles.errorBody}>{t('manual.videoMissingBody')}</Text>
           <TouchableOpacity onPress={onClose} style={styles.errorBtn} accessibilityRole="button">
             <Text style={styles.errorBtnText}>{t('common.back')}</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {/* villie pro backstop — a locked clip can still reach the player via a
+          playlist row or a stale deep link. Show the unlock state instead of
+          the "missing video" error (which would read as a bug, not a gate). */}
+      {!loading && video?.is_locked && !playerUrl && !usingLocal && (
+        <View style={[styles.center, { padding: 24 }]}>
+          <Text style={styles.errorTitle}>{video.title}</Text>
+          <Text style={styles.errorBody}>{t('manual.lockedCta')}</Text>
+          <TouchableOpacity
+            onPress={() => { onClose(); rootNav?.navigate('Paywall', { source: 'clip_player' }); }}
+            style={styles.errorBtn}
+            accessibilityRole="button"
+            accessibilityLabel={t('manual.lockedA11y', { title: video.title })}
+          >
+            <Text style={styles.errorBtnText}>{t('manual.lockedCta')}</Text>
           </TouchableOpacity>
         </View>
       )}

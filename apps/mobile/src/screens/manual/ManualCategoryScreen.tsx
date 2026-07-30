@@ -332,6 +332,14 @@ export default function ManualCategoryScreen() {
   // Tapping any thumb plays the whole chapter row as a playlist, starting at
   // the tapped clip (auto-advances through the rest).
   const onCardPress = (video: ManualVideo) => {
+    // villie pro gate (migration 110): locked rows carry teaser metadata but
+    // no playback source — route to the Paywall, never into the player.
+    if (video.is_locked && !video.mux_playback_id && !video.html_url) {
+      let root: any = navigation;
+      while (root?.getParent?.()) root = root.getParent();
+      root?.navigate('Paywall', { source: 'manual_category' });
+      return;
+    }
     const playlist = videos.map((v) => v.id);
     const startIndex = Math.max(0, playlist.indexOf(video.id));
     navigation.navigate('ManualVideo' as never, {
@@ -755,22 +763,30 @@ export default function ManualCategoryScreen() {
                     activeOpacity={0.7}
                     onPress={() => onCardPress(v)}
                     accessibilityRole="button"
-                    accessibilityLabel={t('manual.videoCardA11y', {
-                      title: v.title,
-                      duration: formatDuration(v.duration_seconds),
-                    })}
+                    accessibilityLabel={v.is_locked
+                      ? t('manual.lockedA11y', { title: v.title })
+                      : t('manual.videoCardA11y', {
+                          title: v.title,
+                          duration: formatDuration(v.duration_seconds),
+                        })}
                   >
                     <View style={styles.clipThumb}>
                       <Image source={{ uri: v.thumbnail_url }} style={StyleSheet.absoluteFill as any} resizeMode="cover" />
                       <View style={styles.clipThumbPlay}>
-                        <Text style={styles.clipThumbGlyph}>▶</Text>
+                        <Text style={styles.clipThumbGlyph}>{v.is_locked ? '🔒' : '▶'}</Text>
                       </View>
+                      {v.is_locked ? (
+                        <View style={styles.clipProPill}>
+                          <Text style={styles.clipProPillText}>{t('manual.lockedPill')}</Text>
+                        </View>
+                      ) : null}
                     </View>
                     <View style={styles.clipBody}>
                       <Text style={styles.clipTitle} numberOfLines={2}>{v.title}</Text>
                       <Text style={styles.clipMeta}>
-                        {formatDuration(v.duration_seconds)}
-                        {v.is_watched ? `  ·  ✓ ${t('manual.watched')}` : ''}
+                        {v.is_locked
+                          ? t('manual.lockedCta')
+                          : `${formatDuration(v.duration_seconds)}${v.is_watched ? `  ·  ✓ ${t('manual.watched')}` : ''}`}
                       </Text>
                     </View>
                     <Text style={[styles.clipChevron, { color: theme.accentDeep }]}>›</Text>
@@ -1281,6 +1297,11 @@ const styles = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
   },
   clipThumbGlyph: { color: '#fff', fontSize: 9, marginLeft: 1.5 },
+  clipProPill: {
+    position: 'absolute', top: 3, left: 3, backgroundColor: '#E84B79',
+    borderRadius: 999, paddingHorizontal: 5, paddingVertical: 1,
+  },
+  clipProPillText: { color: '#FFFCF6', fontSize: 7.5, fontFamily: FONTS.bodyBold, letterSpacing: 0.8, textTransform: 'uppercase' },
   clipBody: { flex: 1 },
   clipTitle: { fontSize: 14.5, fontFamily: FONTS.bodySemiBold, color: V9.bark, lineHeight: 19 },
   clipMeta: {

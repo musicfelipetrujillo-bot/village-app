@@ -55,6 +55,7 @@ import { RootNavigator } from '@/navigation/RootNavigator';
 import { useAuthStore } from '@store/auth';
 import { usePreAuthLanguage } from '@store/preAuthLanguage';
 import { supabase } from '@/lib/supabase';
+import { configureProPurchases } from '@/lib/pro';
 import { ErrorBoundary } from '@components/shared/ErrorBoundary';
 import { seedWebDevStores } from '@/lib/webDevSeed';
 import { configureGoogleSignIn, OAUTH_PROVIDERS_ENABLED } from '@/lib/oauth';
@@ -143,9 +144,16 @@ export default function App() {
     // Restore the language picked in a previous session before any auth
     // screen renders. Best-effort — if it fails the screens stay English.
     hydrateLang();
-    supabase.auth.getSession().then(({ data }) => setSession(data.session));
+    supabase.auth.getSession().then(({ data }) => {
+      setSession(data.session);
+      // villie pro (Build 14): identify the RevenueCat customer as our
+      // Supabase user id, so the revenuecat-webhook (and gear-boost-activate)
+      // can key entitlements on it. No-op without the native SDK / flag.
+      if (data.session?.user?.id) void configureProPurchases(data.session.user.id);
+    });
     const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
+      if (session?.user?.id) void configureProPurchases(session.user.id);
     });
     return () => sub.subscription.unsubscribe();
   }, [setSession, hydrateLang]);

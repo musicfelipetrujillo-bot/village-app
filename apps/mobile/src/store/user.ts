@@ -101,6 +101,10 @@ interface UserProfile {
   // this mirror gates the Me-screen entry-point. Toggle in DB:
   //   UPDATE users SET is_event_reviewer = TRUE WHERE email = '…';
   is_event_reviewer: boolean;
+  // villie pro entitlement (migration 110) — written ONLY by the
+  // revenuecat-webhook edge function. This mirror is the fallback source for
+  // lib/pro.ts isProUser(); the live source is RevenueCat CustomerInfo.
+  is_pro: boolean;
 }
 
 interface UserState {
@@ -125,7 +129,7 @@ export const useUserStore = create<UserState>((set) => ({
     if (!auth.user) return;
     const { data, error } = await supabase
       .from('users')
-      .select('id, full_name, avatar_url, pregnancy_stage, due_date, preferred_language, insurance_provider, zip_code, search_radius_miles, notif_prefs, anonymous_mode_default, is_clinical_reviewer, is_event_reviewer')
+      .select('id, full_name, avatar_url, pregnancy_stage, due_date, preferred_language, insurance_provider, zip_code, search_radius_miles, notif_prefs, anonymous_mode_default, is_clinical_reviewer, is_event_reviewer, is_pro')
       .eq('id', auth.user.id)
       .maybeSingle();
     if (error || !data) return;

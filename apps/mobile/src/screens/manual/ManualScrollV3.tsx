@@ -687,18 +687,43 @@ function pbDayDeck(period: PbPeriod, night: PbNight | null, lang: 'en' | 'es'): 
 function WeekIntroCard({ data, onPress, lang = 'en' }: { data: WeekIntroVideo; onPress: () => void; lang?: 'en' | 'es' }) {
   const dur = data.duration_seconds ? formatDuration(data.duration_seconds) : null;
   const byline = [data.expert_name, data.expert_role].filter(Boolean).join(' · ');
+  // villie pro gate (migration 110): a locked row carries teaser metadata but
+  // no playback id. The card renders with a lock + pro pill and onPress routes
+  // to the Paywall (wired in openWeekIntro) — never into a broken player.
+  const locked = data.is_locked === true;
   return (
-    <TouchableOpacity activeOpacity={0.92} onPress={onPress} style={styles.wiCard} accessibilityRole="button" accessibilityLabel={data.title}>
+    <TouchableOpacity
+      activeOpacity={0.92}
+      onPress={onPress}
+      style={styles.wiCard}
+      accessibilityRole="button"
+      accessibilityLabel={locked
+        ? `${data.title} — ${lang === 'es' ? 'míralo con villie pro' : 'watch with villie pro'}`
+        : data.title}
+    >
       <LinearGradient colors={['#F0B68C', '#E98A6A', '#E84B79']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.wiHero}>
-        <View style={styles.wiBadge}><Text style={styles.wiBadgeText}>{lang === 'es' ? 'ESTA SEMANA' : 'THIS WEEK'}</Text></View>
+        <View style={locked ? styles.wiBadgePro : styles.wiBadge}>
+          <Text style={styles.wiBadgeText}>{locked ? 'PRO' : (lang === 'es' ? 'ESTA SEMANA' : 'THIS WEEK')}</Text>
+        </View>
         <View style={styles.wiPlay}>
-          <Svg width={20} height={20} viewBox="0 0 24 24"><Path d="M8 5l11 7-11 7z" fill="#B0234F" /></Svg>
+          {locked ? (
+            <Svg width={20} height={20} viewBox="0 0 24 24">
+              <Path d="M12 2a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-1V7a5 5 0 0 0-5-5zm-3 8V7a3 3 0 1 1 6 0v3H9z" fill="#B0234F" />
+            </Svg>
+          ) : (
+            <Svg width={20} height={20} viewBox="0 0 24 24"><Path d="M8 5l11 7-11 7z" fill="#B0234F" /></Svg>
+          )}
         </View>
         {dur ? <View style={styles.wiDur}><Text style={styles.wiDurText}>{dur}</Text></View> : null}
       </LinearGradient>
       <View style={styles.wiBody}>
         <Text style={styles.wiTitle}>{data.title}</Text>
         {byline ? <Text style={styles.wiExpert} numberOfLines={1}>{byline}</Text> : null}
+        {locked ? (
+          <Text style={styles.wiLockedCta}>
+            {lang === 'es' ? 'míralo con villie pro ›' : 'watch with villie pro ›'}
+          </Text>
+        ) : null}
       </View>
     </TouchableOpacity>
   );
@@ -764,7 +789,12 @@ export default function ManualScrollV3() {
       : BABY_CHAPTERS[0]
   );
 
-  const [view, setView] = useState<ManualView>(initialView);
+  // Pinned to 'manual' (2026-07-15) — the playbook view was retired; its
+  // render branch below is intentionally unreachable and kept only as
+  // reference until the next cleanup pass. Incoming `view: 'playbook'`
+  // params land gracefully on the Manual.
+  const view = 'manual' as ManualView;
+  void initialView;
   // The chip list and DB queries always run against the baby chapters now.
   // MOM_CHAPTERS is kept defined above for the eventual "Phase 2 — restore
   // Mom Manual as a tertiary track" optionality the voice memo flagged.
@@ -825,7 +855,6 @@ export default function ManualScrollV3() {
   // Switch the view tab. We DON'T reset the selected chapter anymore — the
   // category the user was reading is preserved across the toggle so flipping
   // Manual ↔ Playbook ↔ Manual lands them back where they were.
-  const switchView = (next: ManualView) => { if (next !== view) select(); setView(next); };
 
   // Chip click selects the chapter; the swipe deck below re-keys to it.
   // (Tap-to-open-chapter → ManualCategory was removed 2026-06-10 in favor of
@@ -985,6 +1014,14 @@ export default function ManualScrollV3() {
   }, [who, week, lang]);
 
   const openWeekIntro = () => {
+    // Locked teaser row (free tier, pro_video_gate on) → paywall, never the
+    // player. Root-level modal, so walk to the outermost navigator.
+    if (weekIntro?.is_locked && !weekIntro.mux_playback_id) {
+      let root: any = navigation;
+      while (root?.getParent?.()) root = root.getParent();
+      root?.navigate('Paywall', { source: 'manual_week_intro' });
+      return;
+    }
     if (!weekIntro?.mux_playback_id) return;
     navigation.navigate('ManualVideo' as never, {
       audience: who, category: 'week', videoId: weekIntro.id,
@@ -1110,27 +1147,10 @@ export default function ManualScrollV3() {
           {lang === 'es' ? `${doneCount} de ${totalChapters} capítulos esta semana` : `${doneCount} of ${totalChapters} chapters this week`}
         </Text>
 
-        {/* Manual / Playbook toggle — embossed parchment track.
-            V5 Phase 5.1 (2026-05-29): swap replaces the mom/baby track. */}
-        <View style={styles.toggleTrack}>
-          {(['manual', 'playbook'] as const).map((opt) => {
-            const on = view === opt;
-            return (
-              <TouchableOpacity
-                key={opt}
-                onPress={() => switchView(opt)}
-                activeOpacity={0.85}
-                style={[styles.toggleBtn, on && styles.toggleBtnOn]}
-              >
-                <Text style={[styles.toggleLabel, on && styles.toggleLabelOn]}>
-                  {opt === 'manual'
-                    ? (lang === 'es' ? 'Manual' : 'Manual')
-                    : (lang === 'es' ? 'Playbook' : 'Playbook')}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
+        {/* Manual/Playbook toggle REMOVED (2026-07-15) — the Manual is now
+            content-only (52 weeks + videos, dense by design). Logging lives on
+            Home quick-log; the logs/patterns read-back lives in Insights; the
+            personalized routine lives in Plan my day (mamas corner). */}
 
         {view === 'playbook' ? (
           // V5 Phase 5.1.6 — Playbook PREVIEW, "one glance, one move".
@@ -1553,7 +1573,9 @@ const styles = StyleSheet.create({
   bbSub: { fontFamily: FONTS.body, fontSize: 12, color: '#5c3b2a', marginTop: 1 },
   bbChevron: { fontFamily: FONTS.headerBold, fontSize: 22, color: '#4A1F2C' },
   wiBadge: { position: 'absolute', top: 9, left: 11, backgroundColor: 'rgba(43,23,7,0.5)', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3 },
+  wiBadgePro: { position: 'absolute', top: 9, left: 11, backgroundColor: '#E84B79', borderRadius: 999, paddingHorizontal: 9, paddingVertical: 3 },
   wiBadgeText: { fontFamily: FONTS.v2_mono, fontSize: 8.5, letterSpacing: 1.6, color: '#FFF1DC', fontWeight: '700' },
+  wiLockedCta: { fontFamily: FONTS.bodyBold, fontSize: 12, color: '#E84B79', marginTop: 6 },
   wiPlay: { width: 48, height: 48, borderRadius: 24, backgroundColor: 'rgba(255,255,255,0.92)', alignItems: 'center', justifyContent: 'center' },
   wiDur: { position: 'absolute', bottom: 9, right: 11, backgroundColor: 'rgba(0,0,0,0.32)', borderRadius: 8, paddingHorizontal: 7, paddingVertical: 2 },
   wiDurText: { color: '#fff', fontSize: 9, fontFamily: FONTS.v2_mono },

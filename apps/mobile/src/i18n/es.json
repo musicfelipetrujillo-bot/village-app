@@ -74,7 +74,8 @@
     "continue": "Continuar",
     "skip": "Omitir",
     "loading": "Cargando…",
-    "error": "Algo salió mal"
+    "error": "Algo salió mal",
+    "close": "Cerrar"
   },
   "notifications": {
     "eyebrow": "TUS NOTIFICACIONES",
@@ -146,7 +147,10 @@
     "showControlsA11y": "Mostrar controles",
     "shareMessage": "{title} — un video de 2 minutos para mamás cansadas, de villie.\n{url}",
     "shareErrorTitle": "No se pudo compartir",
-    "shareErrorBody": "Inténtalo en un momento."
+    "shareErrorBody": "Inténtalo en un momento.",
+    "lockedPill": "pro",
+    "lockedCta": "míralo con villie pro",
+    "lockedA11y": "Video bloqueado: {{title}}. Abre villie pro."
   },
   "savedManual": {
     "title": "Videos guardados",
@@ -2209,5 +2213,39 @@
     "title": "the buzz — archivo",
     "emptyTitle": "aún no hay ediciones pasadas",
     "emptyBody": "en cuanto se publique la primera edición, aparecerá aquí."
+  },
+  "paywall": {
+    "flourish": "por fin, alguien te lo muestra",
+    "headline": "el manual,\nahora en video",
+    "b1": "el video de especialista de cada semana — las 52 semanas",
+    "b2": "guías paso a paso: comer, dormir, crecer, cuidar",
+    "b3": "subtítulos en español + inglés",
+    "b4": "videos nuevos cada semana",
+    "freeNote": "¿el manual escrito de 52 semanas? sigue gratis. para siempre.",
+    "bestValue": "mejor precio · ahorra 40%",
+    "annual": "anual",
+    "annualSuffix": "/año · $4.17 al mes",
+    "monthly": "mensual",
+    "monthlySuffix": "/mes",
+    "annualA11y": "Plan anual, 49.99 dólares al año, prueba gratis de 7 días",
+    "monthlyA11y": "Plan mensual, 6.99 dólares al mes, prueba gratis de 7 días",
+    "cta": "empieza tu semana gratis",
+    "finePrintAnnual": "7 días gratis, luego $49.99 al año. Se renueva automáticamente hasta que la canceles. Cancela cuando quieras en Configuración.",
+    "finePrintMonthly": "7 días gratis, luego $6.99 al mes. Se renueva automáticamente hasta que la canceles. Cancela cuando quieras en Configuración.",
+    "restore": "Restaurar compras",
+    "restoring": "Restaurando…",
+    "terms": "Términos",
+    "privacy": "Privacidad",
+    "welcomeTitle": "ya estás dentro",
+    "welcomeBody": "Todos los videos del manual están desbloqueados.",
+    "welcomeCta": "vamos",
+    "soonTitle": "ya casi",
+    "soonBody": "villie pro llega muy pronto. Los videos se desbloquean con la próxima actualización de la app.",
+    "errorTitle": "Algo salió mal",
+    "errorBody": "La compra no se completó. No se hizo ningún cargo — inténtalo de nuevo en un momento.",
+    "restoredTitle": "Compras restauradas",
+    "restoredBody": "Tu acceso a villie pro está de vuelta.",
+    "noRestoreTitle": "Nada que restaurar",
+    "noRestoreBody": "No encontramos una compra previa de villie pro con este Apple ID."
   }
 }

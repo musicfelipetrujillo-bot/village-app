@@ -38,6 +38,12 @@ export interface ManualVideo {
   is_watched: boolean;
   watched_seconds: number;
   is_saved: boolean;
+  // villie pro gate (migration 110). TRUE ⇢ the caller is free-tier and the
+  // pro_video_gate flag is on: mux_playback_id + html_url arrive NULL, all
+  // teaser metadata (title/thumbnail/duration) intact. UI renders a locked
+  // card that routes to the Paywall — NEVER hand a locked row to the player.
+  // Optional so pre-110 backends (and cached rows) parse as unlocked.
+  is_locked?: boolean;
 }
 
 // SavedManualScreen reuses the same card UI as the per-category browse, but
@@ -229,6 +235,10 @@ export interface WeekIntroVideo {
   mux_playback_id: string | null;
   poster_url: string | null;
   duration_seconds: number | null;
+  // villie pro gate — see ManualVideo.is_locked. When TRUE, mux_playback_id
+  // is NULL but the card still renders (poster + title + expert) as a teaser
+  // routing to the Paywall.
+  is_locked?: boolean;
 }
 
 export async function getWeekIntroVideo(
@@ -236,22 +246,26 @@ export async function getWeekIntroVideo(
   week: number,
   locale: 'en' | 'es',
 ): Promise<WeekIntroVideo | null> {
+  // RPC (migration 110) instead of a direct table select: it returns teaser
+  // metadata + is_locked for free-tier users once the pro_video_gate flag is
+  // on, which the RLS path can't express (it can only hide whole rows).
   const { data, error } = await supabase
-    .from('manual_week_intro')
-    .select('id, week_number, title, expert_name, expert_role, mux_playback_id, poster_url, duration_seconds')
-    .eq('audience', audience)
-    .eq('week_number', week)
-    .eq('locale', locale)
-    .eq('is_published', true)
+    .rpc('get_manual_week_intro', {
+      p_audience: audience,
+      p_week: week,
+      p_locale: locale,
+    })
     .maybeSingle();
   if (error) {
-    // Table may not be deployed yet (migration 094 pending) — fail soft so the
-    // Manual just hides the slot.
+    // RPC may not be deployed yet — fail soft so the Manual just hides the slot.
     console.warn('[manual] getWeekIntroVideo', error.message);
     return null;
   }
   const row = data as WeekIntroVideo | null;
-  return row && row.mux_playback_id ? row : null;
+  if (!row) return null;
+  // Playable row, or a locked teaser row. A published row with no playback id
+  // and no lock is genuinely empty — hide the slot like before.
+  return row.mux_playback_id || row.is_locked ? row : null;
 }
 
 // Fetch one video by id (used by ManualVideoScreen on mount). The list RPC

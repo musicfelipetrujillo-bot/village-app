@@ -75,6 +75,14 @@ export type AnalyticsEvent =
   | 'account_delete_requested'
   | 'account_delete_succeeded'
   | 'account_delete_failed'
+  // villie pro paywall (Build 14)
+  | 'paywall_shown'
+  | 'paywall_purchase_started'
+  | 'paywall_purchase_succeeded'
+  | 'paywall_purchase_cancelled'
+  | 'paywall_purchase_failed'
+  | 'paywall_restore_succeeded'
+  | 'paywall_dismissed'
   // Navigation
   | 'screen_view';
 
@@ -116,6 +124,9 @@ interface EventProperties {
   has_zip?: boolean;
   has_insurance?: boolean;
   reason?: string;
+  // villie pro paywall
+  plan?: 'monthly' | 'annual';
+  source?: string;
   // Notification prefs
   pref_key?: string;
   enabled?: boolean;

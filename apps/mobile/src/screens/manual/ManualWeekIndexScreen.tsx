@@ -11,7 +11,7 @@ import { V9PageBackdrop } from '@components/shared/V9PageBackdrop';
 import { BackButton } from '@components/shared/BackButton';
 import { useT } from '@/i18n';
 import { useHomeStore } from '@store/home';
-import { isProUser } from '@/lib/pro';
+import { isProUser, isProEnabled } from '@/lib/pro';
 
 const T = {
   paper: COLORS.v2_paper, cream: COLORS.v2_cream, cocoa: COLORS.v2_cocoa,
@@ -39,6 +39,14 @@ export default function ManualWeekIndexScreen() {
   }, [currentWeek]);
 
   const promptPro = () => {
+    // Build 14+: route to the real paywall. Pre-paywall OTA bundles keep the
+    // "coming soon" Alert (nothing to sell without the StoreKit SDK).
+    if (isProEnabled()) {
+      let root: any = navigation;
+      while (root?.getParent?.()) root = root.getParent();
+      root?.navigate('Paywall', { source: 'manual_week_index' });
+      return;
+    }
     Alert.alert(
       t('manualWeekIndex.proTitle'),
       t('manualWeekIndex.proBody'),

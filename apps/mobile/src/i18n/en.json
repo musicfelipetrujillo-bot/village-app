@@ -74,7 +74,8 @@
     "continue": "Continue",
     "skip": "Skip",
     "loading": "Loading…",
-    "error": "Something went wrong"
+    "error": "Something went wrong",
+    "close": "Close"
   },
   "notifications": {
     "eyebrow": "YOUR NOTIFICATIONS",
@@ -146,7 +147,10 @@
     "showControlsA11y": "Show controls",
     "shareMessage": "{title} — a 2-minute video for tired parents from villie.\n{url}",
     "shareErrorTitle": "Couldn't share",
-    "shareErrorBody": "Please try again in a moment."
+    "shareErrorBody": "Please try again in a moment.",
+    "lockedPill": "pro",
+    "lockedCta": "watch with villie pro",
+    "lockedA11y": "Locked video: {{title}}. Opens villie pro."
   },
   "savedManual": {
     "title": "Saved videos",
@@ -2209,5 +2213,39 @@
     "title": "the buzz — archive",
     "emptyTitle": "no past issues yet",
     "emptyBody": "once the first issue publishes, it'll show up here."
+  },
+  "paywall": {
+    "flourish": "finally, someone shows you",
+    "headline": "the manual,\nnow in video",
+    "b1": "every week's specialist video — all 52 weeks",
+    "b2": "how-to deep dives: feed, sleep, grow, care",
+    "b3": "captions in english + español",
+    "b4": "new videos every week",
+    "freeNote": "the 52-week written manual? still free. forever.",
+    "bestValue": "best value · save 40%",
+    "annual": "yearly",
+    "annualSuffix": "/year · $4.17/mo",
+    "monthly": "monthly",
+    "monthlySuffix": "/month",
+    "annualA11y": "Yearly plan, 49.99 dollars per year, 7-day free trial",
+    "monthlyA11y": "Monthly plan, 6.99 dollars per month, 7-day free trial",
+    "cta": "start your free week",
+    "finePrintAnnual": "7 days free, then $49.99 per year. Auto-renews until cancelled. Cancel anytime in Settings.",
+    "finePrintMonthly": "7 days free, then $6.99 per month. Auto-renews until cancelled. Cancel anytime in Settings.",
+    "restore": "Restore purchases",
+    "restoring": "Restoring…",
+    "terms": "Terms",
+    "privacy": "Privacy",
+    "welcomeTitle": "you're in",
+    "welcomeBody": "Every video in the manual is now unlocked.",
+    "welcomeCta": "let's go",
+    "soonTitle": "almost here",
+    "soonBody": "villie pro is launching soon. Videos unlock with the next app update.",
+    "errorTitle": "Something went wrong",
+    "errorBody": "The purchase didn't go through. You weren't charged — try again in a moment.",
+    "restoredTitle": "Purchases restored",
+    "restoredBody": "Your villie pro access is back.",
+    "noRestoreTitle": "Nothing to restore",
+    "noRestoreBody": "We couldn't find a previous villie pro purchase for this Apple ID."
   }
 }
