@@ -9,7 +9,7 @@ feature builds, stepping on shared files), the fix is: everyone coordinates *her
 - **Authoritative for:** in-flight work, migration numbers, deploy queue, launch sequence.
 - **NOT authoritative for:** per-phase build history (`CLAUDE.md`), env/key setup (`docs/OPS_RUNBOOK.md`), product intent (`docs/source/*`). This doc points at those; it doesn't replace them.
 
-> 🔴 **2026-07-29 CORRECTION — much of §2–§4 below (dated 2026-07-10) is STALE.** Verified against live hosted Supabase (`albyndcruwopulazvpjs`) via read-only MCP: **ALL migrations `001`→`105` are applied on prod** (not "highest applied 100 / 098+099 unapplied" as the old text says) and **every edge function is ACTIVE** — Billy Wave 1 (`app-help-chat` v25), The Buzz trio, `milk-vault-scan` v2, etc. **The backend deploy queue is EMPTY. Next free migration = 106.** The git drift is also resolved: `feat/billy-capability-coverage` + `feat/villie-boxes-home-polish` are reconciled and `main` now contains both (head `7ccd612`, typecheck-clean). **The only remaining "ship it" step is the OTA JS bundle** (`eas update --channel production` from `main`/`integration/ota-2026-07-29`). Trust this banner + memory `project_deploy_state_2026_07` over the older per-line claims below until those lines are individually rewritten.
+> 🔴 **2026-07-29 CORRECTION — much of §2–§4 below (dated 2026-07-10) is STALE.** Verified against live hosted Supabase (`albyndcruwopulazvpjs`) via read-only MCP: **ALL migrations `001`→`105` are applied on prod** (not "highest applied 100 / 098+099 unapplied" as the old text says) and **every edge function is ACTIVE** — Billy Wave 1 (`app-help-chat` v25), The Buzz trio, `milk-vault-scan` v2, etc. **The backend deploy queue is EMPTY. Next free migration = 111** (updated 2026-07-30 — a parallel session claimed and applied 106–110 same-day; see §3). The git drift is also resolved: `feat/billy-capability-coverage` + `feat/villie-boxes-home-polish` are reconciled and `main` now contains both (head `7ccd612`, typecheck-clean). **The only remaining "ship it" step is the OTA JS bundle** (`eas update --channel production` from `main`/`integration/ota-2026-07-29`). Trust this banner + memory `project_deploy_state_2026_07` over the older per-line claims below until those lines are individually rewritten.
 
 > ⚠️ **Before you create a migration, claim its number in §3.** Before you start building a feature, check §2 that no other session already owns it. At the end of your session, update §2, §3, §4.
 
@@ -58,9 +58,10 @@ Villie is a **pre-launch** maternal-health platform (React Native + Expo + Supab
 
 **This is the section that stops sessions from stepping on each other. Claim your number HERE before you create the file.**
 
-- **Highest APPLIED on prod:** **105** (verified 2026-07-29 via read-only MCP `list_migrations`). **ALL of `001`→`105` are applied** — including 098 (retire milk Stripe), 099 (Milk Vault), 101 (Care help tier), 102 (day sheets), 103 (daycares), 104 (RLS backfill), 105 (The Buzz). The old "098+099 unapplied" gap is closed. The apply queue is **empty**.
-- **Highest ON DISK (`main`):** **105.**
-- **Highest CLAIMED:** **105. → NEXT FREE = 106.**
+- **Highest APPLIED on prod:** **110** (re-verified 2026-07-30 via read-only MCP `list_migrations`). **ALL of `001`→`110` are applied** — including 098 (retire milk Stripe), 099 (Milk Vault), 101–105 (Care/day sheets/daycares/RLS backfill/The Buzz), **106–108 (reviewer-flag consolidation onto the founder's primary Apple login), 109 (`villie_memories`), 110 (`villie_pro_entitlement`)**. The apply queue is **empty**.
+- **Highest ON DISK (`main`):** **110.**
+- **Highest CLAIMED:** **110. → NEXT FREE = 111.**
+- ⚠️ **106–110 were claimed + applied by a parallel session on 2026-07-29/30** while another session was mid-OTA. Re-run `list_migrations` before claiming a number — this doc can lag by hours when sessions run concurrently.
 
 | # | Name | What | Status |
 |---|---|---|---|
@@ -78,7 +79,7 @@ Villie is a **pre-launch** maternal-health platform (React Native + Expo + Supab
 
 **Rule (enforced):**
 1. Before creating any migration, add a row to the table above with your number, name, and "CLAIMED — <branch>".
-2. Use the **next free number** (currently **106**). Never reuse 001–105 — all are on disk in `main` and applied to prod.
+2. Use the **next free number** (currently **111**). Never reuse 001–110 — all are on disk in `main` and applied to prod.
 3. Filenames are **numeric-prefix only** (`101_...sql`) — the CLI silently skips `101b`.
 4. After your PR merges + the migration applies, update the row to ✅ APPLIED.
 
