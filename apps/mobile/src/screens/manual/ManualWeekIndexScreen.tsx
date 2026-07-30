@@ -129,7 +129,9 @@ const styles = StyleSheet.create({
     backgroundColor: T.paper, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: T.rule,
   },
   back: { fontSize: 15, color: T.rose, fontFamily: FONTS.v2_link },
-  headerTitle: { fontSize: 17, fontFamily: FONTS.v2_bold, color: T.cocoa },
+  // Editorial masthead (not the 17px HubHeader spec — the 52-week index is a
+  // destination screen, not a vertical hub): Bricolage display at 28, lowercase.
+  headerTitle: { fontSize: 28, fontFamily: FONTS.headerBold, color: T.cocoa, letterSpacing: -0.5 },
 
   proBanner: {
     backgroundColor: T.parchment, paddingHorizontal: 18, paddingVertical: 10,

@@ -81,7 +81,10 @@ const s = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(61,31,14,0.13)',
   },
   back: { fontSize: 15, color: COLORS.v2_cinnamon, fontFamily: FONTS.v2_link },
-  headerTitle: { fontFamily: FONTS.v2_bold, fontSize: 17, color: COLORS.v2_cocoa },
+  // Editorial masthead (not the 17px HubHeader spec — the archive is a destination
+  // screen, not a vertical hub): Bricolage display, lowercase brand voice. 24 (not
+  // 28) because "the buzz — archive" is the longest masthead string.
+  headerTitle: { fontFamily: FONTS.headerBold, fontSize: 24, color: COLORS.v2_cocoa, letterSpacing: -0.5 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
   emptyEmoji: { fontSize: 48, marginBottom: 8 },
   emptyTitle: { fontFamily: FONTS.v2_bold, fontSize: 18, color: COLORS.v2_cocoa, textAlign: 'center' },

@@ -111,7 +111,9 @@ const styles = StyleSheet.create({
 
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: 4, paddingBottom: 12 },
   back: { fontSize: 30, color: C.roseInk, marginTop: -4 },
-  title: { fontFamily: FONTS.v2_bold, fontSize: 17, color: C.cocoa },
+  // Editorial masthead (not the 17px HubHeader spec — your-listings is a destination
+  // screen, not a vertical hub): Bricolage display at 28, lowercase brand voice.
+  title: { fontFamily: FONTS.headerBold, fontSize: 28, color: C.cocoa, letterSpacing: -0.5 },
   addBtn: { width: 34, height: 34, borderRadius: 17, backgroundColor: C.rose, alignItems: 'center', justifyContent: 'center' },
 
   empty: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32, paddingBottom: 60 },

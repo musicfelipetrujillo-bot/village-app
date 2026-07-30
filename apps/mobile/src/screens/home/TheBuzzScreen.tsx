@@ -136,7 +136,9 @@ const s = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(61,31,14,0.13)',
   },
   back: { fontSize: 15, color: COLORS.v2_cinnamon, fontFamily: FONTS.v2_link },
-  headerTitle: { fontFamily: FONTS.v2_bold, fontSize: 17, color: COLORS.v2_cocoa },
+  // Editorial masthead (not the 17px HubHeader spec — The Buzz is a destination
+  // screen, not a vertical hub): Bricolage display at 28, lowercase brand voice.
+  headerTitle: { fontFamily: FONTS.headerBold, fontSize: 28, color: COLORS.v2_cocoa, letterSpacing: -0.5 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 8 },
   errorText: { fontFamily: FONTS.v2_body, fontSize: 14, color: COLORS.v2_cocoa, textAlign: 'center' },
   emptyEmoji: { fontSize: 48, marginBottom: 8 },
