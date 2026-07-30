@@ -12,6 +12,7 @@ async function run(supabase: any, loc: Loc, specialty?: string) {
   return {
     count: rows.length,
     results: rows.slice(0, 5).map((s) => ({
+      id: s.id,
       name: s.full_name ?? s.name ?? s.display_name,
       specialty: s.specialty,
       distance_mi: num(s.distance_miles ?? s.distance_mi ?? s.distance),

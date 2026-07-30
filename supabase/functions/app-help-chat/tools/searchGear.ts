@@ -14,6 +14,7 @@ async function run(supabase: any, loc: Loc, input: any) {
   return {
     count: rows.length,
     results: rows.slice(0, 6).map((g) => ({
+      id: g.id,
       title: g.title,
       price: g.is_free ? 'free' : (g.price_cents != null ? `$${Math.round(g.price_cents / 100)}` : undefined),
       distance_mi: g.distance_km != null ? num(g.distance_km * 0.621) : num(g.distance_mi),
