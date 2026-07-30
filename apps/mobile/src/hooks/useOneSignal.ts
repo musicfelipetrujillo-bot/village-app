@@ -14,6 +14,7 @@ import Constants, { ExecutionEnvironment } from 'expo-constants';
 import { useAuthStore } from '@store/auth';
 import { DEFAULT_NOTIF_PREFS, useUserStore } from '@store/user';
 import type { NotifPrefKey } from '@store/user';
+import { openDeepLink } from '@/lib/deeplink';
 
 const ONESIGNAL_APP_ID = process.env.EXPO_PUBLIC_ONESIGNAL_APP_ID ?? '';
 // OneSignal requires a custom dev/prod build — native module is not present in Expo Go.
@@ -40,8 +41,17 @@ export function useOneSignal() {
     OneSignal.initialize(ONESIGNAL_APP_ID);
     OneSignal.Notifications.requestPermission(true);
 
-    const handler = (event: { notification: { additionalData?: Record<string, string> } }) => {
-      console.log('[OneSignal] Notification opened:', event.notification.additionalData);
+    // Notification tap → deep link. Every push we send carries either a
+    // `launchURL` (villie://…) or `additionalData.screen`; `openDeepLink`
+    // handles both and waits for the navigator on a cold start.
+    const handler = (event: {
+      notification: { additionalData?: Record<string, string>; launchURL?: string };
+    }) => {
+      const { additionalData, launchURL } = event.notification ?? {};
+      openDeepLink({
+        url: launchURL ?? (additionalData?.url as string | undefined),
+        data: additionalData,
+      });
     };
     OneSignal.Notifications.addEventListener('click', handler);
     return () => OneSignal.Notifications.removeEventListener('click', handler);

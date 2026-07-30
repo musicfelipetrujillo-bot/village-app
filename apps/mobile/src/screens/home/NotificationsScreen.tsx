@@ -16,6 +16,7 @@ import { useT } from '@/i18n';
 import { homeApi, type NotificationFeedItem } from '@api/home';
 import { YolkCircle, LeafSprig } from '@components/shared/DecorativeMarks';
 import { V9PageBackdrop } from '@components/shared/V9PageBackdrop';
+import { parseDeepLink, navigateToTarget } from '@/lib/deeplink';
 
 // Per-type emoji + color tint — keeps the inbox legible at a glance and
 // matches the editorial palette used elsewhere on Home.
@@ -81,13 +82,14 @@ export default function NotificationsScreen() {
       setItems((prev) => prev.map((n) => (n.id === item.id ? { ...n, is_read: true } : n)));
       homeApi.markNotificationRead(item.id).catch(() => { /* fail-soft, refresh reconciles */ });
     }
-    // Deeplinks: prefer in-app Linking.openURL when the URL has a scheme; the
-    // listener in RootNavigator (if linking is configured later) will route it.
-    // We don't try to parse internal route paths here — that's a future
-    // linking-config job. For now, http(s)/tel/sms hand off to the OS.
-    if (item.deeplink) {
-      Linking.openURL(item.deeplink).catch(() => { /* fail-soft */ });
-    }
+    // Internal links (villie:// or village://) route in-app through the
+    // shared deep-link parser — the same mapping a push tap uses, so a feed
+    // row and its notification always land on the same screen. Anything else
+    // (http(s), tel:, sms:) hands off to the OS.
+    if (!item.deeplink) return;
+    const target = parseDeepLink(item.deeplink);
+    if (target) navigateToTarget(target);
+    else Linking.openURL(item.deeplink).catch(() => { /* fail-soft */ });
   }, []);
 
   const unreadCount = useMemo(() => items.filter((n) => !n.is_read).length, [items]);

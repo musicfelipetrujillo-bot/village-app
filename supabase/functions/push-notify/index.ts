@@ -47,6 +47,13 @@ const VALID_PREF_KEYS = [
   'ai',
   'promotions',
   'trending',
+  // migration 111 — "baby's week" milestone nudges + dormant winback.
+  // Defaults TRUE (content about her own baby, not marketing).
+  'baby_week',
+  // migration 067 added this to notif_prefs but never to this allowlist, so
+  // `pref_key:'newsletter'` used to 400. The digest gates itself in SQL today;
+  // listing it here keeps a future push-side newsletter caller from tripping.
+  'newsletter',
 ] as const;
 type NotifPrefKey = typeof VALID_PREF_KEYS[number];
 
@@ -152,8 +159,19 @@ Deno.serve(async (req) => {
       contents: { en: payload.body },
       ios_sound: 'default',
       android_sound: 'default',
-      android_channel_id: 'village-general',
     };
+
+    // android_channel_id must be a OneSignal channel UUID that exists in the
+    // dashboard — a human-readable name is rejected outright with
+    // `Could not find android_channel_id`, and OneSignal fails the WHOLE
+    // request, iOS recipients included. A hardcoded 'village-general' was
+    // silently 500ing every push in the app (appointment reminders, gear
+    // moderation pages, everything) because no such channel was ever created.
+    // Now it's opt-in via env: set ONESIGNAL_ANDROID_CHANNEL_ID to the UUID
+    // from OneSignal → Settings → Android Notification Categories once an
+    // Android build exists. Unset (today, iOS-only) = OneSignal default.
+    const androidChannelId = Deno.env.get('ONESIGNAL_ANDROID_CHANNEL_ID');
+    if (androidChannelId) notification.android_channel_id = androidChannelId;
 
     if (payload.data) notification.data = payload.data;
     if (payload.url) notification.url = payload.url;

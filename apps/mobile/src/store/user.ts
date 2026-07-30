@@ -36,7 +36,10 @@ export type NotifPrefKey =
   // users opt in via NotificationPreferencesScreen.
   | 'newsletter'
   // The Buzz weekly trending-topics digest (migration 105).
-  | 'trending';
+  | 'trending'
+  // "Baby's week" milestone nudges + dormant winback (migration 111).
+  // Default ON — content about her own baby is the core loop, not marketing.
+  | 'baby_week';
 
 // Shape must mirror `supabase/functions/_shared/quiet-hours.ts::QuietHours`
 // and the JSONB default in migration 033. Timezone is an IANA string — set
@@ -69,6 +72,7 @@ export const DEFAULT_NOTIF_PREFS: NotifPrefs = {
   promotions: false,
   newsletter: false,
   trending: true,
+  baby_week: true,
   quiet_hours: DEFAULT_QUIET_HOURS,
 };
 

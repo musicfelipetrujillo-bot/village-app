@@ -485,7 +485,9 @@
     "saveErrorTitle": "Could not save",
     "saveErrorBody": "Please try again.",
     "rowTrendingTitle": "the buzz",
-    "rowTrendingDesc": "A weekly nudge when this week's trending-topics issue drops."
+    "rowTrendingDesc": "A weekly nudge when this week's trending-topics issue drops.",
+    "rowBabyWeekTitle": "Baby's week",
+    "rowBabyWeekDesc": "A note the morning your baby reaches a new week — what this stretch often looks like, and tips that help. No checklists, no catching up."
   },
   "account": {
     "back": "Back",

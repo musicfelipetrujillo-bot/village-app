@@ -36,6 +36,7 @@ on:
     - cron: '*/15 * * * *'   # gear-moderation-auto-withdraw — every 15 min; auto-withdraws listings tied to P0 reports past 4hr SLA via SQL RPC (migration 063, SOP §10 item 2). Body field tells the edge fn to invoke the RPC.
     - cron: '0 13 * * *'     # gear-moderation-daily-digest — 13:00 UTC (09:00 ET) — emails the moderator inbox a daily roll-up of open + auto-actioned reports via Resend (SOP §10 item 3)
     - cron: '0 13 * * 0'     # villie-weekly-digest — Sunday 13:00 UTC (09:00 ET) — user-facing weekly newsletter to notif_prefs.newsletter=true opt-ins (migration 067)
+    - cron: '0 * * * *'      # week-nudge-notify — HOURLY on purpose (migration 111). Each mother's "baby's week" push fires on her baby's own rollover day at 10am HER local time, so the job must wake every hour and let the SQL pick whoever is currently at 10am. Also runs the dormant winback + drains the daily-checkin queue. Idempotent via push_sends UNIQUE(user_id,kind,dedupe_key) — the retry below cannot double-send.
   workflow_dispatch:
     inputs:
       function:
@@ -56,6 +57,8 @@ on:
           - gear-moderation-auto-withdraw
           - gear-moderation-daily-digest
           - villie-weekly-digest
+          - week-nudge-notify
+          - ai-week-nudge-generate
       body:
         description: 'JSON body to send (defaults to {} or per-function default)'
         required: false
@@ -96,6 +99,7 @@ jobs:
               '*/15 * * * *')  FN='gear-moderation-auto-withdraw'; BODY='{}' ;;
               '0 13 * * *')    FN='gear-moderation-daily-digest';  BODY='{}' ;;
               '0 13 * * 0')    FN='villie-weekly-digest';           BODY='{}' ;;
+              '0 * * * *')     FN='week-nudge-notify';              BODY='{"mode":"both","local_hour":10}' ;;
               *)
                 echo "::error::Unknown schedule: ${SCHEDULE}"
                 exit 1
@@ -111,6 +115,8 @@ jobs:
               'events-ingest-ics')        BODY='{"mode":"all"}' ;;
               'ai-event-screen')          BODY='{"mode":"all","limit":50}' ;;
               'events-geocode')           BODY='{"mode":"all","limit":50}' ;;
+              'week-nudge-notify')        BODY='{"mode":"both","local_hour":10}' ;;
+              'ai-week-nudge-generate')   BODY='{"mode":"missing","limit":20}' ;;
               *)                          BODY='{}' ;;
             esac
           fi

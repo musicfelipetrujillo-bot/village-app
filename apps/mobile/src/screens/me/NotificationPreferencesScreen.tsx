@@ -38,6 +38,10 @@ interface ToggleRow {
 }
 
 const ROWS: ToggleRow[] = [
+  // First row on purpose — the weekly "baby's week" nudge is the one
+  // notification most users actually want, and burying its opt-out under
+  // marketing toggles would be a dark pattern.
+  { key: 'baby_week',   titleKey: 'notifPrefs.rowBabyWeekTitle',    descKey: 'notifPrefs.rowBabyWeekDesc' },
   { key: 'events',      titleKey: 'notifPrefs.rowEventsTitle',      descKey: 'notifPrefs.rowEventsDesc' },
   { key: 'groups',      titleKey: 'notifPrefs.rowGroupsTitle',      descKey: 'notifPrefs.rowGroupsDesc' },
   { key: 'specialists', titleKey: 'notifPrefs.rowSpecialistsTitle', descKey: 'notifPrefs.rowSpecialistsDesc' },

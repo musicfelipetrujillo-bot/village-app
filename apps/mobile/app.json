@@ -2,6 +2,7 @@
   "expo": {
     "name": "villie",
     "slug": "the-village-app",
+    "scheme": "villie",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",

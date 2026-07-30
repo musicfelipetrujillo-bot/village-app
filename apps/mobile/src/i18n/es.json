@@ -485,7 +485,9 @@
     "saveErrorTitle": "No se pudo guardar",
     "saveErrorBody": "Por favor intenta nuevamente.",
     "rowTrendingTitle": "the buzz",
-    "rowTrendingDesc": "Un aviso semanal cuando sale la edición de temas de la semana."
+    "rowTrendingDesc": "Un aviso semanal cuando sale la edición de temas de la semana.",
+    "rowBabyWeekTitle": "La semana de tu bebé",
+    "rowBabyWeekDesc": "Un mensaje la mañana en que tu bebé cumple una semana nueva — cómo suele ser esta etapa y consejos que ayudan. Sin listas ni nada que alcanzar."
   },
   "account": {
     "back": "Atrás",
