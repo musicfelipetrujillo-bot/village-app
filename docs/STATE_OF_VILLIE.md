@@ -4,12 +4,26 @@
 Read this first. Update it last. When sessions collide (duplicate migration numbers, duplicate
 feature builds, stepping on shared files), the fix is: everyone coordinates *here*.
 
-- **Last updated:** 2026-07-29 (git reconciliation + deploy-state correction — see banner below)
-- **`main` head:** `7ccd612` (merge: Billy Wave 1 client integrated into the boxes lineage for OTA). Local `main` fast-forwarded to this on 2026-07-29; **not yet pushed to `origin/main`** (was `c289456`).
+- **Last updated:** 2026-07-30 (three OTAs shipped · The Buzz live · see §0 RELEASE LOG)
+- **`main` head:** `f2d8e57` — **pushed; `main` == `origin/main`, no drift.**
 - **Authoritative for:** in-flight work, migration numbers, deploy queue, launch sequence.
 - **NOT authoritative for:** per-phase build history (`CLAUDE.md`), env/key setup (`docs/OPS_RUNBOOK.md`), product intent (`docs/source/*`). This doc points at those; it doesn't replace them.
 
-> 🔴 **2026-07-29 CORRECTION — much of §2–§4 below (dated 2026-07-10) is STALE.** Verified against live hosted Supabase (`albyndcruwopulazvpjs`) via read-only MCP: **ALL migrations `001`→`105` are applied on prod** (not "highest applied 100 / 098+099 unapplied" as the old text says) and **every edge function is ACTIVE** — Billy Wave 1 (`app-help-chat` v25), The Buzz trio, `milk-vault-scan` v2, etc. **The backend deploy queue is EMPTY. Next free migration = 111** (updated 2026-07-30 — a parallel session claimed and applied 106–110 same-day; see §3). The git drift is also resolved: `feat/billy-capability-coverage` + `feat/villie-boxes-home-polish` are reconciled and `main` now contains both (head `7ccd612`, typecheck-clean). **The only remaining "ship it" step is the OTA JS bundle** (`eas update --channel production` from `main`/`integration/ota-2026-07-29`). Trust this banner + memory `project_deploy_state_2026_07` over the older per-line claims below until those lines are individually rewritten.
+> 🟢 **§0 · RELEASE LOG — 2026-07-30 (read this first; it supersedes everything below).**
+> **Three OTAs shipped to the `production` channel today**, all runtime `1.0.0` (reaches every current store build), all from `main`:
+> | Update group | Contents |
+> |---|---|
+> | `d968fa36-27e1-400c-953e-36284d575c72` | Milk Vault · Billy Wave 1 client · The Buzz surface · milk C-1 PII fix |
+> | `93fa0db6-acbb-4993-9652-8f2b25bb719e` | mamas-corner MomHub · week nudges + dormant winback · Billy context brain + CTA pills · Pro scaffolding (dark) |
+> | `72df799c-a5f1-49af-a021-2bdad1fe9c05` | editorial mastheads on destination screens |
+>
+> **Live feature state:** The Buzz is **PUBLISHED** — issue `c3cc6efb…` "this week in the parent group chat", 4 medical items approved by the clinical reviewer. Migration **112** archived the leaked `SMOKE TEST — delete me` issue (it was reaching users via `list_trending_archive()` → BuzzArchiveScreen); archive now returns 1 row. **Villie Boxes is intentionally DARK** (`EXPO_PUBLIC_VILLIE_BOXES_ENABLED=0`) — Stripe publishable key + `STRIPE_WEBHOOK_SECRET` unset and `boxes-create-payment-intent` undeployed; see `docs/BOXES_GOLIVE_CHECKLIST.md`. **villie Pro is triple-dark** (dynamic native import + env flag unset + DB `pro_video_gate` OFF) — real purchases need native **Build 14**.
+> **Reviewer flags** live on `fele_trujillo@hotmail.com` (primary Apple login), not `felitrujillo95@…` — migrations 106–108.
+> **OTA env:** publish from a gitignored `apps/mobile/.env.production` (the dev `.env` sets `APP_ENV=development` + `INTERNAL_AGENTS_ENABLED=1` and would poison a prod bundle). Rollback is `eas update:rollback` — no store review.
+>
+> 🔶 **CONCURRENCY WARNING (learned the hard way, 2026-07-30).** Two Claude sessions wrote to this repo simultaneously today and collided twice: (1) a session claimed and applied migrations **106–110** hours after this doc declared "next free = 106"; (2) a session moved the shared checkout to `feat/billy-capability-coverage` mid-task, so another session's commit landed on the wrong branch and had to be cherry-picked back. **Protocol:** before claiming a migration number, run `list_migrations` against hosted — never trust this doc alone. Before committing, run `git branch --show-current` — never assume you are on `main`. If another session is active, **work in a git worktree** (`git worktree add .worktrees/<name> main`) instead of switching branches out from under it.
+>
+> 🔴 **2026-07-29 CORRECTION — much of §2–§4 below (dated 2026-07-10) is STALE.** Verified against live hosted Supabase (`albyndcruwopulazvpjs`) via read-only MCP: **ALL migrations `001`→`105` are applied on prod** (not "highest applied 100 / 098+099 unapplied" as the old text says) and **every edge function is ACTIVE** — Billy Wave 1 (`app-help-chat` v25), The Buzz trio, `milk-vault-scan` v2, etc. **The backend deploy queue is EMPTY. Next free migration = 113** (see §0 + §3). The git drift is also resolved: `feat/billy-capability-coverage` + `feat/villie-boxes-home-polish` are reconciled and `main` now contains both (head `7ccd612`, typecheck-clean). **The only remaining "ship it" step is the OTA JS bundle** (`eas update --channel production` from `main`/`integration/ota-2026-07-29`). Trust this banner + memory `project_deploy_state_2026_07` over the older per-line claims below until those lines are individually rewritten.
 
 > ⚠️ **Before you create a migration, claim its number in §3.** Before you start building a feature, check §2 that no other session already owns it. At the end of your session, update §2, §3, §4.
 
@@ -43,6 +57,7 @@ Villie is a **pre-launch** maternal-health platform (React Native + Expo + Supab
 
 | Workstream | State | Owner surface (don't collide) | Next step |
 |---|---|---|---|
+| 🔴 **Billy Wave 2** (ACTIVE as of 2026-07-30 evening — another session is writing right now) | Branch **`feat/billy-capability-coverage`**, 5 commits ahead of `main` (head `c5b0a09`), plus uncommitted work. **This branch is the shared checkout** — do not `git switch` it away; use a worktree. | `supabase/functions/app-help-chat/**` (tools: `saveItem`, `logMilkStash`, `draftDaySheet`, wave-2 `navigate` routes), `screens/help/AIHelpChatScreen.tsx`, `docs/BILLY_*.md` | Let that session finish + typecheck, then merge to `main` and OTA. Do **not** OTA `main` mid-flight expecting Wave 2 — it isn't merged. |
 | **Waitlist migration (100)** | ✅ **DONE** — committed on `feat/waitlist-migration`, merged (PR #5), applied to prod | `supabase/migrations/100_waitlist.sql` | Fully shipped, no follow-up. |
 | **`feat/villie-boxes-home-polish`** (current working branch) | 15 ahead / behind `origin/main` (100_waitlist.sql duplicate removed — it now lives only on main history) | `screens/home/*`, Villie Boxes catalog/store, migration **092** | **Rebase/merge origin/main IN** — it's still behind on the 096/098/099 changes. |
 | **Milk Vault V6** | ✅ Merged (PR #3). Not deployed. | `src/screens/milkVault/*`, `api/milkVault.ts`, `store/milkVault.ts`, `milk-vault-scan` fn, migration 099 | Apply 099 + deploy `milk-vault-scan` + OTA (§4). Founder go-ahead to ship still open. |
@@ -58,9 +73,10 @@ Villie is a **pre-launch** maternal-health platform (React Native + Expo + Supab
 
 **This is the section that stops sessions from stepping on each other. Claim your number HERE before you create the file.**
 
-- **Highest APPLIED on prod:** **110** (re-verified 2026-07-30 via read-only MCP `list_migrations`). **ALL of `001`→`110` are applied** — including 098 (retire milk Stripe), 099 (Milk Vault), 101–105 (Care/day sheets/daycares/RLS backfill/The Buzz), **106–108 (reviewer-flag consolidation onto the founder's primary Apple login), 109 (`villie_memories`), 110 (`villie_pro_entitlement`)**. The apply queue is **empty**.
-- **Highest ON DISK (`main`):** **110.**
-- **Highest CLAIMED:** **110. → NEXT FREE = 111.**
+- **Highest APPLIED on prod:** **112** (re-verified 2026-07-30 via read-only MCP `list_migrations`). **ALL of `001`→`112` are applied** — including 098 (retire milk Stripe), 099 (Milk Vault), 101–105 (Care/day sheets/daycares/RLS backfill/The Buzz), 106–108 (reviewer-flag consolidation onto the founder's primary Apple login), 109 (`villie_memories`), 110 (`villie_pro_entitlement`), 111 (`week_nudge_push`), 112 (`unpublish_buzz_smoke_test`). The apply queue is **empty**.
+- **Highest ON DISK (`main`):** **112.**
+- **Highest CLAIMED:** **112. → NEXT FREE = 113.**
+- ⚠️ **MCP is read-only** — `apply_migration` fails. Apply with the authenticated CLI: `supabase db push` from the repo root.
 - ⚠️ **106–110 were claimed + applied by a parallel session on 2026-07-29/30** while another session was mid-OTA. Re-run `list_migrations` before claiming a number — this doc can lag by hours when sessions run concurrently.
 
 | # | Name | What | Status |
@@ -79,7 +95,7 @@ Villie is a **pre-launch** maternal-health platform (React Native + Expo + Supab
 
 **Rule (enforced):**
 1. Before creating any migration, add a row to the table above with your number, name, and "CLAIMED — <branch>".
-2. Use the **next free number** (currently **111**). Never reuse 001–110 — all are on disk in `main` and applied to prod.
+2. Use the **next free number** (currently **113**). Never reuse 001–112 — all are on disk in `main` and applied to prod. **Verify with `list_migrations` first** — a concurrent session may have claimed numbers since this doc was written.
 3. Filenames are **numeric-prefix only** (`101_...sql`) — the CLI silently skips `101b`.
 4. After your PR merges + the migration applies, update the row to ✅ APPLIED.
 
