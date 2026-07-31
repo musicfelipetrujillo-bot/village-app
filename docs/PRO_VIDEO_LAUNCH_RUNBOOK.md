@@ -135,18 +135,20 @@ failing** — that is precisely the state this runbook exists to prevent.
 
 ---
 
-## Open decision — written manual: free or gated?
+## Settled — the written manual is free forever
 
-Two surfaces still disagree about the free tier, and one of them has to change:
+**Decided 2026-07-30 (Felipe): the 52-week written manual is free forever, for
+everyone. Only VIDEO is a Pro entitlement.**
 
-- **The spec** (`docs/superpowers/specs/2026-07-29-villie-pro-video-paywall-design.md`)
-  says the 52-week written content stays free forever.
-- **`ManualWeekIndexScreen`** locks every *future* week's written content behind
-  Pro (`locked = !pro && week > currentWeek`).
+`ManualWeekIndexScreen` had been locking future weeks' written content; that gate
+is gone, and `paywall.freeNote` is back to the full promise ("the 52-week written
+manual? still free. forever."). Spec, code and copy now agree.
 
-`paywall.freeNote` currently describes the **code's** behaviour ("this week and
-every week you've reached"), so nothing contradicts on screen today. But the
-spec and the app still describe different products. Pick one before launch.
+The free/paid line, in one sentence: **text is free, video is pro.**
+
+Do not re-introduce a gate on written content — the week index, milestone detail,
+and manual pieces all stay open. The only Pro-gated surfaces are
+`manual_videos`, `manual_week_intro`, and the deep-dive card in `ManualModules`.
 
 ---
 

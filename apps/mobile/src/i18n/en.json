@@ -1,15 +1,10 @@
 {
   "manualWeekIndex": {
     "title": "all 52 weeks",
-    "freeBanner": "You're on week {{week}}. Revisit any week so far — future weeks unlock with villie pro.",
     "weekTitle": "Week {{week}}",
     "monthLabel": "Month {{month}}",
     "thisWeek": "This week",
-    "rowA11y": "Open week {{week}}",
-    "rowLockedA11y": "Week {{week}}, locked — upgrade to villie pro to read ahead",
-    "proTitle": "Peek ahead with villie pro",
-    "proBody": "Free includes this week and every week you've already reached. villie pro unlocks all 52 weeks so you can read ahead any time. Coming soon.",
-    "proDismiss": "Maybe later"
+    "rowA11y": "Open week {{week}}"
   },
   "manualMenu": {
     "triggerA11y": "Open Manual menu",
@@ -2223,7 +2218,7 @@
     "b2": "how-to deep dives: feed, sleep, grow, care",
     "b3": "every video under two minutes",
     "b4": "the library keeps growing",
-    "freeNote": "the written manual stays free — this week and every week you've reached.",
+    "freeNote": "the 52-week written manual? still free. forever.",
     "bestValue": "best value · save 40%",
     "annual": "yearly",
     "annualSuffix": "/year · $4.17/mo",
