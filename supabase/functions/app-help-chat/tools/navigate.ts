@@ -32,7 +32,9 @@ export const navigate: ToolDef = {
       "private Milk Vault freezer-stash dashboard ('milk_vault'), or " +
       "set up her baby's profile / baby card ('baby_profile_setup') — use this whenever she needs a " +
       "baby profile before you can log naps/feeds/diapers. " +
-      "In your reply, tell her you're taking her there and what she'll do on that screen.",
+      "Navigation only happens when SHE taps the button under your reply — never say you're " +
+      "taking her there now. Tell her what the button opens and what she'll do on that screen " +
+      "(e.g. \"Tap below to open the donor signup — you'll answer a quick questionnaire there.\").",
     input_schema: {
       type: 'object',
       properties: {

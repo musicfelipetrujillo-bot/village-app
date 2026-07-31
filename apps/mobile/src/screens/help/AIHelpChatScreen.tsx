@@ -39,6 +39,8 @@ interface UIMessage {
   crisisResources?: Record<string, CrisisResource>;
   quickReplies?: string[];
   cta?: { label: string; screen: string };
+  /** Params the pill passes through to runNavigate (e.g. box_checkout {box}). */
+  ctaParams?: Record<string, unknown>;
 }
 
 // The model is told plain-text-only, but strip any markdown emphasis that slips
@@ -220,6 +222,15 @@ export default function AIHelpChatScreen() {
         .filter((m) => m.id !== 'greeting')
         .map((m) => ({ role: m.role, content: m.content }));
       const res = await appHelpApi.sendMessage(history, ctx, loc, avail);
+      // Navigation is ALWAYS her tap, never automatic (founder call 2026-07-30:
+      // auto-jumping mid-read felt like the app grabbing the wheel). A navigate
+      // action without a cta gets a synthesized pill so there's always a button.
+      const navAction = res.crisis ? undefined : res.navigate;
+      const cta = res.crisis
+        ? undefined
+        : res.cta ?? (navAction
+          ? { label: lang === 'es' ? 'Llévame ahí' : 'Take me there', screen: navAction.screen }
+          : undefined);
       setMessages((prev) => [
         ...prev,
         {
@@ -230,12 +241,11 @@ export default function AIHelpChatScreen() {
           // Suppress the tap-pills in a crisis turn — the crisis card must be the
           // only thing she reaches for there.
           quickReplies: res.crisis ? undefined : res.quick_replies,
-          cta: res.crisis ? undefined : res.cta,
+          cta,
+          // Carry navigate params through the pill (e.g. box_checkout {box:'newborn'}).
+          ctaParams: navAction && cta && navAction.screen === cta.screen ? navAction.params : undefined,
         },
       ]);
-      if (res.navigate) {
-        setTimeout(() => runNavigate(navigation, res.navigate!), 350);
-      }
     } catch (e) {
       const msg = e instanceof Error ? e.message : t('help.errorGeneric');
       setMessages((prev) => [
@@ -299,7 +309,7 @@ export default function AIHelpChatScreen() {
             <TouchableOpacity
               style={styles.ctaPill}
               activeOpacity={0.85}
-              onPress={() => runNavigate(navigation, { screen: item.cta!.screen })}
+              onPress={() => runNavigate(navigation, { screen: item.cta!.screen, params: item.ctaParams })}
               accessibilityRole="button"
               accessibilityLabel={item.cta.label}
             >
