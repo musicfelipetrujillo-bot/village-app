@@ -78,7 +78,7 @@ report_gear) is `code` too.
 | Save / unsave a milk donor | do | insert/delete:milk_saved_donors | N | code | E-toggle-save-donor |
 | AI-match me to best-fit donors | read | fn:milk-match-donors | N | no | E-milk-match-donors |
 | Ask AI a question about a donor | read | fn:milk-donor-qa | N | no | E-milk-donor-qa |
-| Become a milk donor (create donor profile) | route | insert:milk_donor_profiles | Y | code | E-create-donor-profile |
+| Become a milk donor (create donor profile) | route | insert:milk_donor_profiles | Y | yes | E-create-donor-profile |
 | Edit my donor profile | route | update:milk_donor_profiles | Y | code | E-update-donor-profile |
 | Save donor questionnaire responses | route | upsert:milk_questionnaire_responses | Y | no | E-donor-questionnaire |
 | Set my donor diet flags | route | upsert:milk_donor_diet_flags | Y | no | E-donor-diet-flags |
@@ -104,7 +104,7 @@ report_gear) is `code` too.
 | Scan a milk bag photo to prefill (AI) | do | fn:milk-vault-scan | N | no | E-vault-scan-bag |
 | Read my Milk Vault transactions | read | (client) milk_vault_transactions | N | no | E-read-vault-transactions |
 | List my Milk Vault sell/donate listings | read | (client) milk_vault_listings | N | no | E-read-vault-listings |
-| Create a Milk Vault sell/donate listing | route | insert:milk_vault_listings | Y | code | E-vault-create-listing |
+| Create a Milk Vault sell/donate listing | route | insert:milk_vault_listings | Y | yes | E-vault-create-listing |
 | Update a Milk Vault listing status | route | update:milk_vault_listings | Y | no | E-vault-update-listing |
 | Configure a Milk Vault shipping kit | route | upsert:milk_vault_shipping_kits | Y | no | E-vault-shipping-kit |
 | Read a gear listing detail | read | rpc:get_gear_listing | N | no | E-read-gear-listing |
@@ -136,7 +136,7 @@ report_gear) is `code` too.
 | Read a perk detail | read | rpc:get_perk (getPerk) | N | no | E-read-perk |
 | Claim a perk (reveal code / affiliate link) | do | rpc:claim_perk | N | no | E-claim-perk |
 | Read my claimed perks | read | rpc:list_my_claims | N | no | E-read-my-claims |
-| Buy a curated Villie Box (checkout) | route | fn:boxes-create-payment-intent | Y | code | E-buy-box |
+| Buy a curated Villie Box (checkout) | route | fn:boxes-create-payment-intent | Y | yes | E-buy-box |
 | Read my box orders | read | (client) villie_box_orders | N | no | E-read-box-orders |
 | Discover community rooms | read | rpc:list_rooms_for_discovery | N | no | E-list-rooms |
 | Read a room + pinned resources | read | rpc:get_room_by_slug / list_pinned_resources | N | no | E-read-room |
