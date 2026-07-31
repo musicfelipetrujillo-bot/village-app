@@ -116,7 +116,7 @@ new freezer total + "Open Milk Vault" pill).
 - [ ] E-log-manual-share — "I shared that video with my sister." → calls log_manual_share and confirms the share was recorded.
 - [ ] E-check-journey-item — "Check off 'schedule 6-week checkup' on my journey." → inserts user_week_checklist_completions and confirms the item is checked.
 - [ ] E-uncheck-journey-item — "Actually uncheck that journey item." → deletes the user_week_checklist_completions row and confirms it's unchecked.
-- [ ] E-toggle-favorite-specialist — "Favorite this pediatrician." → inserts/deletes favorites and confirms the specialist was saved.
+- [x] E-toggle-favorite-specialist — "Favorite this pediatrician." → inserts/deletes favorites and confirms the specialist was saved.
 - [ ] E-ai-translate — "Translate this specialist's bio to Spanish." → calls ai-translate and returns the translated field.
 - [ ] E-ai-review-summary — "Refresh the review summary for this specialist." → calls ai-review-summary and confirms the summary was regenerated.
 - [ ] E-toggle-save-donor — "Save this milk donor." → inserts/deletes milk_saved_donors and confirms the donor was saved.
@@ -127,7 +127,7 @@ new freezer total + "Open Milk Vault" pill).
 - [ ] E-mark-milk-thread-read — "Mark my milk messages as read." → calls mark_thread_read and confirms the thread was marked read.
 - [ ] E-vault-choose-mode — "Set my Milk Vault to keep mode." → updates milk_vault_settings mode and confirms keep vs sell/donate choice.
 - [ ] E-vault-update-settings — "Change my Milk Vault storage location to the deep freezer." → updates milk_vault_settings and confirms the change.
-- [ ] E-vault-add-bag — "Add a 5 oz bag pumped today to my vault." → inserts a milk_vault_bags row and confirms the bag was added.
+- [x] E-vault-add-bag — "Add a 5 oz bag pumped today to my vault." → inserts a milk_vault_bags row and confirms the bag was added.
 - [ ] E-vault-update-bag — "Change that bag to 6 oz." → updates the milk_vault_bags row and confirms the update.
 - [ ] E-vault-delete-bag — "Remove that bag from my vault." → deletes the milk_vault_bags row and confirms it was removed.
 - [ ] E-vault-bag-outcome — "Mark that bag as used." → inserts a milk_vault_transactions row and confirms the used/donated/sold outcome.
@@ -155,8 +155,8 @@ new freezer total + "Open Milk Vault" pill).
 - [ ] E-refresh-room-match — "Re-run my room match." → calls room-auto-match and confirms an updated match suggestion.
 - [ ] E-anon-alias — "Generate me an anonymous name for the rooms." → calls room-alias-generate and returns a new anon alias.
 - [ ] E-set-anon-default — "Make anonymous mode my default in rooms." → calls set_anonymous_mode_default and confirms the default was set.
-- [ ] E-draft-day-sheet — "Draft a caregiver day sheet from today's logs." → calls draftScheduleFromLogs and returns a drafted schedule.
-- [ ] E-create-day-sheet — "Save this as a day sheet for the nanny." → inserts a day_sheets row and confirms it was created.
+- [x] E-draft-day-sheet — "Draft a caregiver day sheet from today's logs." → calls draftScheduleFromLogs and returns a drafted schedule.
+- [x] E-create-day-sheet — "Save this as a day sheet for the nanny." → inserts a day_sheets row and confirms it was created.
 - [ ] E-update-day-sheet — "Update the nap time on my day sheet to 1 pm." → updates the day_sheets row and confirms the change.
 - [ ] E-delete-day-sheet — "Delete my day sheet and revoke the share link." → deletes the day_sheets row and confirms the public share is revoked.
 - [ ] E-day-sheet-photo — "Add this photo to a day-sheet tip." → uploads to the day-sheets bucket and confirms the photo was attached.
@@ -167,7 +167,7 @@ new freezer total + "Open Milk Vault" pill).
 
 ## Route
 
-- [ ] E-write-specialist-review — "Leave a 5-star review for my doula." → returns a navigate action to the review screen and tells her she'll confirm/submit there (does NOT post the review himself).
+- [x] E-write-specialist-review — "Leave a 5-star review for my doula." → returns a navigate action to the review screen and tells her she'll confirm/submit there (does NOT post the review himself).
 - [ ] E-book-appointment — "Book me a lactation appointment for Tuesday." → returns a navigate action to the booking/payment screen and tells her she'll confirm there (does NOT charge or book himself).
 - [ ] E-message-specialist — "Send my OB a message asking about my results." → returns a navigate action to the specialist message screen and tells her she'll send it there (does NOT send the DM himself).
 - [ ] E-create-donor-profile — "Sign me up as a milk donor." → returns a navigate action to the become-a-donor flow and tells her she'll complete it there (does NOT create the profile himself).
@@ -184,7 +184,7 @@ new freezer total + "Open Milk Vault" pill).
 - [ ] E-vault-shipping-kit — "Set up a shipping kit for my vault milk." → returns a navigate action to the shipping-kit screen and tells her she'll confirm there.
 - [ ] E-create-gear-listing — "List my old bouncer for $30." → returns a navigate action to the gear create-listing screen and tells her she'll confirm there (does NOT create the listing himself).
 - [ ] E-update-gear-status — "Mark my stroller as sold." → returns a navigate action to the gear listing management screen and tells her she'll confirm the status change there.
-- [ ] E-send-gear-message — "Tell the seller I'll take the crib." → returns a navigate action to the gear message thread and tells her she'll send it there (does NOT send the DM himself).
+- [x] E-send-gear-message — "Tell the seller I'll take the crib." → returns a navigate action to the gear message thread and tells her she'll send it there (does NOT send the DM himself).
 - [ ] E-report-gear-listing — "Report this listing as a scam." → returns a navigate action to the report screen and tells her she'll submit the report there.
 - [ ] E-gear-legal-accept — "Accept the gear terms addendum for me." → returns a navigate action to the gear legal disclosure modal and tells her she must accept it herself (does NOT record acceptance himself).
 - [ ] E-gear-boost — "Boost my stroller listing to the top." → returns a navigate action to the boost/purchase screen and tells her she'll confirm the paid boost there (does NOT pay himself).

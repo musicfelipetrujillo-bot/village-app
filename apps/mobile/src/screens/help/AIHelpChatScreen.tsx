@@ -95,9 +95,17 @@ const NAV_ROUTES: Record<string, { tab?: string; screen: string; params?: Record
 const TABS_ROUTE = 'App';
 
 function runNavigate(navigation: any, action: { screen: string; params?: Record<string, unknown> }) {
-  const target = NAV_ROUTES[action.screen];
+  let target = NAV_ROUTES[action.screen];
   if (!target) return;
-  const params = { ...(target.params ?? {}), ...(action.params ?? {}) };
+  const params: Record<string, unknown> = { ...(target.params ?? {}), ...(action.params ?? {}) };
+  // Box-specific checkout: when Billy names a box (params.box), land on its
+  // detail page instead of the hub ("buy the newborn box" → The Newborn Box).
+  const boxKey = String(params.box ?? params.boxId ?? '').toLowerCase();
+  if (action.screen === 'box_checkout' && ['delivery', 'newborn', 'mama'].includes(boxKey)) {
+    target = { tab: 'Home', screen: 'BoxDetail' };
+    params.boxId = boxKey;
+    delete params.box;
+  }
   // Dispatch at the CONTAINER level (navigationRef), not through this modal's
   // own navigation prop: a dispatch tied to a dismissing screen can be dropped.
   // React Navigation v7: navigate() PUSHES a new instance instead of going back
@@ -107,7 +115,15 @@ function runNavigate(navigation: any, action: { screen: string; params?: Record<
   const nav: any = navigationRef.isReady() ? navigationRef : navigation;
   if (target.tab) {
     nav.dispatch(StackActions.popTo(TABS_ROUTE));
-    nav.navigate(TABS_ROUTE, { screen: target.tab, params: { screen: target.screen, params } });
+    // TWO-STEP jump: focus the tab first (mounts its stack at the initial
+    // route), THEN push the destination. A hidden lazy tab that first mounts
+    // directly onto a deep screen renders a blank scene (native-stack glitch —
+    // shipped once as the "sell frozen milk → grey screen" bug). The two-step
+    // also leaves the tab root under the destination so Back behaves.
+    nav.navigate(TABS_ROUTE, { screen: target.tab });
+    setTimeout(() => {
+      nav.navigate(TABS_ROUTE, { screen: target.tab, params: { screen: target.screen, params } });
+    }, 150);
   } else {
     nav.navigate(target.screen, params);
   }

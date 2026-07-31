@@ -6,7 +6,8 @@
 // gathering + upcoming rows, wired to the live events store — because local
 // community (meetups, circles, classes) is what the Village tab uniquely owns.
 
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import * as Location from 'expo-location';
 import {
   View, Text, StyleSheet, TouchableOpacity, Animated, Image,
   StyleProp, ViewStyle,
@@ -95,9 +96,27 @@ export default function VillageHomeScreenV3() {
   const upcoming = useEventsStore((s) => s.upcoming);
   const fetchUpcoming = useEventsStore((s) => s.fetchUpcoming);
 
-  const locationLine = lang === 'es'
-    ? 'Brooklyn, NY · 62 cerca de ti'
-    : 'Brooklyn, NY · 62 nearby';
+  // Real location, best-effort: reverse-geocode the device position when the
+  // permission is already granted (never prompts here). Falls back to a
+  // neutral line — no fabricated city or counts.
+  const [geoCity, setGeoCity] = useState<string | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const { status } = await Location.getForegroundPermissionsAsync();
+        if (status !== 'granted') return;
+        const pos = (await Location.getLastKnownPositionAsync()) ?? (await Location.getCurrentPositionAsync({}));
+        if (!pos) return;
+        const geos = await Location.reverseGeocodeAsync({ latitude: pos.coords.latitude, longitude: pos.coords.longitude });
+        const g = geos?.[0];
+        const city = g?.city ?? g?.subregion;
+        if (city && !cancelled) setGeoCity(g?.region ? `${city}, ${g.region}` : city);
+      } catch { /* best-effort */ }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+  const locationLine = geoCity ?? (lang === 'es' ? 'Cerca de ti' : 'Near you');
 
   const goVertical = (route: string) => navigation.getParent()?.navigate(route as never);
   const goAllPlans = () => navigation.navigate('EventsList' as never);

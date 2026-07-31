@@ -21,7 +21,8 @@ export const navigate: ToolDef = {
       "anything involving payment, posting something public, booking, or account changes. " +
       "You do NOT perform these; you deep-link and she taps the final confirm. Use when she asks to " +
       "book an appointment (screen 'booking'), sell/list gear ('gear_create'), buy a Villie Box " +
-      "('box_checkout'), boost a listing ('gear_boost'), become a milk donor ('become_donor'), edit her " +
+      "('box_checkout' — when she names a specific box, ALSO pass params {box:'newborn'|'delivery'|'mama'} " +
+      "so she lands on that box), boost a listing ('gear_boost'), become a milk donor ('become_donor'), edit her " +
       "donor profile ('donor_profile_edit'), change account settings ('account_settings'), " +
       "write a specialist review ('write_review'), message a provider ('message_specialist'), " +
       "post a milk listing ('create_milk_listing'), open her milk messages ('milk_messages'), " +

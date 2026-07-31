@@ -47,7 +47,9 @@ const s = StyleSheet.create({
   backArrow: { fontSize: 30, color: COLORS.v2_walnut, marginTop: -4, fontWeight: '400' },
   brandRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   brandDot: { width: 8, height: 8, borderRadius: 4 },
-  brand: { fontFamily: FONTS.v2_bold, fontSize: 17, color: COLORS.v2_cocoa },
+  // Masthead-weight title — matches the Insights masthead (headerBold 28) so
+  // every vertical hub (milk hub / care / gear / plans) reads as one family.
+  brand: { fontFamily: FONTS.headerBold, fontSize: 28, color: COLORS.v2_cocoa, letterSpacing: -0.5 },
 });
 
 export default HubHeader;
