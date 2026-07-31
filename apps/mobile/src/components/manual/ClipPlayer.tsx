@@ -203,7 +203,15 @@ export default function ClipPlayer({ clips, startIndex = 0, onClose }: ClipPlaye
   const playerUrl = video
     ? (video.html_url
         ?? (video.mux_playback_id
-              ? muxPlayerUrl(video.mux_playback_id, { autoplay: true, poster: video.poster_url })
+              ? muxPlayerUrl(video.mux_playback_id, {
+                  autoplay: true,
+                  poster: video.poster_url,
+                  // Default the CC track to her app language when this video
+                  // claims to have it. No-op until the Mux asset carries tracks.
+                  subtitleLang: (lang === 'es' ? video.has_captions_es : video.has_captions_en)
+                    ? lang
+                    : undefined,
+                })
               : null))
     : null;
   const localHtml = useMemo(
