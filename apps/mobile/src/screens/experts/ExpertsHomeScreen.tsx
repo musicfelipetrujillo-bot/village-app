@@ -61,7 +61,8 @@ export default function ExpertsHomeScreen({ navigation, route }: Props) {
   const [activeChip, setActiveChip] = React.useState(initialChipKey);
   // Care two-tier directory — grouped into Clinical (NPI-verified) + Extra hands
   // (background-checked) sections, with a text search + checked-only filter.
-  const [tier, setTier] = React.useState<'all' | 'clinical' | 'help' | 'daycare'>('all');
+  // No "All" tier — the directory always opens on Clinical (founder call 2026-07-31).
+  const [tier, setTier] = React.useState<'clinical' | 'help' | 'daycare'>('clinical');
   const [query, setQuery] = React.useState('');
   const [checkedOnly, setCheckedOnly] = React.useState(false);
   const [daycares, setDaycares] = React.useState<Daycare[]>([]);
@@ -82,11 +83,11 @@ export default function ExpertsHomeScreen({ navigation, route }: Props) {
     const clinical = rows.filter((r) => (r.provider_kind ?? 'clinical') === 'clinical');
     const help = rows.filter((r) => r.provider_kind === 'help');
     const out: CareRow[] = [];
-    if ((tier === 'all' || tier === 'clinical') && clinical.length) {
+    if (tier === 'clinical' && clinical.length) {
       out.push({ kind: 'header', title: 'Clinical care', tag: 'NPI-verified' });
       clinical.forEach((item, idx) => out.push({ kind: 'provider', item, idx }));
     }
-    if ((tier === 'all' || tier === 'help') && help.length) {
+    if (tier === 'help' && help.length) {
       out.push({ kind: 'header', title: 'Extra hands', tag: 'Background-checked' });
       help.forEach((item, idx) => out.push({ kind: 'provider', item, idx }));
     }
@@ -236,7 +237,7 @@ export default function ExpertsHomeScreen({ navigation, route }: Props) {
 
       {/* Care tier toggle — clinical vs extra hands */}
       <View style={styles.tierRow}>
-        {(['all', 'clinical', 'help', 'daycare'] as const).map((k) => (
+        {(['clinical', 'help', 'daycare'] as const).map((k) => (
           <TouchableOpacity
             key={k}
             style={[styles.tierSeg, tier === k && styles.tierSegActive]}
@@ -245,7 +246,7 @@ export default function ExpertsHomeScreen({ navigation, route }: Props) {
             accessibilityState={{ selected: tier === k }}
           >
             <Text style={[styles.tierSegText, tier === k && styles.tierSegTextActive]} numberOfLines={1} adjustsFontSizeToFit>
-              {k === 'all' ? 'All' : k === 'clinical' ? 'Clinical' : k === 'help' ? 'Extra hands' : 'Daycare'}
+              {k === 'clinical' ? 'Clinical' : k === 'help' ? 'Extra hands' : 'Daycare'}
             </Text>
           </TouchableOpacity>
         ))}
