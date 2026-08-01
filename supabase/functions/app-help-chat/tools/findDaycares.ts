@@ -13,27 +13,13 @@ function inMiamiDade(lat: number, lng: number): boolean {
   return lat >= 25.0 && lat <= 26.05 && lng >= -80.95 && lng <= -80.05;
 }
 
-async function run(supabase: any, loc: Loc) {
-  if (!loc) return { need_location: true };
-  // Miami-Dade → curated DCF registry (real license #); elsewhere → Places.
-  if (inMiamiDade(loc.lat, loc.lng)) {
-    const { data, error } = await supabase.rpc('list_daycares_near', { p_lat: loc.lat, p_lng: loc.lng, p_radius_miles: 10 });
-    if (!error && (data ?? []).length) {
-      return {
-        count: data.length,
-        source: 'miami_dade_dcf_registry',
-        results: (data as any[]).slice(0, 6).map((d) => ({
-          name: d.name,
-          distance_mi: num(d.distance_mi),
-          license_number: d.license_number ?? undefined,
-          capacity: d.capacity ?? undefined,
-          address: [d.address, d.city].filter(Boolean).join(', '),
-        })),
-        note: 'from the Miami-Dade DCF daycare registry — real license #, but tell her to verify CURRENT status on CARES; villie does not endorse/vet; ages + price coming soon',
-      };
-    }
-  }
-  if (!GOOGLE_MAPS_KEY) return { error: 'daycare_lookup_unavailable' };
+// School-age aftercare licenses (hosted at elementary/middle/high schools)
+// pollute the 0-12-month audience — drop them from every source. Mirrors
+// daycares-nearby (can't import it: its module body calls Deno.serve).
+const SCHOOL_RE = /(middle school|high school|elementary|k-8|k 8|junior high|senior high|charter school)/i;
+
+async function fetchPlacesRows(loc: NonNullable<Loc>): Promise<any[]> {
+  if (!GOOGLE_MAPS_KEY) return [];
   const url = new URL('https://maps.googleapis.com/maps/api/place/nearbysearch/json');
   url.searchParams.set('location', `${loc.lat},${loc.lng}`);
   url.searchParams.set('rankby', 'distance');
@@ -41,17 +27,52 @@ async function run(supabase: any, loc: Loc) {
   url.searchParams.set('key', GOOGLE_MAPS_KEY);
   const res = await fetch(url.toString());
   const data = await res.json();
-  const rows = (data.results ?? []) as any[];
-  return {
-    count: rows.length,
-    results: rows.slice(0, 6).map((r) => ({
-      name: r.name,
-      rating: typeof r.rating === 'number' ? num(r.rating) : undefined,
-      open_now: r.opening_hours?.open_now,
-      distance_mi: r.geometry?.location ? num(haversineMi(loc.lat, loc.lng, r.geometry.location.lat, r.geometry.location.lng)) : undefined,
-      address: r.vicinity,
+  return ((data.results ?? []) as any[]).filter((r) => !SCHOOL_RE.test(String(r.name ?? '')));
+}
+
+async function run(supabase: any, loc: Loc) {
+  if (!loc) return { need_location: true };
+  // Miami-Dade → DCF registry MERGED with Places (the registry seed misses real
+  // centers, e.g. Beehive in Coconut Grove); elsewhere → Places only.
+  const inMiami = inMiamiDade(loc.lat, loc.lng);
+  const registry: any[] = [];
+  if (inMiami) {
+    const { data, error } = await supabase.rpc('list_daycares_near', { p_lat: loc.lat, p_lng: loc.lng, p_radius_miles: 10 });
+    if (!error) registry.push(...((data ?? []) as any[]).filter((d) => !SCHOOL_RE.test(String(d.name ?? ''))));
+  }
+  const placesRows = await fetchPlacesRows(loc).catch(() => []);
+  if (!registry.length && !placesRows.length) {
+    return GOOGLE_MAPS_KEY ? { count: 0, results: [] } : { error: 'daycare_lookup_unavailable' };
+  }
+  const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, '');
+  const regNames = registry.map((d) => norm(String(d.name ?? '')));
+  const merged = [
+    ...registry.map((d) => ({
+      name: d.name,
+      distance_mi: num(d.distance_mi),
+      license_number: d.license_number ?? undefined,
+      capacity: d.capacity ?? undefined,
+      address: [d.address, d.city].filter(Boolean).join(', '),
     })),
-    note: 'public listings — villie does not endorse/vet; ages, price, licensing coming soon',
+    ...placesRows
+      .filter((r) => {
+        const pk = norm(String(r.name ?? ''));
+        return !regNames.some((rk) => (rk.length >= 6 && pk.includes(rk)) || (pk.length >= 6 && rk.includes(pk)));
+      })
+      .map((r) => ({
+        name: r.name,
+        rating: typeof r.rating === 'number' ? num(r.rating) : undefined,
+        open_now: r.opening_hours?.open_now,
+        distance_mi: r.geometry?.location ? num(haversineMi(loc.lat, loc.lng, r.geometry.location.lat, r.geometry.location.lng)) : undefined,
+        address: r.vicinity,
+      })),
+  ].sort((a, b) => (a.distance_mi ?? 99) - (b.distance_mi ?? 99));
+  return {
+    count: merged.length,
+    results: merged.slice(0, 6),
+    note: inMiami
+      ? 'mixed sources: rows WITH license_number are from the Miami-Dade DCF registry (tell her to verify CURRENT status on CARES); the rest are public Google listings. villie does not endorse/vet; ages + price coming soon'
+      : 'public listings — villie does not endorse/vet; ages, price, licensing coming soon',
   };
 }
 
