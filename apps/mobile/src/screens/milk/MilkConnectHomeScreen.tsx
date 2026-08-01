@@ -146,7 +146,17 @@ export default function MilkConnectHomeScreen({ navigation }: Props) {
     <View style={styles.container}>
       <SafeAreaView style={{ flex: 1 }} edges={['top']}>
         <View style={styles.header}>
-          <View style={styles.brandRow}><View style={styles.brandDot} /><Text style={styles.brand}>milk hub</Text></View>
+          <View style={styles.brandRow}>
+            <TouchableOpacity
+              onPress={() => (navigation.canGoBack() ? navigation.goBack() : (navigation.getParent() as any)?.navigate('Village'))}
+              accessibilityRole="button"
+              accessibilityLabel="Back"
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <Text style={styles.backArrow}>‹</Text>
+            </TouchableOpacity>
+            <View style={styles.brandDot} /><Text style={styles.brand}>milk hub</Text>
+          </View>
           <View style={styles.headerIcons}>
             <TouchableOpacity style={styles.iconBtn} onPress={() => navigation.navigate('SavedDonors')} accessibilityRole="button" accessibilityLabel={t('milk.saved')}><Glyph d={ICON.heart} color={C.roseInk} size={17} /></TouchableOpacity>
             <TouchableOpacity style={styles.iconBtn} onPress={() => navigation.navigate('MilkMessageThreads')} accessibilityRole="button" accessibilityLabel={t('milk.messagesA11y')}><Glyph d={ICON.chat} color={C.walnut} size={17} /></TouchableOpacity>
@@ -249,6 +259,8 @@ const styles = StyleSheet.create({
 
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 18, paddingTop: 6, paddingBottom: 14 },
   brandRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  // Mirrors MilkVaultDashboard's back chevron so both toggle halves can exit.
+  backArrow: { fontSize: 30, color: C.walnut, marginTop: -4, fontWeight: '400', marginRight: 2 },
   brandDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: C.honey },
   brand: { fontFamily: FONTS.v2_bold, fontSize: 17, color: C.ink },
   headerIcons: { flexDirection: 'row', gap: 8 },
