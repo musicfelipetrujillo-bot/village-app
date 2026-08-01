@@ -29,7 +29,7 @@ report_gear) is `code` too.
 | Stop / end a feed timer | do | update:baby_feed_logs | N | no | E-stop-feed |
 | Log a bottle feed | do | insert:baby_feed_logs | N | yes | E-log-bottle |
 | Log a diaper change | do | insert:baby_diaper_logs | N | yes | E-log-diaper |
-| Remember a fact from conversation (Billy's brain) | do | insert:villie_memories (mig 109) | N | code | E-remember-fact |
+| Remember a fact from conversation (Billy's brain) | do | insert:villie_memories (mig 109) | N | yes | E-remember-fact |
 | Jot a freeform baby note | do | insert:baby_log_notes | N | no | E-log-note |
 | Parse a voice/text jot into structured logs | do | fn:playbook-parse-note | N | no | E-parse-note |
 | Read today's logs (feeds/naps/diapers) | read | (client) baby_sleep/feed/diaper_logs | N | no | E-read-today-logs |

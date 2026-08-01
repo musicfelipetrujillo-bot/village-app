@@ -100,7 +100,7 @@ new freezer total + "Open Milk Vault" pill).
 - [ ] E-stop-feed — "Done nursing, stop the feed timer." → updates the open baby_feed_logs row with an end time and confirms feed duration.
 - [x] E-log-bottle — "Log a 4 oz bottle." → inserts a baby_feed_logs bottle row and confirms the bottle feed was logged.
 - [x] E-log-diaper — "Log a wet diaper." → inserts a baby_diaper_logs row and confirms the diaper change was logged.
-- [ ] E-remember-fact — tell Billy "he only takes pumped-milk bottles", then in a NEW chat ask "what do you know about how he eats?" → the fact persisted (villie_memories row) and Billy uses it without re-asking.
+- [x] E-remember-fact — tell Billy "he only takes pumped-milk bottles", then in a NEW chat ask "what do you know about how he eats?" → the fact persisted (villie_memories row) and Billy uses it without re-asking.
 - [ ] E-cta-pill — "Log a wet diaper." → reply carries a tappable "Open Playbook" pill that deep-links to Manual → Playbook.
 - [ ] E-no-refriction — "Log a 5 oz bottle." → Billy logs IMMEDIATELY (no "formula or breast milk?" follow-up) and replies in plain text (no ** asterisks).
 - [ ] E-stats-first — "How were his feeds today?" → Billy calls get_baby_tracking_stats and answers from the numbers; never asks whether a baby profile exists.
