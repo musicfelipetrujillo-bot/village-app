@@ -5,7 +5,7 @@
 //   → fetch page HTML → Haiku extracts structured events → upsert_ingested_event
 //   → the EXISTING chain (events-geocode → ai-event-screen → founder review)
 //   takes over. Nothing publishes without review unless the feed's
-//   auto_publish_threshold says so (harvest sources ship at 1.01 = never).
+//   auto_publish_threshold says so (harvest sources ship at the 1.0 CHECK cap).
 //
 // The mom always finishes on the source site (tickets/registration) — the
 // event's ticket link is appended to the description. villie sources; she buys.
@@ -194,7 +194,7 @@ Deno.serve(async (req) => {
           default_age_tags: r.age_tags ?? ['0-3mo', '3-6mo', '6-12mo'],
           default_event_type: r.event_type ?? 'local',
           is_active: true,
-          auto_publish_threshold: 1.01, // founder reviews everything from harvest sources
+          auto_publish_threshold: 1.0, // CHECK caps at 1.0 — only a perfect-confidence event skips review
           notes: `Tier-A AI harvest source, self-registered ${new Date().toISOString().slice(0, 10)}.`,
         });
         if (insErr) return json({ error: insErr.message }, 500);

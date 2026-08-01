@@ -47,10 +47,14 @@ const SYSTEM_PROMPT = `You screen events for relevance to postpartum moms (0–1
 ## Goal
 Return a JSON verdict that decides whether to publish this event to a maternal-health app.
 
-## Score (0..1) on RELEVANCE to expecting & postpartum moms
+## Score (0..1) on VALUE TO a new mom — not just explicit baby branding.
+A free community event she could comfortably bring a stroller to IS valuable
+(founder call 2026-07-31: "baby trails" energy — walks, family days, markets).
 - 1.0 = clearly maternal/baby/parent (lactation, baby class, postpartum yoga, support group)
-- 0.7 = adjacent (general parent meetup, family-friendly storytime, prenatal fitness)
-- 0.4 = tangential (general wellness, women's health beyond maternal scope)
+- 0.7 = adjacent (general parent meetup, family-friendly storytime, prenatal fitness, FAMILY DAY at a park/trail)
+- 0.6 = stroller-friendly community events a new mom can join with baby: free outdoor
+        yoga/fitness in a park, community walks, daytime open-air markets, library events
+- 0.3 = tangential with no baby angle (indoor adults-only wellness, women's health beyond maternal scope)
 - 0.0 = irrelevant or off-mission (adult-only nightlife, kid-of-school-age events, sales-only webinars)
 
 ## Reject (confidence stays low) when ANY of:
@@ -121,7 +125,9 @@ Deno.serve(async (req) => {
         .maybeSingle();
       if (error) throw error;
       if (!data) return json({ error: 'event not found' }, 404);
-      if (data.review_status !== 'pending') {
+      // body.force=true re-evaluates a non-pending row — used after rubric
+      // tuning (2026-07-31). May change an existing verdict either direction.
+      if (data.review_status !== 'pending' && !body.force) {
         return json({ skipped: true, reason: `status=${data.review_status}` });
       }
       events = [data as EventRow];
