@@ -109,7 +109,10 @@ Deno.serve(async (req) => {
       const { data, error } = await supabase
         .from('events_partner_feeds')
         .select('*')
-        .eq('is_active', true);
+        .eq('is_active', true)
+        // 'harvest:' rows are AI-harvested venue PAGES, not ICS — the
+        // events-harvest function owns those (2026-07-31).
+        .not('ics_url', 'ilike', 'harvest:%');
       if (error) throw error;
       feeds = (data ?? []) as PartnerFeed[];
     }

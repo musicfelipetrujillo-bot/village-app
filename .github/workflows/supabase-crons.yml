@@ -30,6 +30,7 @@ on:
     - cron: '0 6 * * *'      # gear-cpsc-recall-sync    (02:00 ET)
     - cron: '0 4 * * *'      # ai-weekly-journey-fill-nightly (00:00 ET)
     - cron: '0 9 * * *'      # events-ingest-ics-daily  (05:00 ET) — pull partner ICS feeds
+    - cron: '50 8 * * *'     # events-harvest-daily     (04:50 ET) — AI-harvest venue event PAGES (harvest: registry rows) ahead of the ICS chain
     - cron: '30 9 * * *'     # ai-event-screen-sweep    (05:30 ET) — Haiku-screen newly-ingested events
     - cron: '45 9 * * *'     # events-geocode-sweep     (05:45 ET) — geocode any text-only LOCATION rows
     - cron: '*/5 * * * *'    # gear-moderation-pager    — every 5 min; pushes P0 reports past 4hr SLA to founders (migration 063, SOP §10 item 1)
@@ -51,6 +52,7 @@ on:
           - gear-cpsc-recall-sync
           - ai-weekly-journey-fill
           - events-ingest-ics
+          - events-harvest
           - ai-event-screen
           - events-geocode
           - gear-moderation-pager
@@ -93,6 +95,7 @@ jobs:
               '0 6 * * *')     FN='gear-cpsc-recall-sync';    BODY='{}' ;;
               '0 4 * * *')     FN='ai-weekly-journey-fill';   BODY='{"mode":"missing","limit":5}' ;;
               '0 9 * * *')     FN='events-ingest-ics';        BODY='{"mode":"all"}' ;;
+              '50 8 * * *')    FN='events-harvest';           BODY='{}' ;;
               '30 9 * * *')    FN='ai-event-screen';          BODY='{"mode":"all","limit":50}' ;;
               '45 9 * * *')    FN='events-geocode';           BODY='{"mode":"all","limit":50}' ;;
               '*/5 * * * *')   FN='gear-moderation-pager';    BODY='{}' ;;
@@ -113,6 +116,7 @@ jobs:
               'ai-weekly-journey-fill')   BODY='{"mode":"missing","limit":5}' ;;
               'ai-milestone-explainer')   BODY='{"mode":"stale","limit":5}' ;;
               'events-ingest-ics')        BODY='{"mode":"all"}' ;;
+              'events-harvest')           BODY='{}' ;;
               'ai-event-screen')          BODY='{"mode":"all","limit":50}' ;;
               'events-geocode')           BODY='{"mode":"all","limit":50}' ;;
               'week-nudge-notify')        BODY='{"mode":"both","local_hour":10}' ;;
