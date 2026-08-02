@@ -20,14 +20,25 @@ const SCHOOL_RE = /(middle school|high school|elementary|k-8|k 8|junior high|sen
 
 async function fetchPlacesRows(loc: NonNullable<Loc>): Promise<any[]> {
   if (!GOOGLE_MAPS_KEY) return [];
-  const url = new URL('https://maps.googleapis.com/maps/api/place/nearbysearch/json');
-  url.searchParams.set('location', `${loc.lat},${loc.lng}`);
-  url.searchParams.set('rankby', 'distance');
-  url.searchParams.set('keyword', 'daycare child care');
-  url.searchParams.set('key', GOOGLE_MAPS_KEY);
-  const res = await fetch(url.toString());
-  const data = await res.json();
-  return ((data.results ?? []) as any[]).filter((r) => !SCHOOL_RE.test(String(r.name ?? '')));
+  // Two keyword passes — infant centers split between "daycare" and "preschool"
+  // categorization on Places. Dedupe by place_id.
+  const nearby = async (keyword: string): Promise<any[]> => {
+    const url = new URL('https://maps.googleapis.com/maps/api/place/nearbysearch/json');
+    url.searchParams.set('location', `${loc.lat},${loc.lng}`);
+    url.searchParams.set('rankby', 'distance');
+    url.searchParams.set('keyword', keyword);
+    url.searchParams.set('key', GOOGLE_MAPS_KEY);
+    const res = await fetch(url.toString());
+    const data = await res.json();
+    return (data.results ?? []) as any[];
+  };
+  const [a, b] = await Promise.all([nearby('daycare child care'), nearby('preschool').catch(() => [] as any[])]);
+  const seen = new Set<string>();
+  return [...a, ...b].filter((r) => {
+    if (!r.place_id || seen.has(r.place_id) || SCHOOL_RE.test(String(r.name ?? ''))) return false;
+    seen.add(r.place_id);
+    return true;
+  });
 }
 
 async function run(supabase: any, loc: Loc) {

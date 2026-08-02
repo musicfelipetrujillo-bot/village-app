@@ -100,18 +100,29 @@ export type DaycareResult = {
 export async function fetchDaycares(lat: number, lng: number, radiusMiles: number): Promise<DaycareResult[]> {
   if (!KEY) throw new Error('GOOGLE_MAPS_API_KEY not configured');
   // rankby=distance returns the nearest first (ignores radius), so we fetch then
-  // filter to the requested radius ourselves.
-  const url = new URL('https://maps.googleapis.com/maps/api/place/nearbysearch/json');
-  url.searchParams.set('location', `${lat},${lng}`);
-  url.searchParams.set('rankby', 'distance');
-  url.searchParams.set('keyword', 'daycare child care');
-  url.searchParams.set('key', KEY);
-  const res = await fetch(url.toString());
-  const data = await res.json();
-  if (data.status && data.status !== 'OK' && data.status !== 'ZERO_RESULTS') {
-    throw new Error(`places_${String(data.status).toLowerCase()}`);
-  }
-  const rows = (data.results ?? []) as any[];
+  // filter to the requested radius ourselves. TWO keyword passes: infant centers
+  // split between "daycare" and "preschool" categorization on Places (KidsHive
+  // Preschool takes 3-month-olds but never matches a daycare-only keyword).
+  const nearby = async (keyword: string): Promise<any[]> => {
+    const url = new URL('https://maps.googleapis.com/maps/api/place/nearbysearch/json');
+    url.searchParams.set('location', `${lat},${lng}`);
+    url.searchParams.set('rankby', 'distance');
+    url.searchParams.set('keyword', keyword);
+    url.searchParams.set('key', KEY);
+    const res = await fetch(url.toString());
+    const data = await res.json();
+    if (data.status && data.status !== 'OK' && data.status !== 'ZERO_RESULTS') {
+      throw new Error(`places_${String(data.status).toLowerCase()}`);
+    }
+    return (data.results ?? []) as any[];
+  };
+  const [a, b] = await Promise.all([nearby('daycare child care'), nearby('preschool').catch(() => [] as any[])]);
+  const seen = new Set<string>();
+  const rows = [...a, ...b].filter((r) => {
+    if (!r.place_id || seen.has(r.place_id)) return false;
+    seen.add(r.place_id);
+    return true;
+  });
   return rows
     .filter((r) => r.business_status ? r.business_status === 'OPERATIONAL' : true)
     .filter((r) => !isSchoolAge(String(r.name ?? '')))
