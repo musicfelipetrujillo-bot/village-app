@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View, Text, StyleSheet, TextInput, TouchableOpacity, Image,
   Keyboard, Platform, ActivityIndicator,
-  FlatList, Linking, InteractionManager,
+  FlatList, Linking,
 } from 'react-native';
 
 const VILLIE_BEE = require('../../../assets/brand/villie-bee.png');
@@ -124,19 +124,26 @@ function runNavigate(navigation: any, action: { screen: string; params?: Record<
     // shipped once as the "sell frozen milk → grey screen" bug). The two-step
     // also leaves the tab root under the destination so Back behaves.
     nav.navigate(TABS_ROUTE, { screen: tab });
-    // Step 2 used to be a bare setTimeout(150) — the SAME duration as the tab
-    // navigator's crossfade, so it landed mid-transition and got dropped
-    // (photographed 2026-08-02: "list my bouncer" reached Gear browse but never
-    // opened the New listing form). Wait for the transition to settle, then
-    // VERIFY we actually arrived and retry once if we didn't. Cheap, and it
-    // self-heals whatever the frame timing happens to be on her device.
+    // Step 2 was originally a bare setTimeout(150) — the SAME duration as the
+    // tab crossfade, so it landed mid-transition and got dropped ("list my
+    // bouncer" reached Gear browse but never opened the New listing form).
+    //
+    // The first fix routed it through InteractionManager.runAfterInteractions,
+    // which was WORSE: a dismissing modal holds an interaction handle, so the
+    // callback can be starved indefinitely and step 2 never runs at all. That
+    // regressed every destination to "pill dismisses the chat and nothing else
+    // happens" (2026-08-02, all 9 routes). Never gate navigation on interaction
+    // handles you don't own.
+    //
+    // Plain timers can't be starved. Fire once the transition is comfortably
+    // done, then VERIFY we actually arrived and re-fire if not — landing on the
+    // tab root instead of the destination is exactly the failure we're chasing,
+    // and getCurrentRoute() tells us which happened.
     const pushDeep = () => nav.navigate(TABS_ROUTE, { screen: tab, params: { screen, params } });
-    InteractionManager.runAfterInteractions(() => {
-      pushDeep();
-      setTimeout(() => {
-        if (navigationRef.isReady() && navigationRef.getCurrentRoute()?.name !== screen) pushDeep();
-      }, 250);
-    });
+    const arrived = () => navigationRef.isReady() && navigationRef.getCurrentRoute()?.name === screen;
+    setTimeout(pushDeep, 260);
+    setTimeout(() => { if (!arrived()) pushDeep(); }, 560);
+    setTimeout(() => { if (!arrived()) pushDeep(); }, 900);
   } else {
     nav.navigate(target.screen, params);
   }

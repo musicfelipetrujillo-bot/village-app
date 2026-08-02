@@ -20,11 +20,16 @@ async function run(ctx: ToolContext, input: any) {
   const item_id = String(input?.item_id ?? '').trim();
   if (!UUID_RE.test(item_id)) {
     // NOTE: `message` is coaching for you, not copy for her. She must never hear
-    // the words "id", "uuid", or "exact item ID" — that shipped once as Billy
-    // refusing a save he could already do (2026-08-02).
+    // the words "id", "uuid", or "exact item ID" — asking her to go fetch one
+    // shipped twice (2026-08-02) and reads as Billy refusing a save he could do.
+    //
+    // You genuinely do NOT have ids from earlier turns: the chat history that
+    // comes back to you is plain {role, content} text, so the tool_result rows
+    // holding the ids are dropped at the end of every request. That is why
+    // "re-read your last result" is not an option — there is nothing to re-read.
     return {
       error: 'need_item_id',
-      message: 'Re-read your own last search result and reuse the id of the listing she means. Only if that search returned several and her wording truly fits none of them, ask her by NAME ("the UPPAbaby or the Bugaboo?") — never mention ids.',
+      message: 'You have no ids this turn (tool results are not carried between turns). Do NOT ask her for one. Call the matching search tool again RIGHT NOW — find_donors for a donor, search_gear for gear, find_specialists for a specialist — then call save_item with the id at the position she named. Same query as before, so the order matches what she saw.',
     };
   }
 
@@ -59,15 +64,17 @@ export const saveItem: ToolDef = {
     name: 'save_item',
     description:
       'Save (or unsave with unsave:true) something she found — a specialist, milk donor, or gear listing — ' +
-      'to her saved list. The id comes from YOUR OWN earlier search result in this conversation; it is ' +
-      'already in front of you, so resolve her reference yourself instead of asking her for it. ' +
-      '"save it" / "save that one" / "yes save it" after a search that returned ONE result = that result. ' +
-      'Ordinals ("the first one", "the second one") = that position in the order you listed them. ' +
-      'A name or brand ("the UPPAbaby") = the matching row. If she names a position you never showed ' +
-      '(she says "the second" but you listed one), say so plainly and offer the one you did show — ' +
-      "don't ask her to go find it herself. NEVER say the words id, uuid, or \"exact item ID\" to her; " +
-      'if you genuinely cannot tell which of several she means, ask by NAME. After ok, confirm warmly ' +
-      'with the item name.',
+      'to her saved list. IMPORTANT: ids do not survive between turns — the history you receive is ' +
+      'plain text, so the search results you listed a moment ago are gone from your context. When she ' +
+      'refers back to one ("save it", "save the first one", "save the UPPAbaby"), silently RE-RUN the ' +
+      'matching search tool first (find_donors / search_gear / find_specialists, same query as before ' +
+      'so the order matches), then call save_item with the id at the position she named. Never ask her ' +
+      'for an id, never ask her to go tap the listing herself, and never say the words id or ID to her ' +
+      '— she has no idea what that means and it reads as you refusing. Resolving her reference: ' +
+      '"save it" / "save that one" after a single result = that result; ordinals = that position in ' +
+      'the order you listed; a brand or name = the matching row. If the re-run genuinely returns ' +
+      'fewer results than she referenced, say so plainly and offer what you did find. After ok, ' +
+      'confirm warmly with the item name.',
     input_schema: {
       type: 'object',
       properties: {
