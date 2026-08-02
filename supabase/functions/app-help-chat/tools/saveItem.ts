@@ -19,7 +19,13 @@ async function run(ctx: ToolContext, input: any) {
 
   const item_id = String(input?.item_id ?? '').trim();
   if (!UUID_RE.test(item_id)) {
-    return { error: 'need_item_id', message: 'Ask her which one — you need its id from a prior search result.' };
+    // NOTE: `message` is coaching for you, not copy for her. She must never hear
+    // the words "id", "uuid", or "exact item ID" — that shipped once as Billy
+    // refusing a save he could already do (2026-08-02).
+    return {
+      error: 'need_item_id',
+      message: 'Re-read your own last search result and reuse the id of the listing she means. Only if that search returned several and her wording truly fits none of them, ask her by NAME ("the UPPAbaby or the Bugaboo?") — never mention ids.',
+    };
   }
 
   const { data: auth } = await ctx.supabase.auth.getUser();
@@ -53,8 +59,15 @@ export const saveItem: ToolDef = {
     name: 'save_item',
     description:
       'Save (or unsave with unsave:true) something she found — a specialist, milk donor, or gear listing — ' +
-      "to her saved list. Only call with a real item id from a prior tool result; if you don't have one, " +
-      'ask which result she means. After ok, confirm warmly.',
+      'to her saved list. The id comes from YOUR OWN earlier search result in this conversation; it is ' +
+      'already in front of you, so resolve her reference yourself instead of asking her for it. ' +
+      '"save it" / "save that one" / "yes save it" after a search that returned ONE result = that result. ' +
+      'Ordinals ("the first one", "the second one") = that position in the order you listed them. ' +
+      'A name or brand ("the UPPAbaby") = the matching row. If she names a position you never showed ' +
+      '(she says "the second" but you listed one), say so plainly and offer the one you did show — ' +
+      "don't ask her to go find it herself. NEVER say the words id, uuid, or \"exact item ID\" to her; " +
+      'if you genuinely cannot tell which of several she means, ask by NAME. After ok, confirm warmly ' +
+      'with the item name.',
     input_schema: {
       type: 'object',
       properties: {

@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View, Text, StyleSheet, TextInput, TouchableOpacity, Image,
   Keyboard, Platform, ActivityIndicator,
-  FlatList, Linking,
+  FlatList, Linking, InteractionManager,
 } from 'react-native';
 
 const VILLIE_BEE = require('../../../assets/brand/villie-bee.png');
@@ -116,16 +116,27 @@ function runNavigate(navigation: any, action: { screen: string; params?: Record<
   // focused, navigate updates it in place and the nested tab jump resolves.
   const nav: any = navigationRef.isReady() ? navigationRef : navigation;
   if (target.tab) {
+    const { tab, screen } = target as { tab: string; screen: string };
     nav.dispatch(StackActions.popTo(TABS_ROUTE));
     // TWO-STEP jump: focus the tab first (mounts its stack at the initial
     // route), THEN push the destination. A hidden lazy tab that first mounts
     // directly onto a deep screen renders a blank scene (native-stack glitch —
     // shipped once as the "sell frozen milk → grey screen" bug). The two-step
     // also leaves the tab root under the destination so Back behaves.
-    nav.navigate(TABS_ROUTE, { screen: target.tab });
-    setTimeout(() => {
-      nav.navigate(TABS_ROUTE, { screen: target.tab, params: { screen: target.screen, params } });
-    }, 150);
+    nav.navigate(TABS_ROUTE, { screen: tab });
+    // Step 2 used to be a bare setTimeout(150) — the SAME duration as the tab
+    // navigator's crossfade, so it landed mid-transition and got dropped
+    // (photographed 2026-08-02: "list my bouncer" reached Gear browse but never
+    // opened the New listing form). Wait for the transition to settle, then
+    // VERIFY we actually arrived and retry once if we didn't. Cheap, and it
+    // self-heals whatever the frame timing happens to be on her device.
+    const pushDeep = () => nav.navigate(TABS_ROUTE, { screen: tab, params: { screen, params } });
+    InteractionManager.runAfterInteractions(() => {
+      pushDeep();
+      setTimeout(() => {
+        if (navigationRef.isReady() && navigationRef.getCurrentRoute()?.name !== screen) pushDeep();
+      }, 250);
+    });
   } else {
     nav.navigate(target.screen, params);
   }

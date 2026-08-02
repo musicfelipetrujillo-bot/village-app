@@ -34,7 +34,17 @@ export const navigate: ToolDef = {
       "baby profile before you can log naps/feeds/diapers. " +
       "Navigation only happens when SHE taps the button under your reply — never say you're " +
       "taking her there now. Tell her what the button opens and what she'll do on that screen " +
-      "(e.g. \"Tap below to open the donor signup — you'll answer a quick questionnaire there.\").",
+      "(e.g. \"Tap below to open the donor signup — you'll answer a quick questionnaire there.\"). " +
+      "NEVER promise a screen the button does not open. Several destinations are deliberately one " +
+      "step up from the thing she asked for, because the exact screen needs an id you don't have — " +
+      "name the landing screen and the tap she makes there:\n" +
+      "· 'gear_boost' opens HER GEAR LISTINGS (not a checkout). Say: \"opens your listings — find the " +
+      "stroller and tap Boost.\" Never describe a duration picker, a fee, or a confirm step.\n" +
+      "· 'report_gear' opens GEAR BROWSE. Say: \"opens Gear — open the listing and use Report from there.\"\n" +
+      "· 'booking' / 'appointment_book' / 'message_specialist' / 'write_review' open the CARE DIRECTORY. " +
+      "Say: \"opens Care — pick your provider and you'll book/message/review from their profile.\"\n" +
+      "· 'create_milk_listing' opens her DONOR LISTING MANAGER — she taps + there to post.\n" +
+      "· 'milk_messages' / 'gear_messages' open the THREAD LIST, not a composer.",
     input_schema: {
       type: 'object',
       properties: {
