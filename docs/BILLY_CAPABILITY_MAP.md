@@ -9,11 +9,14 @@ Tier values: `read` = pure read/search, `do` = reversible low-stakes write (Bill
 `confirm?` is Y for every `route` row (and every `blocked` row is never executed at all), N otherwise.
 `wired?` states: `yes` = live in production AND its eval is green; `code` = built on
 branch `feat/billy-capability-coverage`, pending `supabase functions deploy` + eval run;
-`no` = not built yet. The 6 shipped read tools are `yes`; Wave 1 (log-a-nap/bottle/diaper
-via the `log_baby_event` tool, and 6 route deep-links via the generic `navigate` tool) is `code`.
-The Wave 2 route batch (8 more `navigate` deep-link keys: write_review, message_specialist,
-create_milk_listing, milk_messages, vault_create_listing, gear_status, gear_messages,
-report_gear) is `code` too.
+`no` = not built yet.
+
+**Scoreboard 2026-08-02: 30 yes · 0 code · 122 no.** Waves 1 and 2 are fully verified —
+the founder ran the last 11 evals on 2026-08-02 and all came back green, so nothing sits
+in `code` any more. That run also surfaced five production bugs, all fixed and shipped
+(hidden-tab deep-links rendering blank, a JSON parse error impersonating a crisis response,
+pills promising screens they don't open, and Billy asking a mom for a uuid). Next up is
+Wave 3 — the read tranche, planned in `docs/BILLY_WAVE3_PLAN.md`.
 
 | action | tier | backing RPC / edge fn | confirm? | wired? | eval id |
 |--------|------|-----------------------|----------|--------|---------|
@@ -48,7 +51,7 @@ report_gear) is `code` too.
 | Read this week's Manual videos/pieces | read | rpc:list_this_week_manual | N | no | E-read-this-week-manual |
 | Browse Manual video library | read | rpc:list_manual_videos | N | no | E-list-manual-videos |
 | Read Manual pieces (stories/checklists/infographics) | read | rpc:list_manual_pieces | N | no | E-list-manual-pieces |
-| Read a single Manual video + week intro | read | rpc:get_week_intro_video / list_manual_videos | N | no | E-get-manual-video |
+| Read a single Manual video + week intro | read | rpc:get_manual_week_intro / list_manual_videos | N | no | E-get-manual-video |
 | Mark a Manual video watched | do | rpc:mark_video_watched | N | no | E-mark-video-watched |
 | Save / unsave a Manual video | do | rpc:toggle_manual_save | N | no | E-toggle-manual-save |
 | Read my saved Manual videos | read | rpc:list_my_saved_manual | N | no | E-list-saved-manual |
@@ -68,28 +71,28 @@ report_gear) is `code` too.
 | Generate questions to ask at an appointment | read | fn:ai-followup-questions | N | no | E-ai-followup-questions |
 | Translate a specialist profile field | do | fn:ai-translate | N | no | E-ai-translate |
 | Refresh a specialist's AI review summary | do | fn:ai-review-summary | N | no | E-ai-review-summary |
-| Book an appointment with a specialist | route | fn:create-payment-intent + insert:appointments | Y | code | E-book-appointment |
+| Book an appointment with a specialist | route | fn:create-payment-intent + insert:appointments | Y | yes | E-book-appointment |
 | Read my appointments | read | (client) appointments | N | no | E-read-appointments |
-| Message a specialist (send DM) | route | insert:messages | Y | code | E-message-specialist |
+| Message a specialist (send DM) | route | insert:messages | Y | yes | E-message-specialist |
 | Read my specialist message thread | read | (client) messages | N | no | E-read-specialist-thread |
 | Read a milk donor profile | read | (client) milk_donor_profiles | N | no | E-read-donor-profile |
 | Read a donor's active listing | read | (client) milk_listings | N | no | E-read-donor-listing |
 | Read my saved donors | read | (client) milk_saved_donors | N | no | E-read-saved-donors |
-| Save / unsave a milk donor | do | insert/delete:milk_saved_donors | N | code | E-toggle-save-donor |
+| Save / unsave a milk donor | do | insert/delete:milk_saved_donors | N | yes | E-toggle-save-donor |
 | AI-match me to best-fit donors | read | fn:milk-match-donors | N | no | E-milk-match-donors |
 | Ask AI a question about a donor | read | fn:milk-donor-qa | N | no | E-milk-donor-qa |
 | Become a milk donor (create donor profile) | route | insert:milk_donor_profiles | Y | yes | E-create-donor-profile |
-| Edit my donor profile | route | update:milk_donor_profiles | Y | code | E-update-donor-profile |
+| Edit my donor profile | route | update:milk_donor_profiles | Y | yes | E-update-donor-profile |
 | Save donor questionnaire responses | route | upsert:milk_questionnaire_responses | Y | no | E-donor-questionnaire |
 | Set my donor diet flags | route | upsert:milk_donor_diet_flags | Y | no | E-donor-diet-flags |
 | Add a donor medication (trust badge) | route | insert:milk_donor_medications | Y | no | E-donor-add-med |
 | Remove a donor medication | route | delete:milk_donor_medications | Y | no | E-donor-remove-med |
-| Create a milk listing | route | insert:milk_listings | Y | code | E-create-milk-listing |
+| Create a milk listing | route | insert:milk_listings | Y | yes | E-create-milk-listing |
 | Run the donor safety screener (AI self-check) | do | fn:milk-safety-screener | N | no | E-milk-safety-screener |
 | Run the donor questionnaire coach (AI) | do | fn:milk-questionnaire-coach | N | no | E-milk-questionnaire-coach |
 | Generate my donor trust narrative (AI) | do | fn:milk-trust-narrative | N | no | E-milk-trust-narrative |
 | Open / start a milk message thread | do | insert:milk_message_threads | N | no | E-milk-open-thread |
-| Send a milk message (DM) | route | insert:milk_messages | Y | code | E-send-milk-message |
+| Send a milk message (DM) | route | insert:milk_messages | Y | yes | E-send-milk-message |
 | Mark a milk thread read | do | rpc:mark_thread_read | N | no | E-mark-milk-thread-read |
 | Read my milk message threads | read | rpc:list_my_milk_threads | N | no | E-read-milk-threads |
 | Record milk legal-disclosure acceptance | route | insert:milk_legal_acceptances | Y | no | E-milk-legal-accept |
@@ -110,9 +113,9 @@ report_gear) is `code` too.
 | Read a gear listing detail | read | rpc:get_gear_listing | N | no | E-read-gear-listing |
 | Read my gear listings | read | rpc:list_my_gear_listings | N | no | E-read-my-gear-listings |
 | Read my saved gear | read | rpc:list_my_saved_gear | N | no | E-read-saved-gear |
-| Save / unsave a gear listing | do | insert/delete:gear_saved_listings | N | code | E-toggle-save-gear |
-| Create a gear listing | route | rpc:create_gear_listing + insert:gear_listing_images | Y | code | E-create-gear-listing |
-| Change a gear listing status (sold/withdraw/reactivate) | route | rpc:update_gear_status (updateStatus) | Y | code | E-update-gear-status |
+| Save / unsave a gear listing | do | insert/delete:gear_saved_listings | N | yes | E-toggle-save-gear |
+| Create a gear listing | route | rpc:create_gear_listing + insert:gear_listing_images | Y | yes | E-create-gear-listing |
+| Change a gear listing status (sold/withdraw/reactivate) | route | rpc:update_gear_status (updateStatus) | Y | yes | E-update-gear-status |
 | UPC-lookup to prefill a gear listing | do | fn:gear-upc-lookup | N | no | E-gear-upc-lookup |
 | Identify gear from a photo (AI) | do | fn:gear-vision-identify | N | no | E-gear-vision-identify |
 | CPSC recall check on a gear item | do | fn:gear-cpsc-check | N | no | E-gear-cpsc-check |
@@ -122,9 +125,9 @@ report_gear) is `code` too.
 | Mark a gear thread read | do | rpc:mark_gear_thread_read | N | no | E-mark-gear-thread-read |
 | Read my gear message threads | read | rpc:list_my_gear_threads | N | no | E-read-gear-threads |
 | Acknowledge the safe-meeting guide | do | rpc:ack_gear_safe_meeting | N | no | E-gear-ack-safe-meeting |
-| Report a gear listing | route | insert:gear_listing_reports | Y | code | E-report-gear-listing |
+| Report a gear listing | route | insert:gear_listing_reports | Y | yes | E-report-gear-listing |
 | Record gear legal-addendum acceptance | route | insert:gear_legal_acceptances | Y | no | E-gear-legal-accept |
-| Activate a paid gear boost (IAP payment) | route | fn:gear-boost-activate | Y | code | E-gear-boost |
+| Activate a paid gear boost (IAP payment) | route | fn:gear-boost-activate | Y | yes | E-gear-boost |
 | RSVP to an event | do | insert:event_rsvps | N | no | E-event-rsvp |
 | Cancel an event RSVP | do | update:event_rsvps | N | no | E-event-cancel-rsvp |
 | Mark an event added to calendar | do | update:event_rsvps | N | no | E-event-calendar-added |
@@ -133,7 +136,7 @@ report_gear) is `code` too.
 | Read my saved events | read | rpc:list_my_saved_events | N | no | E-read-saved-events |
 | Read a single event | read | (client) events | N | no | E-read-event |
 | Browse perks for my stage | read | rpc:list_perks | N | no | E-list-perks |
-| Read a perk detail | read | rpc:get_perk (getPerk) | N | no | E-read-perk |
+| Read a perk detail | read | (client) brand_deals (perksApi.getPerk) | N | no | E-read-perk |
 | Claim a perk (reveal code / affiliate link) | do | rpc:claim_perk | N | no | E-claim-perk |
 | Read my claimed perks | read | rpc:list_my_claims | N | no | E-read-my-claims |
 | Buy a curated Villie Box (checkout) | route | fn:boxes-create-payment-intent | Y | yes | E-buy-box |

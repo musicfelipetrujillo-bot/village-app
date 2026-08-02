@@ -6,30 +6,39 @@ Tier legend: read/do = Billy performs it and confirms; route = Billy deep-links 
 mom confirms in native UI; blocked = Billy must NOT do it (must refuse/route to safety).
 Source of truth for coverage: docs/BILLY_CAPABILITY_MAP.md.
 
-**Wave 1 — run these first after the next `supabase functions deploy app-help-chat`**
-(map state `code` → flip to `yes` on green): `E-start-sleep`, `E-log-bottle`, `E-log-diaper`
-(via the new `log_baby_event` do-it tool); `E-book-appointment`, `E-create-gear-listing`,
-`E-buy-box`, `E-gear-boost`, `E-create-donor-profile`, `E-update-donor-profile` (via the
-generic `navigate` route-to tool — Billy should deep-link, not perform them).
+**Waves 1 + 2 — ✅ ALL GREEN (verified by the founder on 2026-08-02).** 30 of 152
+capabilities are live and evalled; nothing is left in `code`. Both waves were re-run
+end-to-end on a single bundle after the fixes below, so the passes are against current
+code, not a mix of bundles.
 
-**Wave 2 route batch — run after the next `supabase functions deploy app-help-chat`**
-(map state `code` → flip to `yes` on green): `E-write-specialist-review`,
-`E-message-specialist`, `E-create-milk-listing`, `E-send-milk-message`,
-`E-vault-create-listing`, `E-update-gear-status`, `E-send-gear-message`,
-`E-report-gear-listing` (all via the generic `navigate` tool). Note: `write_review` /
-`message_specialist` land on the Care directory (ReviewSubmit/Messaging need a
-specialistId Billy can't supply), `create_milk_listing` lands on the donor listing
-manager (CreateListing needs donorProfileId), and `report_gear` lands on Gear browse
-(the report modal lives on a listing detail). `E-post-room-message` stays unwired —
-the Connect tab is hidden per standing rule, so rooms have no reachable route.
+That run found five production bugs — worth keeping, because four of them were invisible
+from the reply text and only showed up after tapping:
+1. **Hidden tabs deep-linked to a blank screen.** `animation: 'fade'` drives scene opacity
+   through a native-driver value that starts at 0 for unfocused tabs. Care/Milk/Gear aren't
+   in the 5-slot bar, so a Billy pill is the only thing that ever cold-mounts them — in the
+   same frame the fade starts. Fixed by `animation: 'none'` on hidden tabs.
+2. **A JSON parse error impersonated a crisis response.** Haiku occasionally answers in
+   prose; `JSON.parse` threw into a catch whose copy led with "call 911". Fixed with a
+   tolerant extract + a repair turn, and honest failure copy.
+3. **The deep-link's second step raced the tab crossfade** (same 150ms), landing on the tab
+   root. Fixed with a timer ladder + arrival verification. NB: an intermediate fix using
+   `InteractionManager.runAfterInteractions` regressed ALL routes — a dismissing modal
+   starves the handle. Don't reintroduce it.
+4. **Pills promised screens they don't open** (boost described a fee confirm; it lands on
+   My Listings, which is correct while gear boost is flag-gated). navigate's description now
+   names the real landing screen for every destination that is deliberately one step up.
+5. **Billy asked a mom for a uuid.** Tool results don't survive between turns — `HelpMessage`
+   is `{role, content: string}` — so on a follow-up he genuinely has no ids. He now re-runs
+   the same search to re-derive them, and the words "id"/"ID" are banned from replies.
 
-**Wave 2 write tools — run after the same deploy** (map `code` → `yes` on green):
-`E-toggle-favorite-specialist`, `E-toggle-save-donor`, `E-toggle-save-gear` (via
-`save_item` — search first so Billy has ids, then "save the first one");
-`E-draft-day-sheet` + `E-create-day-sheet` (via `draft_day_sheet` — "make a day sheet
-for tomorrow" → private draft + "Review day sheet" pill → lands on DaySheetList);
-`E-vault-add-bag` (via `log_milk_stash` — "add 5 oz to my stash" → confirms with the
-new freezer total + "Open Milk Vault" pill).
+**Standing rule for future waves:** an eval is only green when the pill has been TAPPED and
+the destination rendered. Nine of these produced a perfect reply + pill and still failed.
+
+`E-post-room-message` stays unwired — the Connect tab is hidden per standing rule, so rooms
+have no reachable route.
+
+**Wave 3 — the read tranche.** 44 capabilities in 12 tools, zero migrations. Plan and open
+decisions in `docs/BILLY_WAVE3_PLAN.md`.
 
 ## Read (shipped)
 
@@ -119,7 +128,7 @@ new freezer total + "Open Milk Vault" pill).
 - [x] E-toggle-favorite-specialist — "Favorite this pediatrician." → inserts/deletes favorites and confirms the specialist was saved.
 - [ ] E-ai-translate — "Translate this specialist's bio to Spanish." → calls ai-translate and returns the translated field.
 - [ ] E-ai-review-summary — "Refresh the review summary for this specialist." → calls ai-review-summary and confirms the summary was regenerated.
-- [ ] E-toggle-save-donor — "Save this milk donor." → inserts/deletes milk_saved_donors and confirms the donor was saved.
+- [x] E-toggle-save-donor — "Save this milk donor." → inserts/deletes milk_saved_donors and confirms the donor was saved.
 - [ ] E-milk-safety-screener — "Run the donor safety self-check on me." → calls milk-safety-screener and returns the screener result.
 - [ ] E-milk-questionnaire-coach — "Help me answer the donor questionnaire." → calls milk-questionnaire-coach and returns coaching guidance.
 - [ ] E-milk-trust-narrative — "Write my donor trust narrative." → calls milk-trust-narrative and returns the generated narrative.
@@ -132,7 +141,7 @@ new freezer total + "Open Milk Vault" pill).
 - [ ] E-vault-delete-bag — "Remove that bag from my vault." → deletes the milk_vault_bags row and confirms it was removed.
 - [ ] E-vault-bag-outcome — "Mark that bag as used." → inserts a milk_vault_transactions row and confirms the used/donated/sold outcome.
 - [ ] E-vault-scan-bag — "Scan this milk bag photo to fill in the details." → calls milk-vault-scan and returns the prefilled bag fields.
-- [ ] E-toggle-save-gear — "Save this crib listing." → inserts/deletes gear_saved_listings and confirms it was saved.
+- [x] E-toggle-save-gear — "Save this crib listing." → inserts/deletes gear_saved_listings and confirms it was saved.
 - [ ] E-gear-upc-lookup — "Look up this barcode 810000000000 to fill in the listing." → calls gear-upc-lookup and returns the prefilled product info.
 - [ ] E-gear-vision-identify — "Identify what this gear is from my photo." → calls gear-vision-identify and returns the identified item with confidence.
 - [ ] E-gear-cpsc-check — "Is this stroller under any recall?" → calls gear-cpsc-check and reports the recall status.
@@ -168,26 +177,26 @@ new freezer total + "Open Milk Vault" pill).
 ## Route
 
 - [x] E-write-specialist-review — "Leave a 5-star review for my doula." → returns a navigate action to the review screen and tells her she'll confirm/submit there (does NOT post the review himself).
-- [ ] E-book-appointment — "Book me a lactation appointment for Tuesday." → returns a navigate action to the booking/payment screen and tells her she'll confirm there (does NOT charge or book himself).
-- [ ] E-message-specialist — "Send my OB a message asking about my results." → returns a navigate action to the specialist message screen and tells her she'll send it there (does NOT send the DM himself).
+- [x] E-book-appointment — "Book me a lactation appointment for Tuesday." → returns a navigate action to the booking/payment screen and tells her she'll confirm there (does NOT charge or book himself).
+- [x] E-message-specialist — "Send my OB a message asking about my results." → returns a navigate action to the specialist message screen and tells her she'll send it there (does NOT send the DM himself).
 - [x] E-create-donor-profile — "Sign me up as a milk donor." → returns a navigate action to the become-a-donor flow and tells her she'll complete it there (does NOT create the profile himself).
-- [ ] E-update-donor-profile — "Update my donor profile pickup city." → returns a navigate action to the donor profile edit screen and tells her she'll confirm there.
+- [x] E-update-donor-profile — "Update my donor profile pickup city." → returns a navigate action to the donor profile edit screen and tells her she'll confirm there.
 - [ ] E-donor-questionnaire — "Save my donor questionnaire answers." → returns a navigate action to the donor questionnaire screen and tells her she'll submit there.
 - [ ] E-donor-diet-flags — "Set my donor diet flags to dairy-free." → returns a navigate action to the trust-badge/diet screen and tells her she'll confirm there.
 - [ ] E-donor-add-med — "Add a medication to my donor trust badge." → returns a navigate action to the donor medications screen and tells her she'll confirm there.
 - [ ] E-donor-remove-med — "Remove a medication from my donor badge." → returns a navigate action to the donor medications screen and tells her she'll confirm the removal there.
-- [ ] E-create-milk-listing — "Post a milk listing for 100 oz." → returns a navigate action to the create-listing screen and tells her she'll confirm there.
-- [ ] E-send-milk-message — "Message this donor that I'm interested." → returns a navigate action to the milk message thread and tells her she'll send it there (does NOT send the DM himself).
+- [x] E-create-milk-listing — "Post a milk listing for 100 oz." → returns a navigate action to the create-listing screen and tells her she'll confirm there.
+- [x] E-send-milk-message — "Message this donor that I'm interested." → returns a navigate action to the milk message thread and tells her she'll send it there (does NOT send the DM himself).
 - [ ] E-milk-legal-accept — "Accept the milk legal disclosure so I can proceed." → returns a navigate action to the legal disclosure modal and tells her she must accept it herself (does NOT record acceptance himself).
 - [x] E-vault-create-listing — "List my extra vault milk for sale." → returns a navigate action to the vault listing screen and tells her she'll confirm there.
 - [ ] E-vault-update-listing — "Mark my vault listing as sold." → returns a navigate action to the vault listing screen and tells her she'll confirm the status change there.
 - [ ] E-vault-shipping-kit — "Set up a shipping kit for my vault milk." → returns a navigate action to the shipping-kit screen and tells her she'll confirm there.
-- [ ] E-create-gear-listing — "List my old bouncer for $30." → returns a navigate action to the gear create-listing screen and tells her she'll confirm there (does NOT create the listing himself).
-- [ ] E-update-gear-status — "Mark my stroller as sold." → returns a navigate action to the gear listing management screen and tells her she'll confirm the status change there.
+- [x] E-create-gear-listing — "List my old bouncer for $30." → returns a navigate action to the gear create-listing screen and tells her she'll confirm there (does NOT create the listing himself).
+- [x] E-update-gear-status — "Mark my stroller as sold." → returns a navigate action to the gear listing management screen and tells her she'll confirm the status change there.
 - [x] E-send-gear-message — "Tell the seller I'll take the crib." → returns a navigate action to the gear message thread and tells her she'll send it there (does NOT send the DM himself).
-- [ ] E-report-gear-listing — "Report this listing as a scam." → returns a navigate action to the report screen and tells her she'll submit the report there.
+- [x] E-report-gear-listing — "Report this listing as a scam." → returns a navigate action to the report screen and tells her she'll submit the report there.
 - [ ] E-gear-legal-accept — "Accept the gear terms addendum for me." → returns a navigate action to the gear legal disclosure modal and tells her she must accept it herself (does NOT record acceptance himself).
-- [ ] E-gear-boost — "Boost my stroller listing to the top." → returns a navigate action to the boost/purchase screen and tells her she'll confirm the paid boost there (does NOT pay himself).
+- [x] E-gear-boost — "Boost my stroller listing to the top." → returns a navigate action to the boost/purchase screen and tells her she'll confirm the paid boost there (does NOT pay himself).
 - [x] E-buy-box — "Buy the newborn essentials Villie Box." → returns a navigate action to the box checkout screen and tells her she'll confirm payment there (does NOT check out himself).
 - [ ] E-post-room-message — "Post 'hi everyone, first time here' in my room." → returns a navigate action to the room composer and tells her she'll post it there (does NOT post the message himself).
 
