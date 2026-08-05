@@ -37,10 +37,10 @@ const DEEPDIVE_ENABLED = process.env.EXPO_PUBLIC_MANUAL_DEEPDIVE_ENABLED === '1'
 // Localized chrome (labels + fixed copy). Content itself is translated upstream
 // in getManualContent(week, cat, lang); this only covers the module UI text.
 const CH = {
-  checklist: { en: 'Do · checklist', es: 'Haz · lista' },
-  expert:    { en: 'Read · expert', es: 'Lee · experto' },
-  info:      { en: 'Know · infographic', es: 'Entiende · infografía' },
-  helps:     { en: 'Helps · tips + picks', es: 'Ayuda · tips + favoritos' },
+  checklist: { en: 'do this week', es: 'para esta semana' },
+  expert:    { en: 'ask the expert', es: 'pregunta al experto' },
+  info:      { en: 'at a glance', es: 'de un vistazo' },
+  helps:     { en: 'worth a look', es: 'vale la pena' },
   villie:    { en: 'Ask · villie', es: 'Pregunta · villie' },
   helpsNote: { en: 'tips + picks — not medical advice', es: 'tips + favoritos — no es consejo médico' },
   helpsDisc: { en: 'villie may earn a small commission — we only add what moms actually love.', es: 'villie puede ganar una pequeña comisión — solo agregamos lo que de verdad les encanta a las mamás.' },
@@ -54,10 +54,18 @@ const CH = {
   avA11y:    { en: 'Ask Villie about this week', es: 'Pregúntale a Villie sobre esta semana' },
 } as const;
 
-function ModuleLabel({ n, type }: { n: string; type: string }) {
+function CheckGlyph() {
+  return (
+    <Svg width={12} height={12} viewBox="0 0 24 24">
+      <Path d="M5 13l4 4L19 7" fill="none" stroke={ROSE} strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
+function ModuleLabel({ type, icon }: { type: string; icon?: React.ReactNode }) {
   return (
     <View style={s.modLabel}>
-      <Text style={s.modN}>{n}</Text>
+      {icon ? <View style={{ marginRight: 5 }}>{icon}</View> : null}
       <Text style={s.modT}>{type.toUpperCase()}</Text>
     </View>
   );
@@ -67,7 +75,7 @@ function ChecklistModule({ data, lang }: { data: Checklist; lang: Lang }) {
   const [done, setDone] = useState<Record<number, boolean>>({});
   return (
     <View>
-      <ModuleLabel n="03" type={CH.checklist[lang]} />
+      <ModuleLabel type={CH.checklist[lang]} icon={<CheckGlyph />} />
       <Text style={s.panelTitle}>{data.title}</Text>
       <View style={s.panel}>
         {data.items.map((it, i) => {
@@ -129,7 +137,7 @@ function ArticleModule({ articles, lang }: { articles: Article[]; lang: Lang }) 
   if (!articles.length) return null;
   return (
     <View>
-      <ModuleLabel n="02" type={CH.expert[lang]} />
+      <ModuleLabel type={CH.expert[lang]} />
       <View onLayout={(e) => setW(e.nativeEvent.layout.width)}>
         {articles.length === 1 ? (
           <ExpertCard data={articles[0]} lang={lang} />
@@ -167,7 +175,7 @@ const STORAGE_ICON: Record<string, string> = { counter: '🌡️', fridge: '🧊
 function InfographicModule({ data, lang }: { data: Info; lang: Lang }) {
   return (
     <View>
-      <ModuleLabel n="01" type={CH.info[lang]} />
+      <ModuleLabel type={CH.info[lang]} />
       <LinearGradient colors={['#FDF0DC', '#FDECEF']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.info}>
         <Text style={s.infoTitle}>{data.title}</Text>
 
@@ -276,7 +284,7 @@ function HelpsModule({ data, lang }: { data: Helps; lang: Lang }) {
   const open = (url: string) => { tap(); Linking.openURL(url).catch(() => {}); };
   return (
     <View>
-      <ModuleLabel n="04" type={CH.helps[lang]} />
+      <ModuleLabel type={CH.helps[lang]} />
       <View style={s.helps}>
         <Text style={s.helpsNote}>{CH.helpsNote[lang]}</Text>
         {!!data.tips?.length && (
@@ -318,7 +326,7 @@ function HelpsModule({ data, lang }: { data: Helps; lang: Lang }) {
 function AskVillieModule({ onPress, lang }: { onPress: () => void; lang: Lang }) {
   return (
     <View>
-      <ModuleLabel n="05" type={CH.villie[lang]} />
+      <ModuleLabel type={CH.villie[lang]} />
       <TouchableOpacity
         style={s.av}
         activeOpacity={0.92}
