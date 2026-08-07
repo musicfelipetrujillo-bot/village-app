@@ -5,7 +5,7 @@
     "scheme": "villie",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/icon-roo.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
@@ -15,7 +15,7 @@
     },
     "ios": {
       "supportsTablet": false,
-      "icon": "./assets/icon.png",
+      "icon": "./assets/icon-roo.png",
       "bundleIdentifier": "com.villieapp.mobile",
       "buildNumber": "14",
       "entitlements": {
