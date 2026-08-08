@@ -24,7 +24,6 @@ const fs = require('fs');
 const path = require('path');
 
 const MARKER = 'MODULAR_HEADERS_PATCH';
-const PODS = ['GoogleUtilities', 'RecaptchaInterop', 'AppCheckCore'];
 
 module.exports = function withModularHeaders(config) {
   return withDangerousMod(config, [
@@ -35,11 +34,17 @@ module.exports = function withModularHeaders(config) {
 
       if (contents.includes(MARKER)) return cfg;
 
+      // Global `use_modular_headers!` — the fix the CocoaPods error itself
+      // recommends first. GoogleSignIn's AppCheckCore (Swift) can't integrate
+      // as a static library while its deps GoogleUtilities/RecaptchaInterop emit
+      // no module maps. Per-pod `:modular_headers => true` on those two did NOT
+      // clear it (Build 18); global forces every pod to emit a module map, which
+      // this project already tolerates (Expo enables modular headers on ~35 RN
+      // core pods and they build fine). Placed before the pod declarations.
       const inject =
-        `\n  # ${MARKER}: GoogleSignIn's AppCheckCore (Swift) needs its non-modular\n` +
-        `  # deps to emit module maps to link as static libraries (fixes pod install).\n` +
-        PODS.map((p) => `  pod '${p}', :modular_headers => true`).join('\n') +
-        '\n';
+        `\n  # ${MARKER}: link GoogleSignIn's AppCheckCore (Swift) against its\n` +
+        `  # non-modular deps as static libs — see plugins/withModularHeaders.js.\n` +
+        `  use_modular_headers!\n`;
 
       // Insert right after `use_expo_modules!` inside the app target.
       const anchor = /(\n[ \t]*use_expo_modules!\s*\n)/;
