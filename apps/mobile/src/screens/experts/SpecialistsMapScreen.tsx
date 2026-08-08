@@ -32,7 +32,7 @@ const SPECIALTY_COLOR: Record<string, string> = {
   ob_gyn: '#43260F',                // cocoa
   doula: '#F7C5CB',                 // salmon
   midwife: '#F7C5CB',               // blush
-  lactation_consultant: '#F4C53C',  // butter
+  lactation_consultant: '#DA9A2C',  // butter
   pediatrician: '#F2E6DD',          // sage
   sleep_coach: '#E98A6A',           // caramel
   pelvic_floor_pt: '#E98A6A',       // moss
@@ -111,7 +111,7 @@ export default function SpecialistsMapScreen({ navigation }: Props) {
       <V9PageBackdrop />
       {/* Header */}
       <View style={styles.header}>
-        <BackButton color="#E84B79" />
+        <BackButton color="#D0216A" />
         <Text style={styles.headerTitle}>Specialists nearby</Text>
         <Text style={styles.countText}>{specialists.length}</Text>
       </View>
@@ -162,7 +162,7 @@ export default function SpecialistsMapScreen({ navigation }: Props) {
       {/* Loading overlay — sits above the map until the first results land */}
       {loading && (
         <View style={styles.loadingOverlay}>
-          <ActivityIndicator color="#E84B79" size="large" />
+          <ActivityIndicator color="#D0216A" size="large" />
         </View>
       )}
 
@@ -202,7 +202,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFCF6', zIndex: 10,
     borderBottomWidth: 1, borderBottomColor: '#E8E0D5',
   },
-  backText: { fontSize: 15, color: '#E84B79', fontFamily: FONTS.bodySemiBold },
+  backText: { fontSize: 15, color: '#D0216A', fontFamily: FONTS.bodySemiBold },
   headerTitle: { fontSize: 17, fontFamily: FONTS.bodySemiBold, color: '#43260F' },
   countText: { fontSize: 13, color: '#7A4A24', fontFamily: FONTS.bodySemiBold },
   map: { flex: 1 },

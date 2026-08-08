@@ -390,7 +390,7 @@ const dc = StyleSheet.create({
   pillOpen: { backgroundColor: '#E7F0E2', color: '#3B7D52' },
   pillClosed: { backgroundColor: '#F1E7D8', color: '#8A6A55' },
   licBadge: { fontFamily: FONTS.v2_mono, fontSize: 9.5, color: '#8A6A55', marginTop: 5, letterSpacing: 0.2 },
-  licVerify: { color: '#B0234F', fontFamily: FONTS.v2_bold },
+  licVerify: { color: '#6E1A47', fontFamily: FONTS.v2_bold },
   chevron: { fontFamily: FONTS.v2_bold, fontSize: 18, color: '#C9B7A2' },
   dist: { fontFamily: FONTS.v2_mono, fontSize: 10, color: '#A6957F', marginTop: 2 },
 });
@@ -416,7 +416,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   backToVillage: { paddingVertical: 4, paddingRight: 8 },
-  backToVillageText: { fontSize: 14, color: '#E84B79', fontFamily: FONTS.bodySemiBold },
+  backToVillageText: { fontSize: 14, color: '#D0216A', fontFamily: FONTS.bodySemiBold },
   headerActions: { flexDirection: 'row', gap: 8 },
   savedBtn: {
     flexDirection: 'row',
@@ -546,7 +546,7 @@ const styles = StyleSheet.create({
   careName: { fontFamily: FONTS.v3_display, fontSize: 26, letterSpacing: -0.6, color: COLORS.v2_cocoa },
 
   careSearchRow: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#FDF7EC', borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(61,31,14,0.14)', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 4, marginTop: 2 },
-  careSearchIcon: { fontSize: 18, color: '#B0234F' },
+  careSearchIcon: { fontSize: 18, color: '#6E1A47' },
   careSearchInput: { flex: 1, fontFamily: FONTS.v2_body, fontSize: 13.5, color: '#3D2116', paddingVertical: 9 },
   checkedChip: { backgroundColor: '#EAF0DE', borderRadius: 999, paddingHorizontal: 9, paddingVertical: 5 },
   checkedChipActive: { backgroundColor: '#7B8A46' },
@@ -558,7 +558,7 @@ const styles = StyleSheet.create({
   careRowGap: { height: 10 },
   tierRow: { flexDirection: 'row', gap: 8, paddingTop: 14 },
   tierSeg: { flex: 1, alignItems: 'center', paddingVertical: 9, borderRadius: 999, backgroundColor: '#F2E6DD' },
-  tierSegActive: { backgroundColor: '#E84B79' },
+  tierSegActive: { backgroundColor: '#D0216A' },
   tierSegText: { fontFamily: FONTS.bodySemiBold, fontSize: 12.5, color: '#8A6A55' },
   tierSegTextActive: { color: '#fff' },
   // Secondary refinements — a single LIGHT text line (not a second row of
@@ -568,7 +568,7 @@ const styles = StyleSheet.create({
   chip: { paddingVertical: 2 },
   chipActive: {},
   chipText: { fontSize: 12.5, fontFamily: FONTS.bodySemiBold, color: COLORS.v2_walnut },
-  chipTextActive: { color: '#E84B79', textDecorationLine: 'underline' },
+  chipTextActive: { color: '#D0216A', textDecorationLine: 'underline' },
 
   // gap removed — FlashList doesn't apply contentContainerStyle gap to its
   // cells, so the cards read as crammed. Real spacing comes from the

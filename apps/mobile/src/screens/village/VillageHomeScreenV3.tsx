@@ -31,9 +31,9 @@ const T = {
   parchment: COLORS.v2_parchment,
   cocoa:     COLORS.v2_cocoa,
   walnut:    COLORS.v2_walnut,
-  rose:      '#E84B79',
-  roseInk:   '#B0234F',
-  honey:     '#F5C842',
+  rose:      '#D0216A',
+  roseInk:   '#6E1A47',
+  honey:     '#DA9A2C',
   rule:      'rgba(61,31,14,0.13)',
 };
 
@@ -71,7 +71,7 @@ type Vertical = {
 const VERTICALS: Vertical[] = [
   { title: 'Milk Hub',     sub: 'Your stash, plus peer milk.',    stat: 'track · share · find', bg: '#F7C5CB', ink: '#9B4B60', route: 'Milk',    isNew: true },
   { title: 'Care',         sub: 'Doctors, doulas, lactation — and extra hands.', stat: '12 verified',  bg: '#F3B79C', ink: '#8A4A2E', route: 'Experts' },
-  { title: 'Baby Gear',    sub: 'Hand-me-downs from real moms.',  stat: '37 listed',            bg: '#F5C842', ink: '#8A6A1E', route: 'Gear'    },
+  { title: 'Baby Gear',    sub: 'Hand-me-downs from real moms.',  stat: '37 listed',            bg: '#DA9A2C', ink: '#8A6A1E', route: 'Gear'    },
   { title: 'Villie Plans', sub: 'Classes, circles, real coffee.', stat: '5 this week',          bg: '#EFB2C8', ink: '#94436A', route: 'Village' },
 ];
 
@@ -374,7 +374,7 @@ const styles = StyleSheet.create({
     backgroundColor: T.paper,
   },
   eventCover: { width: '100%', height: 96 },
-  eventCoverFallback: { backgroundColor: '#F5C842', alignItems: 'center', justifyContent: 'center' },
+  eventCoverFallback: { backgroundColor: '#DA9A2C', alignItems: 'center', justifyContent: 'center' },
   eventBody: { padding: 13 },
   eventTitle: { fontFamily: FONTS.v3_display, fontSize: 20, color: T.cocoa, letterSpacing: -0.4 },
   eventFooterRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 8 },

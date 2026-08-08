@@ -212,7 +212,7 @@ const styles = StyleSheet.create({
   checkedBadgeText: {
     fontSize: 9,
     fontFamily: FONTS.bodySemiBold,
-    color: '#B0234F',
+    color: '#6E1A47',
     letterSpacing: 0.3,
   },
   priceUnit: { fontSize: 11, fontFamily: FONTS.body, color: COLORS.textLight },
@@ -312,7 +312,7 @@ const styles = StyleSheet.create({
   },
   // v9 canonical CTA — cinnamon (kit canon).
   bookBtn: {
-    backgroundColor: '#E84B79',
+    backgroundColor: '#D0216A',
     borderRadius: 999,
     paddingVertical: 8,
     paddingHorizontal: 14,

@@ -68,7 +68,7 @@ export default function ChangeEmailScreen() {
     >
       <V9PageBackdrop />
       <ScrollView contentContainerStyle={s.container} keyboardShouldPersistTaps="handled">
-        <BackButton color="#E84B79" style={s.back} accessibilityLabel={t('account.back')} />
+        <BackButton color="#D0216A" style={s.back} accessibilityLabel={t('account.back')} />
 
         {/* v9 editorial masthead */}
         <View style={s.eyebrowRow}>
@@ -140,7 +140,7 @@ export default function ChangeEmailScreen() {
 const s = StyleSheet.create({
   container: { padding: 28, paddingTop: 60, paddingBottom: 48 },
   back: { marginBottom: 24 },
-  backText: { fontSize: 15, color: '#E84B79', fontFamily: FONTS.bodySemiBold },
+  backText: { fontSize: 15, color: '#D0216A', fontFamily: FONTS.bodySemiBold },
   // v9 editorial masthead
   eyebrowRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
   eyebrowBar: { width: 22, height: 2, backgroundColor: '#7A4A24', marginRight: 10, borderRadius: 1 },
@@ -153,7 +153,7 @@ const s = StyleSheet.create({
     letterSpacing: -0.5,
     marginBottom: 8,
   },
-  titleItalic: { fontFamily: FONTS.headerItalic, fontStyle: 'italic', color: '#E84B79' },
+  titleItalic: { fontFamily: FONTS.headerItalic, fontStyle: 'italic', color: '#D0216A' },
   titleRule: {
     height: StyleSheet.hairlineWidth,
     backgroundColor: 'rgba(61,31,13,0.18)',
@@ -200,12 +200,12 @@ const s = StyleSheet.create({
   hint: { fontSize: 12, color: '#7A4A24', marginTop: 2 },
   // v9 canonical CTA — rect variant
   btn: {
-    backgroundColor: '#E84B79',
+    backgroundColor: '#D0216A',
     borderRadius: 14,
     paddingVertical: 16,
     alignItems: 'center',
     marginTop: 8,
-    shadowColor: '#E84B79', shadowOffset: { width: 0, height: 4 },
+    shadowColor: '#D0216A', shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.24, shadowRadius: 10, elevation: 3,
   },
   btnDisabled: { opacity: 0.45 },

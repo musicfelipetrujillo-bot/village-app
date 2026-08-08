@@ -98,7 +98,7 @@ export default function SavedDashboardScreen({ navigation }: Props) {
       </View>
 
       {loading && (
-        <View style={styles.center}><ActivityIndicator color="#E84B79" /></View>
+        <View style={styles.center}><ActivityIndicator color="#D0216A" /></View>
       )}
 
       {!loading && data && data.total === 0 && (
@@ -112,7 +112,7 @@ export default function SavedDashboardScreen({ navigation }: Props) {
       {!loading && data && data.total > 0 && (
         <ScrollView
           contentContainerStyle={styles.list}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#E84B79" />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#D0216A" />}
         >
           {/* Videos */}
           {data.videos_count > 0 && (
@@ -295,7 +295,7 @@ const styles = StyleSheet.create({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
 
   emptyWrap: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
-  emptyIcon: { fontSize: 52, color: '#E84B79', marginBottom: 12 },
+  emptyIcon: { fontSize: 52, color: '#D0216A', marginBottom: 12 },
   emptyTitle: {
     fontSize: 20, fontFamily: FONTS.headerBold, color: COLORS.bark,
     textAlign: 'center', marginBottom: 8,
@@ -323,7 +323,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3, textTransform: 'uppercase',
   },
   sectionCount: {
-    fontSize: 12, fontFamily: FONTS.bodySemiBold, color: '#E84B79',
+    fontSize: 12, fontFamily: FONTS.bodySemiBold, color: '#D0216A',
     backgroundColor: 'rgba(192,120,64,0.10)',
     paddingHorizontal: 8, paddingVertical: 2,
     borderRadius: 999, minWidth: 26, textAlign: 'center',
@@ -382,7 +382,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   seeAllText: {
-    fontSize: 13, fontFamily: FONTS.bodySemiBold, color: '#E84B79',
+    fontSize: 13, fontFamily: FONTS.bodySemiBold, color: '#D0216A',
   },
 
   footerHint: {

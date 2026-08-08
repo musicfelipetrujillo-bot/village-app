@@ -133,6 +133,6 @@ const styles = StyleSheet.create({
   },
 
   permTxt: { color: '#FFFCF6', fontSize: 14, textAlign: 'center', marginBottom: 18, lineHeight: 20, fontFamily: FONTS.body },
-  permBtn: { backgroundColor: '#E84B79', borderRadius: 12, paddingHorizontal: 20, paddingVertical: 12 },
+  permBtn: { backgroundColor: '#D0216A', borderRadius: 12, paddingHorizontal: 20, paddingVertical: 12 },
   permBtnTxt: { color: '#FFFCF6', fontSize: 14, fontFamily: FONTS.bodySemiBold },
 });

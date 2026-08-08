@@ -48,7 +48,7 @@ export default function ForgotPasswordScreen({ navigation }: Props) {
     >
       <WarmGlowBackdrop />
       <View style={styles.container}>
-        <BackButton color="#E84B79" style={styles.back} accessibilityLabel={t('forgotPassword.back')} />
+        <BackButton color="#D0216A" style={styles.back} accessibilityLabel={t('forgotPassword.back')} />
 
         {/* v9 editorial masthead */}
         <View style={styles.eyebrowRow}>
@@ -123,7 +123,7 @@ export default function ForgotPasswordScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: 'transparent', padding: 28, paddingTop: 60 },
   back: { marginBottom: 18 },
-  backText: { fontSize: 13, color: '#E84B79', fontFamily: FONTS.v2_link },
+  backText: { fontSize: 13, color: '#D0216A', fontFamily: FONTS.v2_link },
   // v3 editorial masthead — 16×1.5 walnut bar + JetBrains Mono eyebrow,
   // Plus Jakarta display + salmon italic accent.
   eyebrowRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
@@ -165,12 +165,12 @@ const styles = StyleSheet.create({
   // Primary CTA — cinnamon (the one spark)
   // v9 canonical CTA — action-deep
   btn: {
-    backgroundColor: '#E84B79',
+    backgroundColor: '#D0216A',
     borderRadius: 999,
     paddingVertical: 15,
     alignItems: 'center',
     marginTop: 8,
-    shadowColor: '#E84B79',
+    shadowColor: '#D0216A',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.24,
     shadowRadius: 10,

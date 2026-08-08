@@ -65,7 +65,7 @@ export default function DiscoverHomeScreen() {
     <View style={styles.container}>
       <WarmGlowBackdrop />
       <View style={styles.header}>
-        <BackButton color="#E84B79" />
+        <BackButton color="#D0216A" />
         <Text style={styles.title}>{t('discover.headerTitle')}</Text>
         <View style={{ width: 50 }} />
       </View>
@@ -101,7 +101,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFCF6',
     borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.06)',
   },
-  back: { fontSize: 15, color: '#E84B79', fontFamily: FONTS.bodySemiBold },
+  back: { fontSize: 15, color: '#D0216A', fontFamily: FONTS.bodySemiBold },
   title: { fontSize: 17, fontFamily: FONTS.bodySemiBold, color: COLORS.bark },
 
   content: { padding: 20, paddingBottom: 60 },

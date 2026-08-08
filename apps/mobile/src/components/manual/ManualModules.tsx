@@ -22,10 +22,10 @@ const INKSOFT = '#7A5A3A';
 const LABEL = '#A8794A';
 const CREAM = '#FFFCF6';
 const HAIR = 'rgba(67,38,15,0.07)';
-const ACCENT = '#B0234F'; // repointed cinnamon->rose 2026-07-12 to match the app
+const ACCENT = '#6E1A47'; // repointed cinnamon->rose 2026-07-12 to match the app
 const HONEY = '#B98A1E';
-const ROSE = '#E84B79';
-const BERRY = '#B0234F';
+const ROSE = '#D0216A';
+const BERRY = '#6E1A47';
 
 type Lang = 'en' | 'es';
 
@@ -198,8 +198,8 @@ function InfographicModule({ data, lang }: { data: Info; lang: Lang }) {
               <Svg width={W} height={H}>
                 <Defs>
                   <SvgGrad id="wwArea" x1="0" y1="0" x2="0" y2="1">
-                    <Stop offset="0" stopColor="#E84B79" stopOpacity={0.32} />
-                    <Stop offset="1" stopColor="#E84B79" stopOpacity={0.02} />
+                    <Stop offset="0" stopColor="#D0216A" stopOpacity={0.32} />
+                    <Stop offset="1" stopColor="#D0216A" stopOpacity={0.02} />
                   </SvgGrad>
                 </Defs>
                 <Path d={area} fill="url(#wwArea)" />
@@ -437,12 +437,12 @@ const s = StyleSheet.create({
 
   // ask villie
   av: { backgroundColor: '#43260F', borderRadius: 20, padding: 16 },
-  avEyebrow: { fontFamily: FONTS.bodyBold, fontSize: 10, letterSpacing: 1.6, color: '#F4C868' },
+  avEyebrow: { fontFamily: FONTS.bodyBold, fontSize: 10, letterSpacing: 1.6, color: '#F2C75E' },
   avTitle: { fontFamily: FONTS.headerBold, fontSize: 17, color: '#FFFDF8', marginTop: 6, lineHeight: 22 },
   avRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 12 },
   avInput: { flex: 1, backgroundColor: 'rgba(255,255,255,0.12)', borderRadius: 12, paddingHorizontal: 13, paddingVertical: 11 },
   avInputText: { fontFamily: FONTS.body, fontSize: 12.5, color: '#E9D9C8' },
-  avSend: { width: 40, height: 40, borderRadius: 12, backgroundColor: '#E84B79', alignItems: 'center', justifyContent: 'center' },
+  avSend: { width: 40, height: 40, borderRadius: 12, backgroundColor: '#D0216A', alignItems: 'center', justifyContent: 'center' },
   avArrow: { color: '#fff', fontSize: 20, fontFamily: FONTS.bodySemiBold, marginTop: -2 },
   avSub: { fontFamily: FONTS.body, fontSize: 10, color: '#C9B79F', marginTop: 9 },
 

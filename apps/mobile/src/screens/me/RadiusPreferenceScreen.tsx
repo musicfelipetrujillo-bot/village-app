@@ -61,10 +61,10 @@ export default function RadiusPreferenceScreen({ navigation }: Props) {
     <SafeAreaView style={s.safe}>
       <V9PageBackdrop />
       <View style={s.topBar}>
-        <BackButton color="#E84B79" accessibilityLabel={t('radius.topBack')} />
+        <BackButton color="#D0216A" accessibilityLabel={t('radius.topBack')} />
         <Text style={s.topTitle}>{t('radius.topTitle')}</Text>
         <View style={s.topSpacer}>
-          {saving ? <ActivityIndicator color="#E84B79" /> : null}
+          {saving ? <ActivityIndicator color="#D0216A" /> : null}
         </View>
       </View>
 
@@ -129,7 +129,7 @@ const s = StyleSheet.create({
   topLink: {
     fontFamily: FONTS.bodySemiBold,
     fontSize: 14,
-    color: '#E84B79',
+    color: '#D0216A',
   },
   topSpacer: { width: 52, alignItems: 'flex-end' },
 
@@ -143,7 +143,7 @@ const s = StyleSheet.create({
     fontFamily: FONTS.headerBold, fontSize: 32, color: COLORS.bark,
     lineHeight: 38, letterSpacing: -0.5, marginBottom: 4,
   },
-  headerTitleEm: { fontFamily: FONTS.headerItalic, fontStyle: 'italic', color: '#E84B79' },
+  headerTitleEm: { fontFamily: FONTS.headerItalic, fontStyle: 'italic', color: '#D0216A' },
   headerRule: {
     height: StyleSheet.hairlineWidth, backgroundColor: 'rgba(61,31,13,0.18)',
     marginTop: 6, marginBottom: 4, width: 48,
@@ -190,8 +190,8 @@ const s = StyleSheet.create({
     backgroundColor: COLORS.paper,
   },
   chipActive: {
-    borderColor: '#E84B79',                                            // v9 active = cinnamon
-    backgroundColor: '#E84B79',
+    borderColor: '#D0216A',                                            // v9 active = cinnamon
+    backgroundColor: '#D0216A',
   },
   chipText: {
     fontFamily: FONTS.bodySemiBold,

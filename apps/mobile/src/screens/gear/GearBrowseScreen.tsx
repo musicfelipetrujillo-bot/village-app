@@ -98,7 +98,7 @@ export default function GearBrowseScreen() {
     <View style={{ marginHorizontal: -18, paddingTop: insets.top + 6 }}>
       <HubHeader
         name="gear"
-        dotColor="#F4C53C"
+        dotColor="#DA9A2C"
         onBack={() => navigation.getParent()?.navigate('Village' as never)}
         backAccessibilityLabel={t('common.backToVillage')}
         right={
@@ -262,7 +262,7 @@ const styles = StyleSheet.create({
   backToVillage: { paddingVertical: 4, paddingRight: 8 },
   backToVillageText: { fontSize: 13, color: COLORS.textLight, fontFamily: FONTS.bodyMedium },
   headerActions: { flexDirection: 'row', gap: 16 },
-  headerLink: { fontSize: 13, color: '#E84B79', fontFamily: FONTS.bodySemiBold },
+  headerLink: { fontSize: 13, color: '#D0216A', fontFamily: FONTS.bodySemiBold },
 
   // Title block — relative so DecorativeMarks (absolutely positioned)
   // can tuck behind the eyebrow → italic title → sub stack without
@@ -359,7 +359,7 @@ const styles = StyleSheet.create({
   },
 
   gearSearchRow: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#FDF7EC', borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(61,31,14,0.14)', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 4, marginTop: 14 },
-  gearSearchIcon: { fontSize: 18, color: '#B0234F' },
+  gearSearchIcon: { fontSize: 18, color: '#6E1A47' },
   gearSearchInput: { flex: 1, fontFamily: FONTS.v2_body, fontSize: 13.5, color: '#3D2116', paddingVertical: 9 },
 
   filterRow: {
@@ -438,9 +438,9 @@ const styles = StyleSheet.create({
   fab: {
     position: 'absolute', bottom: 90, right: 16,
     flexDirection: 'row', alignItems: 'center', gap: 8,
-    backgroundColor: '#E84B79', borderRadius: 28,             // v9 CTA = cinnamon
+    backgroundColor: '#D0216A', borderRadius: 28,             // v9 CTA = cinnamon
     paddingHorizontal: 18, paddingVertical: 13,
-    shadowColor: '#E84B79', shadowOpacity: 0.24, shadowRadius: 10, shadowOffset: { width: 0, height: 4 },
+    shadowColor: '#D0216A', shadowOpacity: 0.24, shadowRadius: 10, shadowOffset: { width: 0, height: 4 },
     elevation: 5,
   },
   fabIcon: { color: '#FFFCF6', fontSize: 20, fontFamily: FONTS.bodySemiBold },

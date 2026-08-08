@@ -24,7 +24,7 @@ import { getPumpCadence, buildDayPlan, fmtTime, type PlanSlot } from '@utils/day
 
 const VILLIE_BEE = require('../../../assets/brand/villie-bee.png');
 
-const ROSE = '#E84B79', ROSE_DEEP = '#B0234F', HONEY = '#B98A1E';
+const ROSE = '#D0216A', ROSE_DEEP = '#6E1A47', HONEY = '#B98A1E';
 const INK = '#43260F', INKSOFT = '#7A5A3A', MUTED = '#A6957F';
 
 const SLOT_TONE: Record<PlanSlot['kind'], { bg: string; border: string; time: string }> = {
@@ -151,7 +151,7 @@ export default function MomHubScreen() {
         <View style={styles.bento}>
           <TouchableOpacity style={styles.bentoHero} activeOpacity={0.92} onPress={goDayPlan}
             accessibilityRole="button" accessibilityLabel={es ? 'Tu calendario — planear mi día' : 'Your calendar — plan my day'}>
-            <LinearGradient colors={[ROSE, '#F6C94F']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.bentoHeroInner}>
+            <LinearGradient colors={[ROSE, '#F2C75E']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.bentoHeroInner}>
               <Text style={styles.bentoHeroGlyph}>🗓️</Text>
               <Text style={styles.bentoHeroEyebrow}>{es ? 'TU CALENDARIO' : 'YOUR CALENDAR'}</Text>
               <Text style={styles.bentoHeroTitle}>{es ? 'siestas + pumps,\nentretejidos.' : 'naps + pumps,\nwoven in.'}</Text>
@@ -196,7 +196,7 @@ export default function MomHubScreen() {
           onPress={() => askVillie(es ? '¿Cuándo puedo tomar una clase de yoga esta semana?' : 'When can I fit a yoga class this week?')}
           accessibilityRole="button" accessibilityLabel={es ? 'Pregúntale a villie' : 'Ask villie'}>
           <View style={styles.ribbonSpark}>
-            <LinearGradient colors={[ROSE, '#F6C94F']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.ribbonSparkInner}>
+            <LinearGradient colors={[ROSE, '#F2C75E']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.ribbonSparkInner}>
               <Text style={{ color: '#fff', fontSize: 15 }}>✦</Text>
             </LinearGradient>
           </View>
@@ -301,7 +301,7 @@ const styles = StyleSheet.create({
   ribbon: { flexDirection: 'row', alignItems: 'center', gap: 12, marginHorizontal: 22, marginTop: 18, backgroundColor: '#43260F', borderRadius: 18, paddingVertical: 13, paddingHorizontal: 15 },
   ribbonSpark: { width: 36, height: 36 },
   ribbonSparkInner: { flex: 1, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
-  ribbonEyebrow: { fontFamily: FONTS.v2_mono, fontSize: 8.5, letterSpacing: 1.6, color: '#F4C868', fontWeight: '600' },
+  ribbonEyebrow: { fontFamily: FONTS.v2_mono, fontSize: 8.5, letterSpacing: 1.6, color: '#F2C75E', fontWeight: '600' },
   ribbonText: { fontFamily: FONTS.v2_body, fontSize: 13, color: '#FFFDF8', marginTop: 2, fontWeight: '600' },
   ribbonArrow: { color: '#E98A9F', fontSize: 17, fontFamily: FONTS.v2_bold },
 });

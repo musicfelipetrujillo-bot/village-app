@@ -22,8 +22,8 @@ const T = {
   parchment: COLORS.v2_parchment,
   cocoa:     COLORS.v2_cocoa,      // #43260F
   walnut:    COLORS.v2_walnut,
-  rose:      COLORS.v2_cinnamon,   // #E84B79 — action
-  honey:     COLORS.v2_marigold,   // #F4C53C — single accent
+  rose:      COLORS.v2_cinnamon,   // #D0216A — action
+  honey:     COLORS.v2_marigold,   // #DA9A2C — single accent
   blush:     COLORS.v2_blush,
   rule:      'rgba(61,31,14,0.13)',
 };

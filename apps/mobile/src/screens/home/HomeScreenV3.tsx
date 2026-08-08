@@ -46,7 +46,7 @@ const T = {
   cream:     COLORS.v2_cream,      // #FCF7EF
   butter:    COLORS.v2_butter,
   marigold:  COLORS.v2_marigold,
-  cinnamon:  COLORS.v2_cinnamon,   // #E84B79
+  cinnamon:  COLORS.v2_cinnamon,   // #D0216A
   caramel:   COLORS.v2_caramel,    // #E98A6A
   blush:     COLORS.v2_blush,
   salmon:    COLORS.v2_salmon,
@@ -216,7 +216,7 @@ function QuickLog({ onFeed, onSleep, onMilk, onDiaper }: {
     <View style={styles.qlWrap}>
       <View style={styles.qlRow}>
         <TouchableOpacity style={styles.qlItem} activeOpacity={0.85} onPress={onFeed} accessibilityRole="button" accessibilityLabel={L.feed}>
-          <View style={[styles.qlCircle, { backgroundColor: '#E84B79' }]}><Glyph d={ICON.bottle} color="#fff" size={26} sw={1.8} /></View>
+          <View style={[styles.qlCircle, { backgroundColor: '#D0216A' }]}><Glyph d={ICON.bottle} color="#fff" size={26} sw={1.8} /></View>
           <Text style={styles.qlLabel}>{L.feed}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.qlItem} activeOpacity={0.85} onPress={onSleep} accessibilityRole="button" accessibilityLabel={L.sleep}>
@@ -224,7 +224,7 @@ function QuickLog({ onFeed, onSleep, onMilk, onDiaper }: {
           <Text style={styles.qlLabel}>{L.sleep}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.qlItem} activeOpacity={0.85} onPress={onMilk} accessibilityRole="button" accessibilityLabel={lang === 'es' ? 'Registra leche desde una foto' : 'Log milk from a photo'}>
-          <LinearGradient colors={['#F6C94F', '#E84B79']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.qlCircle}>
+          <LinearGradient colors={['#F2C75E', '#D0216A']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.qlCircle}>
             <Glyph d={ICON.camera} color="#fff" size={25} sw={1.8} />
           </LinearGradient>
           <View style={styles.qlSnap}><Text style={styles.qlSnapText}>{L.snap}</Text></View>
@@ -262,7 +262,7 @@ function AskVillie({ onAsk, onBoxes, weekNumber, showBoxes }: {
           <Text style={styles.askText}>{lang === 'es' ? 'pregúntale o dile lo que sea…' : 'ask or tell villie anything…'}</Text>
         </TouchableOpacity>
         <TouchableOpacity activeOpacity={0.85} onPress={() => onAsk()} accessibilityRole="button" accessibilityLabel={lang === 'es' ? 'Habla con Villie' : 'Talk to Villie'}>
-          <LinearGradient colors={['#E84B79', '#F6C94F']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.askMic}>
+          <LinearGradient colors={['#D0216A', '#F2C75E']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.askMic}>
             <Glyph d={ICON.mic} color="#fff" size={19} sw={1.8} />
           </LinearGradient>
         </TouchableOpacity>
@@ -293,7 +293,7 @@ function YourDay({ babyName, onWeek, onMilk, onCheckin }: {
       <Eyebrow>{lang === 'es' ? 'tu día' : 'your day'}</Eyebrow>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.dayScroll}>
         <TouchableOpacity activeOpacity={0.9} onPress={onWeek} accessibilityRole="button" accessibilityLabel={lang === 'es' ? 'Tu semana' : 'Your week'}>
-          <LinearGradient colors={['#E84B79', '#F6C94F']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.dayCard}>
+          <LinearGradient colors={['#D0216A', '#F2C75E']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.dayCard}>
             <Glyph d={ICON.sparkle} color="#7A3548" size={22} sw={1.8} />
             <View>
               <Text style={styles.dayCardTitle}>{lang === 'es' ? 'Tu semana' : 'Your week, so far'}</Text>
@@ -311,10 +311,10 @@ function YourDay({ babyName, onWeek, onMilk, onCheckin }: {
         </TouchableOpacity>
 
         <TouchableOpacity activeOpacity={0.9} onPress={onCheckin} accessibilityRole="button" accessibilityLabel={lang === 'es' ? '¿Cómo estás?' : 'How are you feeling?'} style={[styles.dayCard, { backgroundColor: '#FDECEF' }]}>
-          <Glyph d={ICON.heart} color="#B0234F" size={22} sw={1.7} />
+          <Glyph d={ICON.heart} color="#6E1A47" size={22} sw={1.7} />
           <View>
             <Text style={[styles.dayCardTitle, { color: T.cocoa }]}>{lang === 'es' ? '¿Y tú?' : 'And you?'}</Text>
-            <Text style={[styles.dayCardSub, { color: '#B0234F' }]}>{lang === 'es' ? '¿cómo estás? →' : 'how are you? →'}</Text>
+            <Text style={[styles.dayCardSub, { color: '#6E1A47' }]}>{lang === 'es' ? '¿cómo estás? →' : 'how are you? →'}</Text>
           </View>
         </TouchableOpacity>
       </ScrollView>
@@ -377,14 +377,14 @@ function DiscoverRow({ showBoxes, picksImage, onBoxes, onPicks }: { showBoxes: b
       <View style={styles.discoverRow}>
         {showBoxes && (
           <DiscoverCard
-            cap={['#E84B79', '#B0234F']} capIcon="gift"
+            cap={['#D0216A', '#6E1A47']} capIcon="gift"
             eyebrow="new · curated" eyebrowColor={T.cinnamon}
             title="Villie Boxes" sub="delivery · newborn · mama"
             onPress={onBoxes}
           />
         )}
         <DiscoverCard
-          cap={['#F4C53C', '#EAB52C']} capIcon="star" imageUrl={picksImage}
+          cap={['#DA9A2C', '#EAB52C']} capIcon="star" imageUrl={picksImage}
           eyebrow="villie picks" eyebrowColor="#A9761F"
           title="this week's 5" sub="tested, mom-approved"
           onPress={onPicks}
@@ -400,7 +400,7 @@ function MomCornerCard({ onPress }: { onPress: () => void }) {
   return (
     <TouchableOpacity onPress={onPress} activeOpacity={0.92} accessibilityRole="button"
       accessibilityLabel={t('momHub.homeCardA11y')} style={{ marginTop: 26 }}>
-      <LinearGradient colors={['#E98A6A', '#E84B79']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.cornerCard}>
+      <LinearGradient colors={['#E98A6A', '#D0216A']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.cornerCard}>
         <LinearGradient
           colors={['rgba(255,255,255,0.18)', 'rgba(255,255,255,0)']}
           start={{ x: 0, y: 0 }} end={{ x: 0, y: 0.5 }}
@@ -459,7 +459,7 @@ export default function HomeScreenV3() {
   const tiles: Tile[] = [
     { key: 'milk',    label: 'Milk',    bg: '#F7C5CB', icon: 'droplet',     go: () => navigation.getParent()?.navigate('Milk') },
     { key: 'experts', label: 'Care',    bg: '#F3B79C', icon: 'stethoscope', go: () => navigation.getParent()?.navigate('Experts') },
-    { key: 'gear',    label: 'Gear',    bg: '#F4C53C', icon: 'bag',         go: () => navigation.getParent()?.navigate('Gear') },
+    { key: 'gear',    label: 'Gear',    bg: '#DA9A2C', icon: 'bag',         go: () => navigation.getParent()?.navigate('Gear') },
     { key: 'plans',   label: 'Plans',   bg: '#EFB2C8', icon: 'calendar',    go: () => navigation.getParent()?.navigate('Village') },
     ...(VILLIE_BOXES_ENABLED
       ? [{ key: 'boxes', label: 'Boxes', bg: '#E8C4B6', icon: 'gift', dot: true, go: () => navigation.navigate('BoxesHub' as never) } as Tile]
@@ -544,7 +544,7 @@ export default function HomeScreenV3() {
             accessibilityLabel="Before baby arrives — hospital bag and home essentials"
             style={{ marginHorizontal: 20, marginBottom: 14 }}
           >
-            <LinearGradient colors={['#E84B79', '#F6C94F']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.gettingReadyCard}>
+            <LinearGradient colors={['#D0216A', '#F2C75E']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.gettingReadyCard}>
               <View style={styles.gettingReadyIcon}><Text style={styles.gettingReadyIconText}>✓</Text></View>
               <View style={{ flex: 1, minWidth: 0 }}>
                 <Text style={styles.gettingReadyEyebrow}>GETTING READY</Text>
@@ -654,7 +654,7 @@ const styles = StyleSheet.create({
   },
   grabber: { width: 38, height: 4, borderRadius: 2, backgroundColor: '#EBDCC2', alignSelf: 'center', marginTop: 6, marginBottom: 8 },
   whatsChanging: { alignSelf: 'center', backgroundColor: '#FDECEF', borderRadius: 999, paddingHorizontal: 15, paddingVertical: 8, marginBottom: 2 },
-  whatsChangingText: { fontFamily: FONTS.bodySemiBold, fontSize: 12.5, color: '#B0234F' },
+  whatsChangingText: { fontFamily: FONTS.bodySemiBold, fontSize: 12.5, color: '#6E1A47' },
 
   // ── Top region (honeycomb + masthead + hero) ─────────────────────────
   topWrap: { position: 'relative' },
@@ -716,7 +716,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FDECEF', borderRadius: 999,
     paddingHorizontal: 16, paddingVertical: 9, marginTop: 15,
   },
-  heroPillText: { fontFamily: FONTS.bodySemiBold, fontSize: 12.5, color: '#B0234F' },
+  heroPillText: { fontFamily: FONTS.bodySemiBold, fontSize: 12.5, color: '#6E1A47' },
 
   // ── Quick-log ────────────────────────────────────────────────────────
   qlWrap: { marginTop: 22 },
@@ -731,22 +731,22 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff', borderRadius: 999, paddingHorizontal: 6, paddingVertical: 1,
     shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.12, shadowRadius: 3, elevation: 3,
   },
-  qlSnapText: { fontFamily: FONTS.v2_bold, fontSize: 8.5, color: '#B0234F', letterSpacing: 0.3 },
+  qlSnapText: { fontFamily: FONTS.v2_bold, fontSize: 8.5, color: '#6E1A47', letterSpacing: 0.3 },
   qlLabel: { fontFamily: FONTS.v2_body, fontSize: 12.5, color: T.cocoa, marginTop: 8 },
   qlDiaper: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 5, marginTop: 14 },
   qlDiaperText: { fontFamily: FONTS.v2_body, fontSize: 11.5, color: '#9A8264' },
 
   // ── Ask villie ───────────────────────────────────────────────────────
   askModule: { marginTop: 6, borderRadius: 20, padding: 14, borderWidth: 1, borderColor: 'rgba(224,106,136,0.2)' },
-  askEyebrow: { fontFamily: FONTS.v2_mono, fontSize: 10, letterSpacing: 2, textTransform: 'uppercase', color: '#B0234F', fontWeight: '600', marginBottom: 9 },
+  askEyebrow: { fontFamily: FONTS.v2_mono, fontSize: 10, letterSpacing: 2, textTransform: 'uppercase', color: '#6E1A47', fontWeight: '600', marginBottom: 9 },
   askRow: { flexDirection: 'row', alignItems: 'center', gap: 9 },
   askBar: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 9, backgroundColor: '#FFFFFF', borderRadius: 14, paddingHorizontal: 13, paddingVertical: 12, shadowColor: T.walnut, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 8, elevation: 1 },
   askBee: { width: 22, height: 22, borderRadius: 11, backgroundColor: '#FDECEF', alignItems: 'center', justifyContent: 'center' },
   askText: { flex: 1, fontFamily: FONTS.v2_body, fontSize: 13.5, color: '#9A8264' },
-  askMic: { width: 46, height: 46, borderRadius: 23, alignItems: 'center', justifyContent: 'center', shadowColor: '#E84B79', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.4, shadowRadius: 11, elevation: 4 },
+  askMic: { width: 46, height: 46, borderRadius: 23, alignItems: 'center', justifyContent: 'center', shadowColor: '#D0216A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.4, shadowRadius: 11, elevation: 4 },
   chipRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 12, paddingRight: 22 },
   chip: { borderWidth: 1.2, borderColor: 'rgba(224,106,136,0.28)', backgroundColor: '#FFFDF9', borderRadius: 999, paddingHorizontal: 13, paddingVertical: 8 },
-  chipText: { fontFamily: FONTS.bodySemiBold, fontSize: 12.5, color: '#B0234F' },
+  chipText: { fontFamily: FONTS.bodySemiBold, fontSize: 12.5, color: '#6E1A47' },
   chipBox: { borderColor: 'rgba(224,106,136,0.4)', backgroundColor: '#FBD9E1' },
   chipBoxText: { color: '#B23D5E', fontFamily: FONTS.bodySemiBold },
 

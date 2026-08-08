@@ -32,7 +32,7 @@ const PALETTE = {
   cream: '#FCF7EF',
   paper: '#FFFCF6',
   parchment: '#F2E6DD',
-  cinnamon: '#E84B79',
+  cinnamon: '#D0216A',
   salmon: '#F7C5CB',
   cocoa: '#43260F',
   walnut: '#7A4A28',

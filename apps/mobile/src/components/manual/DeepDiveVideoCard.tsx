@@ -15,9 +15,9 @@ import { FONTS } from '@utils/constants';
 import { tap } from '@utils/haptics';
 import type { DeepDive } from '@/manual/manualDeepDives';
 
-const ROSE = '#E84B79';
-const BERRY = '#B0234F';
-const HONEY = '#F5C842';
+const ROSE = '#D0216A';
+const BERRY = '#6E1A47';
+const HONEY = '#DA9A2C';
 const INK = '#43260F';
 const INKSOFT = '#7A5A3A';
 const CREAM = '#FFFCF6';
