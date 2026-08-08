@@ -108,6 +108,40 @@ function Eyebrow({ children, color = T.walnut, style }: { children: React.ReactN
   );
 }
 
+// ─── Honeycomb texture over the raspberry hero — a faded white flat-top hex
+// lattice generated in JS, densest at the top and dissolving downward so it
+// reads as brand texture behind the ring, not a busy grid. ─────────────────
+function HeroHoneycomb({ height = 520 }: { height?: number }) {
+  const s = 30;
+  const h = Math.sqrt(3) * s;
+  const dx = 1.5 * s;
+  const paths: { d: string; o: number }[] = [];
+  for (let c = 0; c * dx <= SCREEN_W + s; c++) {
+    const cx = c * dx;
+    const yOff = c % 2 ? h / 2 : 0;
+    for (let r = -1; r * h + yOff <= height + h; r++) {
+      const cy = r * h + yOff;
+      const o = 0.17 * (1 - (cy - 10) / (height * 0.82));
+      if (o <= 0.015) continue;
+      const d =
+        `M${(cx + s).toFixed(1)},${cy.toFixed(1)} ` +
+        `L${(cx + s / 2).toFixed(1)},${(cy - h / 2).toFixed(1)} ` +
+        `L${(cx - s / 2).toFixed(1)},${(cy - h / 2).toFixed(1)} ` +
+        `L${(cx - s).toFixed(1)},${cy.toFixed(1)} ` +
+        `L${(cx - s / 2).toFixed(1)},${(cy + h / 2).toFixed(1)} ` +
+        `L${(cx + s / 2).toFixed(1)},${(cy + h / 2).toFixed(1)} Z`;
+      paths.push({ d, o: Math.min(0.22, o) });
+    }
+  }
+  return (
+    <Svg width={SCREEN_W} height={height} style={styles.heroHoneycomb} pointerEvents="none">
+      {paths.map((p, i) => (
+        <Path key={i} d={p.d} stroke="#FFFFFF" strokeOpacity={p.o} strokeWidth={1} fill="none" />
+      ))}
+    </Svg>
+  );
+}
+
 // ─── The week ring — 52-week track, gold progress arc, roo at the tip ────
 const RING = { box: 250, cx: 125, cy: 125, r: 104, sw: 13 };
 const RING_C = 2 * Math.PI * RING.r;
@@ -164,6 +198,14 @@ function WeekRingHero({ firstName, babyName, weekNumber, expecting, onOpenManual
       start={{ x: 0.1, y: 0 }} end={{ x: 0.9, y: 1 }}
       style={[styles.hero, { paddingTop: insets.top + 8 }]}
     >
+      <HeroHoneycomb />
+      <View style={styles.heroBee} pointerEvents="none">
+        <Svg width={52} height={28} viewBox="0 0 66 40">
+          <Path d="M2 34 C 16 30, 20 12, 40 12" fill="none" stroke="rgba(255,255,255,0.55)" strokeWidth={1.3} strokeDasharray="2.5 3.5" strokeLinecap="round" />
+        </Svg>
+        <Image source={VILLIE_BEE} resizeMode="contain" style={styles.heroBeeImg} />
+      </View>
+
       <View style={styles.topBar}>
         <TouchableOpacity onPress={onMenu} activeOpacity={0.8} style={styles.topIconBtn} accessibilityRole="button" accessibilityLabel={lang === 'es' ? 'Menú' : 'Menu'}>
           <Glyph d={ICON.menu} color="#fff" size={22} sw={2} />
@@ -595,8 +637,11 @@ const styles = StyleSheet.create({
 
   // ── Week-anchor hero ─────────────────────────────────────────────────
   hero: {
-    alignItems: 'center', paddingBottom: 46, paddingHorizontal: 22,
+    alignItems: 'center', paddingBottom: 46, paddingHorizontal: 22, overflow: 'hidden',
   },
+  heroHoneycomb: { position: 'absolute', top: 0, left: -22 },
+  heroBee: { position: 'absolute', top: 104, right: 40, flexDirection: 'row', alignItems: 'flex-start' },
+  heroBeeImg: { width: 24, height: 24, marginLeft: -6, marginTop: -2 },
   topBar: { width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 },
   topIconBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.16)', alignItems: 'center', justifyContent: 'center' },
   topBellDot: { position: 'absolute', top: 9, right: 10, width: 9, height: 9, borderRadius: 5, backgroundColor: '#F2C75E', borderWidth: 1.5, borderColor: '#C42A6B' },
@@ -609,8 +654,9 @@ const styles = StyleSheet.create({
     color: 'rgba(255,247,238,0.85)', marginBottom: 2,
   },
   ringNumber: {
-    fontFamily: FONTS.v3_display, fontSize: 84, lineHeight: 88, color: '#FFFFFF',
+    fontFamily: FONTS.v3_display, fontSize: 88, lineHeight: 92, color: '#FFFFFF',
     letterSpacing: -2, textAlign: 'center',
+    textShadowColor: 'rgba(80,8,40,0.28)', textShadowOffset: { width: 0, height: 3 }, textShadowRadius: 14,
   },
   ringUnit: {
     fontFamily: FONTS.bodySemiBold, fontSize: 14, letterSpacing: 0.4,

@@ -204,7 +204,7 @@ export default function VillageHomeScreenV3() {
                 </View>
               )}
               <View>
-                <Text style={styles.tileTitle}>{v.title}.</Text>
+                <Text style={[styles.tileTitle, { color: v.ink }]}>{v.title}.</Text>
                 <Text style={[styles.tileSub, { color: v.ink }]}>{v.sub}</Text>
               </View>
               <View style={[styles.tileFooter, { borderTopColor: hexAlpha(v.ink, 0.28) }]}>
