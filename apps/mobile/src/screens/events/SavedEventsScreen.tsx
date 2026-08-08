@@ -142,6 +142,6 @@ const styles = StyleSheet.create({
   emptyEmoji: { fontSize: 52, color: '#D0216A', marginBottom: 12 },
   emptyTitle: { fontSize: 20, fontFamily: FONTS.v3_display, color: COLORS.bark, marginBottom: 8, textAlign: 'center' },
   emptyBody: { fontSize: 14, lineHeight: 21, color: COLORS.v2_walnut, textAlign: 'center', marginBottom: 24 },
-  emptyCta: { backgroundColor: '#C07840', borderRadius: 14, paddingHorizontal: 24, paddingVertical: 14 },
+  emptyCta: { backgroundColor: '#D0216A', borderRadius: 14, paddingHorizontal: 24, paddingVertical: 14 },
   emptyCtaText: { fontSize: 15, fontFamily: FONTS.bodySemiBold, color: COLORS.v2_card },
 });
