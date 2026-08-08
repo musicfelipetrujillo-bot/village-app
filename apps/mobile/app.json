@@ -17,7 +17,7 @@
       "supportsTablet": false,
       "icon": "./assets/icon-roo.png",
       "bundleIdentifier": "com.villieapp.mobile",
-      "buildNumber": "17",
+      "buildNumber": "18",
       "entitlements": {
         "keychain-access-groups": [
           "$(AppIdentifierPrefix)com.villieapp.mobile"
