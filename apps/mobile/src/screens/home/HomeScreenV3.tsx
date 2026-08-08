@@ -194,7 +194,7 @@ function WeekRingHero({ firstName, babyName, weekNumber, expecting, onOpenManual
     : (lang === 'es' ? 'toca para el manual de esta semana →' : "tap for this week's manual →");
   return (
     <LinearGradient
-      colors={['#F79AB9', '#D0216A', '#6E1A47']}
+      colors={['#F6A7C6', '#DE6193', '#A8477A']}
       start={{ x: 0.1, y: 0 }} end={{ x: 0.9, y: 1 }}
       style={[styles.hero, { paddingTop: insets.top + 8 }]}
     >
