@@ -83,6 +83,8 @@ const ICON = {
   calendar:'M4 6h16v15H4zM4 10h16M8 3v4M16 3v4',
   gift:    'M4 11h16v9H4zM3 7h18v4H3zM12 7v13M8.5 7C6.6 7 5.5 4 7 3.2 8.6 2.4 12 7 12 7m0 0s3.4-4.6 5-3.8C18.5 4 17.4 7 15.5 7',
   star:    'M12 3l2.6 5.6 6.1.8-4.5 4.2 1.2 6.1L12 17l-5.4 2.9 1.2-6.1L3.3 9.4l6.1-.8L12 3z',
+  bell:    'M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 01-3.4 0',
+  menu:    'M4 7h16M4 12h16M4 17h16',
 } as const;
 
 function Glyph({ d, color = '#43260F', size = 22, sw = 2 }: { d: string; color?: string; size?: number; sw?: number }) {
@@ -142,9 +144,10 @@ function WeekRing({ week, size = 250 }: { week: number; size?: number }) {
 }
 
 // ─── Week-anchor hero — bold raspberry gradient + ring + tap→Manual ──────
-function WeekRingHero({ firstName, babyName, weekNumber, expecting, onOpenManual, onBeforeBaby }: {
+function WeekRingHero({ firstName, babyName, weekNumber, expecting, onOpenManual, onBeforeBaby, onMenu, onNotifications, hasNotifications }: {
   firstName: string; babyName: string; weekNumber: number; expecting: boolean;
   onOpenManual: () => void; onBeforeBaby: () => void;
+  onMenu: () => void; onNotifications: () => void; hasNotifications?: boolean;
 }) {
   const insets = useSafeAreaInsets();
   const lang = useUserStore((s) => s.profile?.preferred_language ?? 'en') as 'en' | 'es';
@@ -159,8 +162,18 @@ function WeekRingHero({ firstName, babyName, weekNumber, expecting, onOpenManual
     <LinearGradient
       colors={['#F79AB9', '#D0216A', '#6E1A47']}
       start={{ x: 0.1, y: 0 }} end={{ x: 0.9, y: 1 }}
-      style={[styles.hero, { paddingTop: insets.top + 18 }]}
+      style={[styles.hero, { paddingTop: insets.top + 8 }]}
     >
+      <View style={styles.topBar}>
+        <TouchableOpacity onPress={onMenu} activeOpacity={0.8} style={styles.topIconBtn} accessibilityRole="button" accessibilityLabel={lang === 'es' ? 'Menú' : 'Menu'}>
+          <Glyph d={ICON.menu} color="#fff" size={22} sw={2} />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={onNotifications} activeOpacity={0.8} style={styles.topIconBtn} accessibilityRole="button" accessibilityLabel={lang === 'es' ? 'Notificaciones' : 'Notifications'}>
+          <Glyph d={ICON.bell} color="#fff" size={21} sw={2} />
+          {hasNotifications ? <View style={styles.topBellDot} /> : null}
+        </TouchableOpacity>
+      </View>
+
       <Text style={styles.heroGreet} numberOfLines={1}>
         {greet}, <Text style={styles.heroGreetName}>{firstName}</Text>
       </Text>
@@ -179,7 +192,7 @@ function WeekRingHero({ firstName, babyName, weekNumber, expecting, onOpenManual
         <WeekRing week={weekNumber} size={252} />
         <View style={styles.ringCenter} pointerEvents="none">
           <Text style={styles.ringBabyName} numberOfLines={1}>{babyName.toLowerCase()}</Text>
-          <Text style={styles.ringNumber} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.6}>{weekNumber}</Text>
+          <Text style={styles.ringNumber} numberOfLines={1} allowFontScaling={false}>{weekNumber}</Text>
           <Text style={styles.ringUnit}>{unit}</Text>
         </View>
       </TouchableOpacity>
@@ -238,6 +251,7 @@ function AskVillie({ onAsk }: { onAsk: (seed?: string) => void }) {
       ];
   return (
     <View style={styles.askWrap}>
+      <Text style={styles.askEyebrow}>✦ {lang === 'es' ? 'pregúntale a villie' : 'ask villie'}</Text>
       <View style={styles.askRow}>
         <TouchableOpacity style={styles.askBar} activeOpacity={0.85} onPress={() => onAsk()} accessibilityRole="button" accessibilityLabel={lang === 'es' ? 'Pregúntale o dile a Villie' : 'Ask or tell Villie anything'}>
           <View style={styles.askBee}><Image source={VILLIE_BEE} style={{ width: 16, height: 16 }} resizeMode="contain" /></View>
@@ -475,6 +489,8 @@ export default function HomeScreenV3() {
           expecting={expecting}
           onOpenManual={() => goManualView('manual')}
           onBeforeBaby={goBeforeBaby}
+          onMenu={() => navigation.navigate('DiscoverHome' as never)}
+          onNotifications={() => navigation.navigate('Notifications' as never)}
         />
 
         {/* Lifted cream sheet — the doing. Overlaps the hero for iOS depth. */}
@@ -581,10 +597,13 @@ const styles = StyleSheet.create({
   hero: {
     alignItems: 'center', paddingBottom: 46, paddingHorizontal: 22,
   },
+  topBar: { width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 },
+  topIconBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.16)', alignItems: 'center', justifyContent: 'center' },
+  topBellDot: { position: 'absolute', top: 9, right: 10, width: 9, height: 9, borderRadius: 5, backgroundColor: '#F2C75E', borderWidth: 1.5, borderColor: '#C42A6B' },
   heroGreet: { fontFamily: FONTS.v2_body, fontSize: 15, color: 'rgba(255,247,238,0.92)' },
   heroGreetName: { fontFamily: FONTS.v3_display_italic, fontSize: 23, color: '#FFF1DC' },
   ringWrap: { marginTop: 14, width: 252, height: 252, alignItems: 'center', justifyContent: 'center' },
-  ringCenter: { position: 'absolute', alignItems: 'center', justifyContent: 'center' },
+  ringCenter: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center' },
   ringBabyName: {
     fontFamily: FONTS.v2_mono, fontSize: 12, letterSpacing: 3, textTransform: 'lowercase',
     color: 'rgba(255,247,238,0.85)', marginBottom: 2,
@@ -640,10 +659,11 @@ const styles = StyleSheet.create({
 
   // ── Ask villie ───────────────────────────────────────────────────────
   askWrap: { marginTop: 24 },
+  askEyebrow: { fontFamily: FONTS.v2_mono, fontSize: 10.5, letterSpacing: 2, textTransform: 'uppercase', color: '#6E1A47', fontWeight: '700', marginBottom: 10 },
   askRow: { flexDirection: 'row', alignItems: 'center', gap: 9 },
-  askBar: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 9, backgroundColor: '#FFFFFF', borderRadius: 14, paddingHorizontal: 13, paddingVertical: 13, borderWidth: 1, borderColor: 'rgba(224,106,136,0.18)', shadowColor: T.walnut, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 8, elevation: 1 },
-  askBee: { width: 22, height: 22, borderRadius: 11, backgroundColor: '#FDECEF', alignItems: 'center', justifyContent: 'center' },
-  askText: { flex: 1, fontFamily: FONTS.v2_body, fontSize: 13.5, color: '#9A8264' },
+  askBar: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 9, backgroundColor: '#FDF0F4', borderRadius: 14, paddingHorizontal: 13, paddingVertical: 14, borderWidth: 1.5, borderColor: 'rgba(208,33,106,0.28)' },
+  askBee: { width: 24, height: 24, borderRadius: 12, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' },
+  askText: { flex: 1, fontFamily: FONTS.bodySemiBold, fontSize: 13.5, color: '#8A5A68' },
   askMic: { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center', shadowColor: '#D0216A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.4, shadowRadius: 11, elevation: 4 },
   chipRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 12, paddingRight: 22 },
   chip: { borderWidth: 1.2, borderColor: 'rgba(224,106,136,0.28)', backgroundColor: '#FFFDF9', borderRadius: 999, paddingHorizontal: 13, paddingVertical: 8 },

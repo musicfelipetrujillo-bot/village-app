@@ -68,11 +68,15 @@ type Vertical = {
   isNew?: boolean;
 };
 
+// Raspberry-forward bento: two bold brand cards (raspberry + deep berry), gold
+// as the single accent, and a light blush card where the "new" badge needs a
+// pale ground to read against. `ink` carries every text color on the card, so
+// it must contrast its own `bg` (light ink on the bold cards, dark on the rest).
 const VERTICALS: Vertical[] = [
-  { title: 'Milk Hub',     sub: 'Your stash, plus peer milk.',    stat: 'track · share · find', bg: '#F7C5CB', ink: '#9B4B60', route: 'Milk',    isNew: true },
-  { title: 'Care',         sub: 'Doctors, doulas, lactation — and extra hands.', stat: '12 verified',  bg: '#F3B79C', ink: '#8A4A2E', route: 'Experts' },
-  { title: 'Baby Gear',    sub: 'Hand-me-downs from real moms.',  stat: '37 listed',            bg: '#DA9A2C', ink: '#8A6A1E', route: 'Gear'    },
-  { title: 'Villie Plans', sub: 'Classes, circles, real coffee.', stat: '5 this week',          bg: '#EFB2C8', ink: '#94436A', route: 'Village' },
+  { title: 'Milk Hub',     sub: 'Your stash, plus peer milk.',    stat: 'track · share · find', bg: '#F7C5CB', ink: '#6E1A47', route: 'Milk',    isNew: true },
+  { title: 'Care',         sub: 'Doctors, doulas, lactation — and extra hands.', stat: '12 verified',  bg: '#D0216A', ink: '#FFF4F8', route: 'Experts' },
+  { title: 'Baby Gear',    sub: 'Hand-me-downs from real moms.',  stat: '37 listed',            bg: '#DA9A2C', ink: '#4A320A', route: 'Gear'    },
+  { title: 'Villie Plans', sub: 'Classes, circles, real coffee.', stat: '5 this week',          bg: '#6E1A47', ink: '#F7D9E4', route: 'Village' },
 ];
 
 // Short weekday + day-of-month for the calendar chip.
@@ -310,7 +314,7 @@ const styles = StyleSheet.create({
     color: T.cocoa, letterSpacing: -1.76, marginTop: 14,
   },
   headlineItalic: {
-    fontFamily: FONTS.v3_display_italic, color: '#E98A6A',
+    fontFamily: FONTS.v3_display_italic, color: '#D0216A',
     fontSize: 54, lineHeight: 52,
   },
   locMono: {
