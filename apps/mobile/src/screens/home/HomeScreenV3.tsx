@@ -19,7 +19,7 @@ import {
   Dimensions, StyleProp, ViewStyle,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import Svg, { Path, Circle, G } from 'react-native-svg';
+import Svg, { Path, Circle, G, Line } from 'react-native-svg';
 import { useNavigation } from '@react-navigation/native';
 import { COLORS, FONTS, PLACEHOLDER_BABY_NAME } from '@utils/constants';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -146,29 +146,36 @@ function HeroHoneycomb({ height = 520 }: { height?: number }) {
 const RING = { box: 250, cx: 125, cy: 125, r: 104, sw: 13 };
 const RING_C = 2 * Math.PI * RING.r;
 
+// A 52-tick "dial" ring — each tick is one week. Elapsed weeks are solid
+// scarlet, the rest a faint scarlet, and the roo hops the rim at the current
+// week. Reads as a distinctive retro dial, not a plain progress arc.
 function WeekRing({ week, size = 250 }: { week: number; size?: number }) {
-  // clamp to a visible sliver at week 1, full ring at 52+
-  const frac = Math.max(0.02, Math.min(1, week / 52));
-  const dash = `${(frac * RING_C).toFixed(1)} ${RING_C.toFixed(1)}`;
-  // roo marker position on the circle (start at 12 o'clock, sweep clockwise)
-  const a = (-90 + frac * 360) * (Math.PI / 180);
-  const mx = RING.cx + RING.r * Math.cos(a);
-  const my = RING.cy + RING.r * Math.sin(a);
+  const wk = Math.max(1, Math.min(52, Math.round(week)));
+  const inner = 90, outer = 108; // tick band
+  const ticks = [];
+  for (let i = 0; i < 52; i++) {
+    const ang = (-90 + i * (360 / 52)) * (Math.PI / 180);
+    const x1 = RING.cx + inner * Math.cos(ang);
+    const y1 = RING.cy + inner * Math.sin(ang);
+    const x2 = RING.cx + outer * Math.cos(ang);
+    const y2 = RING.cy + outer * Math.sin(ang);
+    const done = i < wk;
+    ticks.push(
+      <Line key={i} x1={x1.toFixed(1)} y1={y1.toFixed(1)} x2={x2.toFixed(1)} y2={y2.toFixed(1)}
+        stroke={done ? '#E14A32' : 'rgba(225,74,50,0.20)'} strokeWidth={done ? 3.4 : 2.4} strokeLinecap="round" />,
+    );
+  }
+  // roo sits at the leading (current) week, on the tick band
+  const a = (-90 + (wk - 0.5) * (360 / 52)) * (Math.PI / 180);
+  const rr = (inner + outer) / 2;
+  const mx = RING.cx + rr * Math.cos(a);
+  const my = RING.cy + rr * Math.sin(a);
   return (
     <Svg width={size} height={size} viewBox={`0 0 ${RING.box} ${RING.box}`}>
-      {/* track */}
-      <Circle cx={RING.cx} cy={RING.cy} r={RING.r} fill="none" stroke="rgba(255,255,255,0.24)" strokeWidth={RING.sw} />
-      {/* progress arc */}
-      <Circle
-        cx={RING.cx} cy={RING.cy} r={RING.r} fill="none"
-        stroke={T.cinnamon} strokeWidth={RING.sw} strokeLinecap="round"
-        strokeDasharray={dash}
-        transform={`rotate(-90 ${RING.cx} ${RING.cy})`}
-      />
-      {/* roo marker disc + ears */}
+      {ticks}
       <G transform={`translate(${mx.toFixed(1)} ${my.toFixed(1)})`}>
-        <Circle r={19} fill="#FFF7EE" stroke={T.berry} strokeWidth={2.5} />
-        <G transform="translate(-15 -14) scale(0.15)">
+        <Circle r={18} fill="#FFF7EE" stroke={T.berry} strokeWidth={2.5} />
+        <G transform="translate(-14 -13) scale(0.14)">
           <Path d={ROO_LEFT} fill={T.cinnamon} />
           <Path d={ROO_RIGHT} fill={T.cinnamon} />
         </G>
@@ -194,7 +201,7 @@ function WeekRingHero({ firstName, babyName, weekNumber, expecting, onOpenManual
     : (lang === 'es' ? 'toca para el manual de esta semana →' : "tap for this week's manual →");
   return (
     <LinearGradient
-      colors={['#FCE1DA', '#F7CFC6', '#F0BEB2']}
+      colors={['#FDE2E6', '#F6C9D0', '#EFB8C4']}
       start={{ x: 0.1, y: 0 }} end={{ x: 0.9, y: 1 }}
       style={[styles.hero, { paddingTop: insets.top + 8 }]}
     >
@@ -262,7 +269,7 @@ function LogRow({ onFeed, onSleep, onMilk }: { onFeed: () => void; onSleep: () =
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.logItem} activeOpacity={0.85} onPress={onSleep} accessibilityRole="button" accessibilityLabel={L.sleep}>
-        <View style={[styles.logCircle, { backgroundColor: '#F7CFC6' }]}>
+        <View style={[styles.logCircle, { backgroundColor: '#F6C9D0' }]}>
           <Glyph d={ICON.moon} color="#E14A32" size={26} sw={1.9} />
         </View>
         <Text style={styles.logLabel}>{L.sleep}</Text>
@@ -323,7 +330,7 @@ function YourDay({ onWeek, onMilk, onCheckin }: { onWeek: () => void; onMilk: ()
     <View style={{ marginTop: 26 }}>
       <Eyebrow>{lang === 'es' ? 'tu día' : 'your day'}</Eyebrow>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.dayScroll}>
-        <TouchableOpacity activeOpacity={0.9} onPress={onWeek} accessibilityRole="button" accessibilityLabel={lang === 'es' ? 'Tu semana' : 'Your week'} style={[styles.dayCard, { backgroundColor: '#F7CFC6' }]}>
+        <TouchableOpacity activeOpacity={0.9} onPress={onWeek} accessibilityRole="button" accessibilityLabel={lang === 'es' ? 'Tu semana' : 'Your week'} style={[styles.dayCard, { backgroundColor: '#F6C9D0' }]}>
           <Glyph d={ICON.sparkle} color="#E14A32" size={22} sw={1.8} />
           <View>
             <Text style={[styles.dayCardTitle, { color: '#C63A24' }]}>{lang === 'es' ? 'Tu semana' : 'Your week, so far'}</Text>
@@ -486,7 +493,7 @@ export default function HomeScreenV3() {
   const goMilkVault = () => (navigation.getParent() as any)?.navigate('Milk', { screen: 'MilkVaultDashboard' });
 
   const tiles: Tile[] = [
-    { key: 'milk',    label: 'Milk',    bg: '#F7CFC6', icon: 'droplet',     go: () => navigation.getParent()?.navigate('Milk') },
+    { key: 'milk',    label: 'Milk',    bg: '#F6C9D0', icon: 'droplet',     go: () => navigation.getParent()?.navigate('Milk') },
     { key: 'experts', label: 'Care',    bg: '#F4CBA8', icon: 'stethoscope', go: () => navigation.getParent()?.navigate('Experts') },
     { key: 'gear',    label: 'Gear',    bg: '#EFD79A', icon: 'bag',         go: () => navigation.getParent()?.navigate('Gear') },
     { key: 'plans',   label: 'Plans',   bg: '#F6C2B8', icon: 'calendar',    go: () => navigation.getParent()?.navigate('Village') },
@@ -630,7 +637,7 @@ export default function HomeScreenV3() {
 
 // ─── Styles ────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: T.cream, overflow: 'hidden' },
+  container: { flex: 1, backgroundColor: '#FBF4E6', overflow: 'hidden' },
   scroll: { paddingTop: 0, paddingBottom: 0 },
 
   // ── Week-anchor hero ─────────────────────────────────────────────────
@@ -668,7 +675,7 @@ const styles = StyleSheet.create({
   // ── Lifted cream sheet ───────────────────────────────────────────────
   sheet: {
     marginTop: -26, paddingHorizontal: 22, paddingTop: 6, paddingBottom: 120,
-    backgroundColor: '#FFFDFA', borderTopLeftRadius: 30, borderTopRightRadius: 30,
+    backgroundColor: '#FBF4E6', borderTopLeftRadius: 30, borderTopRightRadius: 30,
     shadowColor: T.walnut, shadowOffset: { width: 0, height: -8 }, shadowOpacity: 0.12, shadowRadius: 22, elevation: 8,
   },
   grabber: { width: 40, height: 4, borderRadius: 2, backgroundColor: '#EBDCC2', alignSelf: 'center', marginTop: 6, marginBottom: 18 },

@@ -73,7 +73,7 @@ type Vertical = {
 // carries every text color on the card and is a deep, readable version of the
 // card's own hue so it pops on the pale ground without glare.
 const VERTICALS: Vertical[] = [
-  { title: 'Milk Hub',     sub: 'Your stash, plus peer milk.',    stat: 'track · share · find', bg: '#F7CFC6', ink: '#C63A24', route: 'Milk',    isNew: true },
+  { title: 'Milk Hub',     sub: 'Your stash, plus peer milk.',    stat: 'track · share · find', bg: '#F6C9D0', ink: '#C63A24', route: 'Milk',    isNew: true },
   { title: 'Care',         sub: 'Doctors, doulas, lactation — and extra hands.', stat: '12 verified',  bg: '#F4CBA8', ink: '#B85A2E', route: 'Experts' },
   { title: 'Baby Gear',    sub: 'Hand-me-downs from real moms.',  stat: '37 listed',            bg: '#EFD79A', ink: '#8A6A1E', route: 'Gear'    },
   { title: 'Villie Plans', sub: 'Classes, circles, real coffee.', stat: '5 this week',          bg: '#F6C2B8', ink: '#A83420', route: 'Village' },
@@ -300,7 +300,7 @@ function hexAlpha(hex: string, a: number): string {
 
 // ─── Styles ────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: T.paper, overflow: 'hidden' },
+  container: { flex: 1, backgroundColor: '#FBF4E6', overflow: 'hidden' },
   scroll: { paddingTop: 56, paddingHorizontal: 22, paddingBottom: 96 },
 
   header: { flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center' },
