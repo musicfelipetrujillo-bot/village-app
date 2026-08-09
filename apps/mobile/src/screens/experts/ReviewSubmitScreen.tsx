@@ -242,11 +242,11 @@ const styles = StyleSheet.create({
 
   // v9 canonical CTA — rect variant
   submitBtn: {
-    backgroundColor: '#D0216A',
+    backgroundColor: '#E02F5F',
     borderRadius: 14,
     paddingVertical: 16,
     alignItems: 'center',
-    shadowColor: '#D0216A', shadowOffset: { width: 0, height: 4 },
+    shadowColor: '#E02F5F', shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.24, shadowRadius: 10, elevation: 3,
   },
   submitBtnDisabled: { opacity: 0.45 },

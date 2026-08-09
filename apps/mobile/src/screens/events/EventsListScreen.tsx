@@ -280,13 +280,13 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.paper,
     borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.06)',
   },
-  back: { fontSize: 15, color: '#D0216A', fontFamily: FONTS.bodySemiBold },
+  back: { fontSize: 15, color: '#E02F5F', fontFamily: FONTS.bodySemiBold },
   headerTitle: { fontSize: 16, fontFamily: FONTS.bodySemiBold, color: COLORS.bark },
   headerLinks: { flexDirection: 'row', alignItems: 'center', gap: 16 },
-  headerLink: { fontSize: 14, color: '#D0216A', fontFamily: FONTS.bodySemiBold },
+  headerLink: { fontSize: 14, color: '#E02F5F', fontFamily: FONTS.bodySemiBold },
   footerRight: { flexDirection: 'row', alignItems: 'center', gap: 14 },
   heart: { fontSize: 20, color: '#C9A9B0', lineHeight: 22 },
-  heartOn: { color: '#D0216A' },
+  heartOn: { color: '#E02F5F' },
 
   // Magazine-cover hero — full-bleed photo dominates the top of the page.
   // Matches Specialists / Milk / Gear hero pattern so the four verticals

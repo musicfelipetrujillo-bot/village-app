@@ -363,11 +363,11 @@ const styles = StyleSheet.create({
   // Primary CTA — cinnamon (the one spark)
   // v9 canonical CTA — action-deep
   btn: {
-    backgroundColor: '#D0216A',
+    backgroundColor: '#E02F5F',
     borderRadius: 999,
     paddingVertical: 15,
     alignItems: 'center',
-    shadowColor: '#D0216A',
+    shadowColor: '#E02F5F',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.24,
     shadowRadius: 10,

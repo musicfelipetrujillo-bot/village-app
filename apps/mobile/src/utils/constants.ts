@@ -45,8 +45,8 @@ export const COLORS = {
   genz_cream:      '#FCF7EF',  // app / page canvas
   genz_bone:       '#FFFCF6',  // cards, raised surfaces
   genz_honey:      '#DA9A2C',  // bee, sunshine, secondary button
-  genz_rose:       '#D0216A',  // PRIMARY action
-  genz_berry:      '#6E1A47',  // deep pink -- pressed CTA, small action text
+  genz_rose:       '#E02F5F',  // PRIMARY action
+  genz_berry:      '#8A1F3E',  // deep pink -- pressed CTA, small action text
   genz_blush:      '#F7C5CB',  // soft tiles, chips, rings, empathy
   genz_caramel:    '#E98A6A',  // warm chestnut accent, feature tiles
   genz_clay:       '#F2E6DD',  // dividers, dashed borders, muted warm fills
@@ -54,8 +54,8 @@ export const COLORS = {
   genz_softink:    '#7A4A24',  // secondary text, captions, eyebrows
 
   // ─── Action (one cinnamon per screen) ───
-  v2_cinnamon:    '#D0216A',  // wordmark, CTA, link, active tab — the one spark
-  v2_cinnamon_dk: '#6E1A47',  // pressed CTA
+  v2_cinnamon:    '#E02F5F',  // wordmark, CTA, link, active tab — the one spark
+  v2_cinnamon_dk: '#8A1F3E',  // pressed CTA
 
   // ─── Support row ───
   v2_caramel:     '#E98A6A',  // italic-name accent, neutral chips, "second spark" fallback
@@ -77,7 +77,7 @@ export const COLORS = {
   v2_pill_heal:   '#E98A6A',  // moss
   v2_pill_feed:   '#DA9A2C',  // butter
   v2_pill_sleep:  '#F2E6DD',  // caramel
-  v2_pill_tips:   '#6E1A47',  // cinnamon
+  v2_pill_tips:   '#8A1F3E',  // cinnamon
 
   // ─── Manual chapter sub-palette · "original" preset (alternate, not default) ───
   v2_feel_orig:   '#E98A6A',
@@ -102,18 +102,18 @@ export const COLORS = {
   // counterparts serve different roles (sage v2 is much lighter; pink v2 is
   // a different blush; no v2 mauve/sand equivalent).
   pink:         '#F7C5CB',  // hero accent, decorative wash, pill bg (v1)
-  pinkDeep:     '#D0216A',  // pressed/active pink (e.g. selected pill)
+  pinkDeep:     '#E02F5F',  // pressed/active pink (e.g. selected pill)
   pinkSoft:     '#FAE2DB',  // softer wash for surface tints
-  coco:         '#D0216A',  // ▲ ROUTED → v2 cinnamon (was #AD795B)
-  cocoDeep:     '#6E1A47',  // ▲ ROUTED → v2 cinnamon dark (was #E98A6A)
+  coco:         '#E02F5F',  // ▲ ROUTED → v2 cinnamon (was #AD795B)
+  cocoDeep:     '#8A1F3E',  // ▲ ROUTED → v2 cinnamon dark (was #E98A6A)
   cocoSoft:     '#E98A6A',  // ▲ ROUTED → v2 caramel (was #E98A6A)
   cream:        '#FCF7EF',  // ▲ ROUTED → v2 cream (was #F5EFE6)
 
   // Secondary support
   bark:         '#43260F',  // ▲ ROUTED → v2 cocoa (was #3D1F0D, ~identical)
   barkSoft:     '#7A4A24',  // ▲ ROUTED → v2 walnut (was #7A4A24)
-  sienna:       '#D0216A',  // ▲ ROUTED → v2 cinnamon (alias of coco)
-  siennaDeep:   '#6E1A47',  // ▲ ROUTED → v2 cinnamon dark
+  sienna:       '#E02F5F',  // ▲ ROUTED → v2 cinnamon (alias of coco)
+  siennaDeep:   '#8A1F3E',  // ▲ ROUTED → v2 cinnamon dark
   sage:         '#E98A6A',  // calm / success / nature (v1 — v2 sage is a different role)
   sageDeep:     '#E98A6A',
   sageSoft:     '#F2E6DD',  // light sage wash — specialty tiles, success tints
@@ -126,17 +126,17 @@ export const COLORS = {
   statusAlert:   '#D87530', // orange — active/expiring/time-sensitive states
   statusSuccess: '#2E7D32', // green  — verified/fulfilled/complete states
   blush:        '#F7C5CB',  // = pink (legacy callers)
-  blushDeep:    '#D0216A',  // = pinkDeep
+  blushDeep:    '#E02F5F',  // = pinkDeep
   ceramic:      '#FCF7EF',  // ▲ ROUTED → v2 cream (was #F5EFE6)
 
   // ─── Legacy aliases — @deprecated ───────────────────────────────────────
   // These resolve to canonical Brand Kit v5 tokens. New code should use
   // the canonical name directly. Aliases will be removed in a future sweep.
-  rust:         '#D0216A',  // ▲ ROUTED → v2 cinnamon (was #AD795B)
-  rustDark:     '#6E1A47',  // ▲ ROUTED → v2 cinnamon dark
+  rust:         '#E02F5F',  // ▲ ROUTED → v2 cinnamon (was #AD795B)
+  rustDark:     '#8A1F3E',  // ▲ ROUTED → v2 cinnamon dark
   rustLight:    '#E98A6A',  // ▲ ROUTED → v2 caramel
-  diner:        '#D0216A',  // ▲ ROUTED → v2 cinnamon
-  dinerDark:    '#6E1A47',  // ▲ ROUTED → v2 cinnamon dark
+  diner:        '#E02F5F',  // ▲ ROUTED → v2 cinnamon
+  dinerDark:    '#8A1F3E',  // ▲ ROUTED → v2 cinnamon dark
   dinerLight:   '#E98A6A',  // ▲ ROUTED → v2 caramel
   brownDeep:    '#43260F',  // ▲ ROUTED → v2 cocoa
   brownMid:     '#7A4A24',  // ▲ ROUTED → v2 walnut

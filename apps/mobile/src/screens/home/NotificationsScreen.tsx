@@ -125,7 +125,7 @@ export default function NotificationsScreen() {
 
       {loading ? (
         <View style={styles.loadingWrap}>
-          <ActivityIndicator color="#D0216A" />
+          <ActivityIndicator color="#E02F5F" />
         </View>
       ) : error ? (
         <View style={styles.emptyWrap}>
@@ -226,9 +226,9 @@ const styles = StyleSheet.create({
   },
   // v9 canonical CTA — cinnamon + action-deep shadow.
   retryPill: {
-    marginTop: 18, backgroundColor: '#D0216A',
+    marginTop: 18, backgroundColor: '#E02F5F',
     paddingHorizontal: 24, paddingVertical: 12, borderRadius: 999,
-    shadowColor: '#D0216A', shadowOffset: { width: 0, height: 4 },
+    shadowColor: '#E02F5F', shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.24, shadowRadius: 10, elevation: 3,
   },
   retryPillText: {
@@ -270,7 +270,7 @@ const styles = StyleSheet.create({
   },
   unreadDot: {
     width: 8, height: 8, borderRadius: 4,
-    backgroundColor: '#D0216A',                                        // v9 unread = cinnamon (action affordance)
+    backgroundColor: '#E02F5F',                                        // v9 unread = cinnamon (action affordance)
     marginLeft: 10, marginTop: 16,
   },
 });

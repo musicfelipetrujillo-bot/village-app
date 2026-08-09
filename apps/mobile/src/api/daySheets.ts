@@ -45,9 +45,9 @@ export type DaySheetInput = Partial<Omit<DaySheet, 'id' | 'user_id' | 'share_tok
 export interface RowMeta { emoji: string; label: string; chip: string; rowBg: string; timeColor: string; textColor: string }
 export const ROW_META: Record<SheetRowKind, RowMeta> = {
   wake:   { emoji: '☀️', label: 'Wake',   chip: '#EDEAF6', rowBg: '',        timeColor: '#A99C7E', textColor: '#9A8264' },
-  bottle: { emoji: '🍼', label: 'Bottle', chip: '#FBD9E1', rowBg: '#FDEFF2', timeColor: '#6E1A47', textColor: '#3D2116' },
+  bottle: { emoji: '🍼', label: 'Bottle', chip: '#FBD9E1', rowBg: '#FDEFF2', timeColor: '#8A1F3E', textColor: '#3D2116' },
   nap:    { emoji: '💤', label: 'Nap',    chip: '#F6E2AE', rowBg: '#FCF3DC', timeColor: '#B98A1E', textColor: '#3D2116' },
-  meal:   { emoji: '🍽️', label: 'Meal',   chip: '#FBD9E1', rowBg: '#FDEFF2', timeColor: '#6E1A47', textColor: '#3D2116' },
+  meal:   { emoji: '🍽️', label: 'Meal',   chip: '#FBD9E1', rowBg: '#FDEFF2', timeColor: '#8A1F3E', textColor: '#3D2116' },
   bath:   { emoji: '🛁', label: 'Bath',   chip: '#E7EDEF', rowBg: '',        timeColor: '#A99C7E', textColor: '#9A8264' },
   bed:    { emoji: '🌙', label: 'Bed',    chip: '#EDEAF6', rowBg: '',        timeColor: '#A99C7E', textColor: '#9A8264' },
   note:   { emoji: '📝', label: 'Note',   chip: '#F1E7D3', rowBg: '',        timeColor: '#A99C7E', textColor: '#9A8264' },

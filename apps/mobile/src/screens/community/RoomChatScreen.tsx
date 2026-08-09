@@ -286,7 +286,7 @@ export default function RoomChatScreen({ navigation, route }: Props) {
   return (
     <SafeAreaView style={styles.screen} edges={['top']}>
       <View style={styles.header}>
-        <BackButton color="#D0216A" style={{ paddingRight: 14 }} />
+        <BackButton color="#E02F5F" style={{ paddingRight: 14 }} />
         <View style={styles.headerTitleWrap}>
           <Text style={styles.headerTitle} numberOfLines={1}>
             {room ? `${room.emoji}  ${room.name}` : 'Room'}
@@ -326,7 +326,7 @@ export default function RoomChatScreen({ navigation, route }: Props) {
         keyboardVerticalOffset={Platform.OS === 'ios' ? 88 : 0}
       >
         {loading ? (
-          <ActivityIndicator color="#D0216A" />
+          <ActivityIndicator color="#E02F5F" />
         ) : (
           <FlatList
             ref={listRef}
@@ -534,7 +534,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.06)',
     backgroundColor: COLORS.paper,
   },
-  back:               { fontSize: 15, color: '#D0216A', fontFamily: FONTS.bodyMedium, paddingRight: 14 },
+  back:               { fontSize: 15, color: '#E02F5F', fontFamily: FONTS.bodyMedium, paddingRight: 14 },
   headerTitleWrap:    { flex: 1 },
   headerTitle:        { fontSize: 16, fontFamily: FONTS.bodySemiBold, color: COLORS.bark },
   headerMeta:         { fontSize: 12, color: COLORS.textLight, marginTop: 2 },

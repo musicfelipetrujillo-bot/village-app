@@ -14,7 +14,7 @@ import { useUserStore } from '@store/user';
 
 const T = {
   cream: '#FCF7EF', paper: '#FFFCF6', cocoa: '#43260F', walnut: '#7A4A24',
-  rasp: '#D0216A', berry: '#6E1A47', gold: '#DA9A2C', coral: '#E98A6A',
+  rasp: '#E02F5F', berry: '#8A1F3E', gold: '#DA9A2C', coral: '#E98A6A',
 };
 
 const ICON = {
@@ -65,7 +65,7 @@ export default function DiscoverHomeScreen() {
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         {/* Ask villie — one bold tap */}
         <TouchableOpacity activeOpacity={0.9} onPress={askVillie} accessibilityRole="button" accessibilityLabel={L ? 'Pregúntale a Villie' : 'Ask villie anything'}>
-          <LinearGradient colors={['#D0216A', '#DA9A2C']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.ask}>
+          <LinearGradient colors={['#E02F5F', '#DA9A2C']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.ask}>
             <View style={styles.askMic}><Glyph d={ICON.mic} color="#fff" size={20} sw={1.9} /></View>
             <Text style={styles.askText}>{L ? 'Pregúntale a villie' : 'Ask villie anything'}</Text>
             <Glyph d={ICON.arrow} color="#fff" size={18} sw={2.2} />

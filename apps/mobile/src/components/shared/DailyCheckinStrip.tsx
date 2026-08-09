@@ -165,7 +165,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.v2_cinnamon,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#D0216A',
+    shadowColor: '#E02F5F',
     shadowOpacity: 0.42,
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 8,

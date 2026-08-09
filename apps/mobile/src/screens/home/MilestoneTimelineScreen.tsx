@@ -93,7 +93,7 @@ export default function MilestoneTimelineScreen() {
 
       <ScrollView contentContainerStyle={styles.content}>
         {loading ? (
-          <ActivityIndicator color="#D0216A" style={{ marginTop: 40 }} />
+          <ActivityIndicator color="#E02F5F" style={{ marginTop: 40 }} />
         ) : hero ? (
           <>
             <View style={styles.hero}>
@@ -130,7 +130,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.paper,
     borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.06)',
   },
-  back: { fontSize: 15, color: '#D0216A', fontFamily: FONTS.bodySemiBold },
+  back: { fontSize: 15, color: '#E02F5F', fontFamily: FONTS.bodySemiBold },
   headerTitle: { fontSize: 16, fontFamily: FONTS.bodySemiBold, color: COLORS.bark },
 
   weekRail: {
@@ -146,7 +146,7 @@ const styles = StyleSheet.create({
     borderWidth: 2, borderColor: 'transparent',
   },
   // v9 active state — action-deep
-  weekBtnActive: { backgroundColor: '#D0216A', borderColor: '#D0216A' },
+  weekBtnActive: { backgroundColor: '#E02F5F', borderColor: '#E02F5F' },
   weekBtnText: { fontSize: 13, fontFamily: FONTS.bodySemiBold, color: COLORS.barkSoft },
   weekBtnTextActive: { color: '#FFFCF6' },
 

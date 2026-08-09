@@ -24,7 +24,7 @@ type Lang = 'en' | 'es';
 
 const C = {
   cream: COLORS.v2_cream, paper: COLORS.v2_paper, cocoa: COLORS.v2_cocoa, walnut: COLORS.v2_walnut,
-  rose: COLORS.v2_cinnamon, roseDeep: '#6E1A47', red: '#BE3A2E',
+  rose: COLORS.v2_cinnamon, roseDeep: '#8A1F3E', red: '#BE3A2E',
 };
 
 const ICON = {
@@ -243,7 +243,7 @@ const s = StyleSheet.create({
   sectionLabel: { fontFamily: FONTS.v2_mono, fontSize: 9.5, letterSpacing: 1.8, color: C.walnut, marginTop: 20, marginBottom: 10 },
 
   cprCard: { borderRadius: 18, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(217,108,136,0.25)', marginBottom: 11 },
-  cprMedia: { height: 92, backgroundColor: '#D0216A', alignItems: 'center', justifyContent: 'center' },
+  cprMedia: { height: 92, backgroundColor: '#E02F5F', alignItems: 'center', justifyContent: 'center' },
   cprPlay: { width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(255,255,255,0.92)', alignItems: 'center', justifyContent: 'center' },
   cprBody: { padding: 12, backgroundColor: C.paper },
   cprTitle: { fontFamily: FONTS.v3_display, fontSize: 15, color: C.cocoa },

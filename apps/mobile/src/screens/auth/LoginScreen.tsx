@@ -230,14 +230,14 @@ const styles = StyleSheet.create({
   },
 
   // v9 canonical CTA — action-deep (WCAG AA 5.56:1 on paper text;
-  // cinnamon #D0216A fails AA at normal text size).
+  // cinnamon #E02F5F fails AA at normal text size).
   btn: {
-    backgroundColor: '#D0216A',
+    backgroundColor: '#E02F5F',
     borderRadius: 999,
     paddingVertical: 15,
     alignItems: 'center',
     marginTop: 8,
-    shadowColor: '#D0216A',
+    shadowColor: '#E02F5F',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.24,
     shadowRadius: 10,

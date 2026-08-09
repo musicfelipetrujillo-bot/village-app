@@ -179,6 +179,6 @@ const styles = StyleSheet.create({
     borderRadius: 12, paddingVertical: 14, alignItems: 'center',
   },
   cancelText: { fontSize: 15, color: '#7A4A24', fontFamily: FONTS.bodySemiBold },
-  applyBtn: { flex: 2, backgroundColor: '#D0216A', borderRadius: 12, paddingVertical: 14, alignItems: 'center' },
+  applyBtn: { flex: 2, backgroundColor: '#E02F5F', borderRadius: 12, paddingVertical: 14, alignItems: 'center' },
   applyText: { fontSize: 15, color: '#FFFCF6', fontFamily: FONTS.bodySemiBold },
 });

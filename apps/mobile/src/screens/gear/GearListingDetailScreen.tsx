@@ -204,7 +204,7 @@ export default function GearListingDetailScreen() {
   if (loading) {
     return (
       <View style={styles.container}>
-        <ActivityIndicator color="#D0216A" style={{ marginTop: 80 }} />
+        <ActivityIndicator color="#E02F5F" style={{ marginTop: 80 }} />
       </View>
     );
   }
@@ -462,7 +462,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.paper,
     borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.06)',
   },
-  back: { fontSize: 15, color: '#D0216A', fontFamily: FONTS.bodySemiBold },
+  back: { fontSize: 15, color: '#E02F5F', fontFamily: FONTS.bodySemiBold },
   saveIcon: { fontSize: 24, color: COLORS.coco },
 
   content: { paddingBottom: 120 },
@@ -480,7 +480,7 @@ const styles = StyleSheet.create({
     borderRadius: 5, paddingHorizontal: 7, paddingVertical: 2,
   },
   boostOwnerBtn: {
-    alignSelf: 'flex-start', backgroundColor: '#D0216A', borderRadius: 12,
+    alignSelf: 'flex-start', backgroundColor: '#E02F5F', borderRadius: 12,
     paddingHorizontal: 16, paddingVertical: 9, marginTop: 10, marginBottom: 4,
   },
   boostOwnerBtnText: { fontSize: 13, fontFamily: FONTS.bodySemiBold, color: '#FFFCF6' },
@@ -546,7 +546,7 @@ const styles = StyleSheet.create({
   referenceCopy: { flex: 1 },
   referenceLabel: {
     fontSize: 10, fontFamily: FONTS.bodySemiBold, letterSpacing: 1.4,
-    color: '#6E1A47', textTransform: 'uppercase', marginBottom: 4,
+    color: '#8A1F3E', textTransform: 'uppercase', marginBottom: 4,
   },
   referenceCaption: { fontSize: 12, color: COLORS.barkSoft, lineHeight: 17, fontFamily: FONTS.body },
 

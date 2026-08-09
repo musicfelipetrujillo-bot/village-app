@@ -262,7 +262,7 @@ const styles = StyleSheet.create({
   backToVillage: { paddingVertical: 4, paddingRight: 8 },
   backToVillageText: { fontSize: 13, color: COLORS.textLight, fontFamily: FONTS.bodyMedium },
   headerActions: { flexDirection: 'row', gap: 16 },
-  headerLink: { fontSize: 13, color: '#D0216A', fontFamily: FONTS.bodySemiBold },
+  headerLink: { fontSize: 13, color: '#E02F5F', fontFamily: FONTS.bodySemiBold },
 
   // Title block — relative so DecorativeMarks (absolutely positioned)
   // can tuck behind the eyebrow → italic title → sub stack without
@@ -359,7 +359,7 @@ const styles = StyleSheet.create({
   },
 
   gearSearchRow: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#FDF7EC', borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(61,31,14,0.14)', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 4, marginTop: 14 },
-  gearSearchIcon: { fontSize: 18, color: '#6E1A47' },
+  gearSearchIcon: { fontSize: 18, color: '#8A1F3E' },
   gearSearchInput: { flex: 1, fontFamily: FONTS.v2_body, fontSize: 13.5, color: '#3D2116', paddingVertical: 9 },
 
   filterRow: {
@@ -438,9 +438,9 @@ const styles = StyleSheet.create({
   fab: {
     position: 'absolute', bottom: 90, right: 16,
     flexDirection: 'row', alignItems: 'center', gap: 8,
-    backgroundColor: '#D0216A', borderRadius: 28,             // v9 CTA = cinnamon
+    backgroundColor: '#E02F5F', borderRadius: 28,             // v9 CTA = cinnamon
     paddingHorizontal: 18, paddingVertical: 13,
-    shadowColor: '#D0216A', shadowOpacity: 0.24, shadowRadius: 10, shadowOffset: { width: 0, height: 4 },
+    shadowColor: '#E02F5F', shadowOpacity: 0.24, shadowRadius: 10, shadowOffset: { width: 0, height: 4 },
     elevation: 5,
   },
   fabIcon: { color: '#FFFCF6', fontSize: 20, fontFamily: FONTS.bodySemiBold },

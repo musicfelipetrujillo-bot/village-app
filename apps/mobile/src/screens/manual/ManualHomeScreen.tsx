@@ -87,7 +87,7 @@ const FAMILY_SALMON:   ChapterFamily = { bg: '#FBE3DF', accent: '#F7C5CB' };
 const FAMILY_MOSS:     ChapterFamily = { bg: '#F2E6DD', accent: '#E98A6A' };
 const FAMILY_BUTTER:   ChapterFamily = { bg: '#FDF1D0', accent: '#DA9A2C' };
 const FAMILY_SAGE:     ChapterFamily = { bg: '#EEEACE', accent: '#F2E6DD' };
-const FAMILY_MARIGOLD: ChapterFamily = { bg: '#F7C5CB', accent: '#6E1A47' };
+const FAMILY_MARIGOLD: ChapterFamily = { bg: '#F7C5CB', accent: '#8A1F3E' };
 const TILE_FAMILY: Record<string, Record<string, ChapterFamily>> = {
   mom: {
     feel:    FAMILY_SALMON,
@@ -313,7 +313,7 @@ export default function ManualHomeScreen() {
         </View>
         {thisWeekLoading ? (
           <View style={styles.thisWeekLoading}>
-            <ActivityIndicator color="#D0216A" />
+            <ActivityIndicator color="#E02F5F" />
           </View>
         ) : thisWeek.length === 0 ? (
           <Text style={styles.thisWeekEmpty}>{t('manual.thisWeekEmpty')}</Text>
@@ -486,7 +486,7 @@ const styles = StyleSheet.create({
   },
   titleItalic: {
     fontFamily: FONTS.headerItalic, fontStyle: 'italic',
-    color: '#D0216A',  // v9 rust-deep — one italic flourish in the brand spark color
+    color: '#E02F5F',  // v9 rust-deep — one italic flourish in the brand spark color
   },
   subtitle: {
     fontSize: 14, fontFamily: FONTS.body,
@@ -511,7 +511,7 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: 'rgba(61,31,13,0.18)',
   },
-  savedLinkIcon: { fontSize: 12, color: '#D0216A' },
+  savedLinkIcon: { fontSize: 12, color: '#E02F5F' },
   savedLinkText: {
     fontSize: 11, color: COLORS.bark, fontFamily: FONTS.bodySemiBold, letterSpacing: 0.3,
   },
@@ -589,7 +589,7 @@ const styles = StyleSheet.create({
   toggleBtnActive: {
     backgroundColor: '#F2E6DD',                  // parchment fill (kit token)
     borderWidth: 1.5,                            // visible cinnamon outline (hairline was too thin to register)
-    borderColor: '#D0216A',                      // cinnamon
+    borderColor: '#E02F5F',                      // cinnamon
     shadowColor: '#43260F',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.22,

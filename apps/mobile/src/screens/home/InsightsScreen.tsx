@@ -22,7 +22,7 @@ import PlaybookTracker from '@/components/manual/PlaybookTracker';
 
 const C = {
   cream: '#FCF7EF', paper: '#FFFCF6',
-  rose: '#D0216A', roseInk: '#6E1A47', roseTint: '#FDECEF',
+  rose: '#E02F5F', roseInk: '#8A1F3E', roseTint: '#FDECEF',
   honey: '#DA9A2C', honeyCard: '#FBE9BE', honeyInk: '#B98A1E',
   cocoa: '#3D2116', walnut: '#8A6A55', sage: '#7B8A46', muted: '#A6957F',
   hair: 'rgba(61,31,14,0.08)',
@@ -44,7 +44,7 @@ function fmtMin(m: number | null | undefined): string {
   const h = Math.floor(m / 60), mm = Math.round(m % 60);
   return h > 0 ? `${h}h ${mm}m` : `${mm}m`;
 }
-const MOOD_DOT = ['#E0D6BE', '#D0216A', '#F3B9C8', '#FBE0A6', '#C3D19A', '#A7C070'];
+const MOOD_DOT = ['#E0D6BE', '#E02F5F', '#F3B9C8', '#FBE0A6', '#C3D19A', '#A7C070'];
 
 export default function InsightsScreen() {
   const nav = useNavigation<any>();
@@ -112,7 +112,7 @@ export default function InsightsScreen() {
             />
 
             {/* Villie's read — the gradient "Villie moment" */}
-            <LinearGradient colors={['#D0216A', '#F2C75E']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.narrCard}>
+            <LinearGradient colors={['#E02F5F', '#F2C75E']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.narrCard}>
               <View style={styles.narrHead}>
                 <View style={styles.narrBee}><Glyph d={ICON.spark} color={C.honeyInk} size={15} /></View>
                 <Text style={styles.narrEyebrow}>villie's read on your week</Text>

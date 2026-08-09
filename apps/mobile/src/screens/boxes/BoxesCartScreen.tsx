@@ -43,7 +43,7 @@ function lineMeta(line: CartLine): { title: string; sub: string; hero: readonly 
     return {
       title: 'The Full Journey',
       sub: 'All three boxes · 10% off',
-      hero: ['#E27C9D', '#C8814A', '#6E1A47'],
+      hero: ['#E27C9D', '#C8814A', '#8A1F3E'],
       was: b.was,
       now: b.now,
     };

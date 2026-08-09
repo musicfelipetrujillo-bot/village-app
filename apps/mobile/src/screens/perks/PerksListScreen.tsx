@@ -199,9 +199,9 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.paper,
     borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.06)',
   },
-  back: { fontSize: 15, color: '#D0216A', fontFamily: FONTS.bodySemiBold },
+  back: { fontSize: 15, color: '#E02F5F', fontFamily: FONTS.bodySemiBold },
   headerTitle: { fontSize: 16, fontFamily: FONTS.bodySemiBold, color: COLORS.bark },
-  headerLink: { fontSize: 14, color: '#D0216A', fontFamily: FONTS.bodySemiBold },
+  headerLink: { fontSize: 14, color: '#E02F5F', fontFamily: FONTS.bodySemiBold },
 
   // Editorial masthead — see EventsListScreen for rationale. Same accent-bar
   // + uppercase eyebrow + Playfair italic signature so the page matches the

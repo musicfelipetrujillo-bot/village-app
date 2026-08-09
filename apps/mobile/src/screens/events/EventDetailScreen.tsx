@@ -99,7 +99,7 @@ export default function EventDetailScreen() {
   if (loading) {
     return (
       <View style={styles.container}>
-        <ActivityIndicator color="#D0216A" style={{ marginTop: 80 }} />
+        <ActivityIndicator color="#E02F5F" style={{ marginTop: 80 }} />
       </View>
     );
   }
@@ -228,7 +228,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.paper,
     borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.06)',
   },
-  back: { fontSize: 15, color: '#D0216A', fontFamily: FONTS.bodySemiBold },
+  back: { fontSize: 15, color: '#E02F5F', fontFamily: FONTS.bodySemiBold },
 
   content: { padding: 20, paddingBottom: 120 },
   badgeRow: { flexDirection: 'row', gap: 8, alignItems: 'center', marginBottom: 8 },
@@ -287,9 +287,9 @@ const styles = StyleSheet.create({
   // as filled / outline.
   // v9 canonical CTA
   primaryBtn: {
-    backgroundColor: '#D0216A', borderRadius: 999,
+    backgroundColor: '#E02F5F', borderRadius: 999,
     paddingVertical: 15, alignItems: 'center',
-    shadowColor: '#D0216A', shadowOffset: { width: 0, height: 4 },
+    shadowColor: '#E02F5F', shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.24, shadowRadius: 10, elevation: 3,
   },
   primaryBtnText: { color: '#FFFCF6', fontSize: 15, fontFamily: FONTS.bodySemiBold, letterSpacing: 0.3 },
@@ -298,5 +298,5 @@ const styles = StyleSheet.create({
     paddingVertical: 15, alignItems: 'center',
     borderWidth: 1.5, borderColor: COLORS.coco,
   },
-  cancelBtnText: { color: '#D0216A', fontSize: 14, fontFamily: FONTS.bodySemiBold },
+  cancelBtnText: { color: '#E02F5F', fontSize: 14, fontFamily: FONTS.bodySemiBold },
 });
