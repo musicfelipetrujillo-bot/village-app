@@ -19,7 +19,7 @@ import {
   Dimensions, StyleProp, ViewStyle,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import Svg, { Path, Circle, G, Line } from 'react-native-svg';
+import Svg, { Path, Circle, Polygon } from 'react-native-svg';
 import { useNavigation } from '@react-navigation/native';
 import { COLORS, FONTS, PLACEHOLDER_BABY_NAME } from '@utils/constants';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -142,44 +142,31 @@ function HeroHoneycomb({ height = 520 }: { height?: number }) {
   );
 }
 
-// ─── The week ring — 52-week track, gold progress arc, roo at the tip ────
-const RING = { box: 250, cx: 125, cy: 125, r: 104, sw: 13 };
-const RING_C = 2 * Math.PI * RING.r;
+// ─── The week "sun" — a 52-ray sunburst seal. Each ray is one week; lit
+// (scarlet) rays are the weeks lived, the rest a faint scarlet. A cream center
+// disc holds the number. Warm, retro, and the progress IS the ornament. ──────
+const RING = { box: 250, cx: 125, cy: 125 };
 
-// A 52-tick "dial" ring — each tick is one week. Elapsed weeks are solid
-// scarlet, the rest a faint scarlet, and the roo hops the rim at the current
-// week. Reads as a distinctive retro dial, not a plain progress arc.
 function WeekRing({ week, size = 250 }: { week: number; size?: number }) {
   const wk = Math.max(1, Math.min(52, Math.round(week)));
-  const inner = 90, outer = 108; // tick band
-  const ticks = [];
+  const rin = 92, rout = 118, aw = 0.032, disc = 86;
+  const rays = [];
   for (let i = 0; i < 52; i++) {
-    const ang = (-90 + i * (360 / 52)) * (Math.PI / 180);
-    const x1 = RING.cx + inner * Math.cos(ang);
-    const y1 = RING.cy + inner * Math.sin(ang);
-    const x2 = RING.cx + outer * Math.cos(ang);
-    const y2 = RING.cy + outer * Math.sin(ang);
-    const done = i < wk;
-    ticks.push(
-      <Line key={i} x1={x1.toFixed(1)} y1={y1.toFixed(1)} x2={x2.toFixed(1)} y2={y2.toFixed(1)}
-        stroke={done ? '#E14A32' : 'rgba(225,74,50,0.20)'} strokeWidth={done ? 3.4 : 2.4} strokeLinecap="round" />,
+    const a = (-90 + i * (360 / 52)) * (Math.PI / 180);
+    const b1x = RING.cx + rin * Math.cos(a - aw), b1y = RING.cy + rin * Math.sin(a - aw);
+    const b2x = RING.cx + rin * Math.cos(a + aw), b2y = RING.cy + rin * Math.sin(a + aw);
+    const tx = RING.cx + rout * Math.cos(a), ty = RING.cy + rout * Math.sin(a);
+    const on = i < wk;
+    rays.push(
+      <Polygon key={i}
+        points={`${b1x.toFixed(1)},${b1y.toFixed(1)} ${b2x.toFixed(1)},${b2y.toFixed(1)} ${tx.toFixed(1)},${ty.toFixed(1)}`}
+        fill={on ? '#E14A32' : 'rgba(225,74,50,0.22)'} />,
     );
   }
-  // roo sits at the leading (current) week, on the tick band
-  const a = (-90 + (wk - 0.5) * (360 / 52)) * (Math.PI / 180);
-  const rr = (inner + outer) / 2;
-  const mx = RING.cx + rr * Math.cos(a);
-  const my = RING.cy + rr * Math.sin(a);
   return (
     <Svg width={size} height={size} viewBox={`0 0 ${RING.box} ${RING.box}`}>
-      {ticks}
-      <G transform={`translate(${mx.toFixed(1)} ${my.toFixed(1)})`}>
-        <Circle r={18} fill="#FFF7EE" stroke={T.berry} strokeWidth={2.5} />
-        <G transform="translate(-14 -13) scale(0.14)">
-          <Path d={ROO_LEFT} fill={T.cinnamon} />
-          <Path d={ROO_RIGHT} fill={T.cinnamon} />
-        </G>
-      </G>
+      {rays}
+      <Circle cx={RING.cx} cy={RING.cy} r={disc} fill="#FFF3E4" stroke={T.cinnamon} strokeWidth={2.5} />
     </Svg>
   );
 }
@@ -659,7 +646,7 @@ const styles = StyleSheet.create({
     color: '#B06A50', marginBottom: 2,
   },
   ringNumber: {
-    fontFamily: FONTS.v3_display, fontSize: 88, lineHeight: 92, color: '#E14A32',
+    fontFamily: FONTS.v3_display, fontSize: 76, lineHeight: 80, color: '#E14A32',
     letterSpacing: -2, textAlign: 'center',
   },
   ringUnit: {
