@@ -255,23 +255,23 @@ function LogRow({ onFeed, onSleep, onMilk }: { onFeed: () => void; onSleep: () =
   return (
     <View style={styles.logRow}>
       <TouchableOpacity style={styles.logItem} activeOpacity={0.85} onPress={onFeed} accessibilityRole="button" accessibilityLabel={L.feed}>
-        <LinearGradient colors={['#E02F5F', '#B0234F']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.logCircle}>
-          <Glyph d={ICON.bottle} color="#fff" size={26} sw={1.8} />
-        </LinearGradient>
+        <View style={[styles.logCircle, { backgroundColor: '#FBDCE6' }]}>
+          <Glyph d={ICON.bottle} color="#E02F5F" size={26} sw={1.9} />
+        </View>
         <Text style={styles.logLabel}>{L.feed}</Text>
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.logItem} activeOpacity={0.85} onPress={onSleep} accessibilityRole="button" accessibilityLabel={L.sleep}>
-        <LinearGradient colors={['#F2C75E', '#DA9A2C']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.logCircle}>
-          <Glyph d={ICON.moon} color="#fff" size={26} sw={1.8} />
-        </LinearGradient>
+        <View style={[styles.logCircle, { backgroundColor: '#F7DE9E' }]}>
+          <Glyph d={ICON.moon} color="#C88A2C" size={26} sw={1.9} />
+        </View>
         <Text style={styles.logLabel}>{L.sleep}</Text>
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.logItem} activeOpacity={0.85} onPress={onMilk} accessibilityRole="button" accessibilityLabel={lang === 'es' ? 'Registra leche desde una foto' : 'Log milk from a photo'}>
-        <LinearGradient colors={['#F2C75E', '#E02F5F']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.logCircle}>
-          <Glyph d={ICON.camera} color="#fff" size={25} sw={1.8} />
-        </LinearGradient>
+        <View style={[styles.logCircle, { backgroundColor: '#F9CFB6' }]}>
+          <Glyph d={ICON.camera} color="#E27A54" size={25} sw={1.9} />
+        </View>
         <View style={styles.logSnap}><Text style={styles.logSnapText}>{L.snap}</Text></View>
         <Text style={[styles.logLabel, { fontFamily: FONTS.v2_bold }]}>{L.milk}</Text>
       </TouchableOpacity>
@@ -323,29 +323,27 @@ function YourDay({ onWeek, onMilk, onCheckin }: { onWeek: () => void; onMilk: ()
     <View style={{ marginTop: 26 }}>
       <Eyebrow>{lang === 'es' ? 'tu día' : 'your day'}</Eyebrow>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.dayScroll}>
-        <TouchableOpacity activeOpacity={0.9} onPress={onWeek} accessibilityRole="button" accessibilityLabel={lang === 'es' ? 'Tu semana' : 'Your week'}>
-          <LinearGradient colors={['#E02F5F', '#F2C75E']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.dayCard}>
-            <Glyph d={ICON.sparkle} color="#7A3548" size={22} sw={1.8} />
-            <View>
-              <Text style={styles.dayCardTitle}>{lang === 'es' ? 'Tu semana' : 'Your week, so far'}</Text>
-              <Text style={[styles.dayCardSub, { color: '#7A3548' }]}>{lang === 'es' ? 'lo que ve Villie →' : "Villie's read →"}</Text>
-            </View>
-          </LinearGradient>
+        <TouchableOpacity activeOpacity={0.9} onPress={onWeek} accessibilityRole="button" accessibilityLabel={lang === 'es' ? 'Tu semana' : 'Your week'} style={[styles.dayCard, { backgroundColor: '#FBDCE6' }]}>
+          <Glyph d={ICON.sparkle} color="#E02F5F" size={22} sw={1.8} />
+          <View>
+            <Text style={[styles.dayCardTitle, { color: '#B01E4C' }]}>{lang === 'es' ? 'Tu semana' : 'Your week, so far'}</Text>
+            <Text style={[styles.dayCardSub, { color: '#B01E4C' }]}>{lang === 'es' ? 'lo que ve Villie →' : "Villie's read →"}</Text>
+          </View>
         </TouchableOpacity>
 
-        <TouchableOpacity activeOpacity={0.9} onPress={onMilk} accessibilityRole="button" accessibilityLabel={lang === 'es' ? 'Tu reserva de leche' : 'Your milk stash'} style={[styles.dayCard, { backgroundColor: '#FBE9BE' }]}>
-          <Glyph d={ICON.droplet} color="#B98A1E" size={22} sw={1.8} />
+        <TouchableOpacity activeOpacity={0.9} onPress={onMilk} accessibilityRole="button" accessibilityLabel={lang === 'es' ? 'Tu reserva de leche' : 'Your milk stash'} style={[styles.dayCard, { backgroundColor: '#F7DE9E' }]}>
+          <Glyph d={ICON.droplet} color="#C88A2C" size={22} sw={1.8} />
           <View>
             <Text style={[styles.dayCardTitle, { color: T.cocoa }]}>{lang === 'es' ? 'Tu reserva' : 'Milk stash'}</Text>
             <Text style={[styles.dayCardSub, { color: '#8A6A1E' }]}>{lang === 'es' ? 've tu congelador →' : 'see your freezer →'}</Text>
           </View>
         </TouchableOpacity>
 
-        <TouchableOpacity activeOpacity={0.9} onPress={onCheckin} accessibilityRole="button" accessibilityLabel={lang === 'es' ? '¿Cómo estás?' : 'How are you feeling?'} style={[styles.dayCard, { backgroundColor: '#FDECEF' }]}>
-          <Glyph d={ICON.heart} color="#8A1F3E" size={22} sw={1.7} />
+        <TouchableOpacity activeOpacity={0.9} onPress={onCheckin} accessibilityRole="button" accessibilityLabel={lang === 'es' ? '¿Cómo estás?' : 'How are you feeling?'} style={[styles.dayCard, { backgroundColor: '#F8C9CF' }]}>
+          <Glyph d={ICON.heart} color="#B01E4C" size={22} sw={1.7} />
           <View>
-            <Text style={[styles.dayCardTitle, { color: T.cocoa }]}>{lang === 'es' ? '¿Y tú?' : 'And you?'}</Text>
-            <Text style={[styles.dayCardSub, { color: '#8A1F3E' }]}>{lang === 'es' ? '¿cómo estás? →' : 'how are you? →'}</Text>
+            <Text style={[styles.dayCardTitle, { color: '#A02348' }]}>{lang === 'es' ? '¿Y tú?' : 'And you?'}</Text>
+            <Text style={[styles.dayCardSub, { color: '#A02348' }]}>{lang === 'es' ? '¿cómo estás? →' : 'how are you? →'}</Text>
           </View>
         </TouchableOpacity>
       </ScrollView>
@@ -488,10 +486,10 @@ export default function HomeScreenV3() {
   const goMilkVault = () => (navigation.getParent() as any)?.navigate('Milk', { screen: 'MilkVaultDashboard' });
 
   const tiles: Tile[] = [
-    { key: 'milk',    label: 'Milk',    bg: '#F7C5CB', icon: 'droplet',     go: () => navigation.getParent()?.navigate('Milk') },
-    { key: 'experts', label: 'Care',    bg: '#F3B79C', icon: 'stethoscope', go: () => navigation.getParent()?.navigate('Experts') },
-    { key: 'gear',    label: 'Gear',    bg: '#DA9A2C', icon: 'bag',         go: () => navigation.getParent()?.navigate('Gear') },
-    { key: 'plans',   label: 'Plans',   bg: '#EFB2C8', icon: 'calendar',    go: () => navigation.getParent()?.navigate('Village') },
+    { key: 'milk',    label: 'Milk',    bg: '#FBDCE6', icon: 'droplet',     go: () => navigation.getParent()?.navigate('Milk') },
+    { key: 'experts', label: 'Care',    bg: '#F9CFB6', icon: 'stethoscope', go: () => navigation.getParent()?.navigate('Experts') },
+    { key: 'gear',    label: 'Gear',    bg: '#F7DE9E', icon: 'bag',         go: () => navigation.getParent()?.navigate('Gear') },
+    { key: 'plans',   label: 'Plans',   bg: '#F3B7C9', icon: 'calendar',    go: () => navigation.getParent()?.navigate('Village') },
     ...(VILLIE_BOXES_ENABLED
       ? [{ key: 'boxes', label: 'Boxes', bg: '#E8C4B6', icon: 'gift', dot: true, go: () => navigation.navigate('BoxesHub' as never) } as Tile]
       : []),
@@ -693,7 +691,7 @@ const styles = StyleSheet.create({
   logItem: { alignItems: 'center' },
   logCircle: {
     width: 66, height: 66, borderRadius: 33, alignItems: 'center', justifyContent: 'center',
-    shadowColor: T.walnut, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.2, shadowRadius: 12, elevation: 3,
+    shadowColor: T.walnut, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 10, elevation: 2,
   },
   logSnap: {
     position: 'absolute', top: -3, right: 4,

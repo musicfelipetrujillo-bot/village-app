@@ -68,15 +68,15 @@ type Vertical = {
   isNew?: boolean;
 };
 
-// Raspberry-forward bento: two bold brand cards (raspberry + deep berry), gold
-// as the single accent, and a light blush card where the "new" badge needs a
-// pale ground to read against. `ink` carries every text color on the card, so
-// it must contrast its own `bg` (light ink on the bold cards, dark on the rest).
+// Soft Cherry bento: cheery, not harsh. Each card is a SOFT candy tint (not a
+// full-saturation block); the spark lives in the deep-toned title + arrow. `ink`
+// carries every text color on the card and is a deep, readable version of the
+// card's own hue so it pops on the pale ground without glare.
 const VERTICALS: Vertical[] = [
-  { title: 'Milk Hub',     sub: 'Your stash, plus peer milk.',    stat: 'track · share · find', bg: '#F7C5CB', ink: '#8A1F3E', route: 'Milk',    isNew: true },
-  { title: 'Care',         sub: 'Doctors, doulas, lactation — and extra hands.', stat: '12 verified',  bg: '#E02F5F', ink: '#FFF4F8', route: 'Experts' },
-  { title: 'Baby Gear',    sub: 'Hand-me-downs from real moms.',  stat: '37 listed',            bg: '#DA9A2C', ink: '#4A320A', route: 'Gear'    },
-  { title: 'Villie Plans', sub: 'Classes, circles, real coffee.', stat: '5 this week',          bg: '#8A1F3E', ink: '#F7D9E4', route: 'Village' },
+  { title: 'Milk Hub',     sub: 'Your stash, plus peer milk.',    stat: 'track · share · find', bg: '#FBDCE6', ink: '#B01E4C', route: 'Milk',    isNew: true },
+  { title: 'Care',         sub: 'Doctors, doulas, lactation — and extra hands.', stat: '12 verified',  bg: '#F9CFB6', ink: '#A8542A', route: 'Experts' },
+  { title: 'Baby Gear',    sub: 'Hand-me-downs from real moms.',  stat: '37 listed',            bg: '#F7DE9E', ink: '#8A6A1E', route: 'Gear'    },
+  { title: 'Villie Plans', sub: 'Classes, circles, real coffee.', stat: '5 this week',          bg: '#F3B7C9', ink: '#8A1F3E', route: 'Village' },
 ];
 
 // Short weekday + day-of-month for the calendar chip.
