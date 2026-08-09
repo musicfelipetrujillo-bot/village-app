@@ -59,9 +59,9 @@ type ParamList = {
 // ═══════════════════════════════════════════════════════════════════════
 // V9 palette — exact CSS variable values from the v9 mockup.
 // Use these directly for this screen; do NOT route through COLORS.coco/
-// rust since those resolve to brand-v2 cinnamon (#E02F5F), which is a
+// rust since those resolve to brand-v2 cinnamon (#E14A32), which is a
 // different shade than the v9 mockup's --coco (#AD795B) / --rust
-// (#E02F5F). The screen is meant to look exactly like the mockup.
+// (#E14A32). The screen is meant to look exactly like the mockup.
 // ═══════════════════════════════════════════════════════════════════════
 const V9 = {
   paper: '#FFFCF6',
@@ -77,8 +77,8 @@ const V9 = {
   // Kit canon (2026-05-16): old rust/rust-deep retired; cinnamon family is the
   // app's canonical warm action color. Token names kept for grep compatibility
   // across the Manual file (60+ refs in masthead + week hero + tile SVG).
-  rust: '#E02F5F',     // cinnamon (was #E02F5F)
-  rustDeep: '#E02F5F', // action-deep (was #7A4A24)
+  rust: '#E14A32',     // cinnamon (was #E14A32)
+  rustDeep: '#E14A32', // action-deep (was #7A4A24)
   sage: '#E98A6A',
   sageDeep: '#E98A6A',
   coco: '#AD795B',
@@ -135,8 +135,8 @@ export const CHAPTER_THEME_DEFAULT: ChapterTheme = {
 // feed↔nourish, grow↔feel, care↔rest, soothe↔tips.
 export const CHAPTER_THEME: Record<string, ChapterTheme> = {
   // Grow / Feel — rose
-  'baby/grow':  { accent: '#E02F5F', accentDeep: '#E02F5F', bg: '#FAE2E7', yolkBg: '#FAE2E7' },
-  'mom/feel':   { accent: '#E02F5F', accentDeep: '#E02F5F', bg: '#FAE2E7', yolkBg: '#FAE2E7' },
+  'baby/grow':  { accent: '#E14A32', accentDeep: '#E14A32', bg: '#FAE2E7', yolkBg: '#FAE2E7' },
+  'mom/feel':   { accent: '#E14A32', accentDeep: '#E14A32', bg: '#FAE2E7', yolkBg: '#FAE2E7' },
   // Sleep / Heal — terracotta
   'baby/sleep': { accent: '#C46A45', accentDeep: '#C46A45', bg: '#F0D7C3', yolkBg: '#F0D7C3' },
   'mom/heal':   { accent: '#C46A45', accentDeep: '#C46A45', bg: '#F0D7C3', yolkBg: '#F0D7C3' },
@@ -1298,7 +1298,7 @@ const styles = StyleSheet.create({
   },
   clipThumbGlyph: { color: '#fff', fontSize: 9, marginLeft: 1.5 },
   clipProPill: {
-    position: 'absolute', top: 3, left: 3, backgroundColor: '#E02F5F',
+    position: 'absolute', top: 3, left: 3, backgroundColor: '#E14A32',
     borderRadius: 999, paddingHorizontal: 5, paddingVertical: 1,
   },
   clipProPillText: { color: '#FFFCF6', fontSize: 7.5, fontFamily: FONTS.bodyBold, letterSpacing: 0.8, textTransform: 'uppercase' },

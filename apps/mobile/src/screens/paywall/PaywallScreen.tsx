@@ -26,8 +26,8 @@ import {
 const T = {
   cream:  COLORS.genz_cream ?? '#FCF7EF',
   bone:   '#FFFCF6',
-  rose:   '#E02F5F',
-  berry:  '#8A1F3E',
+  rose:   '#E14A32',
+  berry:  '#B03A22',
   honey:  '#DA9A2C',
   blush:  '#F7C5CB',
   clay:   '#DDB58C',

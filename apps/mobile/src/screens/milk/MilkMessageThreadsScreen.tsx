@@ -81,7 +81,7 @@ export default function MilkMessageThreadsScreen({ navigation }: Props) {
       </View>
 
       {loading ? (
-        <View style={styles.center}><ActivityIndicator color="#E02F5F" /></View>
+        <View style={styles.center}><ActivityIndicator color="#E14A32" /></View>
       ) : (
         <FlashList
           data={threads}
@@ -156,7 +156,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.paper,
     borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.06)',
   },
-  back: { fontSize: 15, color: '#E02F5F', fontFamily: FONTS.bodyMedium },
+  back: { fontSize: 15, color: '#E14A32', fontFamily: FONTS.bodyMedium },
   title: { fontSize: 17, fontFamily: FONTS.bodySemiBold, color: '#43260F' },
 
   row: {
@@ -188,7 +188,7 @@ const styles = StyleSheet.create({
   emptyTitle: { fontSize: 22, fontFamily: FONTS.bodySemiBold, color: '#43260F' },
   emptyBody: { fontSize: 14, color: '#7A4A24', textAlign: 'center', lineHeight: 21 },
   browseBtn: {
-    marginTop: 8, backgroundColor: '#E02F5F', borderRadius: 12,
+    marginTop: 8, backgroundColor: '#E14A32', borderRadius: 12,
     paddingVertical: 13, paddingHorizontal: 28,
   },
   browseBtnText: { fontSize: 15, color: '#FFFCF6', fontFamily: FONTS.bodySemiBold },

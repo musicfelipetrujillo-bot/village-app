@@ -85,12 +85,12 @@ export function PrimaryCTA({
 
 const styles = StyleSheet.create({
   base: {
-    backgroundColor: '#8A1F3E',              // action-deep (AA: white label 15px = 6.5:1). Brand rose #E02F5F stays for accents/links/tabs/icons.
+    backgroundColor: '#B03A22',              // action-deep (AA: white label 15px = 6.5:1). Brand rose #E14A32 stays for accents/links/tabs/icons.
     paddingVertical: 12,
     paddingHorizontal: 18,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#8A1F3E',                  // action-deep tonal shadow
+    shadowColor: '#B03A22',                  // action-deep tonal shadow
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.22,                     // dialed from 0.24 — polished, not aggressive
     shadowRadius: 10,

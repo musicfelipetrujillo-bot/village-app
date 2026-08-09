@@ -112,7 +112,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.paper,
     borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.06)',
   },
-  back: { fontSize: 15, color: '#E02F5F', fontFamily: FONTS.bodySemiBold },
+  back: { fontSize: 15, color: '#E14A32', fontFamily: FONTS.bodySemiBold },
   headerTitle: { fontSize: 16, fontFamily: FONTS.bodySemiBold, color: COLORS.bark },
 
   // Honeycomb masthead (mirrors EventsList "plansMasthead").
@@ -139,9 +139,9 @@ const styles = StyleSheet.create({
   },
 
   empty: { alignItems: 'center', paddingTop: 72, paddingHorizontal: 32 },
-  emptyEmoji: { fontSize: 52, color: '#E02F5F', marginBottom: 12 },
+  emptyEmoji: { fontSize: 52, color: '#E14A32', marginBottom: 12 },
   emptyTitle: { fontSize: 20, fontFamily: FONTS.v3_display, color: COLORS.bark, marginBottom: 8, textAlign: 'center' },
   emptyBody: { fontSize: 14, lineHeight: 21, color: COLORS.v2_walnut, textAlign: 'center', marginBottom: 24 },
-  emptyCta: { backgroundColor: '#E02F5F', borderRadius: 14, paddingHorizontal: 24, paddingVertical: 14 },
+  emptyCta: { backgroundColor: '#E14A32', borderRadius: 14, paddingHorizontal: 24, paddingVertical: 14 },
   emptyCtaText: { fontSize: 15, fontFamily: FONTS.bodySemiBold, color: COLORS.v2_card },
 });

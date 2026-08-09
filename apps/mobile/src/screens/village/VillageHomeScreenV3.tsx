@@ -31,8 +31,8 @@ const T = {
   parchment: COLORS.v2_parchment,
   cocoa:     COLORS.v2_cocoa,
   walnut:    COLORS.v2_walnut,
-  rose:      '#E02F5F',
-  roseInk:   '#8A1F3E',
+  rose:      '#E14A32',
+  roseInk:   '#B03A22',
   honey:     '#DA9A2C',
   rule:      'rgba(61,31,14,0.13)',
 };
@@ -73,10 +73,10 @@ type Vertical = {
 // carries every text color on the card and is a deep, readable version of the
 // card's own hue so it pops on the pale ground without glare.
 const VERTICALS: Vertical[] = [
-  { title: 'Milk Hub',     sub: 'Your stash, plus peer milk.',    stat: 'track · share · find', bg: '#FBDCE6', ink: '#B01E4C', route: 'Milk',    isNew: true },
-  { title: 'Care',         sub: 'Doctors, doulas, lactation — and extra hands.', stat: '12 verified',  bg: '#F9CFB6', ink: '#A8542A', route: 'Experts' },
-  { title: 'Baby Gear',    sub: 'Hand-me-downs from real moms.',  stat: '37 listed',            bg: '#F7DE9E', ink: '#8A6A1E', route: 'Gear'    },
-  { title: 'Villie Plans', sub: 'Classes, circles, real coffee.', stat: '5 this week',          bg: '#F3B7C9', ink: '#8A1F3E', route: 'Village' },
+  { title: 'Milk Hub',     sub: 'Your stash, plus peer milk.',    stat: 'track · share · find', bg: '#F7CFC6', ink: '#C63A24', route: 'Milk',    isNew: true },
+  { title: 'Care',         sub: 'Doctors, doulas, lactation — and extra hands.', stat: '12 verified',  bg: '#F4CBA8', ink: '#B85A2E', route: 'Experts' },
+  { title: 'Baby Gear',    sub: 'Hand-me-downs from real moms.',  stat: '37 listed',            bg: '#EFD79A', ink: '#8A6A1E', route: 'Gear'    },
+  { title: 'Villie Plans', sub: 'Classes, circles, real coffee.', stat: '5 this week',          bg: '#F6C2B8', ink: '#A83420', route: 'Village' },
 ];
 
 // Short weekday + day-of-month for the calendar chip.
@@ -314,7 +314,7 @@ const styles = StyleSheet.create({
     color: T.cocoa, letterSpacing: -1.76, marginTop: 14,
   },
   headlineItalic: {
-    fontFamily: FONTS.v3_display_italic, color: '#E02F5F',
+    fontFamily: FONTS.v3_display_italic, color: '#E14A32',
     fontSize: 54, lineHeight: 52,
   },
   locMono: {

@@ -1088,7 +1088,7 @@ const s = StyleSheet.create({
     fontStyle: 'italic',
     fontSize: 24,
     lineHeight: 30,
-    color: '#E02F5F',
+    color: '#E14A32',
   },
   email: {
     fontFamily: FONTS.body,
@@ -1156,7 +1156,7 @@ const s = StyleSheet.create({
   completionCta: {
     fontFamily: FONTS.bodySemiBold,
     fontSize: 12,
-    color: '#E02F5F',
+    color: '#E14A32',
   },
   progressTrack: {
     height: 6,
@@ -1307,7 +1307,7 @@ const s = StyleSheet.create({
   babySetupBtn: {
     marginTop: 12,
     alignSelf: 'flex-start',
-    backgroundColor: '#8A1F3E',
+    backgroundColor: '#B03A22',
     paddingHorizontal: 18,
     paddingVertical: 10,
     borderRadius: 22,

@@ -22,10 +22,10 @@ const INKSOFT = '#7A5A3A';
 const LABEL = '#A8794A';
 const CREAM = '#FFFCF6';
 const HAIR = 'rgba(67,38,15,0.07)';
-const ACCENT = '#8A1F3E'; // repointed cinnamon->rose 2026-07-12 to match the app
+const ACCENT = '#B03A22'; // repointed cinnamon->rose 2026-07-12 to match the app
 const HONEY = '#B98A1E';
-const ROSE = '#E02F5F';
-const BERRY = '#8A1F3E';
+const ROSE = '#E14A32';
+const BERRY = '#B03A22';
 
 type Lang = 'en' | 'es';
 
@@ -198,8 +198,8 @@ function InfographicModule({ data, lang }: { data: Info; lang: Lang }) {
               <Svg width={W} height={H}>
                 <Defs>
                   <SvgGrad id="wwArea" x1="0" y1="0" x2="0" y2="1">
-                    <Stop offset="0" stopColor="#E02F5F" stopOpacity={0.32} />
-                    <Stop offset="1" stopColor="#E02F5F" stopOpacity={0.02} />
+                    <Stop offset="0" stopColor="#E14A32" stopOpacity={0.32} />
+                    <Stop offset="1" stopColor="#E14A32" stopOpacity={0.02} />
                   </SvgGrad>
                 </Defs>
                 <Path d={area} fill="url(#wwArea)" />
@@ -442,7 +442,7 @@ const s = StyleSheet.create({
   avRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 12 },
   avInput: { flex: 1, backgroundColor: 'rgba(255,255,255,0.12)', borderRadius: 12, paddingHorizontal: 13, paddingVertical: 11 },
   avInputText: { fontFamily: FONTS.body, fontSize: 12.5, color: '#E9D9C8' },
-  avSend: { width: 40, height: 40, borderRadius: 12, backgroundColor: '#E02F5F', alignItems: 'center', justifyContent: 'center' },
+  avSend: { width: 40, height: 40, borderRadius: 12, backgroundColor: '#E14A32', alignItems: 'center', justifyContent: 'center' },
   avArrow: { color: '#fff', fontSize: 20, fontFamily: FONTS.bodySemiBold, marginTop: -2 },
   avSub: { fontFamily: FONTS.body, fontSize: 10, color: '#C9B79F', marginTop: 9 },
 

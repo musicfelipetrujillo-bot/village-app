@@ -207,7 +207,7 @@ const styles = StyleSheet.create({
   },
   nameLast: {
     fontFamily: FONTS.headerItalic,
-    color: '#E02F5F',                 // v9 italic accent = cinnamon (one per card)
+    color: '#E14A32',                 // v9 italic accent = cinnamon (one per card)
   },
   location: {
     fontSize: 12,
@@ -217,7 +217,7 @@ const styles = StyleSheet.create({
   },
   heartHit: { paddingLeft: 6, alignSelf: 'flex-start' },
   heart: { fontSize: 22, color: '#C5B8AE' },
-  heartSaved: { color: '#E02F5F' },   // v9 saved = cinnamon (action state)
+  heartSaved: { color: '#E14A32' },   // v9 saved = cinnamon (action state)
 
   metaRow: {
     flexDirection: 'row',

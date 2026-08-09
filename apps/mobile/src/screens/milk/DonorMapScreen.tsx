@@ -119,7 +119,7 @@ export default function DonorMapScreen({ navigation }: Props) {
       {/* Loading overlay */}
       {loading && (
         <View style={styles.loadingOverlay}>
-          <ActivityIndicator color="#E02F5F" size="large" />
+          <ActivityIndicator color="#E14A32" size="large" />
         </View>
       )}
 
@@ -158,7 +158,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFCF6', zIndex: 10,
     borderBottomWidth: 1, borderBottomColor: '#E8E0D5',
   },
-  backText: { fontSize: 15, color: '#E02F5F', fontFamily: FONTS.bodySemiBold },
+  backText: { fontSize: 15, color: '#E14A32', fontFamily: FONTS.bodySemiBold },
   headerTitle: { fontSize: 17, fontFamily: FONTS.bodySemiBold, color: '#43260F' },
   donorCount: { fontSize: 13, color: '#7A4A24', fontFamily: FONTS.bodySemiBold },
   map: { flex: 1 },

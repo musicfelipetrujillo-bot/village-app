@@ -151,8 +151,8 @@ export default function DonorProfileScreen({ route, navigation }: Props) {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <BackButton color="#E02F5F" style={styles.backBtnAbsolute} accessibilityLabel={t('donorProfile.back')} />
-        <ActivityIndicator color="#E02F5F" size="large" />
+        <BackButton color="#E14A32" style={styles.backBtnAbsolute} accessibilityLabel={t('donorProfile.back')} />
+        <ActivityIndicator color="#E14A32" size="large" />
       </View>
     );
   }
@@ -161,7 +161,7 @@ export default function DonorProfileScreen({ route, navigation }: Props) {
     return (
       <View style={styles.loadingContainer}>
         <Text style={styles.errorText}>{t('donorProfile.notFound')}</Text>
-        <BackButton color="#E02F5F" accessibilityLabel={t('donorProfile.goBack')} />
+        <BackButton color="#E14A32" accessibilityLabel={t('donorProfile.goBack')} />
       </View>
     );
   }
@@ -185,7 +185,7 @@ export default function DonorProfileScreen({ route, navigation }: Props) {
       >
         {/* ── Hero ── */}
         <View style={styles.hero}>
-          <BackButton color="#E02F5F" style={styles.backBtn} accessibilityLabel={t('donorProfile.back')} />
+          <BackButton color="#E14A32" style={styles.backBtn} accessibilityLabel={t('donorProfile.back')} />
 
           <View style={styles.heroContent}>
             {profile.avatar_url ? (
@@ -457,7 +457,7 @@ export default function DonorProfileScreen({ route, navigation }: Props) {
               textAlignVertical="top"
             />
 
-            {qaLoading && <ActivityIndicator color="#E02F5F" style={{ marginVertical: 12 }} />}
+            {qaLoading && <ActivityIndicator color="#E14A32" style={{ marginVertical: 12 }} />}
 
             {qaAnswer && (
               <View style={styles.qaAnswer}>
@@ -498,7 +498,7 @@ const styles = StyleSheet.create({
   hero: { backgroundColor: COLORS.paper, paddingBottom: 20 },
   backBtn: { paddingTop: 56, paddingHorizontal: 16, paddingBottom: 12 },
   backBtnAbsolute: { position: 'absolute', top: 56, left: 16 },
-  backText: { fontSize: 15, color: '#E02F5F', fontFamily: FONTS.bodySemiBold },
+  backText: { fontSize: 15, color: '#E14A32', fontFamily: FONTS.bodySemiBold },
   heroContent: { flexDirection: 'row', paddingHorizontal: 20, gap: 16, alignItems: 'flex-start' },
   avatar: { width: 76, height: 76, borderRadius: 38 },
   avatarPlaceholder: {
@@ -609,7 +609,7 @@ const styles = StyleSheet.create({
 
   // Error
   errorText: { fontSize: 16, color: '#7A4A24', marginBottom: 16, fontFamily: FONTS.body },
-  backLink: { fontSize: 15, color: '#E02F5F', fontFamily: FONTS.bodySemiBold },
+  backLink: { fontSize: 15, color: '#E14A32', fontFamily: FONTS.bodySemiBold },
 
   // Action bar
   actionBar: {
@@ -625,7 +625,7 @@ const styles = StyleSheet.create({
     flex: 1, borderWidth: 1.5, borderColor: COLORS.coco,
     borderRadius: 999, paddingVertical: 14, alignItems: 'center',
   },
-  messageBtnText: { fontSize: 15, color: '#E02F5F', fontFamily: FONTS.bodySemiBold },
+  messageBtnText: { fontSize: 15, color: '#E14A32', fontFamily: FONTS.bodySemiBold },
   // Solo variant — cash-only MVP renders ONLY the message button (no
   // Stripe-bound Purchase next to it), so the message button takes the full
   // bar width as the primary CTA. Filled cinnamon to match the primary CTA
@@ -672,7 +672,7 @@ const styles = StyleSheet.create({
     borderRadius: 12, paddingVertical: 13, alignItems: 'center',
   },
   modalCloseText: { fontSize: 14, color: '#7A4A24', fontFamily: FONTS.bodySemiBold },
-  modalAsk: { flex: 2, backgroundColor: '#E02F5F', borderRadius: 12, paddingVertical: 13, alignItems: 'center' },
+  modalAsk: { flex: 2, backgroundColor: '#E14A32', borderRadius: 12, paddingVertical: 13, alignItems: 'center' },
   modalAskText: { fontSize: 14, color: '#FFFCF6', fontFamily: FONTS.bodySemiBold },
   disabled: { opacity: 0.4 },
 });

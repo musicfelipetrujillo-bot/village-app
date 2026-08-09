@@ -16,7 +16,7 @@ import { useUserStore } from '@store/user';
 import { BEFORE_BABY, BEFORE_BABY_TOTAL, beforeBabyHtml } from '@/manual/beforeBaby';
 
 const STORE_KEY = 'village.beforeBaby.checked.v1';
-const GRAD: [string, string] = ['#E02F5F', '#F2C75E'];
+const GRAD: [string, string] = ['#E14A32', '#F2C75E'];
 
 function weeksAlong(dueDate: string | null): number | null {
   if (!dueDate) return null;

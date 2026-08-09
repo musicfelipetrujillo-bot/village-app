@@ -400,7 +400,7 @@ export default function AIHelpChatScreen() {
 
       {sending && (
         <View style={styles.typingRow}>
-          <ActivityIndicator color="#E02F5F" size="small" />
+          <ActivityIndicator color="#E14A32" size="small" />
           <Text style={styles.typingText}>{t('help.typing')}</Text>
         </View>
       )}
@@ -439,7 +439,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1, borderBottomColor: 'rgba(122,74,40,0.08)',
   },
   headerSide: { width: 44, height: 40, alignItems: 'center', justifyContent: 'center' },
-  headerClose: { fontSize: 32, color: '#8A1F3E', marginTop: -6, fontFamily: FONTS.body },
+  headerClose: { fontSize: 32, color: '#B03A22', marginTop: -6, fontFamily: FONTS.body },
   headerTitleWrap: { flex: 1, alignItems: 'center' },
   headerTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   headerBee: { width: 20, height: 20 },
@@ -452,7 +452,7 @@ const styles = StyleSheet.create({
   bubbleRowMine: { justifyContent: 'flex-end' },
   bubbleRowTheirs: { justifyContent: 'flex-start' },
   bubble: { maxWidth: '82%', paddingHorizontal: 14, paddingVertical: 10, borderRadius: 18 },
-  bubbleMine: { backgroundColor: '#E02F5F', borderBottomRightRadius: 4 },
+  bubbleMine: { backgroundColor: '#E14A32', borderBottomRightRadius: 4 },
   bubbleTheirs: { backgroundColor: '#FFFDFA', borderBottomLeftRadius: 4, borderWidth: 1, borderColor: 'rgba(122,74,40,0.08)' },
   bubbleText: { fontSize: 15, color: '#3D2116', lineHeight: 21, fontFamily: FONTS.body },
 
@@ -465,12 +465,12 @@ const styles = StyleSheet.create({
     borderWidth: 1.5, borderColor: 'rgba(224,106,136,0.45)',
     shadowColor: '#B4785A', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 1,
   },
-  qrText: { fontSize: 14, color: '#8A1F3E', fontFamily: FONTS.bodySemiBold, letterSpacing: 0.1 },
+  qrText: { fontSize: 14, color: '#B03A22', fontFamily: FONTS.bodySemiBold, letterSpacing: 0.1 },
 
   // Deep-link CTA pill — filled (vs the outlined send-a-reply pills) so it
   // reads as "this takes you somewhere", not "this answers the question".
   ctaPill: {
-    backgroundColor: '#8A1F3E', borderRadius: 18, paddingHorizontal: 16, paddingVertical: 10,
+    backgroundColor: '#B03A22', borderRadius: 18, paddingHorizontal: 16, paddingVertical: 10,
     shadowColor: '#B4785A', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.10, shadowRadius: 6, elevation: 2,
   },
   ctaText: { fontSize: 14, color: '#FFFCF6', fontFamily: FONTS.bodySemiBold, letterSpacing: 0.1 },
@@ -497,7 +497,7 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: 'rgba(224,106,136,0.16)',
     shadowColor: '#B4785A', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.06, shadowRadius: 8, elevation: 1,
   },
-  suggestArrow: { fontSize: 17, color: '#E02F5F', fontFamily: FONTS.bodySemiBold, marginTop: -1 },
+  suggestArrow: { fontSize: 17, color: '#E14A32', fontFamily: FONTS.bodySemiBold, marginTop: -1 },
   suggestText: { flex: 1, fontSize: 14, color: '#5A4030', fontFamily: FONTS.bodyMedium, lineHeight: 19 },
 
   typingRow: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 20, paddingBottom: 6 },
@@ -517,7 +517,7 @@ const styles = StyleSheet.create({
   },
   sendBtn: {
     width: 44, height: 44, borderRadius: 22,
-    backgroundColor: '#E02F5F', alignItems: 'center', justifyContent: 'center',
+    backgroundColor: '#E14A32', alignItems: 'center', justifyContent: 'center',
   },
   sendBtnDisabled: { opacity: 0.4 },
   sendBtnText: { color: '#FFFCF6', fontSize: 22, fontFamily: FONTS.bodySemiBold },

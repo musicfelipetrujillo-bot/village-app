@@ -73,13 +73,13 @@ export default function CheckinResponseScreen({ navigation }: Props) {
     <View style={styles.container}>
       <WarmGlowBackdrop />
       <View style={styles.header}>
-        <BackButton color="#E02F5F" onPress={() => navigation.popToTop()} accessibilityLabel={t('checkin.responseBackA11y')} />
+        <BackButton color="#E14A32" onPress={() => navigation.popToTop()} accessibilityLabel={t('checkin.responseBackA11y')} />
         <Text style={styles.title}>{t('checkin.headerTitle')}</Text>
         <View style={{ width: 60 }} />
       </View>
 
       {loading ? (
-        <View style={styles.center}><ActivityIndicator color="#E02F5F" /></View>
+        <View style={styles.center}><ActivityIndicator color="#E14A32" /></View>
       ) : !row ? (
         <View style={styles.center}>
           <Text style={styles.errorText}>{t('checkin.responseErrorLoad')}</Text>
@@ -167,7 +167,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.paper,
     borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.06)',
   },
-  back: { fontSize: 15, color: '#E02F5F', fontFamily: FONTS.bodySemiBold },
+  back: { fontSize: 15, color: '#E14A32', fontFamily: FONTS.bodySemiBold },
   title: { fontSize: 17, fontFamily: FONTS.bodySemiBold, color: COLORS.bark },
 
   content: { padding: 20, paddingBottom: 60 },
@@ -194,7 +194,7 @@ const styles = StyleSheet.create({
   resourceName: { fontSize: 14, fontFamily: FONTS.bodySemiBold, color: COLORS.bark },
   resourceDesc: { fontSize: 12, color: COLORS.barkSoft, marginTop: 2 },
   resourceBtn: {
-    backgroundColor: '#E02F5F', borderRadius: 10,
+    backgroundColor: '#E14A32', borderRadius: 10,
     paddingHorizontal: 14, paddingVertical: 8,
   },
   resourceBtnAlt: { backgroundColor: COLORS.sage },

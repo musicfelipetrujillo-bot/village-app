@@ -24,7 +24,7 @@ import { getPumpCadence, buildDayPlan, fmtTime, type PlanSlot } from '@utils/day
 
 const VILLIE_BEE = require('../../../assets/brand/villie-bee.png');
 
-const ROSE = '#E02F5F', ROSE_DEEP = '#8A1F3E', HONEY = '#B98A1E';
+const ROSE = '#E14A32', ROSE_DEEP = '#B03A22', HONEY = '#B98A1E';
 const INK = '#43260F', INKSOFT = '#7A5A3A', MUTED = '#A6957F';
 
 const SLOT_TONE: Record<PlanSlot['kind'], { bg: string; border: string; time: string }> = {
