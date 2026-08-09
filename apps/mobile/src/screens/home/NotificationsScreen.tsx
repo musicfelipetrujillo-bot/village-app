@@ -55,7 +55,9 @@ export default function NotificationsScreen() {
     try {
       setError(null);
       const rows = await homeApi.listMyNotifications(50);
-      setItems(rows);
+      // Bell = true notifications only. Daily check-in nudges ("How are you
+      // today?") are a Home prompt, not an inbox item — keep them out of here.
+      setItems(rows.filter((r) => r.type !== 'daily_checkin'));
     } catch (err: any) {
       setError(err?.message ?? 'Could not load notifications.');
     }

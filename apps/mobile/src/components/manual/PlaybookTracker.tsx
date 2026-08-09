@@ -80,8 +80,9 @@ function loggedLabel(counts: { sleep: number; feed: number; diaper: number }, es
 
 type Pane = 'sleep' | 'feed' | 'diaper' | null;
 
-export default function PlaybookTracker({ babyProfileId, babyName, week, lang }: {
+export default function PlaybookTracker({ babyProfileId, babyName, week, lang, initialPane, onNeedBaby }: {
   babyProfileId: string | null; babyName: string; week: number; lang: 'en' | 'es';
+  initialPane?: Pane; onNeedBaby?: () => void;
 }) {
   const es = lang === 'es';
   const store = useTrackerStore();
@@ -97,7 +98,7 @@ export default function PlaybookTracker({ babyProfileId, babyName, week, lang }:
   }, [activeSleep, activeFeed]);
   const nowMs = Date.now();
 
-  const [open, setOpen] = useState<Pane>(null);
+  const [open, setOpen] = useState<Pane>(initialPane ?? null);
   const [ozDraft, setOzDraft] = useState(3);
   const [note, setNote] = useState('');
   const [parsing, setParsing] = useState(false);
@@ -105,11 +106,13 @@ export default function PlaybookTracker({ babyProfileId, babyName, week, lang }:
 
   const wakeMin = wakeWindowMinutes(week);
 
-  const onStartSleep = async () => { select(); setOpen(null); await store.startSleep(); await scheduleWakeAlarm(wakeMin * 60, babyName); };
+  // No baby profile yet → every log is a silent no-op in the store. Instead of
+  // dead buttons, send the user to set up their baby first.
+  const onStartSleep = async () => { if (!babyProfileId) return onNeedBaby?.(); select(); setOpen(null); await store.startSleep(); await scheduleWakeAlarm(wakeMin * 60, babyName); };
   const onStopSleep = async () => { tap(); await cancelWakeAlarm(); await store.stopSleep(); };
-  const onStartFeed = (method: 'breast' | 'bottle', side: 'left' | 'right' | null) => { select(); setOzDraft(3); setOpen(null); store.startFeed(method, side); };
+  const onStartFeed = (method: 'breast' | 'bottle', side: 'left' | 'right' | null) => { if (!babyProfileId) return onNeedBaby?.(); select(); setOzDraft(3); setOpen(null); store.startFeed(method, side); };
   const onStopFeed = () => { tap(); store.stopFeed(activeFeed?.method === 'bottle' ? ozDraft : null); };
-  const onDiaper = (kind: 'wet' | 'dirty' | 'both') => { tap(); store.logDiaper(kind); };
+  const onDiaper = (kind: 'wet' | 'dirty' | 'both') => { if (!babyProfileId) return onNeedBaby?.(); tap(); store.logDiaper(kind); };
   const onSaveNote = async () => {
     if (!note.trim() || parsing) return;
     tap();

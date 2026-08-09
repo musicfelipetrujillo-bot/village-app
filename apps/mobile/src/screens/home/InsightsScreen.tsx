@@ -10,7 +10,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useNavigation, useFocusEffect, useRoute } from '@react-navigation/native';
 import { babyTrackerApi, type RecentStats } from '@api/babyTracker';
 import { homeApi } from '@api/home';
 import { useHomeStore } from '@store/home';
@@ -48,6 +48,7 @@ const MOOD_DOT = ['#E0D6BE', '#E14A32', '#F3B9C8', '#FBE0A6', '#C3D19A', '#A7C07
 
 export default function InsightsScreen() {
   const nav = useNavigation<any>();
+  const route = useRoute<any>();
   const babyProfile = useHomeStore((s) => s.babyProfile);
   const milestone = useHomeStore((s) => s.currentMilestone);
   const vault = useMilkVaultStore((s) => s.core);
@@ -109,6 +110,8 @@ export default function InsightsScreen() {
               babyName={babyProfile?.baby_name ?? 'baby'}
               week={week ?? 1}
               lang={lang}
+              initialPane={route.params?.pane}
+              onNeedBaby={() => nav.navigate('BabyProfileSetup')}
             />
 
             {/* Villie's read — the gradient "Villie moment" */}

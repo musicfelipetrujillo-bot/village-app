@@ -532,8 +532,8 @@ export default function HomeScreenV3() {
           <View style={styles.grabber} />
 
           <LogRow
-            onFeed={() => navigation.navigate('Insights' as never)}
-            onSleep={() => navigation.navigate('Insights' as never)}
+            onFeed={() => navigation.navigate('Insights' as never, { pane: 'feed' } as never)}
+            onSleep={() => navigation.navigate('Insights' as never, { pane: 'sleep' } as never)}
             onMilk={scanMilk}
           />
 
