@@ -517,7 +517,7 @@ export default function HomeScreenV3() {
             <Text style={styles.discHead}>{lang === 'es' ? 'Descubre' : 'Discover'}</Text>
             <DiscoverRow
               showBoxes={VILLIE_BOXES_ENABLED}
-              picksImage={picks[0]?.image_url ?? null}
+              picksImage={(picks.find((p) => p.category !== 'book') ?? picks[0])?.image_url ?? null}
               onBoxes={() => navigation.navigate('BoxesHub' as never)}
               onPicks={() => navigation.navigate('PerksList' as never)}
             />

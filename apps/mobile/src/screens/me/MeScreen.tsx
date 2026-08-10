@@ -42,7 +42,20 @@ import {
 } from '@utils/constants';
 import type { MeStackParamList } from '@/navigation/MeNavigator';
 import { useT } from '@/i18n';
-import { V3Card } from '@components/shared/V3Card';
+
+// Calm palette — pink-primary. Mirrors the Mama's-corner (MomHubScreen)
+// vocabulary: quiet bordered list groups, one warm rose accent, muted ink.
+const ROSE = '#C24A63';        // warm accent — name, active chips, primary CTA
+const ROSE_DEEP = '#9E2F4C';   // destructive / delete
+const INK = '#43260F';         // primary text
+const INKSOFT = '#7A5A3A';     // sub-text
+const MUTED = '#A6957F';       // faint metadata
+const LABEL = '#B06A80';       // muted-rose section labels
+const CHEVRON = '#C99AA8';     // dusty-rose chevrons
+const ICON_BG = '#F7E7EC';     // blush icon square
+const CARD_BG = COLORS.v2_paper;
+const GROUP_BORDER = 'rgba(122,74,40,0.14)';
+const ROW_DIVIDER = 'rgba(122,74,40,0.12)';
 
 const _BEE_N = 60;
 const _BEE_INPUT = Array.from({ length: _BEE_N + 1 }, (_, i) => i / _BEE_N);
@@ -413,57 +426,22 @@ export default function MeScreen() {
 
   return (
     <View style={s.safe}>
-      {/* v9 page wash — paper-white middle, warm pink wash top + bottom.
-          Plain View (not SafeAreaView) so the header card can bleed to
-          the very top edge of the screen — header.paddingTop: 56
-          reserves space for the status bar. */}
+      {/* Calm page wash — paper-white middle, faint warm blush top + bottom. */}
       <LinearGradient
         colors={PAGE_BG_COLORS as unknown as readonly [string, string, ...string[]]}
         locations={PAGE_BG_LOCATIONS as unknown as readonly [number, number, ...number[]]}
         style={StyleSheet.absoluteFill}
         pointerEvents="none"
       />
-      <ScrollView contentContainerStyle={s.container}>
-        {/* Profile header — soft full-bleed pastel cover card. Pale
-            golden-rose wash keeps the identity dialled back; bark text +
-            coco italic name + hairline rule carry HomeScreen's vibe. */}
-        <View style={[s.header, { paddingTop: insets.top + 10 }]}>
-          <LinearGradient
-            colors={['#FCF6EF', '#F8EDE0', '#F2DDD0']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={StyleSheet.absoluteFill}
-            pointerEvents="none"
-          />
-          {/* iOS-26 wet-glass top sheen — matches Home + Manual */}
-          <LinearGradient
-            colors={['rgba(255,255,255,0.55)', 'rgba(255,255,255,0)']}
-            start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }}
-            style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 18 }}
-            pointerEvents="none"
-          />
-          <View
-            pointerEvents="none"
-            style={{
-              position: 'absolute', top: 0, left: 0, right: 0,
-              height: StyleSheet.hairlineWidth,
-              backgroundColor: 'rgba(255,255,255,0.7)',
-            }}
-          />
+      <ScrollView contentContainerStyle={s.container} showsVerticalScrollIndicator={false}>
+        {/* Profile header — quiet paper block: avatar + name + stage + actions.
+            No loud gradient / sheen; the one warm accent is the rose name. */}
+        <View style={[s.header, { paddingTop: insets.top + 18 }]}>
           {/* Villie bee brand mark */}
           <Animated.Image source={VILLIE_BEE} resizeMode="contain"
             accessible={false}
             style={[s.headerBee, { transform: [{ translateX: beeTranslateX }, { translateY: beeTranslateY }, { rotate: '12deg' }] }]} />
 
-          {/* Eyebrow: stage label */}
-          {stageLabel ? (
-            <View style={s.eyebrowRow}>
-              <View style={s.eyebrowBar} />
-              <Text style={s.eyebrow}>{stageLabel.toUpperCase()}</Text>
-            </View>
-          ) : null}
-
-          {/* Avatar + name + controls row */}
           <View style={s.headerMainRow}>
             {profile?.avatar_url ? (
               <Image source={{ uri: profile.avatar_url }} style={s.avatarImg} />
@@ -477,30 +455,35 @@ export default function MeScreen() {
               {email && email !== '—' ? (
                 <Text style={s.email} numberOfLines={1}>{email}</Text>
               ) : null}
-            </View>
-            <View style={s.headerControls}>
-              {profile ? (
-                <TouchableOpacity
-                  onPress={() => handleLanguageChange(lang === 'en' ? 'es' : 'en')}
-                  style={s.langPill}
-                  accessibilityRole="button"
-                  accessibilityLabel={lang === 'en' ? t('me.langSwitchToEs') : t('me.langSwitchToEn')}
-                  accessibilityHint={lang === 'en' ? t('me.langPillHintEn') : t('me.langPillHintEs')}
-                >
-                  <Text style={s.langPillText}>🌐 {lang === 'en' ? 'EN' : 'ES'}</Text>
-                </TouchableOpacity>
+              {stageLabel ? (
+                <View style={s.stagePill}>
+                  <Text style={s.stagePillText}>{stageLabel}</Text>
+                </View>
               ) : null}
-              <TouchableOpacity
-                onPress={goEditProfile}
-                style={s.editBtn}
-                accessibilityRole="button"
-                accessibilityLabel={t('me.editA11y')}
-              >
-                <Text style={s.editBtnText}>{t('me.edit')}</Text>
-              </TouchableOpacity>
             </View>
           </View>
-          <View style={s.headerRule} />
+
+          <View style={s.headerActions}>
+            {profile ? (
+              <TouchableOpacity
+                onPress={() => handleLanguageChange(lang === 'en' ? 'es' : 'en')}
+                style={s.langPill}
+                accessibilityRole="button"
+                accessibilityLabel={lang === 'en' ? t('me.langSwitchToEs') : t('me.langSwitchToEn')}
+                accessibilityHint={lang === 'en' ? t('me.langPillHintEn') : t('me.langPillHintEs')}
+              >
+                <Text style={s.langPillText}>🌐 {lang === 'en' ? 'EN' : 'ES'}</Text>
+              </TouchableOpacity>
+            ) : null}
+            <TouchableOpacity
+              onPress={goEditProfile}
+              style={s.editBtn}
+              accessibilityRole="button"
+              accessibilityLabel={t('me.editA11y')}
+            >
+              <Text style={s.editBtnText}>{t('me.edit')}</Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Profile completion — hidden at 100% and on cold launch (null) */}
@@ -532,8 +515,9 @@ export default function MeScreen() {
           );
         })() : null}
 
-        {/* Baby card — tap to open BabyProfileSetup (lives in the Home tab's stack). */}
-        <Section title={t('me.yourBaby')}>
+        {/* Your baby — tap to open BabyProfileSetup (lives in the Home tab's stack). */}
+        <GroupLabel>{t('me.yourBaby')}</GroupLabel>
+        <Group>
           {babyProfile ? (
             <TouchableOpacity
               style={s.babyRow}
@@ -556,7 +540,7 @@ export default function MeScreen() {
                   })}
                 </Text>
               </View>
-              <Text style={s.babyChevron}>›</Text>
+              <Text style={s.chevron}>›</Text>
             </TouchableOpacity>
           ) : (
             <TouchableOpacity
@@ -569,56 +553,42 @@ export default function MeScreen() {
               <Text style={s.emptyText}>
                 {t('me.yourBabyEmpty')}
               </Text>
-              <Text style={s.emptyHint}>
-                {t('me.yourBabyEmptyHint')}
-              </Text>
               <View style={s.babySetupBtn}>
                 <Text style={s.babySetupBtnTxt}>{t('me.setUpBabyCta')}</Text>
               </View>
             </TouchableOpacity>
           )}
-        </Section>
+        </Group>
 
-        {/* My stuff — cross-tab deep-links + Saved dashboard. Saved dash
-            sits at the top because it's the unified hub for all four
-            saved-content types (videos / specialists / donors / gear). */}
-        <Section title={t('me.myStuff')}>
-          <TouchableOpacity
-            style={s.row}
+        {/* Your stuff — Saved dashboard + cross-tab deep-links. */}
+        <GroupLabel>{t('me.myStuff')}</GroupLabel>
+        <Group>
+          <MeRow
+            icon="♥"
+            title={t('me.myStuffSaved')}
             onPress={() => navigation.navigate('SavedDashboard')}
-            accessibilityRole="button"
-            accessibilityLabel={t('me.myStuffOpenA11y', { label: t('me.myStuffSaved') })}
-          >
-            <Text style={s.rowIcon}>♥</Text>
-            <View style={{ flex: 1 }}>
-              <Text style={s.rowLabel}>{t('me.myStuffSaved')}</Text>
-            </View>
-            <Text style={s.rowChevron}>›</Text>
-          </TouchableOpacity>
-          {VISIBLE_MY_STUFF.map((link, idx) => {
-            const label = t(link.labelKey);
-            return (
-              <TouchableOpacity
-                key={`${link.tab}:${link.screen}`}
-                style={[s.row, idx === VISIBLE_MY_STUFF.length - 1 && s.rowLast]}
-                onPress={() => goToTab(link)}
-                accessibilityRole="button"
-                accessibilityLabel={t('me.myStuffOpenA11y', { label })}
-              >
-                <Text style={s.rowIcon}>{link.icon}</Text>
-                <View style={{ flex: 1 }}>
-                  <Text style={s.rowLabel}>{label}</Text>
-                </View>
-                <Text style={s.rowChevron}>›</Text>
-              </TouchableOpacity>
-            );
-          })}
-        </Section>
+            a11yLabel={t('me.myStuffOpenA11y', { label: t('me.myStuffSaved') })}
+          />
+          {VISIBLE_MY_STUFF.map((link, idx) => (
+            <MeRow
+              key={`${link.tab}:${link.screen}`}
+              icon={link.icon}
+              title={t(link.labelKey)}
+              onPress={() => goToTab(link)}
+              last={idx === VISIBLE_MY_STUFF.length - 1}
+              a11yLabel={t('me.myStuffOpenA11y', { label: t(link.labelKey) })}
+            />
+          ))}
+        </Group>
 
         {/* Preferences */}
-        <Section title={t('me.preferences')}>
-          <View style={[s.row, s.rowColumn]}>
-            <Text style={s.rowLabel}>{t('me.language')}</Text>
+        <GroupLabel>{t('me.preferences')}</GroupLabel>
+        <Group>
+          <View style={[s.row, s.rowColumn, s.rowDivider]}>
+            <View style={s.rowHead}>
+              <View style={s.iconSquare}><Text style={s.iconGlyph}>🌐</Text></View>
+              <Text style={s.rowTitle}>{t('me.language')}</Text>
+            </View>
             <View style={s.langGroup}>
               {SUPPORTED_LANGUAGES.map((code) => {
                 const active = lang === code;
@@ -639,237 +609,176 @@ export default function MeScreen() {
               })}
             </View>
           </View>
-          <TouchableOpacity
-            style={s.row}
+          <MeRow
+            icon="📍"
+            title={t('me.searchRadius')}
+            sub={t('me.searchRadiusDetail', {
+              miles: profile?.search_radius_miles ?? DEFAULT_SEARCH_RADIUS_MILES,
+            })}
             onPress={goRadiusPref}
-            accessibilityRole="button"
-            accessibilityLabel={t('me.searchRadiusA11y')}
-          >
-            <View style={{ flex: 1 }}>
-              <Text style={s.rowLabel}>{t('me.searchRadius')}</Text>
-              <Text style={s.rowDetail}>
-                {t('me.searchRadiusDetail', {
-                  miles: profile?.search_radius_miles ?? DEFAULT_SEARCH_RADIUS_MILES,
-                })}
-              </Text>
-            </View>
-            <Text style={s.rowChevron}>›</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[s.row, s.rowLast]}
+            a11yLabel={t('me.searchRadiusA11y')}
+          />
+          <MeRow
+            icon="🔔"
+            title={t('me.notifications')}
+            sub={t('me.notificationsDetail')}
             onPress={goNotifPrefs}
-            accessibilityRole="button"
-            accessibilityLabel={t('me.notificationsA11y')}
-          >
-            <View style={{ flex: 1 }}>
-              <Text style={s.rowLabel}>{t('me.notifications')}</Text>
-              <Text style={s.rowDetail}>
-                {t('me.notificationsDetail')}
-              </Text>
-            </View>
-            <Text style={s.rowChevron}>›</Text>
-          </TouchableOpacity>
-        </Section>
+            last
+            a11yLabel={t('me.notificationsA11y')}
+          />
+        </Group>
 
         {/* Account & security */}
-        <Section title={t('me.accountSecurity')}>
-          <TouchableOpacity
-            style={s.row}
+        <GroupLabel>{t('me.accountSecurity')}</GroupLabel>
+        <Group>
+          <MeRow
+            icon="✉️"
+            title={t('me.changeEmail')}
+            sub={email}
             onPress={goChangeEmail}
-            accessibilityRole="button"
-            accessibilityLabel={t('me.changeEmailA11y')}
-          >
-            <View style={{ flex: 1 }}>
-              <Text style={s.rowLabel}>{t('me.changeEmail')}</Text>
-              <Text style={s.rowDetail} numberOfLines={1}>{email}</Text>
-            </View>
-            <Text style={s.rowChevron}>›</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[s.row, !deleteAccountEnabled && s.rowLast]}
+            a11yLabel={t('me.changeEmailA11y')}
+          />
+          <MeRow
+            icon="🔒"
+            title={t('me.changePassword')}
+            sub={t('me.changePasswordDetail')}
             onPress={goChangePassword}
-            accessibilityRole="button"
-            accessibilityLabel={t('me.changePasswordA11y')}
-          >
-            <View style={{ flex: 1 }}>
-              <Text style={s.rowLabel}>{t('me.changePassword')}</Text>
-              <Text style={s.rowDetail}>{t('me.changePasswordDetail')}</Text>
-            </View>
-            <Text style={s.rowChevron}>›</Text>
-          </TouchableOpacity>
+            last={!deleteAccountEnabled}
+            a11yLabel={t('me.changePasswordA11y')}
+          />
           {deleteAccountEnabled ? (
-            <TouchableOpacity
-              style={[s.row, s.rowLast]}
+            <MeRow
+              icon="🗑️"
+              title={t('me.deleteAccount')}
+              sub={t('me.deleteAccountDetail')}
               onPress={goDeleteAccount}
-              accessibilityRole="button"
-              accessibilityLabel={t('me.deleteAccountA11y')}
-            >
-              <View style={{ flex: 1 }}>
-                <Text style={[s.rowLabel, s.rowLabelDanger]}>{t('me.deleteAccount')}</Text>
-                <Text style={s.rowDetail}>{t('me.deleteAccountDetail')}</Text>
-              </View>
-              <Text style={s.rowChevron}>›</Text>
-            </TouchableOpacity>
+              danger
+              last
+              a11yLabel={t('me.deleteAccountA11y')}
+            />
           ) : null}
-        </Section>
+        </Group>
 
-        {/* Admin tools — dev-build-only entry. Always renders in __DEV__
-            so internal users get a discoverable path to the in-app
-            admin tools (specialist invites today; can host bulk gear
-            moderation actions, manual-video reviewer tools, etc.
-            later). The actual authority check lives server-side in
-            the admin-specialist-invite edge function (ADMIN_USER_IDS
-            allowlist); non-admin taps surface as a friendly 403 on
-            submit. Suppressed in TestFlight/App Store builds to keep
-            the Me tab clean for real users. */}
+        {/* Admin tools — dev-build-only entry. The actual authority check
+            lives server-side in the admin-specialist-invite edge function
+            (ADMIN_USER_IDS allowlist); non-admin taps surface as a friendly
+            403 on submit. Suppressed in TestFlight/App Store builds. */}
         {__DEV__ ? (
-          <Section title="Admin">
-            <TouchableOpacity
-              style={[s.row, s.rowLast]}
-              onPress={() => navigation.navigate('AdminInvite')}
-              accessibilityRole="button"
-              accessibilityLabel="Open specialist invite admin tool"
-            >
-              <Text style={s.rowIcon}>✉️</Text>
-              <View style={{ flex: 1 }}>
-                <Text style={s.rowLabel}>Specialist invites</Text>
-                <Text style={s.rowDetail}>
-                  Issue a one-time invite link in-app.
-                </Text>
-              </View>
-              <Text style={s.rowChevron}>›</Text>
-            </TouchableOpacity>
-          </Section>
+          <>
+            <GroupLabel>Admin</GroupLabel>
+            <Group>
+              <MeRow
+                icon="✉️"
+                title="Specialist invites"
+                sub="Issue a one-time invite link in-app."
+                onPress={() => navigation.navigate('AdminInvite')}
+                last
+                a11yLabel="Open specialist invite admin tool"
+              />
+            </Group>
+          </>
         ) : null}
 
-        {/* Clinical review — reviewer-only entry point. Hidden for everyone
-            else; the launcher pill in RootNavigator covers the same surface
-            but lives in a corner, so this row is the discoverable path. */}
+        {/* Clinical review — reviewer-only entry point. */}
         {isReviewer ? (
-          <Section title="Clinical review">
-            <TouchableOpacity
-              style={[s.row, s.rowLast]}
-              onPress={goClinicalReview}
-              accessibilityRole="button"
-              accessibilityLabel="Open clinical-advisor review queue"
-            >
-              <Text style={s.rowIcon}>🩺</Text>
-              <View style={{ flex: 1 }}>
-                <Text style={s.rowLabel}>Review queue</Text>
-                <Text style={s.rowDetail}>
-                  {pendingCount === null
-                    ? 'Approve or reject AI-generated weekly-journey content.'
-                    : pendingCount === 0
-                    ? 'Queue is clear — nothing waiting.'
-                    : `${pendingCount} item${pendingCount === 1 ? '' : 's'} waiting for review.`}
-                </Text>
-              </View>
-              {pendingCount && pendingCount > 0 ? (
-                <View
-                  style={s.reviewBadge}
-                  accessibilityLabel={`${pendingCount} pending`}
-                >
-                  <Text style={s.reviewBadgeText}>{pendingCount}</Text>
-                </View>
-              ) : null}
-              <Text style={s.rowChevron}>›</Text>
-            </TouchableOpacity>
-          </Section>
+          <>
+            <GroupLabel>Clinical review</GroupLabel>
+            <Group>
+              <MeRow
+                icon="🩺"
+                title="Review queue"
+                sub={pendingCount === null
+                  ? 'Approve or reject AI-generated weekly-journey content.'
+                  : pendingCount === 0
+                  ? 'Queue is clear — nothing waiting.'
+                  : `${pendingCount} item${pendingCount === 1 ? '' : 's'} waiting for review.`}
+                onPress={goClinicalReview}
+                last
+                a11yLabel="Open clinical-advisor review queue"
+                right={pendingCount && pendingCount > 0 ? (
+                  <View style={s.reviewBadge} accessibilityLabel={`${pendingCount} pending`}>
+                    <Text style={s.reviewBadgeText}>{pendingCount}</Text>
+                  </View>
+                ) : undefined}
+              />
+            </Group>
+          </>
         ) : null}
 
         {/* Event review — ops/curation queue for AI-screened ingest
-            candidates. Distinct flag from Clinical review (medical content);
-            a user can hold either, both, or neither. */}
+            candidates. Distinct flag from Clinical review. */}
         {isEventReviewer ? (
-          <Section title="Event review">
-            <TouchableOpacity
-              style={[s.row, s.rowLast]}
-              onPress={goEventReview}
-              accessibilityRole="button"
-              accessibilityLabel="Open event-ingest review queue"
-            >
-              <Text style={s.rowIcon}>📅</Text>
-              <View style={{ flex: 1 }}>
-                <Text style={s.rowLabel}>Review queue</Text>
-                <Text style={s.rowDetail}>
-                  {pendingEventCount === null
-                    ? 'Approve or reject AI-screened event candidates.'
-                    : pendingEventCount === 0
-                    ? 'Queue is clear — nothing waiting.'
-                    : `${pendingEventCount} event${pendingEventCount === 1 ? '' : 's'} waiting for review.`}
-                </Text>
-              </View>
-              {pendingEventCount && pendingEventCount > 0 ? (
-                <View
-                  style={s.reviewBadge}
-                  accessibilityLabel={`${pendingEventCount} pending`}
-                >
-                  <Text style={s.reviewBadgeText}>{pendingEventCount}</Text>
-                </View>
-              ) : null}
-              <Text style={s.rowChevron}>›</Text>
-            </TouchableOpacity>
-          </Section>
+          <>
+            <GroupLabel>Event review</GroupLabel>
+            <Group>
+              <MeRow
+                icon="📅"
+                title="Review queue"
+                sub={pendingEventCount === null
+                  ? 'Approve or reject AI-screened event candidates.'
+                  : pendingEventCount === 0
+                  ? 'Queue is clear — nothing waiting.'
+                  : `${pendingEventCount} event${pendingEventCount === 1 ? '' : 's'} waiting for review.`}
+                onPress={goEventReview}
+                last
+                a11yLabel="Open event-ingest review queue"
+                right={pendingEventCount && pendingEventCount > 0 ? (
+                  <View style={s.reviewBadge} accessibilityLabel={`${pendingEventCount} pending`}>
+                    <Text style={s.reviewBadgeText}>{pendingEventCount}</Text>
+                  </View>
+                ) : undefined}
+              />
+            </Group>
+          </>
         ) : null}
 
-        {/* Crisis resources */}
-        <Section title={t('me.crisisTitle')} subtitle={t('me.crisisSubtitle')}>
-          <View style={s.crisisCallout} accessibilityRole="alert">
-            <Text style={s.crisisCalloutTitle}>{t('me.crisisCalloutTitle')}</Text>
-            {/* The "911" digits stay outside the i18n template so the inline
-                rust-bold style still wraps just the number. The translated
-                body wraps it with a token; we render around it. */}
-            <Text style={s.crisisCalloutBody}>
-              {profile?.preferred_language === 'es'
-                ? <>Llama al <Text style={s.crisisCalloutNumber}>911</Text> — o toca cualquier línea de abajo. No necesitas saber qué decir.</>
-                : <>Call <Text style={s.crisisCalloutNumber}>911</Text> — or tap any line below. You don&rsquo;t need to know what to say.</>}
-            </Text>
-          </View>
-          <TouchableOpacity
-            style={s.row}
+        {/* Support — crisis resources, always available. */}
+        <GroupLabel>{t('me.crisisTitle')}</GroupLabel>
+        <View style={s.crisisCallout} accessibilityRole="alert">
+          <Text style={s.crisisCalloutTitle}>{t('me.crisisCalloutTitle')}</Text>
+          {/* The "911" digits stay outside the i18n template so the inline
+              rose-bold style still wraps just the number. */}
+          <Text style={s.crisisCalloutBody}>
+            {profile?.preferred_language === 'es'
+              ? <>Llama al <Text style={s.crisisCalloutNumber}>911</Text> — o toca cualquier línea de abajo. No necesitas saber qué decir.</>
+              : <>Call <Text style={s.crisisCalloutNumber}>911</Text> — or tap any line below. You don&rsquo;t need to know what to say.</>}
+          </Text>
+        </View>
+        <Group>
+          <MeRow
+            icon="🚑"
+            title={profile?.preferred_language === 'es' ? 'En una emergencia' : 'In an emergency'}
+            sub={profile?.preferred_language === 'es' ? 'RCP infantil, fiebres, cuándo llamar' : 'infant CPR, fevers, when to call'}
             onPress={() => (navigation.getParent() as any)?.getParent()?.navigate('QuickReference')}
-            accessibilityRole="button"
-            accessibilityLabel={profile?.preferred_language === 'es' ? 'En una emergencia — referencia rápida' : 'In an emergency — quick reference'}
-          >
-            <View style={{ flex: 1 }}>
-              <Text style={s.rowLabel}>{profile?.preferred_language === 'es' ? 'En una emergencia' : 'In an emergency'}</Text>
-              <Text style={s.rowDetail}>{profile?.preferred_language === 'es' ? 'RCP infantil, fiebres, cuándo llamar' : 'infant CPR, fevers, when to call'}</Text>
-            </View>
-            <Text style={s.rowChevron}>›</Text>
-          </TouchableOpacity>
-          {CRISIS_LIST.map((item) => (
-            <TouchableOpacity
+            a11yLabel={profile?.preferred_language === 'es' ? 'En una emergencia — referencia rápida' : 'In an emergency — quick reference'}
+          />
+          {CRISIS_LIST.map((item, idx) => (
+            <MeRow
               key={item.label}
-              style={s.row}
+              icon={item.type === 'sms' ? '💬' : '📞'}
+              title={item.label}
+              sub={formatContact(item, t)}
               onPress={() => openCrisis(item, t)}
               onLongPress={() => copyCrisis(item, t)}
               delayLongPress={400}
-              accessibilityRole="button"
-              accessibilityLabel={`${item.label}: ${formatContact(item, t)}`}
-              accessibilityHint={
-                item.type === 'sms' ? t('crisis.a11yTextHint') : t('crisis.a11yCallHint')
-              }
-            >
-              <View style={{ flex: 1 }}>
-                <Text style={s.rowLabel}>{item.label}</Text>
-                <Text style={s.rowDetail}>{formatContact(item, t)}</Text>
-              </View>
-              <Text style={s.rowChevron}>{item.type === 'sms' ? '💬' : '📞'}</Text>
-            </TouchableOpacity>
+              last={idx === CRISIS_LIST.length - 1}
+              a11yLabel={`${item.label}: ${formatContact(item, t)}`}
+              a11yHint={item.type === 'sms' ? t('crisis.a11yTextHint') : t('crisis.a11yCallHint')}
+            />
           ))}
-        </Section>
+        </Group>
 
         {/* Sign out */}
-        <Section title={t('me.account')}>
+        <Group>
           <TouchableOpacity
-            style={[s.row, s.rowDestructive]}
+            style={s.signOutRow}
             onPress={handleSignOut}
             accessibilityRole="button"
             accessibilityLabel={t('me.signOut')}
           >
             <Text style={s.signOutTxt}>{t('me.signOut')}</Text>
           </TouchableOpacity>
-        </Section>
+        </Group>
 
         <Text style={s.footer}>{t('me.footer')}</Text>
       </ScrollView>
@@ -968,35 +877,54 @@ function computeCompletion(
   return { percent, missing };
 }
 
-function Section({
-  title, subtitle, children,
-}: { title: string; subtitle?: string; children: React.ReactNode }) {
-  // Editorial section heading — small rust accent bar + uppercase
-  // letter-spaced eyebrow, mirroring HomeScreen's sectionEyebrow +
-  // sectionAccentBar so Me reads as part of the same magazine spread.
-  //
-  // V3Card wrapper with `deepShadow` — Felipe 2026-05-25: the standard
-  // lift recipe got absorbed by the warm pink-tinted page gradient on
-  // Me (FDF1EB → F5DFD3), making the wider multi-row cards (Preferences
-  // with Language + Search radius + Notifications) look "paper thin"
-  // while the shorter single-row cards (Change email / password,
-  // Specialist invites) stood out. deepShadow (op 0.28 / offset 14 /
-  // radius 24 / darker shadow color) gives every Section card the
-  // same distinct silhouette regardless of inner-row count.
+// Short uppercase-mono muted label above each quiet list group — mirrors the
+// calm Mama's-corner (MomHubScreen) vocabulary. One per group, not per row.
+function GroupLabel({ children }: { children: React.ReactNode }) {
+  return <Text style={s.groupLabel}>{children}</Text>;
+}
+
+// Quiet bordered list group — paper bg, hairline group border, radius 18.
+// Rows sit inside with their own hairline dividers (MomRow pattern).
+function Group({ children }: { children: React.ReactNode }) {
+  return <View style={s.group}>{children}</View>;
+}
+
+// One calm list row: blush icon square + short title + optional ≤5-word sub +
+// chevron (or a custom right slot: a badge, etc.). Divider unless `last`.
+function MeRow({
+  icon, title, sub, onPress, onLongPress, delayLongPress,
+  right, danger = false, last = false, a11yLabel, a11yHint,
+}: {
+  icon: string;
+  title: string;
+  sub?: string;
+  onPress: () => void;
+  onLongPress?: () => void;
+  delayLongPress?: number;
+  right?: React.ReactNode;
+  danger?: boolean;
+  last?: boolean;
+  a11yLabel?: string;
+  a11yHint?: string;
+}) {
   return (
-    <View style={s.section}>
-      <View style={s.sectionHeadingRow}>
-        <View style={s.sectionAccentBar} />
-        <Text style={s.sectionEyebrow}>{title}</Text>
+    <TouchableOpacity
+      onPress={onPress}
+      onLongPress={onLongPress}
+      delayLongPress={delayLongPress}
+      activeOpacity={0.7}
+      style={[s.row, !last && s.rowDivider]}
+      accessibilityRole="button"
+      accessibilityLabel={a11yLabel ?? title}
+      accessibilityHint={a11yHint}
+    >
+      <View style={s.iconSquare}><Text style={s.iconGlyph}>{icon}</Text></View>
+      <View style={{ flex: 1, minWidth: 0 }}>
+        <Text style={[s.rowTitle, danger && s.rowTitleDanger]}>{title}</Text>
+        {sub ? <Text style={s.rowSub} numberOfLines={1}>{sub}</Text> : null}
       </View>
-      {subtitle ? <Text style={s.sectionSubtitle}>{subtitle}</Text> : null}
-      {/* tinted with very-subtle warm paper (#FDF8ED) — Felipe asked for
-          "a bit of color tone" but the first pass (#FBF4DE) read too
-          butter-yellow. This is much closer to pure paper #FFFCF6, just
-          a hint of warmth so the card edge reads against the pink page
-          wash without committing to a tinted-paper look. */}
-      <V3Card deepShadow tinted="#FDF8ED">{children}</V3Card>
-    </View>
+      {right !== undefined ? right : <Text style={s.chevron}>›</Text>}
+    </TouchableOpacity>
   );
 }
 
@@ -1004,142 +932,123 @@ const s = StyleSheet.create({
   safe: { flex: 1, backgroundColor: COLORS.cream },
   container: { paddingBottom: 48 },
 
-  // Soft full-bleed cover card — matches InboxHomeScreen.header dimensions
-  // exactly so every tab masthead reads the same size. paddingBottom is
-  // tight so the hairline rule sits right at the card's bottom edge.
+  // Header — quiet paper block. No gradient cover / sheen / hairline rule;
+  // the profile identity is dialled back so the page reads calm.
   header: {
-    paddingHorizontal: 24,
-    paddingTop: 56,
-    paddingBottom: 6,
-    borderBottomLeftRadius: 28,
-    borderBottomRightRadius: 28,
-    overflow: 'hidden',
-    marginBottom: 8,
-    // v9 paper-leaning shadow — was 0.10/4y/12r/elev2. Now lifts the
-    // masthead off the U-shape backdrop like Home's card recipe.
-    shadowColor: '#43260F',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.20,
-    shadowRadius: 22,
-    elevation: 5,
+    paddingHorizontal: 22,
+    paddingBottom: 14,
+    marginBottom: 4,
     position: 'relative',
   },
   headerBee: {
-    // Bee hovers between the name and the Edit pill, leaning towards Edit.
-    // Edit lives in `headerControls` at the right edge with 20px header
-    // padding; right: 50 sits the bee ~50px from screen right, which is
-    // just left of the controls stack — over the meta column past the name.
     position: 'absolute',
-    right: 50, top: 64,
-    width: 88, height: 80,
-    opacity: 0.55,
+    right: 14, top: 58,
+    width: 78, height: 72,
+    opacity: 0.5,
     transform: [{ rotate: '12deg' }],
-  },
-  eyebrowRow: {
-    flexDirection: 'row', alignItems: 'center', marginBottom: 12,
-  },
-  eyebrowBar: {
-    width: 22, height: 2,
-    backgroundColor: '#7A4A24',  // v9 rust-deep — unified across surfaces
-    marginRight: 10,
-  },
-  eyebrow: {
-    fontSize: 10, fontFamily: FONTS.bodySemiBold,
-    color: '#7A4A24',
-    letterSpacing: 1.8, textTransform: 'uppercase',
   },
   headerMainRow: {
     flexDirection: 'row',
     alignItems: 'center',
   },
-  headerControls: {
-    flexDirection: 'column',
-    alignItems: 'flex-end',
-    gap: 6,
-    marginLeft: 8,
-  },
   avatar: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     backgroundColor: COLORS.sandSoft,
     borderWidth: 1,
-    borderColor: 'rgba(61,31,13,0.18)',
+    borderColor: 'rgba(61,31,13,0.14)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   avatarImg: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     borderWidth: 1,
-    borderColor: 'rgba(61,31,13,0.18)',
+    borderColor: 'rgba(61,31,13,0.14)',
     backgroundColor: COLORS.sandSoft,
   },
   avatarTxt: {
     fontFamily: FONTS.headerBold,
     color: COLORS.bark,
-    fontSize: 26,
+    fontSize: 24,
   },
   headerMeta: { flex: 1, marginLeft: 14 },
-  // Italic Playfair in coco — mirrors HomeScreen.greetingNameAccent.
+  // The one warm accent on the header — the name in rose.
   name: {
-    fontFamily: FONTS.headerItalic,
-    fontStyle: 'italic',
-    fontSize: 24,
-    lineHeight: 30,
-    color: '#C24A63',
+    fontFamily: FONTS.v3_display,
+    fontSize: 22,
+    lineHeight: 27,
+    color: ROSE,
+    letterSpacing: -0.4,
   },
   email: {
-    fontFamily: FONTS.body,
-    fontSize: 13,
-    color: COLORS.barkSoft,
+    fontFamily: FONTS.v2_body,
+    fontSize: 12.5,
+    color: INKSOFT,
     marginTop: 2,
   },
-  editBtn: {
-    paddingHorizontal: 10,
-    paddingVertical: 5,
+  stagePill: {
+    alignSelf: 'flex-start',
+    marginTop: 7,
+    backgroundColor: ICON_BG,
     borderRadius: 999,
-    borderWidth: 1,
-    borderColor: 'rgba(61,31,13,0.22)',
-    backgroundColor: 'transparent',
+    paddingHorizontal: 10,
+    paddingVertical: 3,
   },
-  editBtnText: {
-    fontFamily: FONTS.bodySemiBold,
-    fontSize: 11,
-    color: COLORS.bark,
-    letterSpacing: 0.3,
+  stagePillText: {
+    fontFamily: FONTS.v2_mono,
+    fontSize: 9.5,
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+    color: LABEL,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 14,
   },
   langPill: {
-    paddingHorizontal: 8,
-    paddingVertical: 5,
+    paddingHorizontal: 11,
+    paddingVertical: 6,
     borderRadius: 999,
     borderWidth: 1,
-    borderColor: 'rgba(61,31,13,0.22)',
-    backgroundColor: 'rgba(255,255,255,0.45)',
+    borderColor: GROUP_BORDER,
+    backgroundColor: CARD_BG,
   },
   langPillText: {
-    fontFamily: FONTS.bodySemiBold,
+    fontFamily: FONTS.v2_link,
     fontSize: 11,
-    color: COLORS.bark,
-    letterSpacing: 0.4,
+    color: INK,
+    letterSpacing: 0.3,
   },
-  // Hairline rule — matches HomeScreen.greetingRule.
-  headerRule: {
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: 'rgba(61,31,13,0.18)',
-    marginTop: 14,
-    width: 48,
+  editBtn: {
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: 'rgba(194,74,99,0.35)',
+    backgroundColor: CARD_BG,
+  },
+  editBtnText: {
+    fontFamily: FONTS.v2_link,
+    fontSize: 11,
+    color: ROSE,
+    letterSpacing: 0.3,
   },
 
+  // Completion meter — calmed to rose, sits under the header.
   completion: {
-    marginHorizontal: 20,
-    marginBottom: 24,
-    padding: 16,
-    borderRadius: 14,
-    backgroundColor: COLORS.paper,
-    borderWidth: 1,
-    borderColor: 'rgba(184,92,56,0.25)',
+    marginHorizontal: 22,
+    marginTop: 4,
+    marginBottom: 18,
+    padding: 15,
+    borderRadius: 16,
+    backgroundColor: CARD_BG,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(194,74,99,0.28)',
   },
   completionHeader: {
     flexDirection: 'row',
@@ -1148,237 +1057,221 @@ const s = StyleSheet.create({
     marginBottom: 8,
   },
   completionTitle: {
-    fontFamily: FONTS.bodySemiBold,
+    fontFamily: FONTS.v2_link,
     fontSize: 13,
-    color: COLORS.bark,
+    color: INK,
     letterSpacing: 0.2,
   },
   completionCta: {
-    fontFamily: FONTS.bodySemiBold,
+    fontFamily: FONTS.v2_link,
     fontSize: 12,
-    color: '#C24A63',
+    color: ROSE,
   },
   progressTrack: {
     height: 6,
     borderRadius: 999,
-    backgroundColor: 'rgba(184,92,56,0.12)',
+    backgroundColor: 'rgba(194,74,99,0.14)',
     overflow: 'hidden',
   },
   progressFill: {
     height: '100%',
-    backgroundColor: COLORS.coco,
+    backgroundColor: ROSE,
   },
   completionHint: {
     marginTop: 8,
+    fontFamily: FONTS.v2_body,
     fontSize: 12,
-    color: COLORS.barkSoft,
+    color: INKSOFT,
   },
 
-  section: { paddingHorizontal: 20, marginBottom: 24 },
-  // Editorial section heading — small rust accent bar + uppercase
-  // letter-spaced eyebrow, mirroring HomeScreen's sectionAccentBar +
-  // sectionEyebrow pattern so Me reads as part of the same spread.
-  sectionHeadingRow: {
-    flexDirection: 'row', alignItems: 'center', gap: 8,
-    marginBottom: 10,
+  // Short muted-rose section label above each group (one per group).
+  groupLabel: {
+    marginHorizontal: 24,
+    marginTop: 20,
+    marginBottom: 9,
+    fontFamily: FONTS.v2_mono,
+    fontSize: 11,
+    letterSpacing: 1.6,
+    textTransform: 'uppercase',
+    color: LABEL,
   },
-  sectionAccentBar: {
-    width: 12, height: 2, backgroundColor: '#7A4A24', borderRadius: 1,
-  },
-  sectionEyebrow: {
-    fontSize: 11, fontFamily: FONTS.bodySemiBold, letterSpacing: 2,
-    color: '#7A4A24', textTransform: 'uppercase',
-  },
-  // Kept for legacy callers. New section headings use sectionEyebrow.
-  sectionTitle: {
-    fontFamily: FONTS.headerBold,
-    fontSize: 16,
-    color: COLORS.bark,
-    marginBottom: 4,
-  },
-  sectionSubtitle: {
-    fontFamily: FONTS.body,
-    fontSize: 12,
-    color: COLORS.barkSoft,
-    marginBottom: 10,
-  },
-  // Me page bg gradient is warmer than Home (FDF1EB → FCFCFB → F5DFD3),
-  // which absorbs the standard cocoa shadow. Bumped to cardLiftDeep
-  // recipe (deeper offset + radius, darker shadow color) so cards
-  // actually read as lifted against the pink-tinted wash. Border also
-  // bumped from hairline to 1px for clearer silhouette.
-  card: {
-    backgroundColor: COLORS.v2_card,
-    borderRadius: 14,
+  // Quiet bordered list group — paper bg, hairline border, radius 18.
+  group: {
+    marginHorizontal: 22,
+    backgroundColor: CARD_BG,
+    borderRadius: 18,
     overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: 'rgba(150, 80, 50, 0.22)',
-    shadowColor: '#43260F',
-    shadowOffset: { width: 0, height: 14 },
-    shadowOpacity: 0.28,
-    shadowRadius: 24,
-    elevation: 8,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: GROUP_BORDER,
   },
+
+  // One calm row.
   row: {
-    paddingHorizontal: 14,
-    paddingVertical: 14,
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 13,
+    paddingVertical: 13,
+    paddingHorizontal: 15,
+  },
+  rowDivider: {
     borderBottomWidth: StyleSheet.hairlineWidth,
-    // Was pure-black 8% — read harsh on the new butter-cream tinted card.
-    // Cocoa-tinted 6% harmonizes with the warm card surface.
-    borderBottomColor: 'rgba(61,31,14,0.06)',
+    borderBottomColor: ROW_DIVIDER,
   },
-  rowColumn: { flexDirection: 'column', alignItems: 'flex-start', gap: 10 },
-  rowLast: { borderBottomWidth: 0 },
-  rowDestructive: { borderBottomWidth: 0, justifyContent: 'center' },
-  rowIcon: { fontSize: 18, marginRight: 12, width: 24, textAlign: 'center' },
-  rowLabel: {
-    fontFamily: FONTS.bodySemiBold,
-    fontSize: 14,
-    color: COLORS.bark,
+  rowColumn: { flexDirection: 'column', alignItems: 'flex-start', gap: 11 },
+  rowHead: { flexDirection: 'row', alignItems: 'center', gap: 13 },
+  iconSquare: {
+    width: 34, height: 34, borderRadius: 11,
+    backgroundColor: ICON_BG,
+    alignItems: 'center', justifyContent: 'center',
   },
-  rowLabelDanger: { color: COLORS.cocoDeep },
-  rowDetail: {
-    fontFamily: FONTS.body,
-    fontSize: 12,
-    color: COLORS.barkSoft,
-    marginTop: 2,
+  iconGlyph: { fontSize: 17 },
+  rowTitle: {
+    fontFamily: FONTS.v3_display,
+    fontSize: 15.5,
+    color: INK,
+    letterSpacing: -0.2,
   },
-  rowChevron: { fontSize: 18, marginLeft: 12 },
+  rowTitleDanger: { color: ROSE_DEEP },
+  rowSub: {
+    fontFamily: FONTS.v2_body,
+    fontSize: 11.5,
+    color: INKSOFT,
+    marginTop: 1,
+  },
+  chevron: { fontFamily: FONTS.v2_link, fontSize: 20, color: CHEVRON },
 
-  // Crisis section header callout — visually distinct from the action rows so
-  // the eye lands on "you don't need to know what to say" before scanning the
-  // line items. Lighter rust tint + full cinnamon hairline (side-stripe was a
-  // v9 absolute ban — replaced with a full border in the same accent color).
+  // Support / crisis callout — soft blush card above the crisis group.
   crisisCallout: {
+    marginHorizontal: 22,
+    marginBottom: 10,
     backgroundColor: COLORS.pinkSoft,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'rgba(192,120,64,0.45)',
-    borderRadius: 10,
-    padding: 12,
-    margin: 14,
-    marginBottom: 4,
+    borderColor: 'rgba(194,74,99,0.30)',
+    borderRadius: 14,
+    padding: 13,
   },
   crisisCalloutTitle: {
     fontSize: 13,
-    fontFamily: FONTS.bodySemiBold,
-    color: '#7A4A24',
+    fontFamily: FONTS.v2_link,
+    color: ROSE_DEEP,
     marginBottom: 4,
   },
   crisisCalloutBody: {
+    fontFamily: FONTS.v2_body,
     fontSize: 13,
-    color: COLORS.barkSoft,
+    color: INKSOFT,
     lineHeight: 18,
   },
   crisisCalloutNumber: {
-    fontFamily: FONTS.bodySemiBold,
-    color: '#7A4A24',
+    fontFamily: FONTS.v2_bold,
+    color: ROSE_DEEP,
   },
 
+  // Baby row / empty state.
   babyRow: {
-    paddingHorizontal: 14,
-    paddingVertical: 14,
+    paddingHorizontal: 15,
+    paddingVertical: 13,
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 13,
   },
   babyAvatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: 'rgba(92,107,58,0.14)',
+    width: 40,
+    height: 40,
+    borderRadius: 13,
+    backgroundColor: ICON_BG,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 12,
   },
-  babyAvatarTxt: { fontSize: 22 },
+  babyAvatarTxt: { fontSize: 20 },
   babyName: {
-    fontFamily: FONTS.bodySemiBold,
-    fontSize: 15,
-    color: COLORS.bark,
+    fontFamily: FONTS.v3_display,
+    fontSize: 15.5,
+    color: INK,
+    letterSpacing: -0.2,
   },
   babyMeta: {
-    fontFamily: FONTS.body,
-    fontSize: 12,
-    color: COLORS.barkSoft,
-    marginTop: 2,
+    fontFamily: FONTS.v2_body,
+    fontSize: 11.5,
+    color: INKSOFT,
+    marginTop: 1,
   },
-  babyChevron: { fontSize: 26, color: '#C9B7A8', marginLeft: 8, fontFamily: FONTS.body },
   babySetupBtn: {
     marginTop: 12,
     alignSelf: 'flex-start',
-    backgroundColor: '#9E2F4C',
+    backgroundColor: ROSE,
     paddingHorizontal: 18,
     paddingVertical: 10,
-    borderRadius: 22,
+    borderRadius: 999,
   },
-  babySetupBtnTxt: { color: '#FFFCF6', fontSize: 14, fontFamily: FONTS.bodySemiBold },
-
-  emptyCard: { paddingHorizontal: 14, paddingVertical: 16 },
+  babySetupBtnTxt: { color: '#FFFCF6', fontSize: 13, fontFamily: FONTS.v2_link },
+  emptyCard: { paddingHorizontal: 15, paddingVertical: 15 },
   emptyText: {
-    fontFamily: FONTS.body,
+    fontFamily: FONTS.v2_body,
     fontSize: 13,
-    color: COLORS.barkSoft,
+    color: INKSOFT,
     lineHeight: 18,
   },
-  emptyHint: {
-    fontFamily: FONTS.bodySemiBold,
-    fontSize: 12,
-    color: '#7A4A24',
-    marginTop: 6,
-  },
 
+  // Language chips (inside Preferences).
   langGroup: {
     flexDirection: 'row',
     gap: 8,
+    paddingLeft: 47,
   },
   langChip: {
     paddingHorizontal: 14,
-    paddingVertical: 8,
+    paddingVertical: 7,
     borderRadius: 999,
     borderWidth: 1,
-    borderColor: 'rgba(150,80,50,0.18)',
+    borderColor: GROUP_BORDER,
     backgroundColor: COLORS.cream,
   },
   langChipActive: {
-    backgroundColor: COLORS.coco,
-    borderColor: COLORS.coco,
+    backgroundColor: ROSE,
+    borderColor: ROSE,
   },
   langChipText: {
-    fontFamily: FONTS.bodySemiBold,
+    fontFamily: FONTS.v2_link,
     fontSize: 13,
-    color: COLORS.bark,
+    color: INK,
   },
-  langChipTextActive: { color: COLORS.paper },
+  langChipTextActive: { color: '#FFFCF6' },
 
-  // Olive-tinted pill matching the CLN launcher in RootNavigator so the two
-  // surfaces visually belong to the same internal-tools subsystem.
+  // Reviewer count badge (rose, replaces the old olive pill).
   reviewBadge: {
     minWidth: 22,
     height: 22,
     borderRadius: 11,
     paddingHorizontal: 7,
-    backgroundColor: COLORS.sage,
+    backgroundColor: ROSE,
     alignItems: 'center',
     justifyContent: 'center',
-    marginLeft: 8,
+    marginRight: 8,
   },
   reviewBadgeText: {
-    fontFamily: FONTS.bodySemiBold,
+    fontFamily: FONTS.v2_bold,
     fontSize: 12,
-    color: COLORS.paper,
+    color: '#FFFCF6',
     letterSpacing: 0.3,
   },
+
+  // Sign out — sober, centered, its own group.
+  signOutRow: {
+    paddingVertical: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   signOutTxt: {
-    fontFamily: FONTS.bodySemiBold,
+    fontFamily: FONTS.v2_link,
     fontSize: 14,
-    color: '#7A4A24',
+    color: ROSE_DEEP,
     textAlign: 'center',
   },
   footer: {
-    fontFamily: FONTS.body,
+    fontFamily: FONTS.v2_body,
     fontSize: 11,
-    color: COLORS.textLight,
+    color: MUTED,
     textAlign: 'center',
     marginTop: 24,
   },

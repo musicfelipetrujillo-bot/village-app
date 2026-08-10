@@ -60,15 +60,15 @@ export default function TheBuzzScreen() {
   return (
     <View style={s.container}>
       <View style={s.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} accessibilityRole="button" accessibilityLabel={t('common.back')}>
-          <Text style={s.back}>← {t('common.back')}</Text>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn} accessibilityRole="button" accessibilityLabel={t('common.back')}>
+          <Text style={s.backChevron}>‹</Text>
         </TouchableOpacity>
         <Text style={s.headerTitle}>{t('theBuzz.title')}</Text>
-        <View style={{ width: 44 }} />
+        <View style={{ width: 40 }} />
       </View>
 
       {loading ? (
-        <View style={s.center}><ActivityIndicator color={COLORS.v2_cinnamon} /></View>
+        <View style={s.center}><ActivityIndicator color="#C24A63" /></View>
       ) : error ? (
         <View style={s.center}><Text style={s.errorText}>{error}</Text></View>
       ) : !issue ? (
@@ -78,17 +78,17 @@ export default function TheBuzzScreen() {
           <Text style={s.emptyBody}>{t('theBuzz.emptyBody')}</Text>
         </View>
       ) : (
-        <ScrollView contentContainerStyle={s.scroll}>
-          <Text style={s.disclaimer}>{t('theBuzz.disclaimer')}</Text>
-
+        <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
           <Text style={s.issueTitle}>{issue.title}</Text>
-          <Text style={s.issueIntro}>{issue.intro}</Text>
+          <Text style={s.issueIntro} numberOfLines={3}>{issue.intro}</Text>
 
           {newsItems.map((item) => (
             <BuzzNewsCard key={item.id} item={item} lang={lang} t={t} />
           ))}
 
           {mythItem ? <BuzzMythCard item={mythItem} lang={lang} t={t} /> : null}
+
+          <Text style={s.disclaimer}>{t('theBuzz.disclaimer')}</Text>
         </ScrollView>
       )}
     </View>
@@ -96,33 +96,31 @@ export default function TheBuzzScreen() {
 }
 
 function BuzzNewsCard({ item, lang, t }: { item: TheBuzzItem; lang: 'en' | 'es'; t: (k: string, p?: any) => string }) {
+  const ask = localized(item, 'ask_provider', lang);
   return (
     <View style={s.card}>
-      <Text style={s.cardEyebrow}>{t('theBuzz.trendingEyebrow')}</Text>
       <Text style={s.cardTitle}>{localized(item, 'title', lang)}</Text>
-      <Text style={s.cardBody}>{localized(item, 'summary', lang)}</Text>
+      <Text style={s.cardBody} numberOfLines={5}>{localized(item, 'summary', lang)}</Text>
+      {ask ? <Text style={s.askLine}>💬 {ask}</Text> : null}
       <TouchableOpacity onPress={() => Linking.openURL(item.evidence_source_url)} accessibilityRole="link" accessibilityLabel={t('theBuzz.evidenceLinkA11y', { source: item.evidence_source_name })}>
-        <Text style={s.sourceLink}>{t('theBuzz.groundedIn', { source: item.evidence_source_name })}</Text>
-      </TouchableOpacity>
-      <Text style={s.askProvider}>{localized(item, 'ask_provider', lang)}</Text>
-      <TouchableOpacity onPress={() => Linking.openURL(item.trend_source_url)} accessibilityRole="link" accessibilityLabel={t('theBuzz.trendLinkA11y', { source: item.trend_source_name })}>
-        <Text style={s.trendSource}>{t('theBuzz.viaSource', { source: item.trend_source_name })}</Text>
+        <Text style={s.sourceLink}>{t('theBuzz.groundedIn', { source: item.evidence_source_name })} ›</Text>
       </TouchableOpacity>
     </View>
   );
 }
 
 function BuzzMythCard({ item, lang, t }: { item: TheBuzzItem; lang: 'en' | 'es'; t: (k: string, p?: any) => string }) {
+  const ask = localized(item, 'ask_provider', lang);
   return (
     <View style={[s.card, s.mythCard]}>
-      <Text style={s.cardEyebrow}>{t('theBuzz.mythEyebrow')}</Text>
+      <Text style={s.mythTag}>{t('theBuzz.mythEyebrow')}</Text>
       <Text style={s.mythClaim}>{localized(item, 'myth_claim', lang)}</Text>
       <Text style={s.factLabel}>{t('theBuzz.factLabel')}</Text>
-      <Text style={s.cardBody}>{localized(item, 'fact', lang)}</Text>
+      <Text style={s.cardBody} numberOfLines={5}>{localized(item, 'fact', lang)}</Text>
+      {ask ? <Text style={s.askLine}>💬 {ask}</Text> : null}
       <TouchableOpacity onPress={() => Linking.openURL(item.evidence_source_url)} accessibilityRole="link" accessibilityLabel={t('theBuzz.evidenceLinkA11y', { source: item.evidence_source_name })}>
-        <Text style={s.sourceLink}>{t('theBuzz.groundedIn', { source: item.evidence_source_name })}</Text>
+        <Text style={s.sourceLink}>{t('theBuzz.groundedIn', { source: item.evidence_source_name })} ›</Text>
       </TouchableOpacity>
-      <Text style={s.askProvider}>{localized(item, 'ask_provider', lang)}</Text>
     </View>
   );
 }
@@ -130,15 +128,14 @@ function BuzzMythCard({ item, lang, t }: { item: TheBuzzItem; lang: 'en' | 'es';
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.v2_cream },
   header: {
-    paddingTop: 56, paddingBottom: 12, paddingHorizontal: 16,
+    paddingTop: 56, paddingBottom: 12, paddingHorizontal: 12,
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     backgroundColor: COLORS.v2_cream,
-    borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(61,31,14,0.13)',
+    borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(61,31,14,0.10)',
   },
-  back: { fontSize: 15, color: COLORS.v2_cinnamon, fontFamily: FONTS.v2_link },
-  // Editorial masthead (not the 17px HubHeader spec — The Buzz is a destination
-  // screen, not a vertical hub): Bricolage display at 28, lowercase brand voice.
-  headerTitle: { fontFamily: FONTS.headerBold, fontSize: 28, color: COLORS.v2_cocoa, letterSpacing: -0.5 },
+  backBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
+  backChevron: { fontSize: 30, color: '#C24A63', marginTop: -4 },
+  headerTitle: { fontFamily: FONTS.headerBold, fontSize: 24, color: COLORS.v2_cocoa, letterSpacing: -0.5 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 8 },
   errorText: { fontFamily: FONTS.v2_body, fontSize: 14, color: COLORS.v2_cocoa, textAlign: 'center' },
   emptyEmoji: { fontSize: 48, marginBottom: 8 },
@@ -146,24 +143,24 @@ const s = StyleSheet.create({
   emptyBody: { fontFamily: FONTS.v2_body, fontSize: 14, color: COLORS.v2_walnut, textAlign: 'center', lineHeight: 20, marginTop: 4 },
 
   scroll: { padding: 20, paddingBottom: 48, gap: 14 },
-  disclaimer: {
-    fontFamily: FONTS.v2_body, fontSize: 12.5, lineHeight: 18, color: COLORS.v2_walnut,
-    backgroundColor: COLORS.v2_parchment, padding: 12, borderRadius: 12,
-  },
-  issueTitle: { fontFamily: FONTS.v2_display, fontSize: 22, color: COLORS.v2_cocoa, marginTop: 4 },
-  issueIntro: { fontFamily: FONTS.v2_body, fontSize: 14, color: COLORS.v2_walnut, lineHeight: 20 },
+  issueTitle: { fontFamily: FONTS.v2_display, fontSize: 24, color: COLORS.v2_cocoa, letterSpacing: -0.4 },
+  issueIntro: { fontFamily: FONTS.v2_body, fontSize: 14, color: COLORS.v2_walnut, lineHeight: 20, marginTop: -4 },
 
   card: {
-    backgroundColor: COLORS.v2_card, borderRadius: 16, padding: 16,
-    borderWidth: 1, borderColor: 'rgba(217,108,136,0.18)', gap: 8,
+    backgroundColor: COLORS.v2_card, borderRadius: 18, padding: 16,
+    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(194,74,99,0.16)', gap: 8,
   },
-  mythCard: { backgroundColor: '#FDECEF', borderColor: 'rgba(194,85,111,0.25)' },
-  cardEyebrow: { fontFamily: FONTS.v2_mono, fontSize: 10, letterSpacing: 1.2, color: COLORS.v2_cinnamon, textTransform: 'uppercase' },
-  cardTitle: { fontFamily: FONTS.v2_display, fontSize: 17, color: COLORS.v2_cocoa },
+  mythCard: { backgroundColor: '#FDE7EC', borderColor: 'rgba(194,74,99,0.28)' },
+  mythTag: { fontFamily: FONTS.v2_mono, fontSize: 10, letterSpacing: 1.4, color: '#C24A63', textTransform: 'uppercase' },
+  cardTitle: { fontFamily: FONTS.v2_display, fontSize: 17, color: COLORS.v2_cocoa, letterSpacing: -0.3 },
   cardBody: { fontFamily: FONTS.v2_body, fontSize: 14, color: COLORS.v2_walnut, lineHeight: 20 },
   mythClaim: { fontFamily: FONTS.v2_body, fontSize: 14, color: COLORS.v2_walnut, lineHeight: 20, fontStyle: 'italic' },
-  factLabel: { fontFamily: FONTS.v2_bold, fontSize: 11, letterSpacing: 0.6, color: COLORS.v2_cocoa, textTransform: 'uppercase' },
-  sourceLink: { fontFamily: FONTS.v2_link, fontSize: 12.5, color: COLORS.v2_cinnamon },
-  askProvider: { fontFamily: FONTS.v2_body, fontSize: 13, color: COLORS.v2_cocoa, backgroundColor: COLORS.v2_parchment, padding: 10, borderRadius: 10 },
-  trendSource: { fontFamily: FONTS.v2_body, fontSize: 11.5, color: COLORS.v2_walnut },
+  factLabel: { fontFamily: FONTS.v2_bold, fontSize: 11, letterSpacing: 0.6, color: COLORS.v2_cocoa, textTransform: 'uppercase', marginTop: 2 },
+  askLine: { fontFamily: FONTS.v2_body, fontSize: 12.5, color: '#8A5A66', lineHeight: 18, fontStyle: 'italic' },
+  sourceLink: { fontFamily: FONTS.v2_link, fontSize: 12.5, color: '#C24A63', marginTop: 2 },
+  disclaimer: {
+    fontFamily: FONTS.v2_body, fontSize: 11.5, lineHeight: 17, color: COLORS.v2_walnut,
+    textAlign: 'center', marginTop: 6, paddingTop: 12,
+    borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: 'rgba(61,31,14,0.10)',
+  },
 });
