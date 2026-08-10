@@ -754,7 +754,7 @@
   },
   "milkPurchase": {
     "back": "Atrás",
-    "backLabel": "← Atrás",
+    "backLabel": "‹",
     "headerTitle": "Comprar leche",
     "errorTitle": "Error",
     "errorLoadDonor": "No se pudo cargar la donante",
@@ -804,7 +804,7 @@
   },
   "milkOrders": {
     "back": "Atrás",
-    "backLabel": "← Atrás",
+    "backLabel": "‹",
     "title": "Mis pedidos",
     "metaLine": "{{oz}} oz · {{method}}",
     "fulfillmentPickup": "recogida",
@@ -827,7 +827,7 @@
   },
   "savedDonors": {
     "back": "Atrás",
-    "backLabel": "← Atrás",
+    "backLabel": "‹",
     "title": "Donantes guardadas",
     "emptyTitle": "Aún no tienes donantes guardadas",
     "emptyBody": "Toca el corazón en cualquier perfil de donante para guardarla aquí.",
@@ -835,7 +835,7 @@
   },
   "milkMatch": {
     "back": "Atrás",
-    "backLabel": "← Atrás",
+    "backLabel": "‹",
     "title": "Match con IA",
     "introEmoji": "✨",
     "introTitle": "Encuentra tu match",
@@ -874,7 +874,7 @@
   },
   "donorMap": {
     "back": "Lista",
-    "backLabel": "← Lista",
+    "backLabel": "‹ Lista",
     "headerTitle": "Donantes cerca de ti",
     "donorCount": "{{count}} cerca",
     "calloutPrice": "${{price}}/oz · {{oz}} oz",
@@ -886,7 +886,7 @@
   },
   "milkThreads": {
     "back": "Atrás",
-    "backLabel": "← Atrás",
+    "backLabel": "‹",
     "title": "Mensajes",
     "donorTag": "donante",
     "noMessages": "Sin mensajes aún",
@@ -900,7 +900,7 @@
   },
   "milkChat": {
     "back": "Atrás",
-    "backLabel": "← Atrás",
+    "backLabel": "‹",
     "fallbackTitle": "Chat",
     "emptyText": "Saluda 👋",
     "inputPlaceholder": "Escribe un mensaje…",
@@ -909,7 +909,7 @@
   },
   "milkReview": {
     "back": "Atrás",
-    "backLabel": "← Atrás",
+    "backLabel": "‹",
     "title": "Dejar una reseña",
     "prompt": "¿Cómo fue tu experiencia?",
     "tapStarTitle": "Elige una calificación",
@@ -932,7 +932,7 @@
   },
   "milkDispute": {
     "back": "Volver",
-    "backLabel": "← Atrás",
+    "backLabel": "‹",
     "title": "Reportar un problema",
     "subRecipient": "Revisaremos tu reporte y nos comunicaremos contigo y con {{name}}. Abrir una disputa pausa el cierre del pedido mientras investigamos.",
     "subDonor": "Revisaremos tu reporte y nos comunicaremos contigo y con {{name}}. Abrir una disputa pausa el cierre del pedido mientras investigamos.",
@@ -973,7 +973,7 @@
   },
   "donorQuestionnaire": {
     "back": "Volver",
-    "backLabel": "← Atrás",
+    "backLabel": "‹",
     "counter": "{{n}} de {{total}}",
     "yes": "Sí",
     "no": "No",
@@ -1043,7 +1043,7 @@
   },
   "milkShippingLabel": {
     "back": "Atrás",
-    "backLabel": "← Atrás",
+    "backLabel": "‹",
     "loadFailedTitle": "No se pudo cargar",
     "loadFailedBody": "Inténtalo de nuevo.",
     "notSignedIn": "Sesión no iniciada",
@@ -1082,7 +1082,7 @@
   },
   "milestone": {
     "back": "Atrás",
-    "backLabel": "← Atrás",
+    "backLabel": "‹",
     "headerWeek": "Semana {{week}}",
     "headerTitle": "Hitos",
     "emptyForWeek": "Aún no hay hitos cargados para esta semana.",
@@ -1173,7 +1173,7 @@
   },
   "becomeDonor": {
     "back": "Volver",
-    "backLabel": "← Atrás",
+    "backLabel": "‹",
     "step1Title": "Completa un cuestionario de salud",
     "step1Body": "12 preguntas claras sobre tu salud, dieta y medicamentos. Toma unos 5 minutos.",
     "step2Title": "Construye tu insignia de confianza",
@@ -1312,7 +1312,7 @@
   },
   "weeklyJourney": {
     "back": "Atrás",
-    "backLabel": "← Atrás",
+    "backLabel": "‹",
     "headerTitle": "Camino semanal",
     "heroEyebrow": "TU SEMANA",
     "heroWeekFmt": "Semana {{week}}",
@@ -1404,7 +1404,7 @@
     "done": "Listo"
   },
   "bookingScreen": {
-    "back": "← Atrás",
+    "back": "‹",
     "title": "Reservar cita",
     "eyebrow": "CITA",
     "titleLead": "Reserva tu",
@@ -1466,7 +1466,7 @@
     "homeTitleItalic": "cuidado."
   },
   "expertsFavorites": {
-    "back": "← Atrás",
+    "back": "‹",
     "title": "Mi villa",
     "subtitle": "Tus especialistas guardados",
     "emptyTitle": "Aún no has guardado especialistas",
@@ -1474,7 +1474,7 @@
     "browse": "Explorar especialistas"
   },
   "messaging": {
-    "back": "← Atrás",
+    "back": "‹",
     "headerFallback": "Tu proveedor",
     "providerFallback": "tu proveedor",
     "disclaimer": "Los mensajes no se supervisan en tiempo real. Para urgencias llama al 988 o al 911.",
@@ -1483,7 +1483,7 @@
     "inputPlaceholder": "Mensaje a {{name}}…"
   },
   "payment": {
-    "back": "← Atrás",
+    "back": "‹",
     "title": "Pago",
     "eyebrow": "CITA",
     "titleLead": "Confirma y",
@@ -1559,7 +1559,7 @@
     "successDone": "Listo"
   },
   "specialistProfile": {
-    "back": "← Atrás",
+    "back": "‹",
     "badgeNpi": "✓ NPI verificado",
     "badgeTelehealth": "📱 Telesalud",
     "badgeAccepting": "✓ Acepta pacientes",
@@ -1743,7 +1743,7 @@
     "homeTitleItalic": "mamá."
   },
   "gearDetail": {
-    "back": "← Atrás",
+    "back": "‹",
     "backA11y": "Atrás",
     "boostedBadge": "Promocionado",
     "boostedActive": "Promocionado · {{remaining}}",
@@ -1800,7 +1800,7 @@
     "systemEyebrow": "Villie · Moderador"
   },
   "gearInbox": {
-    "back": "← Atrás",
+    "back": "‹",
     "title": "Mensajes",
     "tagBuyer": "compradora/or",
     "tagSeller": "vendedora/or",
@@ -1815,7 +1815,7 @@
     "timeDays": "{{n}} d"
   },
   "myListings": {
-    "back": "← Atrás",
+    "back": "‹",
     "backA11y": "Atrás",
     "title": "Mis publicaciones",
     "newLink": "+ Nuevo",
@@ -1850,7 +1850,7 @@
     "errorBody": "Inténtalo de nuevo."
   },
   "savedGear": {
-    "back": "← Atrás",
+    "back": "‹",
     "backA11y": "Atrás",
     "title": "Guardados",
     "rowA11ySuffixInactive": ", ya no disponible",
@@ -1876,7 +1876,7 @@
     "emptyCta": "Ver eventos →"
   },
   "eventsList": {
-    "back": "← Atrás",
+    "back": "‹",
     "backA11y": "Atrás",
     "title": "Eventos",
     "mastheadEyebrow": "ENCUENTROS",
@@ -1908,7 +1908,7 @@
     "mastheadTitleItalic": "ti."
   },
   "eventDetail": {
-    "back": "← Atrás",
+    "back": "‹",
     "backA11y": "Atrás",
     "notFound": "Evento no encontrado.",
     "badgeWebinar": "🎥 SEMINARIO",
@@ -1957,7 +1957,7 @@
     "platformOnline": "En línea"
   },
   "myRsvps": {
-    "back": "← Atrás",
+    "back": "‹",
     "backA11y": "Atrás",
     "title": "Mis confirmaciones",
     "tabUpcoming": "Próximos",
@@ -1974,7 +1974,7 @@
     "hostPrefix": "con {{host}}"
   },
   "perksList": {
-    "back": "← Atrás",
+    "back": "‹",
     "backA11y": "Atrás",
     "title": "Beneficios",
     "mastheadEyebrow": "PARA TI",
@@ -1997,7 +1997,7 @@
     "claimedPill": "Canjeado ✓"
   },
   "perkDetail": {
-    "back": "← Atrás",
+    "back": "‹",
     "backA11y": "Atrás",
     "title": "Beneficio",
     "partnerBadge": "SOCIO",
@@ -2029,7 +2029,7 @@
     "seeMyPerks": "Ver mis beneficios"
   },
   "myClaims": {
-    "back": "← Atrás",
+    "back": "‹",
     "backA11y": "Atrás",
     "title": "Mis beneficios",
     "emptyTitle": "Aún no has canjeado beneficios",

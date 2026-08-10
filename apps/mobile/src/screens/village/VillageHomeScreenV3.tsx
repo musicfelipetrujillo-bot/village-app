@@ -174,10 +174,8 @@ export default function VillageHomeScreenV3() {
           </TouchableOpacity>
         </View>
 
-        <View style={{ marginTop: -10 }}><Eyebrow>{lang === 'es' ? 'Refuerzos' : 'Reinforcements'}</Eyebrow></View>
         <Text style={styles.headline}>
-          {lang === 'es' ? 'Tu refuerzo está ' : 'Your backup is '}
-          <Text style={styles.headlineItalic}>{lang === 'es' ? 'aquí.' : 'here.'}</Text>
+          {lang === 'es' ? 'Tu refuerzo está aquí' : 'Your backup is here'}
         </Text>
         <Text style={styles.locMono}>{locationLine}</Text>
 
@@ -203,14 +201,7 @@ export default function VillageHomeScreenV3() {
                   <Text style={[styles.tileBadgeText, { color: v.ink }]}>new</Text>
                 </View>
               )}
-              <View>
-                <Text style={[styles.tileTitle, { color: v.ink }]}>{v.title}.</Text>
-                <Text style={[styles.tileSub, { color: v.ink }]}>{v.sub}</Text>
-              </View>
-              <View style={[styles.tileFooter, { borderTopColor: hexAlpha(v.ink, 0.28) }]}>
-                <Text style={[styles.tileStat, { color: v.ink }]}>{v.stat}</Text>
-                <ArrowRight color={v.ink} />
-              </View>
+              <Text style={[styles.tileTitle, { color: v.ink }]}>{v.title}</Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -291,13 +282,6 @@ export default function VillageHomeScreenV3() {
   );
 }
 
-// Small hex→rgba helper for tile hairlines (ink at low alpha).
-function hexAlpha(hex: string, a: number): string {
-  const h = hex.replace('#', '');
-  const r = parseInt(h.slice(0, 2), 16), g = parseInt(h.slice(2, 4), 16), b = parseInt(h.slice(4, 6), 16);
-  return `rgba(${r},${g},${b},${a})`;
-}
-
 // ─── Styles ────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#FBF4E6', overflow: 'hidden' },
@@ -310,12 +294,8 @@ const styles = StyleSheet.create({
   },
 
   headline: {
-    fontFamily: FONTS.v3_display, fontSize: 44, lineHeight: 52,
-    color: T.cocoa, letterSpacing: -1.76, marginTop: 14,
-  },
-  headlineItalic: {
-    fontFamily: FONTS.v3_display_italic, color: '#E14A32',
-    fontSize: 54, lineHeight: 52,
+    fontFamily: FONTS.v3_display, fontSize: 29, lineHeight: 34,
+    color: T.cocoa, letterSpacing: -0.6, marginTop: 12,
   },
   locMono: {
     marginTop: 12,
@@ -330,12 +310,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row', flexWrap: 'wrap', gap: 12,
   },
   tile: {
-    width: '48%', minHeight: 150,
+    width: '48%', minHeight: 92,
     padding: 16, paddingBottom: 14,
     borderRadius: 14, overflow: 'hidden',
-    justifyContent: 'space-between',
-    shadowColor: T.walnut, shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.18, shadowRadius: 26, elevation: 3,
+    justifyContent: 'flex-end',
+    shadowColor: T.walnut, shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.12, shadowRadius: 20, elevation: 2,
   },
   tileBadge: {
     position: 'absolute', top: 12, right: 12,
@@ -347,18 +327,8 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase', fontWeight: '600',
   },
   tileTitle: {
-    fontFamily: FONTS.v3_display, fontSize: 23, lineHeight: 24,
-    color: T.cocoa, letterSpacing: -0.67,
-  },
-  tileSub: { fontFamily: FONTS.v2_body, fontSize: 12, marginTop: 6, lineHeight: 16.5 },
-  tileFooter: {
-    marginTop: 12, paddingTop: 9,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-  },
-  tileStat: {
-    fontFamily: FONTS.v2_mono, fontSize: 9.5, letterSpacing: 1.2,
-    textTransform: 'uppercase', fontWeight: '600',
+    fontFamily: FONTS.v3_display, fontSize: 21, lineHeight: 24,
+    color: T.cocoa, letterSpacing: -0.5,
   },
 
   sectionHead: {

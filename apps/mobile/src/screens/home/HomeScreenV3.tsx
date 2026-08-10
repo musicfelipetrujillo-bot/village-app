@@ -15,8 +15,8 @@
 
 import React, { useRef } from 'react';
 import {
-  View, Text, StyleSheet, TouchableOpacity, Image, Animated, ScrollView,
-  Dimensions, StyleProp, ViewStyle,
+  View, Text, StyleSheet, TouchableOpacity, Image, Animated,
+  Dimensions,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Path, Circle, Polygon } from 'react-native-svg';
@@ -25,7 +25,6 @@ import { COLORS, FONTS, PLACEHOLDER_BABY_NAME } from '@utils/constants';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useUserStore } from '@store/user';
 import { useHomeStore } from '@store/home';
-import { usePicksStore } from '@store/picks';
 import { useT } from '@/i18n';
 import { isExpecting } from '@/manual/beforeBaby';
 import { theBuzzApi, type TheBuzzArchiveRow } from '@api/theBuzz';
@@ -92,19 +91,6 @@ function Glyph({ d, color = '#43260F', size = 22, sw = 2 }: { d: string; color?:
     <Svg width={size} height={size} viewBox="0 0 24 24">
       <Path d={d} stroke={color} strokeWidth={sw} fill="none" strokeLinecap="round" strokeLinejoin="round" />
     </Svg>
-  );
-}
-
-// ─── Shared atoms ──────────────────────────────────────────────────────
-function Eyebrow({ children, color = T.walnut, style }: { children: React.ReactNode; color?: string; style?: StyleProp<ViewStyle> }) {
-  return (
-    <View style={[{ flexDirection: 'row', alignItems: 'center' }, style]}>
-      <View style={{ width: 16, height: 1.5, backgroundColor: color, marginRight: 8 }} />
-      <Text style={{
-        fontFamily: FONTS.v2_mono, fontSize: 11, letterSpacing: 2.6,
-        textTransform: 'uppercase', fontWeight: '500', color,
-      }}>{children}</Text>
-    </View>
   );
 }
 
@@ -276,18 +262,8 @@ function LogRow({ onFeed, onSleep, onMilk }: { onFeed: () => void; onSleep: () =
 // ─── Quiet ask-villie bar ──────────────────────────────────────────────
 function AskVillie({ onAsk }: { onAsk: (seed?: string) => void }) {
   const lang = useUserStore((s) => s.profile?.preferred_language ?? 'en') as 'en' | 'es';
-  const chips = lang === 'es'
-    ? [
-        { label: '¿su sueño va bien?', seed: '¿El sueño de mi bebé va bien?' },
-        { label: 'planea leche para un viaje', seed: 'Ayúdame a planear cuánta leche necesito para un viaje' },
-      ]
-    : [
-        { label: 'is sleep on track?', seed: "Is my baby's sleep on track?" },
-        { label: 'plan milk for a trip', seed: 'Help me plan how much milk I need for a trip' },
-      ];
   return (
     <View style={styles.askWrap}>
-      <Text style={styles.askEyebrow}>✦ {lang === 'es' ? 'pregúntale a villie' : 'ask villie'}</Text>
       <View style={styles.askRow}>
         <TouchableOpacity style={styles.askBar} activeOpacity={0.85} onPress={() => onAsk()} accessibilityRole="button" accessibilityLabel={lang === 'es' ? 'Pregúntale o dile a Villie' : 'Ask or tell Villie anything'}>
           <View style={styles.askBee}><Image source={VILLIE_BEE} style={{ width: 16, height: 16 }} resizeMode="contain" /></View>
@@ -299,156 +275,49 @@ function AskVillie({ onAsk }: { onAsk: (seed?: string) => void }) {
           </LinearGradient>
         </TouchableOpacity>
       </View>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipRow}>
-        {chips.map((c, i) => (
-          <TouchableOpacity key={i} style={styles.chip} activeOpacity={0.85} onPress={() => onAsk(c.seed)} accessibilityRole="button" accessibilityLabel={c.label}>
-            <Text style={styles.chipText}>{c.label}</Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
     </View>
   );
 }
 
-// ─── "Your day" glanceable cards (horizontal) ──────────────────────────
-function YourDay({ onWeek, onMilk, onCheckin }: { onWeek: () => void; onMilk: () => void; onCheckin: () => void }) {
+// ─── One warm check-in card — the single "how are you" moment ──────────
+function CheckinCard({ onPress }: { onPress: () => void }) {
   const lang = useUserStore((s) => s.profile?.preferred_language ?? 'en') as 'en' | 'es';
   return (
-    <View style={{ marginTop: 26 }}>
-      <Eyebrow>{lang === 'es' ? 'tu día' : 'your day'}</Eyebrow>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.dayScroll}>
-        <TouchableOpacity activeOpacity={0.9} onPress={onWeek} accessibilityRole="button" accessibilityLabel={lang === 'es' ? 'Tu semana' : 'Your week'} style={[styles.dayCard, { backgroundColor: '#F6C9D0' }]}>
-          <Glyph d={ICON.sparkle} color="#E14A32" size={22} sw={1.8} />
-          <View>
-            <Text style={[styles.dayCardTitle, { color: '#C63A24' }]}>{lang === 'es' ? 'Tu semana' : 'Your week, so far'}</Text>
-            <Text style={[styles.dayCardSub, { color: '#C63A24' }]}>{lang === 'es' ? 'lo que ve Villie →' : "Villie's read →"}</Text>
-          </View>
-        </TouchableOpacity>
-
-        <TouchableOpacity activeOpacity={0.9} onPress={onMilk} accessibilityRole="button" accessibilityLabel={lang === 'es' ? 'Tu reserva de leche' : 'Your milk stash'} style={[styles.dayCard, { backgroundColor: '#EFD79A' }]}>
-          <Glyph d={ICON.droplet} color="#B0821F" size={22} sw={1.8} />
-          <View>
-            <Text style={[styles.dayCardTitle, { color: '#8A6A1E' }]}>{lang === 'es' ? 'Tu reserva' : 'Milk stash'}</Text>
-            <Text style={[styles.dayCardSub, { color: '#8A6A1E' }]}>{lang === 'es' ? 've tu congelador →' : 'see your freezer →'}</Text>
-          </View>
-        </TouchableOpacity>
-
-        <TouchableOpacity activeOpacity={0.9} onPress={onCheckin} accessibilityRole="button" accessibilityLabel={lang === 'es' ? '¿Cómo estás?' : 'How are you feeling?'} style={[styles.dayCard, { backgroundColor: '#F4CBA8' }]}>
-          <Glyph d={ICON.heart} color="#D97B22" size={22} sw={1.7} />
-          <View>
-            <Text style={[styles.dayCardTitle, { color: '#B85A2E' }]}>{lang === 'es' ? '¿Y tú?' : 'And you?'}</Text>
-            <Text style={[styles.dayCardSub, { color: '#B85A2E' }]}>{lang === 'es' ? '¿cómo estás? →' : 'how are you? →'}</Text>
-          </View>
-        </TouchableOpacity>
-      </ScrollView>
-    </View>
+    <TouchableOpacity onPress={onPress} activeOpacity={0.9} accessibilityRole="button"
+      accessibilityLabel={lang === 'es' ? '¿Cómo estás hoy?' : 'How are you today?'} style={styles.checkinCard}>
+      <View style={styles.checkinIcon}><Glyph d={ICON.heart} color="#C63A24" size={20} sw={1.7} /></View>
+      <View style={{ flex: 1, minWidth: 0 }}>
+        <Text style={styles.checkinTitle}>{lang === 'es' ? '¿Cómo estás hoy?' : 'How are you today?'}</Text>
+        <Text style={styles.checkinSub}>{lang === 'es' ? 'un minuto para ti' : 'a minute just for you'}</Text>
+      </View>
+      <Text style={styles.checkinChevron}>›</Text>
+    </TouchableOpacity>
   );
 }
 
-// ─── Your village — round quick-nav tiles ──────────────────────────────
-type Tile = { key: string; label: string; bg: string; icon: keyof typeof ICON; dot?: boolean; go: () => void };
+// ─── Quiet type-led navigation list ────────────────────────────────────
+type NavItem = { key: string; tint: string; icon: React.ReactNode; label: string; sub?: string; danger?: boolean; onPress: () => void };
 
-function VillageTiles({ tiles, onAll }: { tiles: Tile[]; onAll: () => void }) {
+function NavGroup({ items }: { items: NavItem[] }) {
   return (
-    <View style={{ marginTop: 28 }}>
-      <View style={styles.sectionHead}>
-        <Eyebrow>your village</Eyebrow>
-        <TouchableOpacity onPress={onAll} accessibilityRole="link">
-          <Text style={styles.sectionLink}>All →</Text>
-        </TouchableOpacity>
-      </View>
-      <View style={styles.tileRow}>
-        {tiles.map((t) => (
-          <TouchableOpacity key={t.key} onPress={t.go} activeOpacity={0.85} style={styles.tile} accessibilityRole="button" accessibilityLabel={t.label}>
-            <View style={[styles.tileChip, { backgroundColor: t.bg }]}>
-              <Glyph d={ICON[t.icon]} color={T.cocoa} size={23} sw={1.9} />
-              {t.dot ? <View style={styles.tileDot} /> : null}
+    <View style={styles.navGroup}>
+      {items.map((it, i) => (
+        <View key={it.key}>
+          {i > 0 ? <View style={styles.navDivider} /> : null}
+          <TouchableOpacity style={styles.navRow} activeOpacity={0.7} onPress={it.onPress}
+            accessibilityRole="button" accessibilityLabel={it.label}>
+            <View style={[styles.navIcon, { backgroundColor: it.tint }]}>{it.icon}</View>
+            <View style={{ flex: 1, minWidth: 0 }}>
+              <Text style={[styles.navLabel, it.danger ? { color: '#BE3A2E' } : null]}>{it.label}</Text>
+              {it.sub ? <Text style={styles.navSub} numberOfLines={1}>{it.sub}</Text> : null}
             </View>
-            <Text style={styles.tileLabel} numberOfLines={1}>{t.label}</Text>
+            <Text style={[styles.navChevron, it.danger ? { color: '#BE3A2E' } : null]}>›</Text>
           </TouchableOpacity>
-        ))}
-      </View>
+        </View>
+      ))}
     </View>
   );
 }
-
-// ─── Discover — two feature cards (image-cap + caption) ────────────────
-function DiscoverCard({ cap, capIcon, imageUrl, eyebrow, eyebrowColor, title, sub, onPress }: {
-  cap: readonly [string, string]; capIcon: keyof typeof ICON; imageUrl?: string | null;
-  eyebrow: string; eyebrowColor: string; title: string; sub: string; onPress: () => void;
-}) {
-  return (
-    <TouchableOpacity activeOpacity={0.9} onPress={onPress} style={styles.discCard} accessibilityRole="button" accessibilityLabel={title}>
-      <LinearGradient colors={cap} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.discCap}>
-        {imageUrl
-          ? <Image source={{ uri: imageUrl }} style={StyleSheet.absoluteFillObject} resizeMode="cover" />
-          : <Glyph d={ICON[capIcon]} color="#fff" size={30} sw={1.9} />}
-      </LinearGradient>
-      <View style={styles.discBody}>
-        <Text style={[styles.discEyebrow, { color: eyebrowColor }]} numberOfLines={1}>{eyebrow}</Text>
-        <Text style={styles.discTitle} numberOfLines={1}>{title}</Text>
-        <Text style={styles.discSub} numberOfLines={1}>{sub}</Text>
-      </View>
-    </TouchableOpacity>
-  );
-}
-
-function DiscoverRow({ showBoxes, picksImage, onBoxes, onPicks }: { showBoxes: boolean; picksImage?: string | null; onBoxes: () => void; onPicks: () => void }) {
-  return (
-    <View style={{ marginTop: 26 }}>
-      <Eyebrow>discover</Eyebrow>
-      <View style={styles.discoverRow}>
-        {showBoxes && (
-          <DiscoverCard
-            cap={['#E14A32', '#B03A22']} capIcon="gift"
-            eyebrow="new · curated" eyebrowColor={T.cinnamon}
-            title="Villie Boxes" sub="delivery · newborn · mama"
-            onPress={onBoxes}
-          />
-        )}
-        <DiscoverCard
-          cap={['#DA9A2C', '#EAB52C']} capIcon="star" imageUrl={picksImage}
-          eyebrow="villie picks" eyebrowColor="#A9761F"
-          title="this week's 5" sub="tested, mom-approved"
-          onPress={onPicks}
-        />
-      </View>
-    </View>
-  );
-}
-
-// ─── Your corner — filled coral→rose mom card ──────────────────────────
-function MomCornerCard({ onPress }: { onPress: () => void }) {
-  const t = useT();
-  return (
-    <TouchableOpacity onPress={onPress} activeOpacity={0.92} accessibilityRole="button"
-      accessibilityLabel={t('momHub.homeCardA11y')} style={{ marginTop: 26 }}>
-      <LinearGradient colors={['#E98A6A', '#E14A32']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.cornerCard}>
-        <LinearGradient
-          colors={['rgba(255,255,255,0.18)', 'rgba(255,255,255,0)']}
-          start={{ x: 0, y: 0 }} end={{ x: 0, y: 0.5 }}
-          style={[StyleSheet.absoluteFillObject, { borderRadius: 22 }]}
-          pointerEvents="none"
-        />
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <View style={{ width: 16, height: 1.5, backgroundColor: 'rgba(255,255,255,0.85)', marginRight: 8 }} />
-          <Text style={styles.cornerEyebrow}>{t('momHub.homeCardEyebrow')}</Text>
-        </View>
-        <Text style={styles.cornerTitle}>
-          <Text style={styles.cornerTitleLead}>{t('momHub.titleLead')} </Text>
-          <Text style={styles.cornerTitleEm}>{t('momHub.titleEm')}</Text>
-        </Text>
-        <Text style={styles.cornerBlurb}>{t('momHub.homeCardBlurb')}</Text>
-        <View style={styles.cornerArrowBtn}>
-          <Text style={styles.cornerArrow}>→</Text>
-        </View>
-      </LinearGradient>
-    </TouchableOpacity>
-  );
-}
-
-// Villie Boxes ships behind a flag (default OFF) until launch gates clear.
-const VILLIE_BOXES_ENABLED = process.env.EXPO_PUBLIC_VILLIE_BOXES_ENABLED === '1';
 
 // ─── Screen ────────────────────────────────────────────────────────────
 export default function HomeScreenV3() {
@@ -457,10 +326,6 @@ export default function HomeScreenV3() {
   const t = useT();
   const profile = useUserStore((s) => s.profile);
   const babyProfile = useHomeStore((s) => s.babyProfile);
-
-  const picks = usePicksStore((s) => s.picks);
-  const fetchPicks = usePicksStore((s) => s.fetchPicks);
-  React.useEffect(() => { fetchPicks(); }, [fetchPicks]);
 
   const firstName = profile?.full_name?.split(' ')[0] ?? 'Alana';
   const babyName = babyProfile?.baby_name ?? null;
@@ -477,17 +342,8 @@ export default function HomeScreenV3() {
   const askVillie = (seed?: string) => (navigation.getParent()?.getParent() as any)?.navigate('AIHelpChat', seed ? { seed, autosend: true } : {});
   // The signature "log milk from a photo" action → Milk Vault bag scanner.
   const scanMilk = () => (navigation.getParent() as any)?.navigate('Milk', { screen: 'MilkVaultScan' });
-  const goMilkVault = () => (navigation.getParent() as any)?.navigate('Milk', { screen: 'MilkVaultDashboard' });
 
-  const tiles: Tile[] = [
-    { key: 'milk',    label: 'Milk',    bg: '#F6C9D0', icon: 'droplet',     go: () => navigation.getParent()?.navigate('Milk') },
-    { key: 'experts', label: 'Care',    bg: '#F4CBA8', icon: 'stethoscope', go: () => navigation.getParent()?.navigate('Experts') },
-    { key: 'gear',    label: 'Gear',    bg: '#EFD79A', icon: 'bag',         go: () => navigation.getParent()?.navigate('Gear') },
-    { key: 'plans',   label: 'Plans',   bg: '#F6C2B8', icon: 'calendar',    go: () => navigation.getParent()?.navigate('Village') },
-    ...(VILLIE_BOXES_ENABLED
-      ? [{ key: 'boxes', label: 'Boxes', bg: '#E8C4B6', icon: 'gift', dot: true, go: () => navigation.navigate('BoxesHub' as never) } as Tile]
-      : []),
-  ];
+  const lang = (profile?.preferred_language ?? 'en') as 'en' | 'es';
 
   const scrollY = useRef(new Animated.Value(0)).current;
 
@@ -506,6 +362,23 @@ export default function HomeScreenV3() {
   const miniOpacity = scrollY.interpolate({ inputRange: [150, 260], outputRange: [0, 1], extrapolate: 'clamp' });
   const weekUnit = heroWeek === 1 ? 'week' : 'weeks';
 
+  // Quiet type-led nav — the verticals + mama's corner + emergency, one calm
+  // list instead of a pile of colored cards. Muted icons on soft pastel; the
+  // warmth lives in the check-in card and the hero, scarlet stays an accent.
+  const navItems: NavItem[] = [
+    { key: 'milk',  tint: '#FBE0E5', icon: <Glyph d={ICON.droplet} color="#8A5040" size={19} sw={1.9} />, label: 'Milk Hub', onPress: () => navigation.getParent()?.navigate('Milk') },
+    { key: 'care',  tint: '#FBEAD6', icon: <Glyph d={ICON.stethoscope} color="#8A5040" size={19} sw={1.9} />, label: lang === 'es' ? 'Cuidado' : 'Care', onPress: () => navigation.getParent()?.navigate('Experts') },
+    { key: 'gear',  tint: '#F6EBC4', icon: <Glyph d={ICON.bag} color="#8A5040" size={19} sw={1.9} />, label: lang === 'es' ? 'Artículos de bebé' : 'Baby gear', onPress: () => navigation.getParent()?.navigate('Gear') },
+    { key: 'plans', tint: '#F7DED2', icon: <Glyph d={ICON.calendar} color="#8A5040" size={19} sw={1.9} />, label: lang === 'es' ? 'Planes' : 'Plans', onPress: () => navigation.getParent()?.navigate('Village') },
+    { key: 'mama',  tint: '#F3E3EA', icon: <Glyph d={ICON.sparkle} color="#8A5040" size={19} sw={1.9} />, label: lang === 'es' ? 'Rincón de mamá' : "Mama's corner", onPress: () => navigation.navigate('MomHub' as never) },
+    ...(buzzIssue ? [{ key: 'buzz', tint: '#F6EBC4', icon: <Glyph d={ICON.star} color="#8A5040" size={19} sw={1.9} />, label: t('home.buzzCardTitle'), onPress: () => navigation.navigate('TheBuzz' as never, { issueId: buzzIssue.id } as never) } as NavItem] : []),
+    { key: 'emergency', tint: '#FBE4E0', danger: true,
+      icon: <Svg width={19} height={19} viewBox="0 0 24 24"><Path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="#BE3A2E" strokeWidth={1.9} fill="none" strokeLinecap="round" strokeLinejoin="round" /></Svg>,
+      label: lang === 'es' ? 'En una emergencia' : 'In an emergency',
+      sub: lang === 'es' ? 'CPR infantil, fiebre, cuándo llamar' : 'infant CPR, fevers, when to call',
+      onPress: () => navigation.getParent()?.getParent()?.navigate('QuickReference' as never) },
+  ];
+
   return (
     <View style={styles.container}>
       <Animated.ScrollView
@@ -523,7 +396,7 @@ export default function HomeScreenV3() {
           expecting={expecting}
           onOpenManual={() => goManualView('manual')}
           onBeforeBaby={goBeforeBaby}
-          onMenu={() => navigation.navigate('DiscoverHome' as never)}
+          onMenu={() => navigation.getParent()?.navigate('Me')}
           onNotifications={() => navigation.navigate('Notifications' as never)}
         />
 
@@ -539,11 +412,7 @@ export default function HomeScreenV3() {
 
           <AskVillie onAsk={askVillie} />
 
-          <YourDay
-            onWeek={() => navigation.navigate('Insights' as never)}
-            onMilk={goMilkVault}
-            onCheckin={() => navigation.navigate('DailyCheckin' as never)}
-          />
+          <CheckinCard onPress={() => navigation.navigate('DailyCheckin' as never)} />
 
           {expecting && (
             <TouchableOpacity
@@ -564,53 +433,9 @@ export default function HomeScreenV3() {
             </TouchableOpacity>
           )}
 
-          <VillageTiles tiles={tiles} onAll={() => navigation.getParent()?.navigate('Village')} />
-
-          <DiscoverRow
-            showBoxes={VILLIE_BOXES_ENABLED}
-            picksImage={picks[0]?.image_url ?? null}
-            onBoxes={() => navigation.navigate('BoxesHub' as never)}
-            onPicks={() => navigation.navigate('PerksList' as never)}
-          />
-
-          {buzzIssue ? (
-            <TouchableOpacity
-              activeOpacity={0.9}
-              onPress={() => navigation.navigate('TheBuzz' as never, { issueId: buzzIssue.id } as never)}
-              accessibilityRole="button"
-              accessibilityLabel={t('home.buzzCardTitle')}
-              style={{ flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: '#FDECEF', borderRadius: 16, padding: 15, marginTop: 20, borderWidth: 1, borderColor: 'rgba(194,85,111,0.25)' }}
-            >
-              <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: 'rgba(255,252,246,0.7)', alignItems: 'center', justifyContent: 'center' }}>
-                <Text style={{ fontSize: 19 }}>🐝</Text>
-              </View>
-              <View style={{ flex: 1, minWidth: 0 }}>
-                <Text style={{ fontFamily: FONTS.v3_display, fontSize: 16, color: '#3D2116', letterSpacing: -0.3 }}>{t('home.buzzCardTitle')}</Text>
-                <Text style={{ fontFamily: FONTS.v2_body, fontSize: 12, color: '#8A4A5A', marginTop: 2, lineHeight: 16 }} numberOfLines={1}>{t('home.buzzCardSub')}</Text>
-              </View>
-            </TouchableOpacity>
-          ) : null}
-
-          <MomCornerCard onPress={() => navigation.navigate('MomHub' as never)} />
-
-          <TouchableOpacity
-            style={styles.emergencyRow}
-            activeOpacity={0.85}
-            onPress={() => navigation.getParent()?.getParent()?.navigate('QuickReference' as never)}
-            accessibilityRole="button"
-            accessibilityLabel="In an emergency — quick reference"
-          >
-            <View style={styles.emergencyIcon}>
-              <Svg width={18} height={18} viewBox="0 0 24 24">
-                <Path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="#BE3A2E" strokeWidth={1.9} fill="none" strokeLinecap="round" strokeLinejoin="round" />
-              </Svg>
-            </View>
-            <View style={{ flex: 1, minWidth: 0 }}>
-              <Text style={styles.emergencyTitle}>In an emergency</Text>
-              <Text style={styles.emergencySub}>infant CPR, fevers, when to call</Text>
-            </View>
-            <Text style={styles.emergencyArrow}>→</Text>
-          </TouchableOpacity>
+          <View style={{ marginTop: 24 }}>
+            <NavGroup items={navItems} />
+          </View>
         </View>
       </Animated.ScrollView>
 
@@ -695,25 +520,34 @@ const styles = StyleSheet.create({
   logLabel: { fontFamily: FONTS.v2_body, fontSize: 12.5, color: T.cocoa, marginTop: 9 },
 
   // ── Ask villie ───────────────────────────────────────────────────────
-  askWrap: { marginTop: 24 },
-  askEyebrow: { fontFamily: FONTS.v2_mono, fontSize: 10.5, letterSpacing: 2, textTransform: 'uppercase', color: '#E14A32', fontWeight: '700', marginBottom: 10 },
+  askWrap: { marginTop: 22 },
   askRow: { flexDirection: 'row', alignItems: 'center', gap: 9 },
   askBar: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 9, backgroundColor: '#F7EAD8', borderRadius: 14, paddingHorizontal: 13, paddingVertical: 14, borderWidth: 1.5, borderColor: 'rgba(225,74,50,0.35)' },
   askBee: { width: 24, height: 24, borderRadius: 12, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' },
   askText: { flex: 1, fontFamily: FONTS.bodySemiBold, fontSize: 13.5, color: '#A87A54' },
   askMic: { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center', shadowColor: '#E14A32', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.4, shadowRadius: 11, elevation: 4 },
-  chipRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 12, paddingRight: 22 },
-  chip: { borderWidth: 1.2, borderColor: 'rgba(224,106,136,0.28)', backgroundColor: '#FFFDF9', borderRadius: 999, paddingHorizontal: 13, paddingVertical: 8 },
-  chipText: { fontFamily: FONTS.bodySemiBold, fontSize: 12.5, color: '#B03A22' },
 
-  // ── Your day ─────────────────────────────────────────────────────────
-  dayScroll: { paddingTop: 14, paddingRight: 22, gap: 12 },
-  dayCard: {
-    width: 150, minHeight: 118, borderRadius: 16, padding: 14, justifyContent: 'space-between',
-    shadowColor: T.walnut, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.1, shadowRadius: 14, elevation: 2,
+  // ── Check-in (the one warm card) ─────────────────────────────────────
+  checkinCard: {
+    marginTop: 18, flexDirection: 'row', alignItems: 'center', gap: 13,
+    backgroundColor: '#FBE0E5', borderRadius: 18, paddingVertical: 15, paddingHorizontal: 15,
   },
-  dayCardTitle: { fontFamily: FONTS.bodySemiBold, fontSize: 14.5, color: '#43260F', lineHeight: 18 },
-  dayCardSub: { fontFamily: FONTS.v2_body, fontSize: 11, marginTop: 3 },
+  checkinIcon: { width: 38, height: 38, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.6)', alignItems: 'center', justifyContent: 'center' },
+  checkinTitle: { fontFamily: FONTS.v3_display, fontSize: 16.5, color: '#7A2A20', letterSpacing: -0.3 },
+  checkinSub: { fontFamily: FONTS.v2_body, fontSize: 12, color: '#A2584B', marginTop: 2 },
+  checkinChevron: { fontFamily: FONTS.v2_link, fontSize: 22, color: '#D89AA0', marginTop: -2 },
+
+  // ── Quiet nav list ───────────────────────────────────────────────────
+  navGroup: {
+    backgroundColor: T.paper, borderRadius: 18, overflow: 'hidden',
+    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(122,74,40,0.14)',
+  },
+  navRow: { flexDirection: 'row', alignItems: 'center', gap: 13, paddingVertical: 13, paddingHorizontal: 15 },
+  navDivider: { height: StyleSheet.hairlineWidth, backgroundColor: 'rgba(122,74,40,0.12)', marginLeft: 58 },
+  navIcon: { width: 34, height: 34, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
+  navLabel: { fontFamily: FONTS.v3_display, fontSize: 16, color: T.cocoa, letterSpacing: -0.3 },
+  navSub: { fontFamily: FONTS.v2_body, fontSize: 11, color: T.walnut, marginTop: 1 },
+  navChevron: { fontFamily: FONTS.v2_link, fontSize: 20, color: '#C9B79F', marginTop: -1 },
 
   // ── Getting ready ────────────────────────────────────────────────────
   gettingReadyCard: { flexDirection: 'row', alignItems: 'center', gap: 13, borderRadius: 18, paddingVertical: 14, paddingHorizontal: 16 },
@@ -723,54 +557,4 @@ const styles = StyleSheet.create({
   gettingReadyTitle: { fontFamily: FONTS.v3_display, fontSize: 16, color: '#4A1F2C', letterSpacing: -0.3, marginTop: 2 },
   gettingReadySub: { fontFamily: FONTS.v2_body, fontSize: 12, color: '#5c3b2a', marginTop: 1 },
 
-  // ── Emergency ────────────────────────────────────────────────────────
-  emergencyRow: {
-    marginTop: 16, flexDirection: 'row', alignItems: 'center', gap: 12,
-    backgroundColor: T.paper, borderRadius: 16, padding: 13,
-    borderWidth: 1, borderColor: 'rgba(190,58,46,0.22)',
-  },
-  emergencyIcon: { width: 34, height: 34, borderRadius: 11, backgroundColor: '#FBE4E0', alignItems: 'center', justifyContent: 'center' },
-  emergencyTitle: { fontFamily: FONTS.v3_display, fontSize: 15, color: T.cocoa, letterSpacing: -0.3 },
-  emergencySub: { fontFamily: FONTS.v2_body, fontSize: 11, color: T.walnut, marginTop: 1 },
-  emergencyArrow: { fontFamily: FONTS.v2_link, fontSize: 16, color: '#BE3A2E' },
-
-  // ── Section heads ────────────────────────────────────────────────────
-  sectionHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingBottom: 10 },
-  sectionLink: { fontFamily: FONTS.v2_mono, fontSize: 10, color: T.cinnamon, letterSpacing: 1.8, textTransform: 'uppercase', fontWeight: '600' },
-
-  // ── Village tiles ────────────────────────────────────────────────────
-  tileRow: { flexDirection: 'row', justifyContent: 'space-between' },
-  tile: { alignItems: 'center', width: 60 },
-  tileChip: {
-    width: 56, height: 56, borderRadius: 18, alignItems: 'center', justifyContent: 'center',
-    shadowColor: T.walnut, shadowOffset: { width: 0, height: 5 }, shadowOpacity: 0.18, shadowRadius: 12, elevation: 2,
-  },
-  tileDot: { position: 'absolute', top: -2, right: 6, width: 13, height: 13, borderRadius: 7, backgroundColor: T.cinnamon, borderWidth: 2, borderColor: T.cream },
-  tileLabel: { fontFamily: FONTS.v2_bold, fontSize: 11.5, color: T.cocoa, marginTop: 8 },
-
-  // ── Discover ─────────────────────────────────────────────────────────
-  discoverRow: { flexDirection: 'row', gap: 12, marginTop: 12 },
-  discCard: {
-    flex: 1, borderRadius: 18, overflow: 'hidden', backgroundColor: T.paper,
-    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(122,74,40,0.14)',
-    shadowColor: T.walnut, shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.12, shadowRadius: 18, elevation: 2,
-  },
-  discCap: { height: 92, alignItems: 'center', justifyContent: 'center' },
-  discBody: { padding: 14 },
-  discEyebrow: { fontFamily: FONTS.v2_mono, fontSize: 9.5, letterSpacing: 1.6, textTransform: 'uppercase', fontWeight: '700' },
-  discTitle: { fontFamily: FONTS.v3_display, fontSize: 17, color: T.cocoa, letterSpacing: -0.5, marginTop: 6 },
-  discSub: { fontFamily: FONTS.v2_body, fontSize: 11.5, color: T.walnut, marginTop: 3 },
-
-  // ── Your corner ──────────────────────────────────────────────────────
-  cornerCard: {
-    borderRadius: 22, paddingHorizontal: 22, paddingTop: 18, paddingBottom: 22, overflow: 'hidden',
-    shadowColor: T.cinnamon, shadowOffset: { width: 0, height: 12 }, shadowOpacity: 0.28, shadowRadius: 26, elevation: 5,
-  },
-  cornerEyebrow: { fontFamily: FONTS.v2_mono, fontSize: 11, letterSpacing: 2.6, textTransform: 'uppercase', fontWeight: '500', color: 'rgba(255,255,255,0.92)' },
-  cornerTitle: { marginTop: 12, fontFamily: FONTS.v3_display, fontSize: 30, lineHeight: 32, letterSpacing: -1.0 },
-  cornerTitleLead: { color: '#FFFDF8', fontWeight: '700' },
-  cornerTitleEm: { fontFamily: FONTS.v3_display_italic, color: '#FFF1DC' },
-  cornerBlurb: { marginTop: 8, fontFamily: FONTS.v2_body, fontSize: 14, lineHeight: 20, color: 'rgba(255,253,248,0.92)', maxWidth: '78%' },
-  cornerArrowBtn: { position: 'absolute', right: 20, bottom: 20, width: 46, height: 46, borderRadius: 23, backgroundColor: 'rgba(255,255,255,0.24)', alignItems: 'center', justifyContent: 'center' },
-  cornerArrow: { color: '#fff', fontSize: 22, fontFamily: FONTS.v3_display, marginTop: -2 },
 });

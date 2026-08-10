@@ -754,7 +754,7 @@
   },
   "milkPurchase": {
     "back": "Back",
-    "backLabel": "← Back",
+    "backLabel": "‹",
     "headerTitle": "Purchase Milk",
     "errorTitle": "Error",
     "errorLoadDonor": "Could not load donor",
@@ -804,7 +804,7 @@
   },
   "milkOrders": {
     "back": "Back",
-    "backLabel": "← Back",
+    "backLabel": "‹",
     "title": "My Orders",
     "metaLine": "{{oz}} oz · {{method}}",
     "fulfillmentPickup": "pickup",
@@ -827,7 +827,7 @@
   },
   "savedDonors": {
     "back": "Back",
-    "backLabel": "← Back",
+    "backLabel": "‹",
     "title": "Saved Donors",
     "emptyTitle": "No saved donors yet",
     "emptyBody": "Tap the heart on any donor profile to save them here.",
@@ -835,7 +835,7 @@
   },
   "milkMatch": {
     "back": "Back",
-    "backLabel": "← Back",
+    "backLabel": "‹",
     "title": "AI Match",
     "introEmoji": "✨",
     "introTitle": "Find your match",
@@ -874,7 +874,7 @@
   },
   "donorMap": {
     "back": "List",
-    "backLabel": "← List",
+    "backLabel": "‹ List",
     "headerTitle": "Donors Near You",
     "donorCount": "{{count}} nearby",
     "calloutPrice": "${{price}}/oz · {{oz}} oz",
@@ -886,7 +886,7 @@
   },
   "milkThreads": {
     "back": "Back",
-    "backLabel": "← Back",
+    "backLabel": "‹",
     "title": "Messages",
     "donorTag": "donor",
     "noMessages": "No messages yet",
@@ -900,7 +900,7 @@
   },
   "milkChat": {
     "back": "Back",
-    "backLabel": "← Back",
+    "backLabel": "‹",
     "fallbackTitle": "Chat",
     "emptyText": "Say hi 👋",
     "inputPlaceholder": "Type a message…",
@@ -909,7 +909,7 @@
   },
   "milkReview": {
     "back": "Back",
-    "backLabel": "← Back",
+    "backLabel": "‹",
     "title": "Leave a Review",
     "prompt": "How was your experience?",
     "tapStarTitle": "Pick a rating",
@@ -932,7 +932,7 @@
   },
   "milkDispute": {
     "back": "Go back",
-    "backLabel": "← Back",
+    "backLabel": "‹",
     "title": "Report an issue",
     "subRecipient": "We'll review your report and contact both you and {{name}}. Opening a dispute pauses the order from closing while we investigate.",
     "subDonor": "We'll review your report and contact both you and {{name}}. Opening a dispute pauses the order from closing while we investigate.",
@@ -973,7 +973,7 @@
   },
   "donorQuestionnaire": {
     "back": "Go back",
-    "backLabel": "← Back",
+    "backLabel": "‹",
     "counter": "{{n}} of {{total}}",
     "yes": "Yes",
     "no": "No",
@@ -1043,7 +1043,7 @@
   },
   "milkShippingLabel": {
     "back": "Go back",
-    "backLabel": "← Back",
+    "backLabel": "‹",
     "loadFailedTitle": "Could not load",
     "loadFailedBody": "Try again.",
     "notSignedIn": "Not signed in",
@@ -1082,7 +1082,7 @@
   },
   "milestone": {
     "back": "Back",
-    "backLabel": "← Back",
+    "backLabel": "‹",
     "headerWeek": "Week {{week}}",
     "headerTitle": "Milestones",
     "emptyForWeek": "No milestones seeded for this week yet.",
@@ -1173,7 +1173,7 @@
   },
   "becomeDonor": {
     "back": "Go back",
-    "backLabel": "← Back",
+    "backLabel": "‹",
     "step1Title": "Complete a health questionnaire",
     "step1Body": "12 straightforward questions about your health, diet, and medications. Takes about 5 minutes.",
     "step2Title": "Build your Trust Badge",
@@ -1312,7 +1312,7 @@
   },
   "weeklyJourney": {
     "back": "Back",
-    "backLabel": "← Back",
+    "backLabel": "‹",
     "headerTitle": "Weekly Journey",
     "heroEyebrow": "YOUR WEEK",
     "heroWeekFmt": "Week {{week}}",
@@ -1404,7 +1404,7 @@
     "done": "Done"
   },
   "bookingScreen": {
-    "back": "← Back",
+    "back": "‹",
     "title": "Book Appointment",
     "eyebrow": "APPOINTMENT",
     "titleLead": "Book your",
@@ -1466,7 +1466,7 @@
     "homeTitleItalic": "team."
   },
   "expertsFavorites": {
-    "back": "← Back",
+    "back": "‹",
     "title": "My Village",
     "subtitle": "Your saved specialists",
     "emptyTitle": "No saved specialists yet",
@@ -1474,7 +1474,7 @@
     "browse": "Browse Specialists"
   },
   "messaging": {
-    "back": "← Back",
+    "back": "‹",
     "headerFallback": "Your provider",
     "providerFallback": "provider",
     "disclaimer": "Messages are not monitored in real-time. For urgent concerns call 988 or 911.",
@@ -1483,7 +1483,7 @@
     "inputPlaceholder": "Message {{name}}…"
   },
   "payment": {
-    "back": "← Back",
+    "back": "‹",
     "title": "Payment",
     "eyebrow": "APPOINTMENT",
     "titleLead": "Confirm and",
@@ -1559,7 +1559,7 @@
     "successDone": "Done"
   },
   "specialistProfile": {
-    "back": "← Back",
+    "back": "‹",
     "badgeNpi": "✓ NPI Verified",
     "badgeTelehealth": "📱 Telehealth",
     "badgeAccepting": "✓ Accepting patients",
@@ -1743,7 +1743,7 @@
     "homeTitleItalic": "on."
   },
   "gearDetail": {
-    "back": "← Back",
+    "back": "‹",
     "backA11y": "Back",
     "boostedBadge": "Boosted",
     "boostedActive": "Boosted · {{remaining}}",
@@ -1800,7 +1800,7 @@
     "systemEyebrow": "Villie · Moderator"
   },
   "gearInbox": {
-    "back": "← Back",
+    "back": "‹",
     "title": "Messages",
     "tagBuyer": "buyer",
     "tagSeller": "seller",
@@ -1815,7 +1815,7 @@
     "timeDays": "{{n}}d"
   },
   "myListings": {
-    "back": "← Back",
+    "back": "‹",
     "backA11y": "Back",
     "title": "My listings",
     "newLink": "+ New",
@@ -1850,7 +1850,7 @@
     "errorBody": "Try again."
   },
   "savedGear": {
-    "back": "← Back",
+    "back": "‹",
     "backA11y": "Back",
     "title": "Saved",
     "rowA11ySuffixInactive": ", no longer available",
@@ -1876,7 +1876,7 @@
     "emptyCta": "Browse events →"
   },
   "eventsList": {
-    "back": "← Back",
+    "back": "‹",
     "backA11y": "Back",
     "title": "Events",
     "mastheadEyebrow": "GATHER",
@@ -1908,7 +1908,7 @@
     "mastheadTitleItalic": "you."
   },
   "eventDetail": {
-    "back": "← Back",
+    "back": "‹",
     "backA11y": "Back",
     "notFound": "Event not found.",
     "badgeWebinar": "🎥 WEBINAR",
@@ -1957,7 +1957,7 @@
     "platformOnline": "Online"
   },
   "myRsvps": {
-    "back": "← Back",
+    "back": "‹",
     "backA11y": "Back",
     "title": "My RSVPs",
     "tabUpcoming": "Upcoming",
@@ -1974,7 +1974,7 @@
     "hostPrefix": "with {{host}}"
   },
   "perksList": {
-    "back": "← Back",
+    "back": "‹",
     "backA11y": "Back",
     "title": "Perks",
     "mastheadEyebrow": "FOR YOU",
@@ -1997,7 +1997,7 @@
     "claimedPill": "Claimed ✓"
   },
   "perkDetail": {
-    "back": "← Back",
+    "back": "‹",
     "backA11y": "Back",
     "title": "Perk",
     "partnerBadge": "PARTNER",
@@ -2029,7 +2029,7 @@
     "seeMyPerks": "See my perks"
   },
   "myClaims": {
-    "back": "← Back",
+    "back": "‹",
     "backA11y": "Back",
     "title": "My Perks",
     "emptyTitle": "No perks claimed yet",
