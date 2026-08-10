@@ -36,7 +36,7 @@ const PLAN_PROMPTS: PlanPrompt[] = [
   {
     emoji: '🩺', label: 'see a specialist this week', sub: 'a free window near you',
     seed: 'Help me find time this week to see a specialist near me that fits my schedule — suggest a day and time I\'m free.',
-    tile: ['#FBD9E1', '#F7C0CE'], arrow: '#E14A32', border: '#F4DBDF',
+    tile: ['#FBD9E1', '#F7C0CE'], arrow: '#C24A63', border: '#F4DBDF',
   },
   {
     emoji: '🧘‍♀️', label: 'a class that fits my week', sub: 'postpartum-friendly, nearby',
@@ -186,8 +186,8 @@ function RhythmView({ babyName, onPick }: { babyName: string; onPick: (c: PumpCa
 
 const KIND_STYLE: Record<PlanSlot['kind'], { bg: string; border: string; mark?: string; markColor?: string }> = {
   calendar: { bg: '#EFE7DA', border: '#E4D8C4' },
-  nap: { bg: '#FDECEF', border: '#F3C6D2', mark: '✦ VILLIE', markColor: '#B03A22' },
-  feed: { bg: '#FDECEF', border: '#F3C6D2', mark: '✦ VILLIE', markColor: '#B03A22' },
+  nap: { bg: '#FDECEF', border: '#F3C6D2', mark: '✦ VILLIE', markColor: '#9E2F4C' },
+  feed: { bg: '#FDECEF', border: '#F3C6D2', mark: '✦ VILLIE', markColor: '#9E2F4C' },
   pump: { bg: '#FBF0D5', border: '#EFD9A0', mark: '✦ VILLIE', markColor: HONEY },
 };
 
@@ -346,7 +346,7 @@ const s = StyleSheet.create({
   editBtn: { backgroundColor: '#FFFDFA', borderWidth: 1, borderColor: '#EAD8BE', borderRadius: 10, paddingVertical: 8, paddingHorizontal: 12 },
   editBtnText: { fontFamily: FONTS.bodySemiBold, fontSize: 12, color: INK },
   editDismiss: { borderColor: '#E9C7C0' },
-  editDismissText: { color: '#B03A22' },
+  editDismissText: { color: '#9E2F4C' },
   emptyNote: { fontFamily: FONTS.v2_body, fontSize: 13, color: INKSOFT, lineHeight: 19, paddingVertical: 20 },
   legend: { flexDirection: 'row', gap: 18, justifyContent: 'center', paddingVertical: 14 },
   legendItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },

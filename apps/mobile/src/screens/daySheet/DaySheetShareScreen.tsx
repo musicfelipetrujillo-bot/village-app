@@ -34,7 +34,7 @@ function pdfHtml(d: DaySheet): string {
     `<div style="display:flex;gap:10px;margin:8px 0;background:#FDECEF;border-radius:10px;padding:10px">${t.photo_url ? `<img src="${esc(t.photo_url)}" style="width:70px;height:70px;object-fit:cover;border-radius:8px"/>` : '💡 '}<div>${esc(t.text)}</div></div>`).join('');
   return `<html><head><meta name="viewport" content="width=device-width,initial-scale=1"><style>
     body{font-family:-apple-system,Helvetica,sans-serif;color:#3D2116;padding:22px}
-    h1{font-size:26px;margin:0} .eye{letter-spacing:2px;text-transform:uppercase;font-size:11px;color:#B98A1E;font-weight:700}
+    h1{font-size:26px;margin:0} .eye{letter-spacing:2px;text-transform:uppercase;font-size:11px;color:#A84A66;font-weight:700}
     table{width:100%;border-collapse:collapse;font-size:13px} td{vertical-align:middle} h3{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#8A6A55;margin:18px 0 8px}
     .box{background:#FCEFC7;border-radius:12px;padding:12px;font-size:13px;line-height:1.6}
   </style></head><body>

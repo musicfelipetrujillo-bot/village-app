@@ -77,8 +77,8 @@ const V9 = {
   // Kit canon (2026-05-16): old rust/rust-deep retired; cinnamon family is the
   // app's canonical warm action color. Token names kept for grep compatibility
   // across the Manual file (60+ refs in masthead + week hero + tile SVG).
-  rust: '#E14A32',     // cinnamon (was #E14A32)
-  rustDeep: '#E14A32', // action-deep (was #7A4A24)
+  rust: '#C24A63',     // cinnamon (was #E14A32)
+  rustDeep: '#C24A63', // action-deep (was #7A4A24)
   sage: '#E98A6A',
   sageDeep: '#E98A6A',
   coco: '#AD795B',
@@ -135,8 +135,8 @@ export const CHAPTER_THEME_DEFAULT: ChapterTheme = {
 // feed↔nourish, grow↔feel, care↔rest, soothe↔tips.
 export const CHAPTER_THEME: Record<string, ChapterTheme> = {
   // Grow / Feel — rose
-  'baby/grow':  { accent: '#E14A32', accentDeep: '#E14A32', bg: '#FAE2E7', yolkBg: '#FAE2E7' },
-  'mom/feel':   { accent: '#E14A32', accentDeep: '#E14A32', bg: '#FAE2E7', yolkBg: '#FAE2E7' },
+  'baby/grow':  { accent: '#C24A63', accentDeep: '#C24A63', bg: '#FAE2E7', yolkBg: '#FAE2E7' },
+  'mom/feel':   { accent: '#C24A63', accentDeep: '#C24A63', bg: '#FAE2E7', yolkBg: '#FAE2E7' },
   // Sleep / Heal — terracotta
   'baby/sleep': { accent: '#C46A45', accentDeep: '#C46A45', bg: '#F0D7C3', yolkBg: '#F0D7C3' },
   'mom/heal':   { accent: '#C46A45', accentDeep: '#C46A45', bg: '#F0D7C3', yolkBg: '#F0D7C3' },
@@ -1298,7 +1298,7 @@ const styles = StyleSheet.create({
   },
   clipThumbGlyph: { color: '#fff', fontSize: 9, marginLeft: 1.5 },
   clipProPill: {
-    position: 'absolute', top: 3, left: 3, backgroundColor: '#E14A32',
+    position: 'absolute', top: 3, left: 3, backgroundColor: '#C24A63',
     borderRadius: 999, paddingHorizontal: 5, paddingVertical: 1,
   },
   clipProPillText: { color: '#FFFCF6', fontSize: 7.5, fontFamily: FONTS.bodyBold, letterSpacing: 0.8, textTransform: 'uppercase' },

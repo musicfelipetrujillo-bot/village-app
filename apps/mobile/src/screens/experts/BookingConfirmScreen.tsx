@@ -204,7 +204,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     width: '100%',
   },
-  telehealthBtnText: { color: '#E14A32', fontSize: 15, fontFamily: FONTS.bodySemiBold },
+  telehealthBtnText: { color: '#C24A63', fontSize: 15, fontFamily: FONTS.bodySemiBold },
 
   note: {
     fontSize: 12,

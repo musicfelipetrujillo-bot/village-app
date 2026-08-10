@@ -14,7 +14,7 @@ import { useUserStore } from '@store/user';
 
 const T = {
   cream: '#FCF7EF', paper: '#FFFCF6', cocoa: '#43260F', walnut: '#7A4A24',
-  rasp: '#E14A32', berry: '#B03A22', gold: '#DA9A2C', coral: '#E98A6A',
+  rasp: '#C24A63', berry: '#9E2F4C', gold: '#DA9A2C', coral: '#E98A6A',
 };
 
 const ICON = {

@@ -220,9 +220,17 @@ function WeekRingHero({ firstName, babyName, weekNumber, expecting, onOpenManual
         </View>
       </TouchableOpacity>
 
-      <View style={styles.heroTapHint}>
+      <TouchableOpacity
+        style={styles.heroTapHint}
+        activeOpacity={0.85}
+        onPress={expecting ? onBeforeBaby : onOpenManual}
+        accessibilityRole="button"
+        accessibilityLabel={expecting
+          ? (lang === 'es' ? 'Prepárate para la llegada del bebé' : 'Get ready for baby')
+          : (lang === 'es' ? "Abre el manual de esta semana" : "Open this week's manual")}
+      >
         <Text style={styles.heroTapHintText}>{tapHint}</Text>
-      </View>
+      </TouchableOpacity>
     </LinearGradient>
   );
 }
@@ -304,10 +312,8 @@ function DiscoverCard({ cap, capIcon, imageUrl, eyebrow, title, sub, onPress }: 
 function DiscoverRow({ showBoxes, picksImage, onBoxes, onPicks }: { showBoxes: boolean; picksImage?: string | null; onBoxes: () => void; onPicks: () => void }) {
   const lang = useUserStore((s) => s.profile?.preferred_language ?? 'en') as 'en' | 'es';
   return (
-    <View style={{ marginTop: 26 }}>
-      <Text style={styles.discHead}>{lang === 'es' ? 'Descubre' : 'Discover'}</Text>
-      <View style={styles.discoverRow}>
-        {showBoxes && (
+    <View style={styles.discoverRow}>
+      {showBoxes && (
           <DiscoverCard
             cap={['#C24A63', '#9E2F4C']} capIcon="gift"
             eyebrow={lang === 'es' ? 'nuevo · curado' : 'new · curated'}
@@ -322,7 +328,6 @@ function DiscoverRow({ showBoxes, picksImage, onBoxes, onPicks }: { showBoxes: b
           sub={lang === 'es' ? 'probado por mamás' : 'tested, mom-approved'}
           onPress={onPicks}
         />
-      </View>
     </View>
   );
 }
@@ -402,16 +407,19 @@ export default function HomeScreenV3() {
   const miniOpacity = scrollY.interpolate({ inputRange: [150, 260], outputRange: [0, 1], extrapolate: 'clamp' });
   const weekUnit = heroWeek === 1 ? 'week' : 'weeks';
 
-  // Quiet type-led nav — the verticals + mama's corner + emergency, one calm
-  // list instead of a pile of colored cards. Muted icons on soft pastel; the
-  // warmth lives in the check-in card and the hero, scarlet stays an accent.
-  const navItems: NavItem[] = [
+  // Nav grouped by meaning: Village = the verticals, Discover = editorial +
+  // commerce, Emergency stands alone. Muted icons on soft pastel; warmth
+  // lives in the hero + Discover cards, scarlet stays an accent.
+  const villageItems: NavItem[] = [
     { key: 'milk',  tint: '#FBE0E5', icon: <Glyph d={ICON.droplet} color="#8A5040" size={19} sw={1.9} />, label: 'Milk Hub', onPress: () => navigation.getParent()?.navigate('Milk') },
     { key: 'care',  tint: '#FBEAD6', icon: <Glyph d={ICON.stethoscope} color="#8A5040" size={19} sw={1.9} />, label: lang === 'es' ? 'Cuidado' : 'Care', onPress: () => navigation.getParent()?.navigate('Experts') },
     { key: 'gear',  tint: '#F6EBC4', icon: <Glyph d={ICON.bag} color="#8A5040" size={19} sw={1.9} />, label: lang === 'es' ? 'Artículos de bebé' : 'Baby gear', onPress: () => navigation.getParent()?.navigate('Gear') },
     { key: 'plans', tint: '#F7DED2', icon: <Glyph d={ICON.calendar} color="#8A5040" size={19} sw={1.9} />, label: lang === 'es' ? 'Planes' : 'Plans', onPress: () => navigation.getParent()?.navigate('Village') },
-    { key: 'mama',  tint: '#F3E3EA', icon: <Glyph d={ICON.sparkle} color="#8A5040" size={19} sw={1.9} />, label: lang === 'es' ? 'Rincón de mamá' : "Mama's corner", onPress: () => navigation.navigate('MomHub' as never) },
+  ];
+  const discoverItems: NavItem[] = [
     ...(buzzIssue ? [{ key: 'buzz', tint: '#F6EBC4', icon: <Glyph d={ICON.star} color="#8A5040" size={19} sw={1.9} />, label: t('home.buzzCardTitle'), onPress: () => navigation.navigate('TheBuzz' as never, { issueId: buzzIssue.id } as never) } as NavItem] : []),
+  ];
+  const emergencyItems: NavItem[] = [
     { key: 'emergency', tint: '#FBE4E0', danger: true,
       icon: <Svg width={19} height={19} viewBox="0 0 24 24"><Path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="#BE3A2E" strokeWidth={1.9} fill="none" strokeLinecap="round" strokeLinejoin="round" /></Svg>,
       label: lang === 'es' ? 'En una emergencia' : 'In an emergency',
@@ -436,7 +444,7 @@ export default function HomeScreenV3() {
           expecting={expecting}
           onOpenManual={() => goManualView('manual')}
           onBeforeBaby={goBeforeBaby}
-          onMenu={() => navigation.getParent()?.navigate('Me')}
+          onMenu={() => navigation.getParent()?.navigate('Profile')}
           onNotifications={() => navigation.navigate('Notifications' as never)}
         />
 
@@ -449,6 +457,17 @@ export default function HomeScreenV3() {
             onSleep={() => navigation.navigate('Insights' as never, { pane: 'sleep' } as never)}
             onMilk={scanMilk}
           />
+
+          {/* Insights lives with the daily log — reading of what you track. */}
+          <TouchableOpacity
+            onPress={() => navigation.navigate('Insights' as never)}
+            activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel={lang === 'es' ? 'Ver los patrones del bebé' : "See baby's patterns"}
+            style={styles.patternsLink}
+          >
+            <Text style={styles.patternsLinkText}>{lang === 'es' ? 'ver patrones del bebé  ›' : "baby's patterns  ›"}</Text>
+          </TouchableOpacity>
 
           <AskVillie onAsk={askVillie} />
 
@@ -471,16 +490,48 @@ export default function HomeScreenV3() {
             </TouchableOpacity>
           )}
 
+          {/* Mama's corner — mom's own space, operational, stands alone */}
+          <TouchableOpacity
+            activeOpacity={0.9}
+            onPress={() => navigation.navigate('MomHub' as never)}
+            accessibilityRole="button"
+            accessibilityLabel={lang === 'es' ? 'Rincón de mamá' : "Mama's corner"}
+            style={styles.mamaCard}
+          >
+            <View style={styles.mamaIcon}><Glyph d={ICON.sparkle} color="#B24A78" size={20} sw={1.8} /></View>
+            <View style={{ flex: 1, minWidth: 0 }}>
+              <Text style={styles.mamaTitle}>{lang === 'es' ? 'Rincón de mamá' : "Mama's corner"}</Text>
+              <Text style={styles.mamaSub}>{lang === 'es' ? 'tu espacio para respirar' : 'your space to regroup'}</Text>
+            </View>
+            <Text style={styles.mamaChevron}>›</Text>
+          </TouchableOpacity>
+
+          {/* Village — the verticals */}
           <View style={{ marginTop: 24 }}>
-            <NavGroup items={navItems} />
+            <Text style={styles.discHead}>{lang === 'es' ? 'Tu aldea' : 'Village'}</Text>
+            <NavGroup items={villageItems} />
           </View>
 
-          <DiscoverRow
-            showBoxes={VILLIE_BOXES_ENABLED}
-            picksImage={picks[0]?.image_url ?? null}
-            onBoxes={() => navigation.navigate('BoxesHub' as never)}
-            onPicks={() => navigation.navigate('PerksList' as never)}
-          />
+          {/* Discover — Villie Boxes, Villie Picks, The Buzz */}
+          <View style={{ marginTop: 26 }}>
+            <Text style={styles.discHead}>{lang === 'es' ? 'Descubre' : 'Discover'}</Text>
+            <DiscoverRow
+              showBoxes={VILLIE_BOXES_ENABLED}
+              picksImage={picks[0]?.image_url ?? null}
+              onBoxes={() => navigation.navigate('BoxesHub' as never)}
+              onPicks={() => navigation.navigate('PerksList' as never)}
+            />
+            {discoverItems.length > 0 ? (
+              <View style={{ marginTop: 12 }}>
+                <NavGroup items={discoverItems} />
+              </View>
+            ) : null}
+          </View>
+
+          {/* Emergency — stands alone */}
+          <View style={{ marginTop: 22 }}>
+            <NavGroup items={emergencyItems} />
+          </View>
         </View>
       </Animated.ScrollView>
 
@@ -587,6 +638,21 @@ const styles = StyleSheet.create({
   discEyebrow: { fontFamily: FONTS.v2_mono, fontSize: 9.5, letterSpacing: 1.6, textTransform: 'uppercase', fontWeight: '700', color: '#C24A63' },
   discTitle: { fontFamily: FONTS.v3_display, fontSize: 17, color: T.cocoa, letterSpacing: -0.5, marginTop: 6 },
   discSub: { fontFamily: FONTS.v2_body, fontSize: 11.5, color: T.walnut, marginTop: 3 },
+
+  // ── Baby's patterns link (Insights) ──────────────────────────────────
+  patternsLink: { alignSelf: 'center', marginTop: 14, paddingVertical: 4, paddingHorizontal: 8 },
+  patternsLinkText: { fontFamily: FONTS.bodySemiBold, fontSize: 12.5, color: '#C24A63', letterSpacing: 0.2 },
+
+  // ── Mama's corner (standalone operational card) ──────────────────────
+  mamaCard: {
+    marginTop: 20, flexDirection: 'row', alignItems: 'center', gap: 13,
+    backgroundColor: '#F6E1EC', borderRadius: 18, paddingVertical: 15, paddingHorizontal: 15,
+    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(178,74,120,0.18)',
+  },
+  mamaIcon: { width: 38, height: 38, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.6)', alignItems: 'center', justifyContent: 'center' },
+  mamaTitle: { fontFamily: FONTS.v3_display, fontSize: 16.5, color: '#7A2A4E', letterSpacing: -0.3 },
+  mamaSub: { fontFamily: FONTS.v2_body, fontSize: 12, color: '#9A5578', marginTop: 2 },
+  mamaChevron: { fontFamily: FONTS.v2_link, fontSize: 22, color: '#C98BA8', marginTop: -2 },
 
   // ── Quiet nav list ───────────────────────────────────────────────────
   navGroup: {

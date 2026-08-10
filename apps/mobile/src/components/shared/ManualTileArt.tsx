@@ -41,8 +41,8 @@ const C = {
   cream:     '#F5F0E8',
   // Kit canon (2026-05-16): cinnamon family replaces old rust in SVG tile art.
   // Token names kept for grep compatibility across 50+ Path/Circle fills below.
-  rust:      '#E14A32', // cinnamon (was #E14A32)
-  rustDeep:  '#E14A32', // action-deep (was #7A4A24)
+  rust:      '#C24A63', // cinnamon (was #E14A32)
+  rustDeep:  '#C24A63', // action-deep (was #7A4A24)
   coco:      '#AD795B',
   cocoDeep:  '#E98A6A',
   cocoLight: '#C9A07E',
@@ -56,7 +56,7 @@ const C = {
   pinkDeep:  '#E98A6A',
   sandSoft:  '#E8DFC9',
   sandDeep:  '#F2E6DD',
-  flame:     '#DA9A2C',
+  flame:     '#D9789A',
   flameDeep: '#E98A6A',
 };
 
@@ -98,10 +98,10 @@ const VB_H = 100;
 const SCENE_BG: Record<ManualTileScene, string> = {
   candle: '#F7C5CB', // Feel — warm flame peach (saturated)
   salve:  '#E98A6A', // Heal — rose blush
-  bowl:   '#DA9A2C', // Nourish — sage
+  bowl:   '#D9789A', // Nourish — sage
   pillow: '#F2E6DD', // Rest — sand
-  note:   '#B03A22', // Tips — paper sand
-  bottle: '#DA9A2C', // Feed — cream blush
+  note:   '#9E2F4C', // Tips — paper sand
+  bottle: '#D9789A', // Feed — cream blush
   foot:   '#F7C5CB', // Grow — pink
   bib:    '#E98A6A', // Care — sage
 };
@@ -122,7 +122,7 @@ function SharedDefs({ maskCx, maskCy, maskInnerPct, maskOuterPct }: {
       </RadialGradient>
       <Pattern id="halftoneDots" x="0" y="0" width={5} height={5} patternUnits="userSpaceOnUse">
         <Circle cx={2.5} cy={2.5} r={0.85} fill="#43260F" fillOpacity={0.42} />
-        <Circle cx={3.9} cy={3.9} r={0.72} fill="#E14A32" fillOpacity={0.38} />
+        <Circle cx={3.9} cy={3.9} r={0.72} fill="#C24A63" fillOpacity={0.38} />
       </Pattern>
       {/* Mask: white = halftone visible, black = erased.
           Inner zone (around the icon) is fully erased; transitions to visible at the corners. */}

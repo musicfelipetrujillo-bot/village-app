@@ -109,5 +109,5 @@ const styles = StyleSheet.create({
   },
   doneBtnText: { fontSize: 16, fontFamily: FONTS.bodySemiBold, color: '#FFFCF6' },
   socialLink: { marginTop: 16, paddingVertical: 8 },
-  socialLinkText: { fontSize: 14, fontFamily: FONTS.bodySemiBold, color: '#E14A32' },
+  socialLinkText: { fontSize: 14, fontFamily: FONTS.bodySemiBold, color: '#C24A63' },
 });

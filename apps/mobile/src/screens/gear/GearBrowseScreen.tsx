@@ -98,7 +98,7 @@ export default function GearBrowseScreen() {
     <View style={{ marginHorizontal: -18, paddingTop: insets.top + 6 }}>
       <HubHeader
         name="gear"
-        dotColor="#DA9A2C"
+        dotColor="#D9789A"
         onBack={() => navigation.getParent()?.navigate('Village' as never)}
         backAccessibilityLabel={t('common.backToVillage')}
         right={
@@ -262,7 +262,7 @@ const styles = StyleSheet.create({
   backToVillage: { paddingVertical: 4, paddingRight: 8 },
   backToVillageText: { fontSize: 13, color: COLORS.textLight, fontFamily: FONTS.bodyMedium },
   headerActions: { flexDirection: 'row', gap: 16 },
-  headerLink: { fontSize: 13, color: '#E14A32', fontFamily: FONTS.bodySemiBold },
+  headerLink: { fontSize: 13, color: '#C24A63', fontFamily: FONTS.bodySemiBold },
 
   // Title block — relative so DecorativeMarks (absolutely positioned)
   // can tuck behind the eyebrow → italic title → sub stack without
@@ -359,7 +359,7 @@ const styles = StyleSheet.create({
   },
 
   gearSearchRow: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#FDF7EC', borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(61,31,14,0.14)', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 4, marginTop: 14 },
-  gearSearchIcon: { fontSize: 18, color: '#B03A22' },
+  gearSearchIcon: { fontSize: 18, color: '#9E2F4C' },
   gearSearchInput: { flex: 1, fontFamily: FONTS.v2_body, fontSize: 13.5, color: '#3D2116', paddingVertical: 9 },
 
   filterRow: {

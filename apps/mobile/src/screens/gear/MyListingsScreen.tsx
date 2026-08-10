@@ -120,7 +120,7 @@ export default function MyListingsScreen() {
         )}
         ListEmptyComponent={
           loading ? (
-            <ActivityIndicator color="#E14A32" style={{ marginTop: 40 }} />
+            <ActivityIndicator color="#C24A63" style={{ marginTop: 40 }} />
           ) : (
             <View style={styles.empty}>
               <Text style={styles.emptyEmoji}>{t('myListings.emptyEmoji')}</Text>
@@ -245,9 +245,9 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.paper,
     borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.06)',
   },
-  back: { fontSize: 15, color: '#E14A32', fontFamily: FONTS.bodySemiBold },
+  back: { fontSize: 15, color: '#C24A63', fontFamily: FONTS.bodySemiBold },
   headerTitle: { fontSize: 17, fontFamily: FONTS.bodySemiBold, color: COLORS.bark },
-  headerLink: { fontSize: 14, color: '#E14A32', fontFamily: FONTS.bodySemiBold },
+  headerLink: { fontSize: 14, color: '#C24A63', fontFamily: FONTS.bodySemiBold },
 
   empty: { alignItems: 'center', paddingTop: 80, paddingHorizontal: 32, gap: 8 },
   emptyEmoji: { fontSize: 52, marginBottom: 8 },

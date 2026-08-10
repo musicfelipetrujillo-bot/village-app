@@ -360,7 +360,7 @@ function PaymentContent({ navigation, route }: Props) {
       <View style={styles.ctaBar}>
         {loading ? (
           <View style={styles.loadingRow}>
-            <ActivityIndicator color="#E14A32" />
+            <ActivityIndicator color="#C24A63" />
             <Text style={styles.loadingText}>{t('payment.settingUp')}</Text>
           </View>
         ) : (
@@ -396,7 +396,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   backBtn: { marginBottom: 12 },
-  backText: { fontSize: 15, color: '#E14A32', fontFamily: FONTS.bodyMedium },
+  backText: { fontSize: 15, color: '#C24A63', fontFamily: FONTS.bodyMedium },
   // v9 editorial masthead
   eyebrowRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
   eyebrowBar: { width: 22, height: 2, backgroundColor: '#7A4A24', marginRight: 10, borderRadius: 1 },
@@ -409,7 +409,7 @@ const styles = StyleSheet.create({
     letterSpacing: -0.5,
     marginBottom: 6,
   },
-  titleEm: { fontFamily: FONTS.headerItalic, fontStyle: 'italic', color: '#E14A32' },
+  titleEm: { fontFamily: FONTS.headerItalic, fontStyle: 'italic', color: '#C24A63' },
   headerRule: {
     height: StyleSheet.hairlineWidth, backgroundColor: 'rgba(61,31,13,0.18)',
     marginTop: 10, width: 48,

@@ -142,7 +142,7 @@ export default function BecomeDonorIntroScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: 'transparent', paddingHorizontal: 28 },
   back: { marginTop: 56, marginBottom: 16 },
-  backText: { fontSize: 15, color: '#E14A32', fontFamily: FONTS.bodySemiBold },
+  backText: { fontSize: 15, color: '#C24A63', fontFamily: FONTS.bodySemiBold },
   dots: { flexDirection: 'row', gap: 8, marginBottom: 48 },
   dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#E0D5C5' },
   dotActive: { width: 24, backgroundColor: COLORS.coco },

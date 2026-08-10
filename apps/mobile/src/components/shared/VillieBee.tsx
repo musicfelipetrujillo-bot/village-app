@@ -52,10 +52,10 @@ export function VillieBee({
 
       {/* Wings — translucent, behind the body */}
       <Ellipse cx="36" cy="33" rx="17" ry="11" fill="#FFFFFF" fillOpacity={0.6}
-        stroke="#DA9A2C" strokeOpacity={0.45} strokeWidth={1}
+        stroke="#D9789A" strokeOpacity={0.45} strokeWidth={1}
         transform="rotate(-26 36 33)" />
       <Ellipse cx="55" cy="31" rx="13" ry="9" fill="#FFFFFF" fillOpacity={0.5}
-        stroke="#DA9A2C" strokeOpacity={0.4} strokeWidth={1}
+        stroke="#D9789A" strokeOpacity={0.4} strokeWidth={1}
         transform="rotate(14 55 31)" />
 
       {/* Stinger */}
@@ -109,8 +109,8 @@ export function CoffeeCup({ size = 26 }: { size?: number }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 28 28">
       {/* steam */}
-      <Path d="M10 7 q2.4 -2.2 0 -4.4" stroke="#E14A32" strokeWidth={1.3} fill="none" strokeLinecap="round" opacity={0.55} />
-      <Path d="M15 7 q2.4 -2.2 0 -4.4" stroke="#E14A32" strokeWidth={1.3} fill="none" strokeLinecap="round" opacity={0.45} />
+      <Path d="M10 7 q2.4 -2.2 0 -4.4" stroke="#C24A63" strokeWidth={1.3} fill="none" strokeLinecap="round" opacity={0.55} />
+      <Path d="M15 7 q2.4 -2.2 0 -4.4" stroke="#C24A63" strokeWidth={1.3} fill="none" strokeLinecap="round" opacity={0.45} />
       {/* handle */}
       <Path d="M20 12 q4.6 0 4.6 4 q0 3.6 -4.6 3.2" stroke="#C9A36F" strokeWidth={1.9} fill="none" />
       {/* cup body */}

@@ -67,7 +67,7 @@ export default function FavoritesScreen({ navigation }: Props) {
 
       {loading ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator color="#E14A32" />
+          <ActivityIndicator color="#C24A63" />
         </View>
       ) : (
         <FlatList
@@ -114,7 +114,7 @@ const styles = StyleSheet.create({
     borderBottomColor: 'rgba(0,0,0,0.06)',
   },
   backBtn: { marginBottom: 10 },
-  backText: { fontSize: 15, color: '#E14A32', fontFamily: FONTS.bodyMedium },
+  backText: { fontSize: 15, color: '#C24A63', fontFamily: FONTS.bodyMedium },
   title: {
     fontFamily: FONTS.headerItalic,
     fontSize: 28,

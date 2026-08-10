@@ -87,7 +87,7 @@ export default function EditProfileScreen({ navigation }: Props) {
     return (
       <SafeAreaView style={s.safe}>
         <View style={s.centerMsg}>
-          <ActivityIndicator color="#E14A32" />
+          <ActivityIndicator color="#C24A63" />
           <Text style={s.emptyText}>{t('editProfile.loadingProfile')}</Text>
         </View>
       </SafeAreaView>
@@ -282,7 +282,7 @@ function EditProfileForm({
           accessibilityState={{ disabled: !dirty || saving }}
         >
           {saving ? (
-            <ActivityIndicator color="#E14A32" />
+            <ActivityIndicator color="#C24A63" />
           ) : (
             <Text style={[s.topLink, s.topLinkPrimary, (!dirty) && s.topLinkDisabled]}>{t('editProfile.topSave')}</Text>
           )}
@@ -458,7 +458,7 @@ const s = StyleSheet.create({
     backgroundColor: COLORS.paper,
   },
   stageChipActive: {
-    borderColor: '#E14A32',                                            // v9 active = cinnamon
+    borderColor: '#C24A63',                                            // v9 active = cinnamon
     backgroundColor: 'rgba(192,120,64,0.08)',
   },
   stageChipText: {

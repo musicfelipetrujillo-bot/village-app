@@ -73,13 +73,13 @@ export default function CheckinResponseScreen({ navigation }: Props) {
     <View style={styles.container}>
       <WarmGlowBackdrop />
       <View style={styles.header}>
-        <BackButton color="#E14A32" onPress={() => navigation.popToTop()} accessibilityLabel={t('checkin.responseBackA11y')} />
+        <BackButton color="#C24A63" onPress={() => navigation.popToTop()} accessibilityLabel={t('checkin.responseBackA11y')} />
         <Text style={styles.title}>{t('checkin.headerTitle')}</Text>
         <View style={{ width: 60 }} />
       </View>
 
       {loading ? (
-        <View style={styles.center}><ActivityIndicator color="#E14A32" /></View>
+        <View style={styles.center}><ActivityIndicator color="#C24A63" /></View>
       ) : !row ? (
         <View style={styles.center}>
           <Text style={styles.errorText}>{t('checkin.responseErrorLoad')}</Text>
@@ -167,7 +167,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.paper,
     borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.06)',
   },
-  back: { fontSize: 15, color: '#E14A32', fontFamily: FONTS.bodySemiBold },
+  back: { fontSize: 15, color: '#C24A63', fontFamily: FONTS.bodySemiBold },
   title: { fontSize: 17, fontFamily: FONTS.bodySemiBold, color: COLORS.bark },
 
   content: { padding: 20, paddingBottom: 60 },

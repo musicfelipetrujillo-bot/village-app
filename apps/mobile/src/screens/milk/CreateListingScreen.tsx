@@ -222,7 +222,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: 'transparent' },
   content: { padding: 24, paddingTop: 8, paddingBottom: 140 },
   backRow: { paddingHorizontal: 18, paddingBottom: 2 },
-  backChevron: { fontSize: 30, color: '#B03A22', marginTop: -2 },
+  backChevron: { fontSize: 30, color: '#9E2F4C', marginTop: -2 },
   title: { fontSize: 28, fontFamily: FONTS.headerBold, color: '#43260F', marginBottom: 8, letterSpacing: -0.4, lineHeight: 34 },
   subtitle: { fontSize: 14, color: '#7A4A24', lineHeight: 21, marginBottom: 28, fontFamily: FONTS.body },
   label: { fontSize: 13, fontFamily: FONTS.bodySemiBold, color: '#7A4A24', marginBottom: 8, marginTop: 16, textTransform: 'uppercase', letterSpacing: 0.6 },

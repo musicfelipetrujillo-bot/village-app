@@ -15,9 +15,9 @@ import { FONTS } from '@utils/constants';
 import { tap } from '@utils/haptics';
 import type { DeepDive } from '@/manual/manualDeepDives';
 
-const ROSE = '#E14A32';
-const BERRY = '#B03A22';
-const HONEY = '#DA9A2C';
+const ROSE = '#C24A63';
+const BERRY = '#9E2F4C';
+const HONEY = '#D9789A';
 const INK = '#43260F';
 const INKSOFT = '#7A5A3A';
 const CREAM = '#FFFCF6';
@@ -99,7 +99,7 @@ export default function DeepDiveVideoCard({
       >
         <View style={s.still}>
           <LinearGradient
-            colors={[ROSE, BERRY]}
+            colors={['#E14A32', '#B03A22']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={StyleSheet.absoluteFill}

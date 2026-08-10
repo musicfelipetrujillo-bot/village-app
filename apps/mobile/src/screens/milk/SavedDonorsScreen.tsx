@@ -64,7 +64,7 @@ export default function SavedDonorsScreen({ navigation }: Props) {
 
       {loading ? (
         <View style={styles.center}>
-          <ActivityIndicator color="#E14A32" />
+          <ActivityIndicator color="#C24A63" />
         </View>
       ) : (
         <FlashList
@@ -108,7 +108,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingTop: 56, paddingBottom: 12, paddingHorizontal: 16,
   },
-  backText: { fontSize: 15, color: '#E14A32', fontFamily: FONTS.bodySemiBold },
+  backText: { fontSize: 15, color: '#C24A63', fontFamily: FONTS.bodySemiBold },
   headerTitle: { fontSize: 17, fontFamily: FONTS.bodySemiBold, color: '#43260F' },
   list: { paddingTop: 8, paddingBottom: 40 },
   empty: { alignItems: 'center', paddingTop: 80, paddingHorizontal: 32, gap: 12 },

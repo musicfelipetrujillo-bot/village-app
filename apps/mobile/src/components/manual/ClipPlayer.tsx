@@ -354,7 +354,7 @@ export default function ClipPlayer({ clips, startIndex = 0, onClose }: ClipPlaye
     >
       {loading && (
         <View style={styles.center}>
-          <ActivityIndicator color={ROSE} />
+          <ActivityIndicator color="#C24A63" />
         </View>
       )}
 

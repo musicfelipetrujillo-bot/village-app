@@ -138,7 +138,7 @@ export default function BookingScreen({ navigation, route }: Props) {
   if (loading || !spec) {
     return (
       <View style={styles.loading}>
-        <ActivityIndicator color="#E14A32" />
+        <ActivityIndicator color="#C24A63" />
       </View>
     );
   }
@@ -339,7 +339,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   backBtn: { marginBottom: 12 },
-  backText: { fontSize: 15, color: '#E14A32', fontFamily: FONTS.bodyMedium },
+  backText: { fontSize: 15, color: '#C24A63', fontFamily: FONTS.bodyMedium },
   // v9 editorial masthead
   eyebrowRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
   eyebrowBar: { width: 22, height: 2, backgroundColor: '#7A4A24', marginRight: 10, borderRadius: 1 },
@@ -352,7 +352,7 @@ const styles = StyleSheet.create({
     letterSpacing: -0.5,
     marginBottom: 6,
   },
-  titleEm: { fontFamily: FONTS.headerItalic, fontStyle: 'italic', color: '#E14A32' },
+  titleEm: { fontFamily: FONTS.headerItalic, fontStyle: 'italic', color: '#C24A63' },
   providerName: { fontSize: 14, color: COLORS.barkSoft, marginTop: 2, fontFamily: FONTS.body },
   headerRule: {
     height: StyleSheet.hairlineWidth, backgroundColor: 'rgba(61,31,13,0.18)',
@@ -445,7 +445,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   calCellSelected: {
-    backgroundColor: '#E14A32',
+    backgroundColor: '#C24A63',
     borderRadius: 999,
   },
   calCellDisabled: {},

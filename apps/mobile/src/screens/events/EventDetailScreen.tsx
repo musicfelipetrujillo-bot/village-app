@@ -99,7 +99,7 @@ export default function EventDetailScreen() {
   if (loading) {
     return (
       <View style={styles.container}>
-        <ActivityIndicator color="#E14A32" style={{ marginTop: 80 }} />
+        <ActivityIndicator color="#C24A63" style={{ marginTop: 80 }} />
       </View>
     );
   }
@@ -228,7 +228,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.paper,
     borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.06)',
   },
-  back: { fontSize: 15, color: '#E14A32', fontFamily: FONTS.bodySemiBold },
+  back: { fontSize: 15, color: '#C24A63', fontFamily: FONTS.bodySemiBold },
 
   content: { padding: 20, paddingBottom: 120 },
   badgeRow: { flexDirection: 'row', gap: 8, alignItems: 'center', marginBottom: 8 },
@@ -298,5 +298,5 @@ const styles = StyleSheet.create({
     paddingVertical: 15, alignItems: 'center',
     borderWidth: 1.5, borderColor: COLORS.coco,
   },
-  cancelBtnText: { color: '#E14A32', fontSize: 14, fontFamily: FONTS.bodySemiBold },
+  cancelBtnText: { color: '#C24A63', fontSize: 14, fontFamily: FONTS.bodySemiBold },
 });

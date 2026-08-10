@@ -69,7 +69,7 @@ export default function PerkClaimScreen() {
   if (loading) {
     return (
       <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-        <ActivityIndicator color="#E14A32" size="large" />
+        <ActivityIndicator color="#C24A63" size="large" />
       </View>
     );
   }
@@ -208,7 +208,7 @@ const styles = StyleSheet.create({
     marginTop: 24,
     paddingHorizontal: 20, paddingVertical: 10,
   },
-  secondaryBtnText: { color: '#E14A32', fontSize: 14, fontFamily: FONTS.bodySemiBold },
+  secondaryBtnText: { color: '#C24A63', fontSize: 14, fontFamily: FONTS.bodySemiBold },
 
   disclosure: {
     fontSize: 11, color: COLORS.textLight, marginTop: 24,

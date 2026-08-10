@@ -69,7 +69,7 @@ export default function MyRsvpsScreen() {
       </View>
 
       {loading && data.length === 0 ? (
-        <ActivityIndicator color="#E14A32" style={{ marginTop: 40 }} />
+        <ActivityIndicator color="#C24A63" style={{ marginTop: 40 }} />
       ) : (
         <FlashList
           data={data}
@@ -146,7 +146,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.paper,
     borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.06)',
   },
-  back: { fontSize: 15, color: '#E14A32', fontFamily: FONTS.bodySemiBold },
+  back: { fontSize: 15, color: '#C24A63', fontFamily: FONTS.bodySemiBold },
   headerTitle: { fontSize: 16, fontFamily: FONTS.bodySemiBold, color: COLORS.bark },
 
   tabsRow: {

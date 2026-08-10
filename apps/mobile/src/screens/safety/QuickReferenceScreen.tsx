@@ -24,7 +24,7 @@ type Lang = 'en' | 'es';
 
 const C = {
   cream: COLORS.v2_cream, paper: COLORS.v2_paper, cocoa: COLORS.v2_cocoa, walnut: COLORS.v2_walnut,
-  rose: COLORS.v2_cinnamon, roseDeep: '#B03A22', red: '#BE3A2E',
+  rose: COLORS.v2_cinnamon, roseDeep: '#9E2F4C', red: '#BE3A2E',
 };
 
 const ICON = {

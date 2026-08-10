@@ -71,7 +71,7 @@ const T = {
   // Accent repointed to the app rose (2026-07-12) so the Manual matches the
   // rest of the app (Home / Milk / Day Sheet). Token name kept for churn-free
   // reuse across the file.
-  cinnamon:  '#B03A22',
+  cinnamon:  '#9E2F4C',
   blush:     COLORS.v2_blush,
   salmon:    COLORS.v2_salmon,
   sage:      COLORS.v2_sage,
@@ -198,10 +198,10 @@ const CHAPTER_BG_BY_NAME: Record<string, string> = {
 const CHIP_TONE: Record<string, { bg: string; fg: string }> = {
   sleep:   { bg: '#C46A45', fg: '#FFFCF6' }, // terracotta (orange)
   feed:    { bg: '#BE851F', fg: '#FFFCF6' }, // amber (gold)
-  grow:    { bg: '#E14A32', fg: '#FFFCF6' }, // rose (pink)
+  grow:    { bg: '#C24A63', fg: '#FFFCF6' }, // rose (pink)
   care:    { bg: '#6F7A43', fg: '#FFFCF6' }, // olive (green)
   soothe:  { bg: '#A8466B', fg: '#FFFCF6' }, // wine (deep berry)
-  feel:    { bg: '#E14A32', fg: '#FFFCF6' }, // rose
+  feel:    { bg: '#C24A63', fg: '#FFFCF6' }, // rose
   heal:    { bg: '#C46A45', fg: '#FFFCF6' }, // terracotta
   nourish: { bg: '#BE851F', fg: '#FFFCF6' }, // amber
   rest:    { bg: '#6F7A43', fg: '#FFFCF6' }, // olive
@@ -708,10 +708,10 @@ function WeekIntroCard({ data, onPress, lang = 'en' }: { data: WeekIntroVideo; o
         <View style={styles.wiPlay}>
           {locked ? (
             <Svg width={20} height={20} viewBox="0 0 24 24">
-              <Path d="M12 2a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-1V7a5 5 0 0 0-5-5zm-3 8V7a3 3 0 1 1 6 0v3H9z" fill="#B03A22" />
+              <Path d="M12 2a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-1V7a5 5 0 0 0-5-5zm-3 8V7a3 3 0 1 1 6 0v3H9z" fill="#9E2F4C" />
             </Svg>
           ) : (
-            <Svg width={20} height={20} viewBox="0 0 24 24"><Path d="M8 5l11 7-11 7z" fill="#B03A22" /></Svg>
+            <Svg width={20} height={20} viewBox="0 0 24 24"><Path d="M8 5l11 7-11 7z" fill="#9E2F4C" /></Svg>
           )}
         </View>
         {dur ? <View style={styles.wiDur}><Text style={styles.wiDurText}>{dur}</Text></View> : null}
@@ -1056,7 +1056,7 @@ export default function ManualScrollV3() {
   // Manual masthead honeycomb — accent + thematic bee follow the selected
   // chapter (Sleep/Feed/Grow/Care/Soothe). Re-keys on chapter change so the
   // comb re-lights and the new bee animates in each time you switch.
-  const chapterAccent = CHIP_TONE[chapter.cat]?.bg ?? '#E14A32';
+  const chapterAccent = CHIP_TONE[chapter.cat]?.bg ?? '#C24A63';
   const manualScene = (['sleep', 'feed', 'grow', 'care', 'soothe'].includes(chapter.cat)
     ? chapter.cat
     : undefined) as any;
@@ -1385,7 +1385,7 @@ export default function ManualScrollV3() {
           <View style={{ paddingHorizontal: 20, marginBottom: 4 }}>
             <TouchableOpacity onPress={goToBeforeBaby} activeOpacity={0.9} accessibilityRole="button"
               accessibilityLabel={lang === 'es' ? 'Antes de que llegue el bebé' : 'Before baby arrives'}>
-              <LinearGradient colors={['#E14A32', '#F2C75E']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.bbCard}>
+              <LinearGradient colors={['#E14A32', '#E894AC']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.bbCard}>
                 <View style={styles.bbIcon}><Text style={styles.bbIconText}>✓</Text></View>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.bbEyebrow}>{lang === 'es' ? 'PREPÁRATE' : 'GETTING READY'}</Text>
@@ -1573,9 +1573,9 @@ const styles = StyleSheet.create({
   bbSub: { fontFamily: FONTS.body, fontSize: 12, color: '#5c3b2a', marginTop: 1 },
   bbChevron: { fontFamily: FONTS.headerBold, fontSize: 22, color: '#4A1F2C' },
   wiBadge: { position: 'absolute', top: 9, left: 11, backgroundColor: 'rgba(43,23,7,0.5)', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3 },
-  wiBadgePro: { position: 'absolute', top: 9, left: 11, backgroundColor: '#E14A32', borderRadius: 999, paddingHorizontal: 9, paddingVertical: 3 },
+  wiBadgePro: { position: 'absolute', top: 9, left: 11, backgroundColor: '#C24A63', borderRadius: 999, paddingHorizontal: 9, paddingVertical: 3 },
   wiBadgeText: { fontFamily: FONTS.v2_mono, fontSize: 8.5, letterSpacing: 1.6, color: '#FFF1DC', fontWeight: '700' },
-  wiLockedCta: { fontFamily: FONTS.bodyBold, fontSize: 12, color: '#E14A32', marginTop: 6 },
+  wiLockedCta: { fontFamily: FONTS.bodyBold, fontSize: 12, color: '#C24A63', marginTop: 6 },
   wiPlay: { width: 48, height: 48, borderRadius: 24, backgroundColor: 'rgba(255,255,255,0.92)', alignItems: 'center', justifyContent: 'center' },
   wiDur: { position: 'absolute', bottom: 9, right: 11, backgroundColor: 'rgba(0,0,0,0.32)', borderRadius: 8, paddingHorizontal: 7, paddingVertical: 2 },
   wiDurText: { color: '#fff', fontSize: 9, fontFamily: FONTS.v2_mono },

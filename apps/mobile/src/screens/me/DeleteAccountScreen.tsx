@@ -102,7 +102,7 @@ export default function DeleteAccountScreen() {
       <V9PageBackdrop />
       <ScrollView contentContainerStyle={s.container} keyboardShouldPersistTaps="handled">
         <BackButton
-          color="#E14A32"
+          color="#C24A63"
           style={s.back}
           accessibilityLabel={t('account.back')}
           onPress={() => { if (!submitting) navigation.goBack(); }}
@@ -185,7 +185,7 @@ function Bullet({ text }: { text: string }) {
 const s = StyleSheet.create({
   container: { padding: 28, paddingTop: 60, paddingBottom: 48 },
   back: { marginBottom: 18 },
-  backText: { fontSize: 15, color: '#E14A32', fontFamily: FONTS.bodySemiBold },
+  backText: { fontSize: 15, color: '#C24A63', fontFamily: FONTS.bodySemiBold },
   // v9 editorial masthead
   eyebrowRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
   eyebrowBar: { width: 22, height: 2, backgroundColor: '#7A4A24', marginRight: 10, borderRadius: 1 },
@@ -198,7 +198,7 @@ const s = StyleSheet.create({
     letterSpacing: -0.5,
     marginBottom: 8,
   },
-  titleItalic: { fontFamily: FONTS.headerItalic, fontStyle: 'italic', color: '#E14A32' },
+  titleItalic: { fontFamily: FONTS.headerItalic, fontStyle: 'italic', color: '#C24A63' },
   titleRule: {
     height: StyleSheet.hairlineWidth,
     backgroundColor: 'rgba(61,31,13,0.18)',

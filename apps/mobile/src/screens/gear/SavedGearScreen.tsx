@@ -72,7 +72,7 @@ export default function SavedGearScreen() {
         )}
         ListEmptyComponent={
           loading ? (
-            <ActivityIndicator color="#E14A32" style={{ marginTop: 40 }} />
+            <ActivityIndicator color="#C24A63" style={{ marginTop: 40 }} />
           ) : (
             <View style={styles.empty}>
               <Text style={styles.emptyEmoji}>♡</Text>
@@ -142,7 +142,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.paper,
     borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.06)',
   },
-  back: { fontSize: 15, color: '#E14A32', fontFamily: FONTS.bodySemiBold, minWidth: 50 },
+  back: { fontSize: 15, color: '#C24A63', fontFamily: FONTS.bodySemiBold, minWidth: 50 },
   headerTitle: { fontSize: 17, fontFamily: FONTS.bodySemiBold, color: COLORS.bark },
 
   empty: { alignItems: 'center', paddingTop: 80, paddingHorizontal: 32, gap: 8 },

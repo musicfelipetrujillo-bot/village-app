@@ -112,7 +112,7 @@ export default function GearMessageDetailScreen({ navigation, route }: Props) {
     >
       <V9PageBackdrop />
       <View style={styles.header}>
-        <BackButton color="#E14A32" accessibilityLabel={t('gearChat.backA11y')} />
+        <BackButton color="#C24A63" accessibilityLabel={t('gearChat.backA11y')} />
         <View style={styles.titleCol}>
           <Text style={styles.title} numberOfLines={1}>
             {otherDisplayName ?? t('gearChat.headerFallback')}
@@ -136,7 +136,7 @@ export default function GearMessageDetailScreen({ navigation, route }: Props) {
       </TouchableOpacity>
 
       {loading ? (
-        <View style={styles.center}><ActivityIndicator color="#E14A32" /></View>
+        <View style={styles.center}><ActivityIndicator color="#C24A63" /></View>
       ) : (
         <FlatList
           ref={listRef}
@@ -211,7 +211,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.paper,
     borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.06)',
   },
-  back: { fontSize: 15, color: '#E14A32', fontFamily: FONTS.bodySemiBold },
+  back: { fontSize: 15, color: '#C24A63', fontFamily: FONTS.bodySemiBold },
   titleCol: { flex: 1, alignItems: 'center' },
   title: { fontSize: 16, fontFamily: FONTS.bodySemiBold, color: COLORS.bark },
   sideLabel: { fontSize: 11, color: COLORS.textLight, marginTop: 2, fontFamily: FONTS.body },
@@ -226,7 +226,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.8, textTransform: 'uppercase',
   },
   listingTitle: { fontSize: 13, color: COLORS.bark, fontFamily: FONTS.bodySemiBold, marginTop: 2 },
-  listingCta: { fontSize: 12, color: '#E14A32', fontFamily: FONTS.bodySemiBold, marginTop: 3 },
+  listingCta: { fontSize: 12, color: '#C24A63', fontFamily: FONTS.bodySemiBold, marginTop: 3 },
 
   listContent: { paddingHorizontal: 12, paddingTop: 12, paddingBottom: 12, gap: 6 },
   bubbleRow: { flexDirection: 'row' },
@@ -251,7 +251,7 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.bodySemiBold,
     letterSpacing: 1.4,
     textTransform: 'uppercase',
-    color: '#B03A22',
+    color: '#9E2F4C',
     marginBottom: 4,
   },
   systemBody: { fontSize: 14, color: '#43260F', lineHeight: 20, fontFamily: FONTS.body },

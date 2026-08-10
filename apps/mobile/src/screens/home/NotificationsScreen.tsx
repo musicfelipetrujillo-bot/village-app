@@ -127,7 +127,7 @@ export default function NotificationsScreen() {
 
       {loading ? (
         <View style={styles.loadingWrap}>
-          <ActivityIndicator color="#E14A32" />
+          <ActivityIndicator color="#C24A63" />
         </View>
       ) : error ? (
         <View style={styles.emptyWrap}>
@@ -272,7 +272,7 @@ const styles = StyleSheet.create({
   },
   unreadDot: {
     width: 8, height: 8, borderRadius: 4,
-    backgroundColor: '#E14A32',                                        // v9 unread = cinnamon (action affordance)
+    backgroundColor: '#C24A63',                                        // v9 unread = cinnamon (action affordance)
     marginLeft: 10, marginTop: 16,
   },
 });

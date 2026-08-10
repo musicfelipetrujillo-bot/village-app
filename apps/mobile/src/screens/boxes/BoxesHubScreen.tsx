@@ -91,7 +91,7 @@ function Twinkle({ pos, delay, color, size = 13 }: { pos: object; delay: number;
 const BALLOONS = [
   { cx: 56, cy: 20, fill: '#F7C5CB' },
   { cx: 80, cy: 17, fill: '#F4B89C' },
-  { cx: 42, cy: 30, fill: '#F2C75E' },
+  { cx: 42, cy: 30, fill: '#D9789A' },
   { cx: 96, cy: 32, fill: '#EE9C7C' },
   { cx: 67, cy: 30, fill: '#E98AA6' },
   { cx: 52, cy: 46, fill: '#FBEFD9' },

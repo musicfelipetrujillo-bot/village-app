@@ -188,7 +188,7 @@ export default function MessagingScreen({ navigation, route }: Props) {
         {/* Message list */}
         {loading ? (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator color="#E14A32" />
+            <ActivityIndicator color="#C24A63" />
           </View>
         ) : (
           <FlatList
@@ -254,7 +254,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   backBtn: { width: 52 },
-  backText: { fontSize: 15, color: '#E14A32', fontFamily: FONTS.bodyMedium },
+  backText: { fontSize: 15, color: '#C24A63', fontFamily: FONTS.bodyMedium },
   headerCenter: { flex: 1, alignItems: 'center' },
   headerName: {
     fontFamily: FONTS.headerItalic,

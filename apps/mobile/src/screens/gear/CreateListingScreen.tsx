@@ -569,7 +569,7 @@ export default function CreateListingScreen() {
             accessibilityLabel={lookupBusy ? t('gearCreate.scanBarcodeA11yBusy') : t('gearCreate.scanBarcodeA11yIdle')}
             accessibilityState={{ busy: lookupBusy, disabled: lookupBusy || visionBusy }}
           >
-            {lookupBusy ? <ActivityIndicator color="#E14A32" /> : (
+            {lookupBusy ? <ActivityIndicator color="#C24A63" /> : (
               <>
                 <Text style={styles.quickFillIcon}>📷</Text>
                 <Text style={styles.quickFillText}>{t('gearCreate.scanBarcode')}</Text>
@@ -593,7 +593,7 @@ export default function CreateListingScreen() {
             }
             accessibilityState={{ disabled: images.length === 0, busy: visionBusy }}
           >
-            {visionBusy ? <ActivityIndicator color="#E14A32" /> : (
+            {visionBusy ? <ActivityIndicator color="#C24A63" /> : (
               <>
                 <Text style={styles.quickFillIcon}>✨</Text>
                 <Text style={styles.quickFillText}>{t('gearCreate.identifyPhoto')}</Text>
@@ -941,7 +941,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.paper,
     borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.06)',
   },
-  back: { fontSize: 14, color: '#E14A32', fontFamily: FONTS.bodySemiBold, minWidth: 50 },
+  back: { fontSize: 14, color: '#C24A63', fontFamily: FONTS.bodySemiBold, minWidth: 50 },
   headerTitle: { fontSize: 17, fontFamily: FONTS.bodySemiBold, color: COLORS.bark },
 
   content: { padding: 16, paddingBottom: 140 },
@@ -953,7 +953,7 @@ const styles = StyleSheet.create({
   },
   prohibitedTitle: { fontSize: 12, fontFamily: FONTS.bodySemiBold, color: '#7A4A24', marginBottom: 4, letterSpacing: 0.4 },
   prohibitedBody: { fontSize: 12, color: COLORS.barkSoft, lineHeight: 18, fontFamily: FONTS.body },
-  prohibitedLink: { color: '#E14A32', fontFamily: FONTS.bodySemiBold, textDecorationLine: 'underline' },
+  prohibitedLink: { color: '#C24A63', fontFamily: FONTS.bodySemiBold, textDecorationLine: 'underline' },
 
   quickFillRow: { flexDirection: 'row', gap: 8, marginTop: 4 },
   quickFillBtn: {
@@ -994,7 +994,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12, paddingVertical: 7, borderRadius: 14,
     borderWidth: 1.5, borderColor: 'rgba(150,80,50,0.18)', backgroundColor: COLORS.paper,
   },
-  chipActive: { backgroundColor: '#E14A32', borderColor: '#E14A32' },  // v9 CTA = cinnamon
+  chipActive: { backgroundColor: '#C24A63', borderColor: '#C24A63' },  // v9 CTA = cinnamon
   chipText: { fontSize: 12, fontFamily: FONTS.bodySemiBold, color: COLORS.barkSoft },
   chipTextActive: { color: '#FFFCF6' },                                // v9 no pure white
 
@@ -1049,7 +1049,7 @@ const styles = StyleSheet.create({
     fontSize: 12.5, fontFamily: FONTS.body, color: COLORS.bark, lineHeight: 17,
   },
   priceHintCta: {
-    fontFamily: FONTS.bodySemiBold, color: '#E14A32',
+    fontFamily: FONTS.bodySemiBold, color: '#C24A63',
   },
 
   locationBtn: {
@@ -1088,6 +1088,6 @@ const styles = StyleSheet.create({
   },
   uploadFill: {
     height: '100%',
-    backgroundColor: '#E14A32',                                        // v9 progress = cinnamon
+    backgroundColor: '#C24A63',                                        // v9 progress = cinnamon
   },
 });

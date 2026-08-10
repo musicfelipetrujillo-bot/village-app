@@ -58,7 +58,7 @@ const RESOURCES: Resource[] = [
     title: '911 — Emergency',
     subtitleKey: 'crisis.subtitle911',
     action: { type: 'tel', value: '911' },
-    accent: '#E14A32',  // v9 cinnamon — emergency action color per brand kit
+    accent: '#C24A63',  // v9 cinnamon — emergency action color per brand kit
   },
 ];
 

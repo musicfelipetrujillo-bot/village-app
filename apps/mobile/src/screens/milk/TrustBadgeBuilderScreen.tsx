@@ -116,7 +116,7 @@ export default function TrustBadgeBuilderScreen({ route, navigation }: Props) {
   };
 
   if (loading) {
-    return <View style={styles.center}><ActivityIndicator color="#E14A32" /></View>;
+    return <View style={styles.center}><ActivityIndicator color="#C24A63" /></View>;
   }
 
   const badgeLevel = (badge?.badge_level ?? 'basic') as keyof typeof BADGE_INFO;
@@ -281,7 +281,7 @@ const styles = StyleSheet.create({
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#F5F0E8' },
   content: { padding: 24, paddingTop: 8, paddingBottom: 120 },
   backRow: { paddingHorizontal: 18, paddingBottom: 2 },
-  backChevron: { fontSize: 30, color: '#B03A22', marginTop: -2 },
+  backChevron: { fontSize: 30, color: '#9E2F4C', marginTop: -2 },
   title: { fontSize: 28, fontFamily: FONTS.headerBold, color: '#43260F', marginBottom: 8, letterSpacing: -0.4, lineHeight: 34 },
   subtitle: { fontSize: 14, color: '#7A4A24', lineHeight: 21, marginBottom: 24, fontFamily: FONTS.body },
 
@@ -322,7 +322,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.paper, borderRadius: 20,
     borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(150,80,50,0.18)',
   },
-  flagChipActive: { borderColor: '#E14A32', backgroundColor: 'rgba(192,120,64,0.08)' },
+  flagChipActive: { borderColor: '#C24A63', backgroundColor: 'rgba(192,120,64,0.08)' },
   flagEmoji: { fontSize: 16 },
   flagLabel: { fontSize: 13, color: '#7A4A24', fontFamily: FONTS.bodyMedium },
   flagLabelActive: { color: '#43260F', fontFamily: FONTS.bodySemiBold },

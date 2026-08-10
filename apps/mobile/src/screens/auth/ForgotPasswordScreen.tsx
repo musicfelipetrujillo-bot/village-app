@@ -48,7 +48,7 @@ export default function ForgotPasswordScreen({ navigation }: Props) {
     >
       <WarmGlowBackdrop />
       <View style={styles.container}>
-        <BackButton color="#E14A32" style={styles.back} accessibilityLabel={t('forgotPassword.back')} />
+        <BackButton color="#C24A63" style={styles.back} accessibilityLabel={t('forgotPassword.back')} />
 
         {/* v9 editorial masthead */}
         <View style={styles.eyebrowRow}>
@@ -123,7 +123,7 @@ export default function ForgotPasswordScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: 'transparent', padding: 28, paddingTop: 60 },
   back: { marginBottom: 18 },
-  backText: { fontSize: 13, color: '#E14A32', fontFamily: FONTS.v2_link },
+  backText: { fontSize: 13, color: '#C24A63', fontFamily: FONTS.v2_link },
   // v3 editorial masthead — 16×1.5 walnut bar + JetBrains Mono eyebrow,
   // Plus Jakarta display + salmon italic accent.
   eyebrowRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },

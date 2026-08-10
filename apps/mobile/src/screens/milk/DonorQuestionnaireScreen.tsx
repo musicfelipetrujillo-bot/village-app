@@ -299,7 +299,7 @@ export default function DonorQuestionnaireScreen({ navigation }: Props) {
             <View style={styles.coachCard}>
               <Text style={styles.coachLabel}>{t('donorQuestionnaire.coachLabel')}</Text>
               {loadingCoach ? (
-                <ActivityIndicator color="#E14A32" size="small" style={{ marginTop: 8 }} />
+                <ActivityIndicator color="#C24A63" size="small" style={{ marginTop: 8 }} />
               ) : coach ? (
                 <>
                   <Text style={styles.coachText}>{coach.why_it_matters}</Text>
@@ -353,7 +353,7 @@ const styles = StyleSheet.create({
     paddingTop: 56, paddingHorizontal: 20, paddingBottom: 12,
   },
   backBtn: { padding: 4 },
-  backText: { fontSize: 15, color: '#E14A32', fontFamily: FONTS.bodySemiBold },
+  backText: { fontSize: 15, color: '#C24A63', fontFamily: FONTS.bodySemiBold },
   counter: { fontSize: 13, color: '#7A4A24', fontFamily: FONTS.bodySemiBold },
   progressTrack: { height: 4, backgroundColor: '#E0D5C5', marginHorizontal: 20, borderRadius: 2 },
   progressFill: { height: 4, backgroundColor: COLORS.coco, borderRadius: 2 },
@@ -367,7 +367,7 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(150,80,50,0.18)',
     shadowColor: '#43260F', shadowOpacity: 0.18, shadowOffset: { width: 0, height: 6 }, shadowRadius: 20, elevation: 2,
   },
-  optionSelected: { borderColor: '#E14A32', backgroundColor: 'rgba(192,120,64,0.06)', shadowOpacity: 0.22 },
+  optionSelected: { borderColor: '#C24A63', backgroundColor: 'rgba(192,120,64,0.06)', shadowOpacity: 0.22 },
   optionText: { fontSize: 15, color: '#7A4A24', fontFamily: FONTS.bodyMedium },
   optionTextSelected: { color: '#43260F', fontFamily: FONTS.bodySemiBold },
   // v9: full hairline border + soft drop (side-stripe was a v9 absolute ban).

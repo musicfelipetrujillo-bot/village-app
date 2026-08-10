@@ -42,7 +42,7 @@ export default function PerkDetailScreen() {
   if (loading) {
     return (
       <View style={[styles.container, { justifyContent: 'center' }]}>
-        <ActivityIndicator color="#E14A32" />
+        <ActivityIndicator color="#C24A63" />
       </View>
     );
   }
@@ -161,7 +161,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.paper,
     borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.06)',
   },
-  back: { fontSize: 15, color: '#E14A32', fontFamily: FONTS.bodySemiBold },
+  back: { fontSize: 15, color: '#C24A63', fontFamily: FONTS.bodySemiBold },
   headerTitle: { fontSize: 16, fontFamily: FONTS.bodySemiBold, color: COLORS.bark },
 
   heroBlock: { padding: 20, backgroundColor: COLORS.paper },
@@ -176,7 +176,7 @@ const styles = StyleSheet.create({
   offerBanner: {
     marginTop: 14, alignSelf: 'flex-start',
     fontSize: 14, fontFamily: FONTS.bodySemiBold, color: '#FFFCF6',
-    backgroundColor: '#E14A32', borderRadius: 10,
+    backgroundColor: '#C24A63', borderRadius: 10,
     paddingHorizontal: 12, paddingVertical: 6,
   },
 
@@ -202,7 +202,7 @@ const styles = StyleSheet.create({
   metaLabel: { fontSize: 12, fontFamily: FONTS.bodySemiBold, color: COLORS.textLight, textTransform: 'uppercase', letterSpacing: 0.5 },
   metaValue: { fontSize: 13, color: COLORS.bark, fontFamily: FONTS.bodyMedium, flexShrink: 1, textAlign: 'right', marginLeft: 12 },
 
-  termsLink: { fontSize: 13, color: '#E14A32', fontFamily: FONTS.bodySemiBold, marginTop: 16 },
+  termsLink: { fontSize: 13, color: '#C24A63', fontFamily: FONTS.bodySemiBold, marginTop: 16 },
 
   footer: {
     position: 'absolute', left: 0, right: 0, bottom: 0,

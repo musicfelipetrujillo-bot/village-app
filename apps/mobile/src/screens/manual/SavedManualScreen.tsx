@@ -59,7 +59,7 @@ export default function SavedManualScreen() {
       </View>
 
       {loading && (
-        <View style={styles.center}><ActivityIndicator color="#E14A32" /></View>
+        <View style={styles.center}><ActivityIndicator color="#C24A63" /></View>
       )}
 
       {!loading && videos.length === 0 && (
@@ -83,7 +83,7 @@ export default function SavedManualScreen() {
           data={videos}
           keyExtractor={(v) => v.id}
           contentContainerStyle={styles.list}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#E14A32" />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#C24A63" />}
           renderItem={({ item, index }) => (
             <TouchableOpacity
               style={styles.row}
@@ -147,7 +147,7 @@ const styles = StyleSheet.create({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
 
   emptyWrap: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
-  emptyIcon: { fontSize: 52, color: '#E14A32', marginBottom: 12 },
+  emptyIcon: { fontSize: 52, color: '#C24A63', marginBottom: 12 },
   emptyTitle: {
     fontSize: 20, fontFamily: FONTS.headerBold, color: COLORS.bark,
     textAlign: 'center', marginBottom: 8,

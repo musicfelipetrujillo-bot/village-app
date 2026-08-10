@@ -212,7 +212,7 @@ const styles = StyleSheet.create({
   checkedBadgeText: {
     fontSize: 9,
     fontFamily: FONTS.bodySemiBold,
-    color: '#B03A22',
+    color: '#9E2F4C',
     letterSpacing: 0.3,
   },
   priceUnit: { fontSize: 11, fontFamily: FONTS.body, color: COLORS.textLight },
