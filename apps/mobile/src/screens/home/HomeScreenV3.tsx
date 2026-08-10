@@ -122,7 +122,7 @@ function HeroHoneycomb({ height = 520 }: { height?: number }) {
   return (
     <Svg width={SCREEN_W} height={height} style={styles.heroHoneycomb} pointerEvents="none">
       {paths.map((p, i) => (
-        <Path key={i} d={p.d} stroke="#E14A32" strokeOpacity={p.o * 0.6} strokeWidth={1} fill="none" />
+        <Path key={i} d={p.d} stroke="#C24A63" strokeOpacity={p.o * 0.6} strokeWidth={1} fill="none" />
       ))}
     </Svg>
   );
@@ -146,7 +146,7 @@ function WeekRing({ week, size = 250 }: { week: number; size?: number }) {
     rays.push(
       <Polygon key={i}
         points={`${b1x.toFixed(1)},${b1y.toFixed(1)} ${b2x.toFixed(1)},${b2y.toFixed(1)} ${tx.toFixed(1)},${ty.toFixed(1)}`}
-        fill={on ? '#E14A32' : 'rgba(225,74,50,0.22)'} />,
+        fill={on ? '#C24A63' : 'rgba(194,74,99,0.20)'} />,
     );
   }
   return (
@@ -188,10 +188,10 @@ function WeekRingHero({ firstName, babyName, weekNumber, expecting, onOpenManual
 
       <View style={styles.topBar}>
         <TouchableOpacity onPress={onMenu} activeOpacity={0.8} style={styles.topIconBtn} accessibilityRole="button" accessibilityLabel={lang === 'es' ? 'Menú' : 'Menu'}>
-          <Glyph d={ICON.menu} color="#E14A32" size={22} sw={2} />
+          <Glyph d={ICON.menu} color="#C24A63" size={22} sw={2} />
         </TouchableOpacity>
         <TouchableOpacity onPress={onNotifications} activeOpacity={0.8} style={styles.topIconBtn} accessibilityRole="button" accessibilityLabel={lang === 'es' ? 'Notificaciones' : 'Notifications'}>
-          <Glyph d={ICON.bell} color="#E14A32" size={21} sw={2} />
+          <Glyph d={ICON.bell} color="#C24A63" size={21} sw={2} />
           {hasNotifications ? <View style={styles.topBellDot} /> : null}
         </TouchableOpacity>
       </View>
@@ -236,14 +236,14 @@ function LogRow({ onFeed, onSleep, onMilk }: { onFeed: () => void; onSleep: () =
     <View style={styles.logRow}>
       <TouchableOpacity style={styles.logItem} activeOpacity={0.85} onPress={onFeed} accessibilityRole="button" accessibilityLabel={L.feed}>
         <View style={[styles.logCircle, { backgroundColor: '#EFD79A' }]}>
-          <Glyph d={ICON.bottle} color="#E14A32" size={26} sw={1.9} />
+          <Glyph d={ICON.bottle} color="#C24A63" size={26} sw={1.9} />
         </View>
         <Text style={styles.logLabel}>{L.feed}</Text>
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.logItem} activeOpacity={0.85} onPress={onSleep} accessibilityRole="button" accessibilityLabel={L.sleep}>
         <View style={[styles.logCircle, { backgroundColor: '#F6C9D0' }]}>
-          <Glyph d={ICON.moon} color="#E14A32" size={26} sw={1.9} />
+          <Glyph d={ICON.moon} color="#C24A63" size={26} sw={1.9} />
         </View>
         <Text style={styles.logLabel}>{L.sleep}</Text>
       </TouchableOpacity>
@@ -460,29 +460,31 @@ const styles = StyleSheet.create({
   heroBee: { position: 'absolute', top: 104, right: 40, flexDirection: 'row', alignItems: 'flex-start' },
   heroBeeImg: { width: 24, height: 24, marginLeft: -6, marginTop: -2 },
   topBar: { width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 },
-  topIconBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(225,74,50,0.12)', alignItems: 'center', justifyContent: 'center' },
-  topBellDot: { position: 'absolute', top: 9, right: 10, width: 9, height: 9, borderRadius: 5, backgroundColor: '#E14A32', borderWidth: 1.5, borderColor: '#FBF4E6' },
-  heroGreet: { fontFamily: FONTS.v2_body, fontSize: 15, color: '#A85A44' },
-  heroGreetName: { fontFamily: FONTS.v3_display_italic, fontSize: 23, color: '#E14A32' },
+  topIconBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(194,74,99,0.12)', alignItems: 'center', justifyContent: 'center' },
+  topBellDot: { position: 'absolute', top: 9, right: 10, width: 9, height: 9, borderRadius: 5, backgroundColor: '#C24A63', borderWidth: 1.5, borderColor: '#FBF4E6' },
+  heroGreet: { fontFamily: FONTS.v2_body, fontSize: 15, color: '#A85A63' },
+  heroGreetName: { fontFamily: FONTS.v3_display_italic, fontSize: 23, color: '#C24A63' },
   ringWrap: { marginTop: 14, width: 252, height: 252, alignItems: 'center', justifyContent: 'center' },
   ringCenter: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center' },
   ringBabyName: {
     fontFamily: FONTS.v2_mono, fontSize: 12, letterSpacing: 3, textTransform: 'lowercase',
-    color: '#B06A50', marginBottom: 2,
+    color: '#B0637E', marginBottom: 2,
   },
   ringNumber: {
-    fontFamily: FONTS.v3_display, fontSize: 76, lineHeight: 80, color: '#E14A32',
+    fontFamily: FONTS.v3_display, fontSize: 76, lineHeight: 80, color: '#C24A63',
     letterSpacing: -2, textAlign: 'center',
   },
   ringUnit: {
     fontFamily: FONTS.bodySemiBold, fontSize: 14, letterSpacing: 0.6, textTransform: 'uppercase',
-    color: '#E14A32', marginTop: 0,
+    color: '#C24A63', marginTop: 0,
   },
+  // The hero's single bold spark — solid scarlet against the pink field.
   heroTapHint: {
-    marginTop: 20, backgroundColor: 'transparent', borderRadius: 999, borderWidth: 2, borderColor: '#E14A32',
-    paddingHorizontal: 16, paddingVertical: 8,
+    marginTop: 20, backgroundColor: '#E14A32', borderRadius: 999,
+    paddingHorizontal: 18, paddingVertical: 9,
+    shadowColor: '#E14A32', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.28, shadowRadius: 10, elevation: 3,
   },
-  heroTapHintText: { fontFamily: FONTS.bodyBold, fontSize: 11.5, color: '#E14A32', letterSpacing: 0.6, textTransform: 'uppercase' },
+  heroTapHintText: { fontFamily: FONTS.bodyBold, fontSize: 11.5, color: '#FFF3E4', letterSpacing: 0.6, textTransform: 'uppercase' },
 
   // ── Lifted cream sheet ───────────────────────────────────────────────
   sheet: {
@@ -522,7 +524,7 @@ const styles = StyleSheet.create({
   // ── Ask villie ───────────────────────────────────────────────────────
   askWrap: { marginTop: 22 },
   askRow: { flexDirection: 'row', alignItems: 'center', gap: 9 },
-  askBar: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 9, backgroundColor: '#F7EAD8', borderRadius: 14, paddingHorizontal: 13, paddingVertical: 14, borderWidth: 1.5, borderColor: 'rgba(225,74,50,0.35)' },
+  askBar: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 9, backgroundColor: '#F7EAD8', borderRadius: 14, paddingHorizontal: 13, paddingVertical: 14, borderWidth: 1.5, borderColor: 'rgba(194,74,99,0.32)' },
   askBee: { width: 24, height: 24, borderRadius: 12, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' },
   askText: { flex: 1, fontFamily: FONTS.bodySemiBold, fontSize: 13.5, color: '#A87A54' },
   askMic: { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center', shadowColor: '#E14A32', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.4, shadowRadius: 11, elevation: 4 },
