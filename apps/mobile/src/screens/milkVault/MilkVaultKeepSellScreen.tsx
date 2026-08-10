@@ -22,8 +22,8 @@ type Nav = NativeStackNavigationProp<MilkStackParamList, 'MilkVaultKeepSell'>;
 
 const C = {
   cream: '#FCF7EF', paper: '#FFFCF6',
-  rose: '#E14A32', roseInk: '#B03A22', roseTint: '#FDECEF',
-  honey: '#DA9A2C', honeyCard: '#FBE9BE', honeyInk: '#B98A1E',
+  rose: '#C24A63', roseInk: '#9E2F4C', roseTint: '#FDECEF',
+  honey: '#D9789A', honeyCard: '#FBE0E8', honeyInk: '#A84A66',
   cocoa: '#3D2116', walnut: '#8A6A55', sage: '#7B8A46', muted: '#A6957F',
   track: '#F0E6D6', hair: 'rgba(61,31,14,0.08)',
 };

@@ -33,8 +33,8 @@ type Nav = NativeStackNavigationProp<MilkStackParamList, 'MilkVaultDashboard'>;
 
 const C = {
   cream: '#FCF7EF', paper: '#FFFCF6',
-  rose: '#E14A32', roseInk: '#B03A22', roseTint: '#FDECEF',
-  honey: '#DA9A2C', honeyCard: '#FBE9BE', honeyInk: '#B98A1E',
+  rose: '#C24A63', roseInk: '#9E2F4C', roseTint: '#FDECEF',
+  honey: '#D9789A', honeyCard: '#FBE0E8', honeyInk: '#A84A66',
   cocoa: '#3D2116', walnut: '#8A6A55', sage: '#7B8A46', track: '#F0E6D6',
   hair: 'rgba(61,31,14,0.08)',
 };
@@ -187,7 +187,7 @@ function FilledStash({
   return (
     <>
       {/* Bold rose→honey freezer-ring hero (same energy as the marketplace) */}
-      <LinearGradient colors={['#E14A32', '#F2C75E']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.heroWrap}>
+      <LinearGradient colors={['#C24A63', '#E894AC']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.heroWrap}>
         {sample ? <View style={styles.sampleTag}><Text style={styles.sampleTagText}>example</Text></View> : null}
         <Text style={styles.heroEyebrow}>your freezer</Text>
         <View style={styles.ringWrap}>

@@ -25,6 +25,7 @@ import { COLORS, FONTS, PLACEHOLDER_BABY_NAME } from '@utils/constants';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useUserStore } from '@store/user';
 import { useHomeStore } from '@store/home';
+import { usePicksStore } from '@store/picks';
 import { useT } from '@/i18n';
 import { isExpecting } from '@/manual/beforeBaby';
 import { theBuzzApi, type TheBuzzArchiveRow } from '@api/theBuzz';
@@ -279,19 +280,50 @@ function AskVillie({ onAsk }: { onAsk: (seed?: string) => void }) {
   );
 }
 
-// ─── One warm check-in card — the single "how are you" moment ──────────
-function CheckinCard({ onPress }: { onPress: () => void }) {
+// ─── Discover — two feature cards (Villie Boxes + Villie Picks) ─────────
+function DiscoverCard({ cap, capIcon, imageUrl, eyebrow, title, sub, onPress }: {
+  cap: readonly [string, string]; capIcon: keyof typeof ICON; imageUrl?: string | null;
+  eyebrow: string; title: string; sub: string; onPress: () => void;
+}) {
+  return (
+    <TouchableOpacity activeOpacity={0.9} onPress={onPress} style={styles.discCard} accessibilityRole="button" accessibilityLabel={title}>
+      <LinearGradient colors={cap} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.discCap}>
+        {imageUrl
+          ? <Image source={{ uri: imageUrl }} style={StyleSheet.absoluteFillObject} resizeMode="cover" />
+          : <Glyph d={ICON[capIcon]} color="#fff" size={30} sw={1.9} />}
+      </LinearGradient>
+      <View style={styles.discBody}>
+        <Text style={styles.discEyebrow} numberOfLines={1}>{eyebrow}</Text>
+        <Text style={styles.discTitle} numberOfLines={1}>{title}</Text>
+        <Text style={styles.discSub} numberOfLines={1}>{sub}</Text>
+      </View>
+    </TouchableOpacity>
+  );
+}
+
+function DiscoverRow({ showBoxes, picksImage, onBoxes, onPicks }: { showBoxes: boolean; picksImage?: string | null; onBoxes: () => void; onPicks: () => void }) {
   const lang = useUserStore((s) => s.profile?.preferred_language ?? 'en') as 'en' | 'es';
   return (
-    <TouchableOpacity onPress={onPress} activeOpacity={0.9} accessibilityRole="button"
-      accessibilityLabel={lang === 'es' ? '¿Cómo estás hoy?' : 'How are you today?'} style={styles.checkinCard}>
-      <View style={styles.checkinIcon}><Glyph d={ICON.heart} color="#C63A24" size={20} sw={1.7} /></View>
-      <View style={{ flex: 1, minWidth: 0 }}>
-        <Text style={styles.checkinTitle}>{lang === 'es' ? '¿Cómo estás hoy?' : 'How are you today?'}</Text>
-        <Text style={styles.checkinSub}>{lang === 'es' ? 'un minuto para ti' : 'a minute just for you'}</Text>
+    <View style={{ marginTop: 26 }}>
+      <Text style={styles.discHead}>{lang === 'es' ? 'Descubre' : 'Discover'}</Text>
+      <View style={styles.discoverRow}>
+        {showBoxes && (
+          <DiscoverCard
+            cap={['#C24A63', '#9E2F4C']} capIcon="gift"
+            eyebrow={lang === 'es' ? 'nuevo · curado' : 'new · curated'}
+            title="Villie Boxes" sub={lang === 'es' ? 'entrega · recién nacido' : 'delivery · newborn · mama'}
+            onPress={onBoxes}
+          />
+        )}
+        <DiscoverCard
+          cap={['#E894AC', '#C24A63']} capIcon="star" imageUrl={picksImage}
+          eyebrow={lang === 'es' ? 'villie recomienda' : 'villie picks'}
+          title={lang === 'es' ? 'los 5 de la semana' : "this week's 5"}
+          sub={lang === 'es' ? 'probado por mamás' : 'tested, mom-approved'}
+          onPress={onPicks}
+        />
       </View>
-      <Text style={styles.checkinChevron}>›</Text>
-    </TouchableOpacity>
+    </View>
   );
 }
 
@@ -319,6 +351,10 @@ function NavGroup({ items }: { items: NavItem[] }) {
   );
 }
 
+// Founder asked for Villie Boxes back on Home (2026-08-09). Hub/detail/cart
+// are built + navigable; only the Stripe checkout step is still pending.
+const VILLIE_BOXES_ENABLED = true;
+
 // ─── Screen ────────────────────────────────────────────────────────────
 export default function HomeScreenV3() {
   const navigation = useNavigation<any>();
@@ -326,6 +362,10 @@ export default function HomeScreenV3() {
   const t = useT();
   const profile = useUserStore((s) => s.profile);
   const babyProfile = useHomeStore((s) => s.babyProfile);
+
+  const picks = usePicksStore((s) => s.picks);
+  const fetchPicks = usePicksStore((s) => s.fetchPicks);
+  React.useEffect(() => { fetchPicks(); }, [fetchPicks]);
 
   const firstName = profile?.full_name?.split(' ')[0] ?? 'Alana';
   const babyName = babyProfile?.baby_name ?? null;
@@ -412,8 +452,6 @@ export default function HomeScreenV3() {
 
           <AskVillie onAsk={askVillie} />
 
-          <CheckinCard onPress={() => navigation.navigate('DailyCheckin' as never)} />
-
           {expecting && (
             <TouchableOpacity
               activeOpacity={0.9}
@@ -436,6 +474,13 @@ export default function HomeScreenV3() {
           <View style={{ marginTop: 24 }}>
             <NavGroup items={navItems} />
           </View>
+
+          <DiscoverRow
+            showBoxes={VILLIE_BOXES_ENABLED}
+            picksImage={picks[0]?.image_url ?? null}
+            onBoxes={() => navigation.navigate('BoxesHub' as never)}
+            onPicks={() => navigation.navigate('PerksList' as never)}
+          />
         </View>
       </Animated.ScrollView>
 
@@ -529,15 +574,19 @@ const styles = StyleSheet.create({
   askText: { flex: 1, fontFamily: FONTS.bodySemiBold, fontSize: 13.5, color: '#A87A54' },
   askMic: { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center', shadowColor: '#E14A32', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.4, shadowRadius: 11, elevation: 4 },
 
-  // ── Check-in (the one warm card) ─────────────────────────────────────
-  checkinCard: {
-    marginTop: 18, flexDirection: 'row', alignItems: 'center', gap: 13,
-    backgroundColor: '#FBE0E5', borderRadius: 18, paddingVertical: 15, paddingHorizontal: 15,
+  // ── Discover (Villie Boxes + Picks) ──────────────────────────────────
+  discHead: { fontFamily: FONTS.v2_mono, fontSize: 11, letterSpacing: 2.6, textTransform: 'uppercase', fontWeight: '500', color: '#B0637E', marginBottom: 12 },
+  discoverRow: { flexDirection: 'row', gap: 12 },
+  discCard: {
+    flex: 1, borderRadius: 18, overflow: 'hidden', backgroundColor: T.paper,
+    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(122,74,40,0.14)',
+    shadowColor: T.walnut, shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.12, shadowRadius: 18, elevation: 2,
   },
-  checkinIcon: { width: 38, height: 38, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.6)', alignItems: 'center', justifyContent: 'center' },
-  checkinTitle: { fontFamily: FONTS.v3_display, fontSize: 16.5, color: '#7A2A20', letterSpacing: -0.3 },
-  checkinSub: { fontFamily: FONTS.v2_body, fontSize: 12, color: '#A2584B', marginTop: 2 },
-  checkinChevron: { fontFamily: FONTS.v2_link, fontSize: 22, color: '#D89AA0', marginTop: -2 },
+  discCap: { height: 92, alignItems: 'center', justifyContent: 'center' },
+  discBody: { padding: 14 },
+  discEyebrow: { fontFamily: FONTS.v2_mono, fontSize: 9.5, letterSpacing: 1.6, textTransform: 'uppercase', fontWeight: '700', color: '#C24A63' },
+  discTitle: { fontFamily: FONTS.v3_display, fontSize: 17, color: T.cocoa, letterSpacing: -0.5, marginTop: 6 },
+  discSub: { fontFamily: FONTS.v2_body, fontSize: 11.5, color: T.walnut, marginTop: 3 },
 
   // ── Quiet nav list ───────────────────────────────────────────────────
   navGroup: {
