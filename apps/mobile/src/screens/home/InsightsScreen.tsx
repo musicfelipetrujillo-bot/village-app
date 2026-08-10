@@ -50,6 +50,7 @@ export default function InsightsScreen() {
   const nav = useNavigation<any>();
   const route = useRoute<any>();
   const babyProfile = useHomeStore((s) => s.babyProfile);
+  const setBabyProfile = useHomeStore((s) => s.setBabyProfile);
   const milestone = useHomeStore((s) => s.currentMilestone);
   const vault = useMilkVaultStore((s) => s.core);
   const fetchVault = useMilkVaultStore((s) => s.fetchAll);
@@ -63,6 +64,12 @@ export default function InsightsScreen() {
       let cancelled = false;
       (async () => {
         setLoading(true);
+        // The tracker's logging (feed/sleep/diaper) is a silent no-op unless a
+        // baby profile is loaded. Don't rely on Home having populated the store
+        // — if it's missing, pull it here so L/R, diaper, and sleep actually work.
+        if (!babyProfile) {
+          homeApi.getMyBabyProfile().then((p) => { if (!cancelled && p) setBabyProfile(p); }).catch(() => {});
+        }
         const [s, m] = await Promise.all([
           babyTrackerApi.getRecentStats(7).catch(() => null),
           homeApi.getRecentCheckins(7).catch(() => [] as { checkin_date: string; mood_score: number }[]),
@@ -71,7 +78,7 @@ export default function InsightsScreen() {
         if (!cancelled) { setStats(s); setMoods(m); setLoading(false); }
       })();
       return () => { cancelled = true; };
-    }, [fetchVault]),
+    }, [fetchVault, babyProfile, setBabyProfile]),
   );
 
   const babyName = babyProfile?.baby_name ?? 'your baby';
