@@ -135,7 +135,7 @@ export default function InsightsScreen() {
                   <Text style={styles.cardBody}>Naps averaging {fmtMin(stats?.avgNapMin)} · {stats?.sleepSessions ?? 0} logged this week.</Text>
                 </>
               ) : (
-                <TouchableOpacity onPress={() => nav.getParent()?.navigate('Manual' as never)} accessibilityRole="button"><Text style={styles.emptyLink}>Start logging naps in Playbook →</Text></TouchableOpacity>
+                <Text style={styles.cardBody}>{lang === 'es' ? 'Registra una siesta arriba ↑ y tus patrones de sueño aparecen aquí.' : 'Log a nap up in Log ↑ and your sleep patterns show up here.'}</Text>
               )}
             </View>
 

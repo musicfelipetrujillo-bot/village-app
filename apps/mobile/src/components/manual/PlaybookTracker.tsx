@@ -164,7 +164,7 @@ export default function PlaybookTracker({ babyProfileId, babyName, week, lang, i
   ];
 
   return (
-    <View style={{ marginTop: 14 }}>
+    <View style={{ marginTop: 14, paddingHorizontal: 16 }}>
       {/* Live sleep timer — the "don't oversleep" widget, only while napping.
           Hidden while the Sleep pane is open (the pane shows the live row). */}
       {activeSleep && open !== 'sleep' && (
