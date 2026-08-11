@@ -42,7 +42,7 @@ import { useT } from '@/i18n';
 import { useUserStore } from '@store/user';
 import { useHomeStore } from '@store/home';
 import { homeApi } from '@/api/home';
-import ManualSwipeDeck from '@/components/manual/ManualSwipeDeck';
+import ManualVerticalStory from '@/components/manual/ManualVerticalStory';
 import ManualModules from '@/components/manual/ManualModules';
 import PlaybookTracker from '@/components/manual/PlaybookTracker';
 import { getManualContent } from '@/manual/manualWeekContent';
@@ -1438,14 +1438,11 @@ export default function ManualScrollV3() {
           </View>
         </View>
 
-        {/* SWIPE DECK — replaces the old tap-to-open chapter band. The user
-            swipes through a short Stories-style deck for the selected chapter
-            instead of navigating into a separate screen. Keyed by category so
-            it resets to card 1 when the chapter chip changes.
-            (Design-samples-first: card content is illustrative for now.) */}
-        <View style={{ paddingHorizontal: 20 }}>
-          <ManualSwipeDeck key={chapter.cat} story={manualContent?.story ?? []} category={chapter.cat} lang={lang} />
-        </View>
+        {/* Vertical story — the week's teaching read down the page as calm,
+            chapter-tinted cards (replaces the horizontal swipe deck, 2026-08-10:
+            "drop the swipe cards, less is more"). Keyed by category so it swaps
+            when the chapter chip changes. */}
+        <ManualVerticalStory key={chapter.cat} story={manualContent?.story ?? []} category={chapter.cat} lang={lang} />
 
         {/* Below-deck modules: checklist → article/video → infographic —
             the repeatable Manual baseline, driven by manualWeekContent. */}
