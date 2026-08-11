@@ -81,12 +81,14 @@ export default function TheBuzzScreen() {
         <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
           <Text style={s.issueTitle}>{issue.title}</Text>
           <Text style={s.issueIntro} numberOfLines={3}>{issue.intro}</Text>
+          <Text style={s.hint}>{lang === 'es' ? 'toca un tema para leer más' : 'tap a topic to read more'}</Text>
 
-          {newsItems.map((item) => (
-            <BuzzNewsCard key={item.id} item={item} lang={lang} t={t} />
-          ))}
-
-          {mythItem ? <BuzzMythCard item={mythItem} lang={lang} t={t} /> : null}
+          <View style={s.list}>
+            {newsItems.map((item, i) => (
+              <BuzzItem key={item.id} item={item} kind="news" lang={lang} t={t} defaultOpen={i === 0} />
+            ))}
+            {mythItem ? <BuzzItem item={mythItem} kind="myth" lang={lang} t={t} defaultOpen={false} /> : null}
+          </View>
 
           <Text style={s.disclaimer}>{t('theBuzz.disclaimer')}</Text>
         </ScrollView>
@@ -95,32 +97,45 @@ export default function TheBuzzScreen() {
   );
 }
 
-function BuzzNewsCard({ item, lang, t }: { item: TheBuzzItem; lang: 'en' | 'es'; t: (k: string, p?: any) => string }) {
+// One accordion topic — collapsed shows just a tag + headline; tapping opens
+// the detail (fact/summary + "ask your provider" + source). Scannable first.
+function BuzzItem({ item, kind, lang, t, defaultOpen }: {
+  item: TheBuzzItem; kind: 'news' | 'myth'; lang: 'en' | 'es';
+  t: (k: string, p?: any) => string; defaultOpen: boolean;
+}) {
+  const [open, setOpen] = React.useState(defaultOpen);
+  const isMyth = kind === 'myth';
+  const headline = isMyth ? localized(item, 'myth_claim', lang) : localized(item, 'title', lang);
+  const body = isMyth ? localized(item, 'fact', lang) : localized(item, 'summary', lang);
   const ask = localized(item, 'ask_provider', lang);
+  const tag = isMyth ? t('theBuzz.mythEyebrow') : t('theBuzz.trendingEyebrow');
   return (
-    <View style={s.card}>
-      <Text style={s.cardTitle}>{localized(item, 'title', lang)}</Text>
-      <Text style={s.cardBody} numberOfLines={5}>{localized(item, 'summary', lang)}</Text>
-      {ask ? <Text style={s.askLine}>💬 {ask}</Text> : null}
-      <TouchableOpacity onPress={() => Linking.openURL(item.evidence_source_url)} accessibilityRole="link" accessibilityLabel={t('theBuzz.evidenceLinkA11y', { source: item.evidence_source_name })}>
-        <Text style={s.sourceLink}>{t('theBuzz.groundedIn', { source: item.evidence_source_name })} ›</Text>
+    <View style={[s.item, isMyth && s.itemMyth]}>
+      <TouchableOpacity
+        style={s.itemHead}
+        activeOpacity={0.7}
+        onPress={() => setOpen((o) => !o)}
+        accessibilityRole="button"
+        accessibilityState={{ expanded: open }}
+        accessibilityLabel={headline}
+      >
+        <View style={{ flex: 1, minWidth: 0 }}>
+          <Text style={[s.itemTag, isMyth && s.itemTagMyth]}>{tag}</Text>
+          <Text style={s.itemTitle}>{headline}</Text>
+        </View>
+        <Text style={s.itemToggle}>{open ? '−' : '+'}</Text>
       </TouchableOpacity>
-    </View>
-  );
-}
 
-function BuzzMythCard({ item, lang, t }: { item: TheBuzzItem; lang: 'en' | 'es'; t: (k: string, p?: any) => string }) {
-  const ask = localized(item, 'ask_provider', lang);
-  return (
-    <View style={[s.card, s.mythCard]}>
-      <Text style={s.mythTag}>{t('theBuzz.mythEyebrow')}</Text>
-      <Text style={s.mythClaim}>{localized(item, 'myth_claim', lang)}</Text>
-      <Text style={s.factLabel}>{t('theBuzz.factLabel')}</Text>
-      <Text style={s.cardBody} numberOfLines={5}>{localized(item, 'fact', lang)}</Text>
-      {ask ? <Text style={s.askLine}>💬 {ask}</Text> : null}
-      <TouchableOpacity onPress={() => Linking.openURL(item.evidence_source_url)} accessibilityRole="link" accessibilityLabel={t('theBuzz.evidenceLinkA11y', { source: item.evidence_source_name })}>
-        <Text style={s.sourceLink}>{t('theBuzz.groundedIn', { source: item.evidence_source_name })} ›</Text>
-      </TouchableOpacity>
+      {open && (
+        <View style={s.itemBody}>
+          {isMyth ? <Text style={s.factLabel}>{t('theBuzz.factLabel')}</Text> : null}
+          <Text style={s.bodyText}>{body}</Text>
+          {ask ? <Text style={s.askLine}>💬 {ask}</Text> : null}
+          <TouchableOpacity onPress={() => Linking.openURL(item.evidence_source_url)} accessibilityRole="link" accessibilityLabel={t('theBuzz.evidenceLinkA11y', { source: item.evidence_source_name })}>
+            <Text style={s.sourceLink}>{t('theBuzz.groundedIn', { source: item.evidence_source_name })} ›</Text>
+          </TouchableOpacity>
+        </View>
+      )}
     </View>
   );
 }
@@ -142,19 +157,25 @@ const s = StyleSheet.create({
   emptyTitle: { fontFamily: FONTS.v2_bold, fontSize: 18, color: COLORS.v2_cocoa, textAlign: 'center' },
   emptyBody: { fontFamily: FONTS.v2_body, fontSize: 14, color: COLORS.v2_walnut, textAlign: 'center', lineHeight: 20, marginTop: 4 },
 
-  scroll: { padding: 20, paddingBottom: 48, gap: 14 },
+  scroll: { padding: 20, paddingBottom: 48 },
   issueTitle: { fontFamily: FONTS.v2_display, fontSize: 24, color: COLORS.v2_cocoa, letterSpacing: -0.4 },
-  issueIntro: { fontFamily: FONTS.v2_body, fontSize: 14, color: COLORS.v2_walnut, lineHeight: 20, marginTop: -4 },
+  issueIntro: { fontFamily: FONTS.v2_body, fontSize: 14, color: COLORS.v2_walnut, lineHeight: 20, marginTop: 6 },
+  hint: { fontFamily: FONTS.v2_mono, fontSize: 10, letterSpacing: 1.3, textTransform: 'uppercase', color: '#B0637E', marginTop: 16 },
 
-  card: {
-    backgroundColor: COLORS.v2_card, borderRadius: 18, padding: 16,
-    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(194,74,99,0.16)', gap: 8,
+  // Accordion — scannable topic cards, detail hidden until opened
+  list: { marginTop: 12, gap: 10 },
+  item: {
+    backgroundColor: COLORS.v2_card, borderRadius: 16, overflow: 'hidden',
+    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(194,74,99,0.16)',
   },
-  mythCard: { backgroundColor: '#FDE7EC', borderColor: 'rgba(194,74,99,0.28)' },
-  mythTag: { fontFamily: FONTS.v2_mono, fontSize: 10, letterSpacing: 1.4, color: '#C24A63', textTransform: 'uppercase' },
-  cardTitle: { fontFamily: FONTS.v2_display, fontSize: 17, color: COLORS.v2_cocoa, letterSpacing: -0.3 },
-  cardBody: { fontFamily: FONTS.v2_body, fontSize: 14, color: COLORS.v2_walnut, lineHeight: 20 },
-  mythClaim: { fontFamily: FONTS.v2_body, fontSize: 14, color: COLORS.v2_walnut, lineHeight: 20, fontStyle: 'italic' },
+  itemMyth: { backgroundColor: '#FDE7EC', borderColor: 'rgba(194,74,99,0.28)' },
+  itemHead: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, paddingVertical: 14, paddingHorizontal: 15 },
+  itemTag: { fontFamily: FONTS.v2_mono, fontSize: 9.5, letterSpacing: 1.4, color: '#C24A63', textTransform: 'uppercase', marginBottom: 4 },
+  itemTagMyth: { color: '#B03A5A' },
+  itemTitle: { fontFamily: FONTS.v2_display, fontSize: 16.5, color: COLORS.v2_cocoa, letterSpacing: -0.3, lineHeight: 21 },
+  itemToggle: { fontFamily: FONTS.v2_body, fontSize: 24, color: '#C24A63', lineHeight: 24, marginTop: 6 },
+  itemBody: { paddingHorizontal: 15, paddingBottom: 15, marginTop: -2, gap: 8 },
+  bodyText: { fontFamily: FONTS.v2_body, fontSize: 14, color: COLORS.v2_walnut, lineHeight: 20 },
   factLabel: { fontFamily: FONTS.v2_bold, fontSize: 11, letterSpacing: 0.6, color: COLORS.v2_cocoa, textTransform: 'uppercase', marginTop: 2 },
   askLine: { fontFamily: FONTS.v2_body, fontSize: 12.5, color: '#8A5A66', lineHeight: 18, fontStyle: 'italic' },
   sourceLink: { fontFamily: FONTS.v2_link, fontSize: 12.5, color: '#C24A63', marginTop: 2 },

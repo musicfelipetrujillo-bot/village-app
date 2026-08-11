@@ -29,25 +29,29 @@ const INK = '#43260F', INKSOFT = '#7A5A3A';
 
 type Nav = NativeStackNavigationProp<HomeStackParamList>;
 
-// One quiet box row — gradient gift square + name + short stage + price + chevron.
-function BoxRow({ box, onPress, last = false }: { box: Box; onPress: () => void; last?: boolean }) {
+// One box card — tells a mom what this box IS: name + stage + the plain-English
+// description (tagline) + price, with a "what's inside" way in.
+function BoxCard({ box, onPress }: { box: Box; onPress: () => void }) {
   return (
     <TouchableOpacity
       onPress={onPress}
-      activeOpacity={0.7}
-      style={[styles.row, !last && styles.rowDivider]}
+      activeOpacity={0.9}
+      style={styles.boxCard}
       accessibilityRole="button"
-      accessibilityLabel={`The ${box.pop} Box, ${formatPrice(box.price)}`}
+      accessibilityLabel={`The ${box.pop} Box, ${box.stage}, ${formatPrice(box.price)}. ${box.tagline}`}
     >
-      <LinearGradient colors={[ROSE, BLUSH]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.rowIcon}>
-        <Text style={styles.rowIconGlyph}>🎁</Text>
-      </LinearGradient>
-      <View style={{ flex: 1, minWidth: 0 }}>
-        <Text style={styles.rowTitle}>The {box.pop} Box</Text>
-        <Text style={styles.rowSub} numberOfLines={1}>{box.stage}</Text>
+      <View style={styles.boxTop}>
+        <LinearGradient colors={[ROSE, BLUSH]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.boxIcon}>
+          <Text style={styles.boxIconGlyph}>🎁</Text>
+        </LinearGradient>
+        <View style={{ flex: 1, minWidth: 0 }}>
+          <Text style={styles.boxName}>The {box.pop} Box</Text>
+          <Text style={styles.boxStage} numberOfLines={1}>{box.stage}</Text>
+        </View>
+        <Text style={styles.boxPrice}>{formatPrice(box.price)}</Text>
       </View>
-      <Text style={styles.rowPrice}>{formatPrice(box.price)}</Text>
-      <Text style={styles.rowChevron}>›</Text>
+      <Text style={styles.boxDesc} numberOfLines={3}>{box.tagline}</Text>
+      <Text style={styles.boxInsideLink}>see what&apos;s inside  ›</Text>
     </TouchableOpacity>
   );
 }
@@ -114,17 +118,14 @@ export default function BoxesHubScreen() {
           </LinearGradient>
         </TouchableOpacity>
 
-        {/* the three stage boxes — one quiet list */}
-        <View style={styles.listCard}>
-          {BOXES.map((box, i) => (
-            <BoxRow
-              key={box.id}
-              box={box}
-              last={i === BOXES.length - 1}
-              onPress={() => navigation.navigate('BoxDetail', { boxId: box.id })}
-            />
-          ))}
-        </View>
+        {/* the three stage boxes — a descriptive card each */}
+        {BOXES.map((box) => (
+          <BoxCard
+            key={box.id}
+            box={box}
+            onPress={() => navigation.navigate('BoxDetail', { boxId: box.id })}
+          />
+        ))}
 
         <Text style={styles.foot}>Photos and pricing are placeholders pending the launch catalog.</Text>
       </ScrollView>
@@ -188,19 +189,20 @@ const styles = StyleSheet.create({
   heroPillAdded: { backgroundColor: 'rgba(255,255,255,0.16)' },
   heroPillText: { fontFamily: FONTS.v2_bold, fontSize: 12, color: '#fff', letterSpacing: 0.3 },
 
-  // Quiet box list
-  listCard: {
-    marginHorizontal: 22, marginTop: 20, backgroundColor: COLORS.v2_paper, borderRadius: 18, overflow: 'hidden',
+  // Descriptive box cards — one per box, with the plain-English description
+  boxCard: {
+    marginHorizontal: 22, marginTop: 12, backgroundColor: COLORS.v2_paper, borderRadius: 18,
+    paddingVertical: 15, paddingHorizontal: 15,
     borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(122,74,40,0.14)',
   },
-  row: { flexDirection: 'row', alignItems: 'center', gap: 13, paddingVertical: 13, paddingHorizontal: 15 },
-  rowDivider: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(122,74,40,0.12)' },
-  rowIcon: { width: 38, height: 38, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
-  rowIconGlyph: { fontSize: 18 },
-  rowTitle: { fontFamily: FONTS.v3_display, fontSize: 16, color: INK, letterSpacing: -0.3 },
-  rowSub: { fontFamily: FONTS.v2_body, fontSize: 11.5, color: INKSOFT, marginTop: 1 },
-  rowPrice: { fontFamily: FONTS.v2_bold, fontSize: 15, color: ROSE },
-  rowChevron: { fontFamily: FONTS.v2_link, fontSize: 20, color: '#C9B7A2' },
+  boxTop: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  boxIcon: { width: 40, height: 40, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
+  boxIconGlyph: { fontSize: 19 },
+  boxName: { fontFamily: FONTS.v3_display, fontSize: 17, color: INK, letterSpacing: -0.3 },
+  boxStage: { fontFamily: FONTS.v2_body, fontSize: 11.5, color: INKSOFT, marginTop: 1 },
+  boxPrice: { fontFamily: FONTS.v2_bold, fontSize: 16, color: ROSE },
+  boxDesc: { fontFamily: FONTS.v2_body, fontSize: 13, color: '#6B5540', lineHeight: 19, marginTop: 11 },
+  boxInsideLink: { fontFamily: FONTS.v2_link, fontSize: 12.5, color: ROSE, marginTop: 10 },
 
   foot: {
     fontFamily: FONTS.v2_body, fontSize: 11, lineHeight: 16,
