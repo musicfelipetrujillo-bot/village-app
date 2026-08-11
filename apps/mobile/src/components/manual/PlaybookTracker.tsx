@@ -108,9 +108,12 @@ export default function PlaybookTracker({ babyProfileId, babyName, week, lang, i
 
   // No baby profile yet → every log is a silent no-op in the store. Instead of
   // dead buttons, send the user to set up their baby first.
-  const onStartSleep = async () => { if (!babyProfileId) return onNeedBaby?.(); select(); setOpen(null); await store.startSleep(); await scheduleWakeAlarm(wakeMin * 60, babyName); };
+  // Keep the pane OPEN on start so the L/R (or sleep) control the user just
+  // tapped visibly becomes the live "running" row in place — no collapse, no
+  // "did anything happen?" (founder 2026-08-10).
+  const onStartSleep = async () => { if (!babyProfileId) return onNeedBaby?.(); select(); await store.startSleep(); await scheduleWakeAlarm(wakeMin * 60, babyName); };
   const onStopSleep = async () => { tap(); await cancelWakeAlarm(); await store.stopSleep(); };
-  const onStartFeed = (method: 'breast' | 'bottle', side: 'left' | 'right' | null) => { if (!babyProfileId) return onNeedBaby?.(); select(); setOzDraft(3); setOpen(null); store.startFeed(method, side); };
+  const onStartFeed = (method: 'breast' | 'bottle', side: 'left' | 'right' | null) => { if (!babyProfileId) return onNeedBaby?.(); select(); setOzDraft(3); store.startFeed(method, side); };
   const onStopFeed = () => { tap(); store.stopFeed(activeFeed?.method === 'bottle' ? ozDraft : null); };
   const onDiaper = (kind: 'wet' | 'dirty' | 'both') => { if (!babyProfileId) return onNeedBaby?.(); tap(); store.logDiaper(kind); };
   const onSaveNote = async () => {
@@ -162,8 +165,9 @@ export default function PlaybookTracker({ babyProfileId, babyName, week, lang, i
 
   return (
     <View style={{ marginTop: 14 }}>
-      {/* Live sleep timer — the "don't oversleep" widget, only while napping. */}
-      {activeSleep && (
+      {/* Live sleep timer — the "don't oversleep" widget, only while napping.
+          Hidden while the Sleep pane is open (the pane shows the live row). */}
+      {activeSleep && open !== 'sleep' && (
         <View style={styles.sleepActive}>
           <View style={styles.rowBetween}>
             <Text style={styles.sleepEyebrow}>{es ? 'SUEÑO · EN CURSO' : 'SLEEP · IN PROGRESS'}</Text>
@@ -188,8 +192,9 @@ export default function PlaybookTracker({ babyProfileId, babyName, week, lang, i
         </View>
       )}
 
-      {/* Live feed timer — only while a feed runs. */}
-      {activeFeed && (
+      {/* Live feed timer — only while a feed runs. Hidden while the Feed pane is
+          open (the pane shows the live row in place of L/R). */}
+      {activeFeed && open !== 'feed' && (
         <View style={styles.feedActiveCard}>
           <View style={styles.rowBetween}>
             <Text style={styles.feedActiveLabel}>
@@ -231,7 +236,15 @@ export default function PlaybookTracker({ babyProfileId, babyName, week, lang, i
         {open === 'sleep' && (
           <View style={styles.panel}>
             {activeSleep ? (
-              <Text style={styles.panelHint}>{es ? 'siesta en curso — temporizador arriba ↑' : 'nap running — timer above ↑'}</Text>
+              <View style={styles.runRow}>
+                <View style={[styles.runDot, { backgroundColor: C.clayInk }]} />
+                <Text style={styles.runLabel}>{es ? 'Siesta en curso' : 'Nap running'}</Text>
+                <Text style={styles.runTimer}>{elapsedLabel(sleepElapsed)}</Text>
+                <TouchableOpacity onPress={onStopSleep} activeOpacity={0.9} style={styles.sleepStopBtn}>
+                  <Glyph d={ICON.stop} color="#9A4E28" size={13} fill="#9A4E28" sw={0} />
+                  <Text style={styles.sleepStopText}>{es ? 'parar' : 'stop'}</Text>
+                </TouchableOpacity>
+              </View>
             ) : (
               <TouchableOpacity onPress={onStartSleep} activeOpacity={0.9} style={styles.startBtn}>
                 <Glyph d={ICON.play} color={C.clayInk} size={14} fill={C.clayInk} sw={0} />
@@ -245,7 +258,27 @@ export default function PlaybookTracker({ babyProfileId, babyName, week, lang, i
         {open === 'feed' && (
           <View style={styles.panel}>
             {activeFeed ? (
-              <Text style={styles.panelHint}>{es ? 'toma en curso — temporizador arriba ↑' : 'feed running — timer above ↑'}</Text>
+              <>
+                <View style={styles.runRow}>
+                  <View style={[styles.runDot, { backgroundColor: '#C24A63' }]} />
+                  <Text style={styles.runLabel}>
+                    {activeFeed.method === 'bottle' ? (es ? 'Biberón' : 'Bottle') : activeFeed.side === 'left' ? (es ? 'Pecho izq.' : 'Left breast') : (es ? 'Pecho der.' : 'Right breast')}
+                  </Text>
+                  <Text style={styles.runTimer}>{elapsedLabel(feedElapsed)}</Text>
+                  <TouchableOpacity onPress={onStopFeed} activeOpacity={0.9} style={styles.feedStopBtn}>
+                    <Glyph d={ICON.stop} color="#fff" size={12} fill="#fff" sw={0} />
+                    <Text style={styles.feedStopText}>{es ? 'parar' : 'stop'}</Text>
+                  </TouchableOpacity>
+                </View>
+                {activeFeed.method === 'bottle' && (
+                  <View style={styles.ozRow}>
+                    <Text style={styles.ozLabel}>{es ? 'onzas' : 'oz'}</Text>
+                    <TouchableOpacity onPress={() => setOzDraft((o) => Math.max(0.5, Math.round((o - 0.5) * 2) / 2))} style={styles.ozBtn}><Text style={styles.ozBtnText}>−</Text></TouchableOpacity>
+                    <Text style={styles.ozValue}>{ozDraft}</Text>
+                    <TouchableOpacity onPress={() => setOzDraft((o) => Math.min(12, Math.round((o + 0.5) * 2) / 2))} style={styles.ozBtn}><Text style={styles.ozBtnText}>+</Text></TouchableOpacity>
+                  </View>
+                )}
+              </>
             ) : (
               <>
                 <View style={{ flexDirection: 'row', gap: 7 }}>
@@ -428,6 +461,11 @@ const styles = StyleSheet.create({
 
   panel: { marginTop: 12 },
   panelHint: { fontFamily: FONTS.v2_body, fontSize: 12, color: C.walnut, textAlign: 'center', paddingVertical: 6 },
+  // Inline "running" row — the L/R (or sleep) control turns into this in place.
+  runRow: { flexDirection: 'row', alignItems: 'center', gap: 9, paddingVertical: 2 },
+  runDot: { width: 8, height: 8, borderRadius: 4 },
+  runLabel: { flex: 1, fontFamily: FONTS.v2_bold, fontSize: 13.5, color: C.cocoa },
+  runTimer: { fontFamily: FONTS.v2_bold, fontSize: 15, color: C.cocoa, letterSpacing: 0.3 },
   startBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: C.clay, borderRadius: 12, paddingVertical: 13 },
   startBtnText: { fontFamily: FONTS.v3_display, fontSize: 15, color: C.clayInk },
   startBtnSub: { fontFamily: FONTS.v2_body, fontSize: 10.5, color: C.claySub },

@@ -56,7 +56,6 @@ export default function InsightsScreen() {
   const fetchVault = useMilkVaultStore((s) => s.fetchAll);
 
   const [stats, setStats] = useState<RecentStats | null>(null);
-  const [moods, setMoods] = useState<{ checkin_date: string; mood_score: number }[]>([]);
   const [loading, setLoading] = useState(true);
 
   useFocusEffect(
@@ -70,12 +69,9 @@ export default function InsightsScreen() {
         if (!babyProfile) {
           homeApi.getMyBabyProfile().then((p) => { if (!cancelled && p) setBabyProfile(p); }).catch(() => {});
         }
-        const [s, m] = await Promise.all([
-          babyTrackerApi.getRecentStats(7).catch(() => null),
-          homeApi.getRecentCheckins(7).catch(() => [] as { checkin_date: string; mood_score: number }[]),
-        ]);
+        const s = await babyTrackerApi.getRecentStats(7).catch(() => null);
         fetchVault().catch(() => {});
-        if (!cancelled) { setStats(s); setMoods(m); setLoading(false); }
+        if (!cancelled) { setStats(s); setLoading(false); }
       })();
       return () => { cancelled = true; };
     }, [fetchVault, babyProfile, setBabyProfile]),
@@ -86,21 +82,18 @@ export default function InsightsScreen() {
   const lang = (useUserStore.getState().profile?.preferred_language ?? 'en') as 'en' | 'es';
   const ww = stats?.avgWakeWindowMin ?? null;
   const milkAdded = vault?.weeklyOuncesAdded ?? 0;
-  const goodDays = moods.filter((m) => m.mood_score >= 3).length;
-  const hardDays = moods.filter((m) => m.mood_score <= 2).length;
 
   const bits: string[] = [];
   if (ww) bits.push(`${babyName}'s wake windows are averaging about ${fmtMin(ww)}${ww >= 120 ? ' — a sign they may be ready to stretch to fewer, longer naps' : ''}.`);
   if (milkAdded > 0) bits.push(`Your freezer's up ${milkAdded} oz this week.`);
-  if (moods.length > 0) bits.push(hardDays > goodDays ? 'A couple of harder days this week — worth a gentle look below.' : `You logged ${goodDays} good ${goodDays === 1 ? 'day' : 'days'}.`);
-  const narration = bits.length > 0 ? bits.join(' ') : `Log a few naps, feeds, or a daily check-in and Villie will start reading your week back to you here.`;
+  const narration = bits.length > 0 ? bits.join(' ') : `Log a few naps or feeds and Villie will start reading your week back to you here.`;
 
   return (
     <View style={styles.container}>
       <SafeAreaView style={{ flex: 1 }} edges={['top']}>
         <View style={styles.header}>
           <BackButton color={C.roseInk} />
-          <Text style={styles.title}>insights</Text>
+          <Text style={styles.title}>your day</Text>
           <View style={styles.weekChip}><Text style={styles.weekChipText}>this week</Text></View>
         </View>
 
@@ -108,10 +101,9 @@ export default function InsightsScreen() {
           <View style={styles.center}><ActivityIndicator color={C.rose} /></View>
         ) : (
           <ScrollView contentContainerStyle={{ paddingBottom: 90 }} showsVerticalScrollIndicator={false}>
-            {/* Log first (2026-07-15 — the retired Manual/Playbook view's tracker
-                now lives HERE): quick-log on Home lands on this screen, so the
-                sleep/feed/diaper logger sits at the top, and everything below
-                is the read-back on what she logged. */}
+            {/* Two clearly-labeled zones (founder 2026-08-10): LOG at the top (do),
+                INSIGHTS below (read back). Quick-log on Home lands here. */}
+            <Text style={styles.sectionLabel}>{lang === 'es' ? 'Registrar' : 'Log'}</Text>
             <PlaybookTracker
               babyProfileId={babyProfile?.id ?? null}
               babyName={babyProfile?.baby_name ?? 'baby'}
@@ -120,6 +112,8 @@ export default function InsightsScreen() {
               initialPane={route.params?.pane}
               onNeedBaby={() => nav.navigate('BabyProfileSetup')}
             />
+
+            <Text style={[styles.sectionLabel, { marginTop: 26 }]}>{lang === 'es' ? 'Análisis' : 'Insights'}</Text>
 
             {/* Villie's read — the gradient "Villie moment" */}
             <LinearGradient colors={['#C24A63', '#E894AC']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.narrCard}>
@@ -159,32 +153,6 @@ export default function InsightsScreen() {
               </View>
             </View>
 
-            {/* Mood */}
-            <View style={styles.card}>
-              <View style={styles.cardHead}>
-                <View style={styles.rowGap}><Glyph d={ICON.heart} color={C.roseInk} size={15} /><Text style={styles.cardEyebrow}>how you're doing</Text></View>
-                {moods.length > 0 && <Text style={styles.cardMeta}>{goodDays} good · {hardDays} hard</Text>}
-              </View>
-              {moods.length > 0 ? (
-                <>
-                  <View style={styles.moodRow}>
-                    {moods.slice(-7).map((m, i) => (
-                      <View key={i} style={[styles.moodDot, { backgroundColor: MOOD_DOT[m.mood_score] ?? MOOD_DOT[0] }, m.mood_score <= 2 && styles.moodDotWarn]} />
-                    ))}
-                  </View>
-                  {hardDays > 0 && (
-                    <TouchableOpacity style={styles.moodNudge} onPress={() => nav.navigate('DailyCheckin')} accessibilityRole="button">
-                      <Glyph d={ICON.heart} color={C.roseInk} size={16} />
-                      <Text style={styles.moodNudgeText}>A rough patch shows here. A quick check-in, or someone to talk to?</Text>
-                      <Glyph d={ICON.chev} color="#D19AAA" size={16} />
-                    </TouchableOpacity>
-                  )}
-                </>
-              ) : (
-                <TouchableOpacity onPress={() => nav.navigate('DailyCheckin')} accessibilityRole="button"><Text style={styles.emptyLink}>Do a daily check-in to track how you're feeling →</Text></TouchableOpacity>
-              )}
-            </View>
-
             <Text style={styles.disclaimer}>patterns from your own logs — not medical advice</Text>
           </ScrollView>
         )}
@@ -204,6 +172,7 @@ const styles = StyleSheet.create({
   title: { fontFamily: FONTS.headerBold, fontSize: 28, color: C.cocoa, letterSpacing: -0.5 },
   weekChip: { backgroundColor: '#F2E6DD', borderRadius: 999, paddingHorizontal: 11, paddingVertical: 5 },
   weekChipText: { fontFamily: FONTS.v2_mono, fontSize: 9, letterSpacing: 1.3, textTransform: 'uppercase', color: C.walnut, fontWeight: '600' },
+  sectionLabel: { fontFamily: FONTS.v2_mono, fontSize: 11, letterSpacing: 2, textTransform: 'uppercase', color: C.walnut, fontWeight: '600', marginHorizontal: 16, marginTop: 6, marginBottom: 8 },
 
   narrCard: { borderRadius: 18, padding: 18, marginHorizontal: 16, overflow: 'hidden' },
   narrHead: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 },
