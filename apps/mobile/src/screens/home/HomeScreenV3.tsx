@@ -85,6 +85,7 @@ const ICON = {
   star:    'M12 3l2.6 5.6 6.1.8-4.5 4.2 1.2 6.1L12 17l-5.4 2.9 1.2-6.1L3.3 9.4l6.1-.8L12 3z',
   bell:    'M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 01-3.4 0',
   menu:    'M4 7h16M4 12h16M4 17h16',
+  search:  'M11 18a7 7 0 100-14 7 7 0 000 14zM21 21l-4.35-4.35',
 } as const;
 
 function Glyph({ d, color = '#43260F', size = 22, sw = 2 }: { d: string; color?: string; size?: number; sw?: number }) {
@@ -188,8 +189,8 @@ function WeekRingHero({ firstName, babyName, weekNumber, expecting, onOpenManual
       </View>
 
       <View style={styles.topBar}>
-        <TouchableOpacity onPress={onMenu} activeOpacity={0.8} style={styles.topIconBtn} accessibilityRole="button" accessibilityLabel={lang === 'es' ? 'Menú' : 'Menu'}>
-          <Glyph d={ICON.menu} color="#C24A63" size={22} sw={2} />
+        <TouchableOpacity onPress={onMenu} activeOpacity={0.8} style={styles.topIconBtn} accessibilityRole="button" accessibilityLabel={lang === 'es' ? 'Buscar' : 'Search'}>
+          <Glyph d={ICON.search} color="#C24A63" size={21} sw={2} />
         </TouchableOpacity>
         <TouchableOpacity onPress={onNotifications} activeOpacity={0.8} style={styles.topIconBtn} accessibilityRole="button" accessibilityLabel={lang === 'es' ? 'Notificaciones' : 'Notifications'}>
           <Glyph d={ICON.bell} color="#C24A63" size={21} sw={2} />
@@ -444,7 +445,7 @@ export default function HomeScreenV3() {
           expecting={expecting}
           onOpenManual={() => goManualView('manual')}
           onBeforeBaby={goBeforeBaby}
-          onMenu={() => navigation.getParent()?.navigate('Profile')}
+          onMenu={() => navigation.navigate('Search' as never)}
           onNotifications={() => navigation.navigate('Notifications' as never)}
         />
 
