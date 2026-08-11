@@ -157,10 +157,10 @@ export default function PlaybookTracker({ babyProfileId, babyName, week, lang, i
     return es ? `Ventanas más cortas que el ~${wakeMin}m típico — atenta a las señales de sueño temprano.` : `Awake windows are shorter than the ~${wakeMin}m typical — watch for sleepy cues early.`;
   })();
 
-  const PILLS: { k: Exclude<Pane, null>; icon: string; label: string; active: boolean }[] = [
-    { k: 'sleep', icon: ICON.moon, label: es ? 'Sueño' : 'Sleep', active: !!activeSleep },
-    { k: 'feed', icon: ICON.bottle, label: es ? 'Toma' : 'Feed', active: !!activeFeed },
-    { k: 'diaper', icon: ICON.droplet, label: es ? 'Pañal' : 'Diaper', active: false },
+  const PILLS: { k: Exclude<Pane, null>; icon: string; label: string; active: boolean; bg: string; bgOn: string; ink: string }[] = [
+    { k: 'feed', icon: ICON.bottle, label: es ? 'Toma' : 'Feed', active: !!activeFeed, bg: '#F7E7BE', bgOn: '#EFD497', ink: '#5A4012' },
+    { k: 'sleep', icon: ICON.moon, label: es ? 'Sueño' : 'Sleep', active: !!activeSleep, bg: '#F3DFC9', bgOn: '#E7C6A2', ink: '#8A4E28' },
+    { k: 'diaper', icon: ICON.droplet, label: es ? 'Pañal' : 'Diaper', active: false, bg: '#E4E7C8', bgOn: '#D2D8AB', ink: '#3F4516' },
   ];
 
   return (
@@ -217,21 +217,31 @@ export default function PlaybookTracker({ babyProfileId, babyName, week, lang, i
         </View>
       )}
 
-      {/* Compact pill control — Sleep | Feed | Diaper. Tap to log. */}
-      <View style={styles.logCard}>
-        <Text style={styles.logEyebrow}>{es ? 'REGISTRAR' : 'LOG'}</Text>
-        <View style={styles.pillRow}>
-          {PILLS.map((p) => {
-            const on = open === p.k;
-            return (
-              <TouchableOpacity key={p.k} onPress={() => togglePane(p.k)} activeOpacity={0.85} style={[styles.pill, on && styles.pillOn]}>
-                <Glyph d={p.icon} color={on ? C.cocoa : C.walnut} size={15} sw={1.8} />
-                <Text style={[styles.pillText, on && styles.pillTextOn]}>{p.label}</Text>
-                {p.active && <View style={styles.pillDot} />}
-              </TouchableOpacity>
-            );
-          })}
-        </View>
+      {/* LOG — the hero: three big, colored actions. Tap one to open its
+          quick control below. */}
+      <View style={styles.bigPillRow}>
+        {PILLS.map((p) => {
+          const on = open === p.k;
+          return (
+            <TouchableOpacity
+              key={p.k}
+              onPress={() => togglePane(p.k)}
+              activeOpacity={0.85}
+              style={[styles.bigPill, { backgroundColor: on ? p.bgOn : p.bg }, on && { borderColor: p.ink }]}
+              accessibilityRole="button"
+              accessibilityState={{ expanded: on }}
+              accessibilityLabel={p.label}
+            >
+              <Glyph d={p.icon} color={p.ink} size={23} sw={1.8} />
+              <Text style={[styles.bigPillText, { color: p.ink }]}>{p.label}</Text>
+              {p.active ? <View style={[styles.bigPillDot, { backgroundColor: p.ink }]} /> : null}
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+
+      {open ? (
+        <View style={styles.panelCard}>
 
         {open === 'sleep' && (
           <View style={styles.panel}>
@@ -311,7 +321,8 @@ export default function PlaybookTracker({ babyProfileId, babyName, week, lang, i
             <Text style={styles.feedTip}>{diaperCount} {es ? 'hoy' : 'today'}</Text>
           </View>
         )}
-      </View>
+        </View>
+      ) : null}
 
       {/* Jot — text / dictation */}
       <View style={styles.jotCard}>
@@ -360,28 +371,9 @@ export default function PlaybookTracker({ babyProfileId, babyName, week, lang, i
         </View>
       )}
 
-      {/* Phase 3 — "what your logs say": curated from the mom's real recent data. */}
-      {hasInsights && stats && (
-        <View style={styles.insightCard}>
-          <Text style={styles.insightEyebrow}>{es ? 'LO QUE DICEN TUS REGISTROS' : 'WHAT YOUR LOGS SAY'}</Text>
-          <View style={styles.insightChips}>
-            {stats.avgWakeWindowMin != null && (
-              <View style={styles.insightChip}><Text style={styles.insightVal}>{hm(stats.avgWakeWindowMin)}</Text><Text style={styles.insightKey}>{es ? 'VIGILIA' : 'WAKE WINDOW'}</Text></View>
-            )}
-            {stats.avgFeedGapMin != null && (
-              <View style={styles.insightChip}><Text style={styles.insightVal}>{es ? 'c/' : 'q'}{hm(stats.avgFeedGapMin)}</Text><Text style={styles.insightKey}>{es ? 'TOMAS' : 'FEEDS'}</Text></View>
-            )}
-            {stats.avgNapMin != null && (
-              <View style={styles.insightChip}><Text style={styles.insightVal}>{hm(stats.avgNapMin)}</Text><Text style={styles.insightKey}>{es ? 'SIESTA' : 'NAP AVG'}</Text></View>
-            )}
-            {stats.diapersPerDay != null && (
-              <View style={styles.insightChip}><Text style={styles.insightVal}>{stats.diapersPerDay}/{es ? 'd' : 'd'}</Text><Text style={styles.insightKey}>{es ? 'PAÑALES' : 'DIAPERS'}</Text></View>
-            )}
-          </View>
-          {takeaway && <Text style={styles.insightTakeaway}>{takeaway}</Text>}
-          <Text style={styles.insightDisc}>{es ? 'Patrones de tus registros — apoyo, no consejo médico.' : 'Patterns from your logs — supportive, not medical advice.'}</Text>
-        </View>
-      )}
+      {/* "What your logs say" read-back removed from the Log zone (2026-08-10):
+          it duplicated the Insights section below and cluttered the logger.
+          Insights now lives only in the screen's "Insights" zone. */}
     </View>
   );
 }
@@ -459,7 +451,14 @@ const styles = StyleSheet.create({
   pillTextOn: { color: C.cocoa },
   pillDot: { position: 'absolute', top: 6, right: 10, width: 7, height: 7, borderRadius: 4, backgroundColor: C.rose },
 
-  panel: { marginTop: 12 },
+  // LOG hero — three big colored actions + the quick-control card they open.
+  bigPillRow: { flexDirection: 'row', gap: 9 },
+  bigPill: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 15, borderRadius: 16, gap: 6, borderWidth: 2, borderColor: 'transparent' },
+  bigPillText: { fontFamily: FONTS.v2_bold, fontSize: 13.5 },
+  bigPillDot: { position: 'absolute', top: 9, right: 11, width: 8, height: 8, borderRadius: 4 },
+  panelCard: { marginTop: 10, backgroundColor: C.paper, borderRadius: 14, padding: 13, borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(122,74,40,0.14)' },
+
+  panel: { marginTop: 0 },
   panelHint: { fontFamily: FONTS.v2_body, fontSize: 12, color: C.walnut, textAlign: 'center', paddingVertical: 6 },
   // Inline "running" row — the L/R (or sleep) control turns into this in place.
   runRow: { flexDirection: 'row', alignItems: 'center', gap: 9, paddingVertical: 2 },
