@@ -57,6 +57,9 @@ export default function InsightsScreen() {
 
   const [stats, setStats] = useState<RecentStats | null>(null);
   const [loading, setLoading] = useState(true);
+  // 0 = this week; 1 = last week; etc. The "this week" chip steps this back so
+  // moms can see past weeks' real patterns.
+  const [weekOffset, setWeekOffset] = useState(0);
 
   useFocusEffect(
     useCallback(() => {
@@ -69,12 +72,12 @@ export default function InsightsScreen() {
         if (!babyProfile) {
           homeApi.getMyBabyProfile().then((p) => { if (!cancelled && p) setBabyProfile(p); }).catch(() => {});
         }
-        const s = await babyTrackerApi.getRecentStats(7).catch(() => null);
+        const s = await babyTrackerApi.getRecentStats(7, weekOffset).catch(() => null);
         fetchVault().catch(() => {});
         if (!cancelled) { setStats(s); setLoading(false); }
       })();
       return () => { cancelled = true; };
-    }, [fetchVault, babyProfile, setBabyProfile]),
+    }, [fetchVault, babyProfile, setBabyProfile, weekOffset]),
   );
 
   const babyName = babyProfile?.baby_name ?? 'your baby';
@@ -82,11 +85,22 @@ export default function InsightsScreen() {
   const lang = (useUserStore.getState().profile?.preferred_language ?? 'en') as 'en' | 'es';
   const ww = stats?.avgWakeWindowMin ?? null;
   const milkAdded = vault?.weeklyOuncesAdded ?? 0;
+  const isCurrentWeek = weekOffset === 0;
+  const displayWeek = week != null ? Math.max(1, week - weekOffset) : null;
+  const weekLabel = weekOffset === 0
+    ? (lang === 'es' ? 'esta semana' : 'this week')
+    : weekOffset === 1
+      ? (lang === 'es' ? 'semana pasada' : 'last week')
+      : (lang === 'es' ? `hace ${weekOffset} sem` : `${weekOffset} wks ago`);
 
   const bits: string[] = [];
-  if (ww) bits.push(`${babyName}'s wake windows are averaging about ${fmtMin(ww)}${ww >= 120 ? ' — a sign they may be ready to stretch to fewer, longer naps' : ''}.`);
-  if (milkAdded > 0) bits.push(`Your freezer's up ${milkAdded} oz this week.`);
-  const narration = bits.length > 0 ? bits.join(' ') : `Log a few naps or feeds and Villie will start reading your week back to you here.`;
+  if (ww) bits.push(`${babyName}'s wake windows averaged about ${fmtMin(ww)} ${isCurrentWeek ? 'this week' : 'that week'}${ww >= 120 ? ' — a sign they may be ready to stretch to fewer, longer naps' : ''}.`);
+  if (isCurrentWeek && milkAdded > 0) bits.push(`Your freezer's up ${milkAdded} oz this week.`);
+  const narration = bits.length > 0
+    ? bits.join(' ')
+    : (isCurrentWeek
+        ? `Log a few naps or feeds and Villie will start reading your week back to you here.`
+        : `No naps or feeds logged ${weekLabel}.`);
 
   return (
     <View style={styles.container}>
@@ -94,7 +108,25 @@ export default function InsightsScreen() {
         <View style={styles.header}>
           <BackButton color={C.roseInk} />
           <Text style={styles.title}>your day</Text>
-          <View style={styles.weekChip}><Text style={styles.weekChipText}>this week</Text></View>
+          <View style={styles.weekStepper}>
+            <TouchableOpacity
+              onPress={() => setWeekOffset((o) => Math.min(o + 1, week != null ? week - 1 : 12))}
+              disabled={weekOffset >= (week != null ? week - 1 : 12)}
+              hitSlop={{ top: 10, bottom: 10, left: 8, right: 6 }}
+              accessibilityRole="button" accessibilityLabel={lang === 'es' ? 'Semana anterior' : 'Previous week'}
+            >
+              <Text style={[styles.weekArrow, weekOffset >= (week != null ? week - 1 : 12) && { opacity: 0.25 }]}>‹</Text>
+            </TouchableOpacity>
+            <Text style={styles.weekStepperText}>{weekLabel}</Text>
+            <TouchableOpacity
+              onPress={() => setWeekOffset((o) => Math.max(o - 1, 0))}
+              disabled={weekOffset === 0}
+              hitSlop={{ top: 10, bottom: 10, left: 6, right: 8 }}
+              accessibilityRole="button" accessibilityLabel={lang === 'es' ? 'Semana siguiente' : 'Next week'}
+            >
+              <Text style={[styles.weekArrow, weekOffset === 0 && { opacity: 0.25 }]}>›</Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         {loading ? (
@@ -141,15 +173,23 @@ export default function InsightsScreen() {
 
             {/* Milk + growth */}
             <View style={styles.twoUp}>
-              <View style={[styles.miniCard, { backgroundColor: C.roseTint }]}>
-                <Text style={[styles.miniEyebrow, { color: C.roseInk }]}>milk stashed</Text>
-                <Text style={styles.miniBig}>+{milkAdded}<Text style={styles.miniUnit}> oz</Text></Text>
-                <Text style={styles.miniSub}>{vault?.totalFreezerOz ?? 0} oz in the freezer</Text>
-              </View>
+              {isCurrentWeek ? (
+                <View style={[styles.miniCard, { backgroundColor: C.roseTint }]}>
+                  <Text style={[styles.miniEyebrow, { color: C.roseInk }]}>milk stashed</Text>
+                  <Text style={styles.miniBig}>+{milkAdded}<Text style={styles.miniUnit}> oz</Text></Text>
+                  <Text style={styles.miniSub}>{vault?.totalFreezerOz ?? 0} oz in the freezer</Text>
+                </View>
+              ) : (
+                <View style={[styles.miniCard, { backgroundColor: C.roseTint }]}>
+                  <Text style={[styles.miniEyebrow, { color: C.roseInk }]}>feeds a day</Text>
+                  <Text style={styles.miniBig}>{stats?.feedsPerDay ?? '—'}</Text>
+                  <Text style={styles.miniSub}>{stats?.feeds ?? 0} feeds logged that week</Text>
+                </View>
+              )}
               <View style={[styles.miniCard, { backgroundColor: C.honeyCard }]}>
-                <Text style={[styles.miniEyebrow, { color: C.honeyInk }]}>{babyName} is</Text>
-                <Text style={styles.miniBig}>{week ?? '—'}<Text style={styles.miniUnit}> {week ? 'wks' : ''}</Text></Text>
-                <Text style={styles.miniSub} numberOfLines={2}>{milestone?.title ?? 'growing every day'}</Text>
+                <Text style={[styles.miniEyebrow, { color: C.honeyInk }]}>{babyName} {isCurrentWeek ? 'is' : 'was'}</Text>
+                <Text style={styles.miniBig}>{displayWeek ?? '—'}<Text style={styles.miniUnit}> {displayWeek ? 'wks' : ''}</Text></Text>
+                <Text style={styles.miniSub} numberOfLines={2}>{isCurrentWeek ? (milestone?.title ?? 'growing every day') : 'looking back'}</Text>
               </View>
             </View>
 
@@ -172,6 +212,9 @@ const styles = StyleSheet.create({
   title: { fontFamily: FONTS.headerBold, fontSize: 28, color: C.cocoa, letterSpacing: -0.5 },
   weekChip: { backgroundColor: '#F2E6DD', borderRadius: 999, paddingHorizontal: 11, paddingVertical: 5 },
   weekChipText: { fontFamily: FONTS.v2_mono, fontSize: 9, letterSpacing: 1.3, textTransform: 'uppercase', color: C.walnut, fontWeight: '600' },
+  weekStepper: { flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: '#F2E6DD', borderRadius: 999, paddingHorizontal: 6, paddingVertical: 4 },
+  weekStepperText: { fontFamily: FONTS.v2_mono, fontSize: 9.5, letterSpacing: 1, textTransform: 'uppercase', color: C.walnut, fontWeight: '600', minWidth: 64, textAlign: 'center' },
+  weekArrow: { fontFamily: FONTS.v2_link, fontSize: 18, color: C.roseInk, paddingHorizontal: 3, marginTop: -2 },
   sectionLabel: { fontFamily: FONTS.v2_mono, fontSize: 11, letterSpacing: 2, textTransform: 'uppercase', color: C.walnut, fontWeight: '600', marginHorizontal: 16, marginTop: 6, marginBottom: 8 },
 
   narrCard: { borderRadius: 18, padding: 18, marginHorizontal: 16, overflow: 'hidden' },
