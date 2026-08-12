@@ -376,4 +376,5 @@ export const MENU_ICONS = {
   // More
   mailHeart:
     'M22 12v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6a2 2 0 012-2h11l7 6zM2 6l10 7 10-7',
+  shield: 'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z',
 } as const;

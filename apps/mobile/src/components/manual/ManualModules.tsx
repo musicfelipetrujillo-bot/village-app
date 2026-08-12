@@ -54,6 +54,9 @@ const CH = {
   avA11y:    { en: 'Ask Villie about this week', es: 'Pregúntale a Villie sobre esta semana' },
 } as const;
 
+// Each module type carries its own monochrome glyph so the stack is scannable
+// (the mock's typed-card system) — calm, not colored-loud. Checklist keeps its
+// rose tick; the rest read in the muted label ink.
 function CheckGlyph() {
   return (
     <Svg width={12} height={12} viewBox="0 0 24 24">
@@ -61,13 +64,40 @@ function CheckGlyph() {
     </Svg>
   );
 }
-
-function ModuleLabel({ type, icon }: { type: string; icon?: React.ReactNode }) {
+function AskGlyph() {
   return (
-    <View style={s.modLabel}>
-      {icon ? <View style={{ marginRight: 5 }}>{icon}</View> : null}
-      <Text style={s.modT}>{type.toUpperCase()}</Text>
-    </View>
+    <Svg width={13} height={13} viewBox="0 0 24 24">
+      <Path d="M21 12a8 8 0 01-11.6 7.1L4 20l1-4.5A8 8 0 1121 12z" fill="none" stroke={LABEL} strokeWidth={1.8} strokeLinejoin="round" />
+      <Path d="M9.5 9.3a2.5 2.5 0 013.8-1.8c1.6 1 .9 2.9-.8 3.5-.6.2-1 .8-1 1.5" fill="none" stroke={LABEL} strokeWidth={1.8} strokeLinecap="round" />
+      <Path d="M11.5 16.2h.01" fill="none" stroke={LABEL} strokeWidth={2} strokeLinecap="round" />
+    </Svg>
+  );
+}
+function GlanceGlyph() {
+  return (
+    <Svg width={13} height={13} viewBox="0 0 24 24">
+      <Path d="M5 20V11M12 20V4M19 20v-6" fill="none" stroke={LABEL} strokeWidth={1.9} strokeLinecap="round" />
+    </Svg>
+  );
+}
+function LookGlyph() {
+  return (
+    <Svg width={13} height={13} viewBox="0 0 24 24">
+      <Path d="M1.5 12S5 5 12 5s10.5 7 10.5 7-3.5 7-10.5 7S1.5 12 1.5 12z" fill="none" stroke={LABEL} strokeWidth={1.8} strokeLinejoin="round" />
+      <Path d="M12 15a3 3 0 100-6 3 3 0 000 6z" fill="none" stroke={LABEL} strokeWidth={1.8} />
+    </Svg>
+  );
+}
+
+function ModuleLabel({ type, icon, divider }: { type: string; icon?: React.ReactNode; divider?: boolean }) {
+  return (
+    <>
+      {divider ? <View style={s.modRule} /> : null}
+      <View style={s.modLabel}>
+        {icon ? <View style={{ marginRight: 5 }}>{icon}</View> : null}
+        <Text style={s.modT}>{type.toUpperCase()}</Text>
+      </View>
+    </>
   );
 }
 
@@ -137,7 +167,7 @@ function ArticleModule({ articles, lang }: { articles: Article[]; lang: Lang }) 
   if (!articles.length) return null;
   return (
     <View>
-      <ModuleLabel type={CH.expert[lang]} />
+      <ModuleLabel type={CH.expert[lang]} icon={<AskGlyph />} divider />
       <View onLayout={(e) => setW(e.nativeEvent.layout.width)}>
         {articles.length === 1 ? (
           <ExpertCard data={articles[0]} lang={lang} />
@@ -175,7 +205,7 @@ const STORAGE_ICON: Record<string, string> = { counter: '🌡️', fridge: '🧊
 function InfographicModule({ data, lang }: { data: Info; lang: Lang }) {
   return (
     <View>
-      <ModuleLabel type={CH.info[lang]} />
+      <ModuleLabel type={CH.info[lang]} icon={<GlanceGlyph />} divider />
       <LinearGradient colors={['#FDF0DC', '#FDECEF']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.info}>
         <Text style={s.infoTitle}>{data.title}</Text>
 
@@ -284,7 +314,7 @@ function HelpsModule({ data, lang }: { data: Helps; lang: Lang }) {
   const open = (url: string) => { tap(); Linking.openURL(url).catch(() => {}); };
   return (
     <View>
-      <ModuleLabel type={CH.helps[lang]} />
+      <ModuleLabel type={CH.helps[lang]} icon={<LookGlyph />} divider />
       <View style={s.helps}>
         <Text style={s.helpsNote}>{CH.helpsNote[lang]}</Text>
         {!!data.tips?.length && (
@@ -326,7 +356,7 @@ function HelpsModule({ data, lang }: { data: Helps; lang: Lang }) {
 function AskVillieModule({ onPress, lang }: { onPress: () => void; lang: Lang }) {
   return (
     <View>
-      <ModuleLabel type={CH.villie[lang]} />
+      <ModuleLabel type={CH.villie[lang]} divider />
       <TouchableOpacity
         style={s.av}
         activeOpacity={0.92}
@@ -414,8 +444,11 @@ export default function ManualModules({ content, onAskVillie, lang = 'en', week,
 }
 
 const s = StyleSheet.create({
-  wrap: { marginTop: 26, gap: 26, paddingHorizontal: 20 },
+  wrap: { marginTop: 24, gap: 22, paddingHorizontal: 20 },
 
+  // Editorial hairline that opens each section (except the first) so the stack
+  // reads as distinct beats instead of one continuous wall.
+  modRule: { height: StyleSheet.hairlineWidth, backgroundColor: 'rgba(122,74,40,0.16)', marginBottom: 16 },
   modLabel: { flexDirection: 'row', alignItems: 'center', gap: 9, marginBottom: 10 },
   modN: { fontFamily: FONTS.headerBold, fontSize: 14, color: ACCENT },
   modT: { fontFamily: FONTS.bodyBold, fontSize: 11, letterSpacing: 1.6, color: LABEL },
