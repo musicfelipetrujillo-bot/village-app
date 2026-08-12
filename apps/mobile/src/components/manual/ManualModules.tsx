@@ -3,7 +3,7 @@
 // Driven entirely by a CategoryContent (manualWeekContent), so every week +
 // category renders the same structure. The infographic switches on `kind`.
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Share, ScrollView, Dimensions, Linking, Alert } from 'react-native';
+import { View, Text, StyleSheet, Share, ScrollView, Dimensions, Linking, Alert, Modal } from 'react-native';
 import { TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Path, Circle, Defs, LinearGradient as SvgGrad, Stop } from 'react-native-svg';
@@ -466,6 +466,58 @@ function StoryBody({ card, ink, lang }: { card: StoryCard; ink: string; lang: La
   );
 }
 
+// The week's teaching as a full read (opened from the "read this week" cover).
+// A flowing article — eyebrow + headline + body + link per chapter — instead of
+// per-chapter accordions that each revealed a single sentence.
+function ReadOverlay({ visible, onClose, story, ink, tint, lang }: {
+  visible: boolean; onClose: () => void; story: StoryCard[]; ink: string; tint: { wash: string; edge: string }; lang: Lang;
+}) {
+  const hasClose = story.length > 1 && story[story.length - 1].color === 'blush';
+  const chapters = hasClose ? story.slice(0, -1) : story;
+  return (
+    <Modal visible={visible} animationType="slide" onRequestClose={onClose} presentationStyle="pageSheet">
+      <View style={s.rdWrap}>
+        <View style={s.rdBar}>
+          <Text style={s.rdBarTitle}>{lang === 'es' ? 'para leer' : "this week's read"}</Text>
+          <TouchableOpacity onPress={onClose} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }} accessibilityRole="button" accessibilityLabel={lang === 'es' ? 'Cerrar' : 'Close'}>
+            <Text style={s.rdClose}>✕</Text>
+          </TouchableOpacity>
+        </View>
+        <ScrollView contentContainerStyle={s.rdScroll} showsVerticalScrollIndicator={false}>
+          {chapters.map((card, i) => {
+            const lead = i === 0;
+            return (
+              <View key={i}>
+                {i > 0 ? <View style={[s.rdDiv, { backgroundColor: tint.edge }]} /> : null}
+                {card.eyebrow ? <Text style={[s.rdEyebrow, { color: ink }]}>{card.eyebrow.toUpperCase()}</Text> : null}
+                <Text style={lead ? s.rdLeadTitle : s.rdTitle}>{(card.title ?? '').replace(/\n/g, ' ')}</Text>
+                {card.say ? <Text style={[s.rdSay, { color: ink }]}>{card.say}</Text> : null}
+                {card.body ? <Text style={s.rdBody}>{card.body}</Text> : null}
+                {card.link ? (
+                  <TouchableOpacity
+                    style={[s.rdLink, { borderColor: tint.edge }]}
+                    activeOpacity={0.85}
+                    onPress={() => Linking.openURL(card.link!.url).catch(() => {})}
+                    accessibilityRole="link"
+                    accessibilityLabel={card.link.label}
+                  >
+                    <Text style={s.rdLinkGl}>{card.link.kind === 'shop' ? '🛍' : '↗'}</Text>
+                    <Text style={[s.rdLinkT, { color: ink }]} numberOfLines={1}>{card.link.label}</Text>
+                  </TouchableOpacity>
+                ) : null}
+                {card.link?.kind === 'shop' ? (
+                  <Text style={s.rdFtc}>{lang === 'es' ? 'Enlace de afiliado — podemos ganar una comisión.' : 'Affiliate link — we may earn a small commission.'}</Text>
+                ) : null}
+              </View>
+            );
+          })}
+          <View style={{ height: 48 }} />
+        </ScrollView>
+      </View>
+    </Modal>
+  );
+}
+
 export default function ManualModules({ content, story, onAskVillie, lang = 'en', week, category, audience = 'baby' }: { content: CategoryContent; story?: StoryCard[]; onAskVillie?: () => void; lang?: Lang; week?: number; category?: string; audience?: 'mom' | 'baby' }) {
   const navigation = useNavigation<any>();
 
@@ -515,10 +567,15 @@ export default function ManualModules({ content, story, onAskVillie, lang = 'en'
   // collapsed row on a shared surface — you scroll rows, not a stack of hero
   // boxes. Tap opens the detail inline, one at a time. Only the video (above,
   // in ManualScrollV3) earns a full block.
+  const [readOpen, setReadOpen] = useState(false);
   const ink = TEACH_INK[category ?? 'grow'] ?? TEACH_INK.grow;
   const tint = TEACH_TINT[category ?? 'grow'] ?? TEACH_TINT.grow;
   const picks = content.helps?.picks.length ?? 0;
   const L = (en: string, es: string) => (lang === 'es' ? es : en);
+  // The teaching read: [cover, ...chapters, close?]. The trailing "close" card
+  // is a stale "scroll down" outro — drop it and count the real chapters.
+  const hasClose = !!story && story.length > 1 && story[story.length - 1].color === 'blush';
+  const readCount = story ? (hasClose ? story.length - 2 : story.length - 1) : 0;
 
   return (
     <View style={s.wrap}>
@@ -565,19 +622,24 @@ export default function ManualModules({ content, story, onAskVillie, lang = 'en'
       {story && story.length ? (
         <>
           <SectionHead label={L('read this week', 'para leer')} accent={ink} style={{ marginTop: 30 }} />
-          <View style={[s.card, { backgroundColor: tint.wash, borderColor: tint.edge }]}>
-            {story.map((card, i) => (
-              <BriefRow
-                key={i}
-                first={i === 0}
-                serifTitle
-                glyph={<View style={s.slot}><View style={[s.dot, { backgroundColor: ink }]} /></View>}
-                title={(card.title ?? '').replace(/\n/g, ' ')}
-              >
-                <StoryBody card={card} ink={ink} lang={lang} />
-              </BriefRow>
-            ))}
-          </View>
+          <TouchableOpacity
+            style={[s.readCover, { backgroundColor: tint.wash, borderColor: tint.edge }]}
+            activeOpacity={0.9}
+            onPress={() => { tap(); setReadOpen(true); }}
+            accessibilityRole="button"
+            accessibilityLabel={L("Open this week's read", 'Abrir la lectura de la semana')}
+          >
+            {story[0].eyebrow ? <Text style={[s.readEyebrow, { color: ink }]}>{story[0].eyebrow.toUpperCase()}</Text> : null}
+            <Text style={s.readTitle}>{(story[0].title ?? '').replace(/\n/g, ' ')}</Text>
+            {story[0].body ? <Text style={s.readIntro} numberOfLines={2}>{story[0].body}</Text> : null}
+            <View style={s.readFoot}>
+              <Text style={[s.readCta, { color: ink }]}>
+                {readCount} {readCount === 1 ? L('chapter', 'capítulo') : L('chapters', 'capítulos')} · {L('read', 'leer')}
+              </Text>
+              <Text style={[s.readArrow, { color: ink }]}>›</Text>
+            </View>
+          </TouchableOpacity>
+          <ReadOverlay visible={readOpen} onClose={() => setReadOpen(false)} story={story} ink={ink} tint={tint} lang={lang} />
         </>
       ) : null}
 
@@ -634,6 +696,42 @@ const s = StyleSheet.create({
   brChev: { fontFamily: FONTS.v2_body, fontSize: 20, lineHeight: 20, color: '#C6B7A2', marginTop: -1, width: 13, textAlign: 'center' },
   brChevOpen: { color: '#9E8B72', transform: [{ rotate: '90deg' }] },
   brContent: { paddingHorizontal: 15, paddingBottom: 16, marginTop: -2 },
+
+  // "read this week" cover — one card that opens the full read
+  readCover: {
+    borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 18, paddingTop: 15, paddingBottom: 14,
+    shadowColor: '#43260F', shadowOpacity: 0.05, shadowOffset: { width: 0, height: 4 }, shadowRadius: 12, elevation: 1,
+  },
+  readEyebrow: { fontFamily: FONTS.bodyBold, fontSize: 10.5, letterSpacing: 1.6, marginBottom: 5 },
+  readTitle: { fontFamily: FONTS.v3_display, fontSize: 22, lineHeight: 26, letterSpacing: -0.5, color: INK },
+  readIntro: { fontFamily: FONTS.v2_body, fontSize: 13.5, lineHeight: 19, color: '#6B5540', marginTop: 7 },
+  readFoot: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 12 },
+  readCta: { fontFamily: FONTS.bodySemiBold, fontSize: 12.5, letterSpacing: 0.2 },
+  readArrow: { fontFamily: FONTS.v2_body, fontSize: 19, marginTop: -2 },
+
+  // the full-read overlay
+  rdWrap: { flex: 1, backgroundColor: '#FBF4E6' },
+  rdBar: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingHorizontal: 20, paddingTop: 16, paddingBottom: 12,
+    borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(67,38,15,0.10)',
+  },
+  rdBarTitle: { fontFamily: FONTS.bodyBold, fontSize: 11, letterSpacing: 1.6, color: '#8A7357', textTransform: 'uppercase' },
+  rdClose: { fontFamily: FONTS.v2_body, fontSize: 18, color: '#9E8B72' },
+  rdScroll: { paddingHorizontal: 24, paddingTop: 22 },
+  rdDiv: { height: StyleSheet.hairlineWidth, marginVertical: 22 },
+  rdEyebrow: { fontFamily: FONTS.bodyBold, fontSize: 10.5, letterSpacing: 1.6, marginBottom: 6 },
+  rdLeadTitle: { fontFamily: FONTS.v3_display, fontSize: 27, lineHeight: 31, letterSpacing: -0.6, color: INK },
+  rdTitle: { fontFamily: FONTS.v3_display, fontSize: 21, lineHeight: 25, letterSpacing: -0.4, color: INK },
+  rdSay: { fontFamily: FONTS.v2_body, fontSize: 13.5, lineHeight: 19, fontStyle: 'italic', marginTop: 6 },
+  rdBody: { fontFamily: FONTS.v2_body, fontSize: 15.5, lineHeight: 24, color: '#5C462F', marginTop: 9 },
+  rdLink: {
+    flexDirection: 'row', alignItems: 'center', gap: 7, alignSelf: 'flex-start', marginTop: 14,
+    backgroundColor: '#FDF9EF', borderRadius: 999, paddingHorizontal: 14, paddingVertical: 8, borderWidth: StyleSheet.hairlineWidth,
+  },
+  rdLinkGl: { fontSize: 13 },
+  rdLinkT: { fontFamily: FONTS.bodySemiBold, fontSize: 13, letterSpacing: 0.2 },
+  rdFtc: { fontFamily: FONTS.v2_body, fontSize: 10.5, color: '#9A8672', marginTop: 9, letterSpacing: 0.2 },
 
   // teaching detail inside an open read-row
   stSay: { fontFamily: FONTS.v2_body, fontSize: 13, lineHeight: 18, fontStyle: 'italic' },
