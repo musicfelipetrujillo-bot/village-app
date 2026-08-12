@@ -242,7 +242,14 @@ export const NAV_HEIGHT = 72;
 // neutral value (e.g. 'Baby') before broad launch.
 export const PLACEHOLDER_BABY_NAME = 'Jackson';
 
-export const DEFAULT_SEARCH_RADIUS_MILES = 25;
+// 10 miles, not 25 (founder call 2026-08-12). A postpartum mother with a
+// newborn in the car is not driving 25 miles to a stroller walk, so a wide
+// default made "near me" read as noise. Verified safe against current Miami
+// data before flipping: from 33133 (where our users actually are), 10mi still
+// covers 10 of 11 specialists and 8 of 8 active gear listings.
+// Existing users keep whatever they set — this is only the fallback for
+// `users.search_radius_miles`, still adjustable in RadiusPreferenceScreen.
+export const DEFAULT_SEARCH_RADIUS_MILES = 10;
 export const MIN_SEARCH_RADIUS_MILES = 1;
 export const MAX_SEARCH_RADIUS_MILES = 100;
 export const MILES_TO_KM = 1.60934;

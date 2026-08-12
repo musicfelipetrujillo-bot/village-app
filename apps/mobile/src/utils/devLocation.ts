@@ -15,6 +15,8 @@
 // Miami is the canonical launch market — used as both the dev override and
 // the production permission-denied fallback. Coords match the longstanding
 // MIAMI_LAT/LNG constants embedded across map screens.
+import { getZipCoords } from '@store/user';
+
 export const MIAMI_COORDS = { lat: 25.7617, lng: -80.1918 };
 
 const USE_DEVICE_LOCATION = process.env.EXPO_PUBLIC_USE_DEVICE_LOCATION === '1';
@@ -37,7 +39,15 @@ export function getEffectiveCoords(
   if (deviceCoords) {
     return { lat: deviceCoords.latitude, lng: deviceCoords.longitude };
   }
-  // Permission denied / location call failed — fall back to Miami in prod too.
+  // Permission denied / location call failed. Prefer the mother's OWN stated
+  // ZIP over the launch-market default — we already collect `users.zip_code`
+  // at onboarding, and returning downtown-Miami coords to a mother in Hialeah
+  // (or anywhere outside Miami) quietly gave her the wrong "near me" results
+  // across Care, Milk, Gear and Villie Plans. Resolved once per session by
+  // useUserStore.resolveZipCoords(); null until then, or when she left the
+  // ZIP blank, in which case the launch market is still the best guess.
+  const zip = getZipCoords();
+  if (zip) return { lat: zip.lat, lng: zip.lng };
   return MIAMI_COORDS;
 }
 

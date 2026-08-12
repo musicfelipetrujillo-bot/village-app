@@ -127,7 +127,7 @@ Reusing the digest was chosen over a new alert path: no new infrastructure, and 
 
 ## 6. Out of scope
 
-**ZIP → coords fallback and a 10-mile default radius.** Founder request, 2026-08-12. Today `getEffectiveCoords` falls back to *hardcoded Miami coordinates* when GPS is denied (`apps/mobile/src/utils/devLocation.ts:41`), never the mother's stored `zip_code`, and `DEFAULT_SEARCH_RADIUS_MILES` is 25, not 10. Real gap, but it is a mobile-client change independent of sourcing — separate spec.
+~~**ZIP → coords fallback and a 10-mile default radius.**~~ **DONE 2026-08-12** — pulled in on founder instruction rather than deferred. `getEffectiveCoords` now falls back to the mother's own ZIP centroid before the launch-market default; migration 117 adds a `zip_centroids` cache + `get_zip_coords`, the new `geocode-zip` edge function fills it on demand from Google (cache-first, one lookup per ZIP ever), and `useUserStore.resolveZipCoords()` warms it once per session so all six existing call sites stay synchronous and unchanged. Default radius moved 25 → 10 in **both** the client constant and the `users.search_radius_miles` column default (changing only one would have made it a no-op), with existing rows migrated off the old default. Verified safe first: from 33133, 10mi still covers 10 of 11 specialists and 8 of 8 active gear listings.
 
 **Rubric retune.** `ai-event-screen`'s prompt already encodes a 2026-07-31 founder call scoring stroller-friendly community events at 0.6. Revisit weighting toward postpartum-over-prenatal only if tier B yield disappoints; changing it now would confound the source-expansion results.
 
