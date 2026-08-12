@@ -57,34 +57,34 @@ const CH = {
 // Each module type carries its own monochrome glyph so the stack is scannable
 // (the mock's typed-card system) — calm, not colored-loud. Checklist keeps its
 // rose tick; the rest read in the muted label ink.
-function CheckGlyph() {
+function CheckGlyph({ color = ROSE }: { color?: string }) {
   return (
-    <Svg width={12} height={12} viewBox="0 0 24 24">
-      <Path d="M5 13l4 4L19 7" fill="none" stroke={ROSE} strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" />
+    <Svg width={13} height={13} viewBox="0 0 24 24">
+      <Path d="M5 13l4 4L19 7" fill="none" stroke={color} strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" />
     </Svg>
   );
 }
-function AskGlyph() {
+function AskGlyph({ color = LABEL }: { color?: string }) {
   return (
     <Svg width={13} height={13} viewBox="0 0 24 24">
-      <Path d="M21 12a8 8 0 01-11.6 7.1L4 20l1-4.5A8 8 0 1121 12z" fill="none" stroke={LABEL} strokeWidth={1.8} strokeLinejoin="round" />
-      <Path d="M9.5 9.3a2.5 2.5 0 013.8-1.8c1.6 1 .9 2.9-.8 3.5-.6.2-1 .8-1 1.5" fill="none" stroke={LABEL} strokeWidth={1.8} strokeLinecap="round" />
-      <Path d="M11.5 16.2h.01" fill="none" stroke={LABEL} strokeWidth={2} strokeLinecap="round" />
+      <Path d="M21 12a8 8 0 01-11.6 7.1L4 20l1-4.5A8 8 0 1121 12z" fill="none" stroke={color} strokeWidth={1.9} strokeLinejoin="round" />
+      <Path d="M9.5 9.3a2.5 2.5 0 013.8-1.8c1.6 1 .9 2.9-.8 3.5-.6.2-1 .8-1 1.5" fill="none" stroke={color} strokeWidth={1.9} strokeLinecap="round" />
+      <Path d="M11.5 16.2h.01" fill="none" stroke={color} strokeWidth={2.1} strokeLinecap="round" />
     </Svg>
   );
 }
-function GlanceGlyph() {
+function GlanceGlyph({ color = LABEL }: { color?: string }) {
   return (
     <Svg width={13} height={13} viewBox="0 0 24 24">
-      <Path d="M5 20V11M12 20V4M19 20v-6" fill="none" stroke={LABEL} strokeWidth={1.9} strokeLinecap="round" />
+      <Path d="M5 20V11M12 20V4M19 20v-6" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" />
     </Svg>
   );
 }
-function LookGlyph() {
+function LookGlyph({ color = LABEL }: { color?: string }) {
   return (
     <Svg width={13} height={13} viewBox="0 0 24 24">
-      <Path d="M1.5 12S5 5 12 5s10.5 7 10.5 7-3.5 7-10.5 7S1.5 12 1.5 12z" fill="none" stroke={LABEL} strokeWidth={1.8} strokeLinejoin="round" />
-      <Path d="M12 15a3 3 0 100-6 3 3 0 000 6z" fill="none" stroke={LABEL} strokeWidth={1.8} />
+      <Path d="M1.5 12S5 5 12 5s10.5 7 10.5 7-3.5 7-10.5 7S1.5 12 1.5 12z" fill="none" stroke={color} strokeWidth={1.9} strokeLinejoin="round" />
+      <Path d="M12 15a3 3 0 100-6 3 3 0 000 6z" fill="none" stroke={color} strokeWidth={1.9} />
     </Svg>
   );
 }
@@ -383,9 +383,10 @@ const TEACH_INK: Record<string, string> = {
   sleep: '#A9692F', feed: '#9A6E12', grow: '#9E2F4C', care: '#63702F', hospital: '#8A5E38',
 };
 
-// A 27px slot holding a module's typed glyph, tinted per type.
-function BriefGlyph({ children, tint }: { children: React.ReactNode; tint: string }) {
-  return <View style={[s.brGl, { backgroundColor: tint }]}>{children}</View>;
+// A 28px slot holding a module's typed glyph — tinted fill + a hairline ring in
+// the glyph's own tone so the icon reads crisp, not floated on a pastel wash.
+function BriefGlyph({ children, tint, ring }: { children: React.ReactNode; tint: string; ring: string }) {
+  return <View style={[s.brGl, { backgroundColor: tint, borderColor: ring }]}>{children}</View>;
 }
 
 // One collapsible line in the briefing. Collapsed = glyph + title + a one-line
@@ -412,7 +413,7 @@ function BriefRow({ glyph, title, preview, first, defaultOpen, serifTitle, child
           <Text style={serifTitle ? s.brTitleSerif : s.brTitle} numberOfLines={open ? 2 : 1}>{title}</Text>
           {preview && !open ? <Text style={s.brPrev} numberOfLines={1}>{preview}</Text> : null}
         </View>
-        <Text style={s.brTog}>{open ? '−' : '+'}</Text>
+        <Text style={[s.brChev, open && s.brChevOpen]}>›</Text>
       </TouchableOpacity>
       {open ? <View style={s.brContent}>{children}</View> : null}
     </View>
@@ -507,7 +508,7 @@ export default function ManualModules({ content, story, onAskVillie, lang = 'en'
         <BriefRow
           first
           defaultOpen
-          glyph={<BriefGlyph tint="#F7DFE6"><CheckGlyph /></BriefGlyph>}
+          glyph={<BriefGlyph tint="#F7DFE6" ring="rgba(158,47,76,0.22)"><CheckGlyph color="#9E2F4C" /></BriefGlyph>}
           title={L('Do this week', 'Para esta semana')}
           preview={content.checklist.title}
         >
@@ -516,7 +517,7 @@ export default function ManualModules({ content, story, onAskVillie, lang = 'en'
 
         {content.articles.length ? (
           <BriefRow
-            glyph={<BriefGlyph tint="#F5E9DF"><AskGlyph /></BriefGlyph>}
+            glyph={<BriefGlyph tint="#F5E4D6" ring="rgba(168,86,43,0.22)"><AskGlyph color="#A8562B" /></BriefGlyph>}
             title={L('A mom asked', 'Una mamá preguntó')}
             preview={content.articles[0].question}
           >
@@ -526,7 +527,7 @@ export default function ManualModules({ content, story, onAskVillie, lang = 'en'
 
         {content.info ? (
           <BriefRow
-            glyph={<BriefGlyph tint="#F5EACF"><GlanceGlyph /></BriefGlyph>}
+            glyph={<BriefGlyph tint="#F5EACF" ring="rgba(154,110,18,0.24)"><GlanceGlyph color="#9A6E12" /></BriefGlyph>}
             title={L('At a glance', 'De un vistazo')}
             preview={content.info.title}
           >
@@ -536,7 +537,7 @@ export default function ManualModules({ content, story, onAskVillie, lang = 'en'
 
         {picks ? (
           <BriefRow
-            glyph={<BriefGlyph tint="#E7EAD4"><LookGlyph /></BriefGlyph>}
+            glyph={<BriefGlyph tint="#E7EAD4" ring="rgba(99,112,47,0.26)"><LookGlyph color="#63702F" /></BriefGlyph>}
             title={L('Worth a look', 'Vale la pena')}
             preview={`${picks} ${picks === 1 ? L('pick', 'idea') : L('picks', 'ideas')}`}
           >
@@ -599,18 +600,23 @@ const s = StyleSheet.create({
   wrap: { marginTop: 22, paddingHorizontal: 20 },
 
   // ── Briefing: the week as one scannable list, not a stack of boxes ──────
-  slab: { fontFamily: FONTS.bodyBold, fontSize: 11, letterSpacing: 1.6, color: LABEL, marginBottom: 9, marginLeft: 3 },
-  card: { backgroundColor: '#FDF9EF', borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(67,38,15,0.09)', overflow: 'hidden' },
-  brDiv: { height: StyleSheet.hairlineWidth, backgroundColor: 'rgba(67,38,15,0.08)', marginLeft: 54 },
-  brHead: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 14, paddingHorizontal: 15 },
-  brGl: { width: 27, height: 27, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
-  slot: { width: 27, alignItems: 'center', justifyContent: 'center' },
+  slab: { fontFamily: FONTS.bodyBold, fontSize: 10.5, letterSpacing: 1.8, color: LABEL, marginBottom: 9, marginLeft: 4 },
+  card: {
+    backgroundColor: '#FDFAF2', borderRadius: 18,
+    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(67,38,15,0.11)',
+    shadowColor: '#43260F', shadowOpacity: 0.05, shadowOffset: { width: 0, height: 4 }, shadowRadius: 12, elevation: 1,
+  },
+  brDiv: { height: StyleSheet.hairlineWidth, backgroundColor: 'rgba(67,38,15,0.09)', marginLeft: 55 },
+  brHead: { flexDirection: 'row', alignItems: 'center', gap: 13, paddingVertical: 14, paddingHorizontal: 15 },
+  brGl: { width: 28, height: 28, borderRadius: 9, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
+  slot: { width: 28, alignItems: 'center', justifyContent: 'center' },
   dot: { width: 8, height: 8, borderRadius: 4 },
   brBody: { flex: 1, minWidth: 0 },
-  brTitle: { fontFamily: FONTS.bodySemiBold, fontSize: 15, lineHeight: 20, letterSpacing: -0.1, color: INK },
-  brTitleSerif: { fontFamily: FONTS.v3_display, fontSize: 15.5, lineHeight: 20, letterSpacing: -0.2, color: INK },
-  brPrev: { fontFamily: FONTS.v2_body, fontSize: 12.5, lineHeight: 16, color: '#A6957F', marginTop: 2 },
-  brTog: { fontFamily: FONTS.v2_body, fontSize: 21, lineHeight: 21, color: '#B7A48C', marginTop: -2 },
+  brTitle: { fontFamily: FONTS.bodySemiBold, fontSize: 15, lineHeight: 19, letterSpacing: -0.2, color: INK },
+  brTitleSerif: { fontFamily: FONTS.v3_display, fontSize: 16, lineHeight: 20, letterSpacing: -0.3, color: INK },
+  brPrev: { fontFamily: FONTS.v2_body, fontSize: 12.5, lineHeight: 16, color: '#AA9880', marginTop: 3 },
+  brChev: { fontFamily: FONTS.v2_body, fontSize: 20, lineHeight: 20, color: '#C6B7A2', marginTop: -1, width: 14, textAlign: 'center' },
+  brChevOpen: { color: '#9E8B72', transform: [{ rotate: '90deg' }] },
   brContent: { paddingHorizontal: 15, paddingBottom: 16, marginTop: -2 },
 
   // teaching detail inside an open read-row
