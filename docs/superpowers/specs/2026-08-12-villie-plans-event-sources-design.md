@@ -104,11 +104,15 @@ Registration uses the existing `register` mode — no migration:
 
 | Tier | Threshold | Behavior | Candidates |
 |---|---|---|---|
-| **A — clinical / hospital postpartum** | 0.75 | Auto-publishes | Baptist Health events calendar (maternity), South Miami Hospital lactation support group, Nicklaus Children's newborn care |
+| **A — clinical / hospital postpartum** | 0.75 | Auto-publishes | ⚠️ **No harvestable Miami hospital calendar found — see below.** South Miami Hospital's lactation group (first Friday monthly) is the only dated item, and it lives on a phone-directory page. Nicklaus Children's unverified. |
 | **B — postpartum-specific + virtual** | 0.75 | Auto-publishes | PSI online support meetings (virtual, verified), The One Tribe Baby & Me (Miami 33137), La Leche League South Florida |
 | **C — general stroller-friendly** | 1.0 | Always manual review | The Underline (existing), Miami-Dade Library baby lapsit + infant massage, Miami-Dade Parks |
 
 The final list is whatever passes the probe. Candidates above are researched but only PSI and The Underline are confirmed harvestable as-is; the rest depend on the render fallback.
+
+**⚠️ Correction, 2026-08-12 — `events.baptisthealth.com` is the WRONG ORGANIZATION.** An earlier draft of this spec listed it as the Tier-A hospital source. Tested through the render proxy, it returns dated events for **Corbin and Richmond, Kentucky** — it belongs to Baptist Health Kentucky/Indiana, not Baptist Health *South Florida* (`baptisthealth.net`). "Baptist Health" names several unrelated systems (Kentucky, Jacksonville, Pensacola, San Antonio). Registering it would have fed Kentucky childbirth classes into a Miami app, in the one category the founder explicitly excluded. Baptist Health South Florida publishes no dated calendar at all — `/services/maternity/classes-and-education` is a phone-and-email directory whose only extractable item is a monthly lactation support group. **Treat every hospital "events" domain as guilty until the probe proves both the market and the dates.**
+
+**What the render proxy actually unlocks** (measured, not assumed): **The One Tribe** (Miami 33137, Baby & Me + postnatal yoga) renders a real dated schedule — `Thursday, August 13, 2026` / `1:00 PM` — and is the strongest Tier-B candidate. The Miami-Dade Library calendar did **not** render at `mdpls.libnet.info/events?r=thismonth` (3.4KB of ADA boilerplate); it needs a different endpoint before it is worth registering.
 
 Tier A/B at 0.75 sits above the 0.55 auto-reject floor and below the 1.0 cap, so on-mission content from trusted sources publishes without a manual tap while general community content still queues for review. This is the founder decision from 2026-08-12: tiered trust, chosen so the tab's health does not depend on clearing a weekly queue.
 
