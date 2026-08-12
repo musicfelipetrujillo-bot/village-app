@@ -111,10 +111,17 @@ interface UserProfile {
   is_pro: boolean;
 }
 
+export interface ZipCoords { lat: number; lng: number; zip: string }
+
 interface UserState {
   profile: UserProfile | null;
+  // Centroid of the user's stated ZIP, resolved once per session. This is the
+  // location fallback when GPS is denied — before it existed, every "near me"
+  // surface silently used hardcoded Miami coords (see devLocation.ts).
+  zipCoords: ZipCoords | null;
   setProfile: (profile: UserProfile | null) => void;
   fetchProfile: () => Promise<void>;
+  resolveZipCoords: () => Promise<void>;
 }
 
 // The profile row in `public.users` is only written to the store at the end of
@@ -122,11 +129,16 @@ interface UserState {
 // else populates it — that's the bug that made Home greet "friend" instead of
 // the real name. `fetchProfile` reads the row for the current auth user; it's
 // safe to call on every Home mount (RLS scopes it to the owner).
-export const useUserStore = create<UserState>((set) => ({
+export const useUserStore = create<UserState>((set, get) => ({
   profile: null,
+  zipCoords: null,
   setProfile: (profile) => {
     tagSentryProfileContext(profile);
-    set({ profile });
+    // Drop a stale centroid when the ZIP changes (or the user signs out), so
+    // "near me" can never keep pointing at a previous address.
+    const prevZip = get().zipCoords?.zip;
+    const nextZip = normalizeZip(profile?.zip_code);
+    set({ profile, ...(prevZip && prevZip !== nextZip ? { zipCoords: null } : {}) });
   },
   fetchProfile: async () => {
     const { data: auth } = await supabase.auth.getUser();
@@ -157,8 +169,43 @@ export const useUserStore = create<UserState>((set) => ({
       },
     };
     set({ profile: merged });
+    // Fire-and-forget: warms the ZIP fallback so a later GPS denial has
+    // something better than hardcoded Miami to fall back to.
+    void get().resolveZipCoords();
+  },
+
+  // Resolves users.zip_code → centroid via the geocode-zip edge function
+  // (cache-first server-side, so this costs a Google lookup at most once per
+  // ZIP ever). Silent on failure by design — the caller's own default still
+  // applies, and a missing centroid must never block a screen from loading.
+  resolveZipCoords: async () => {
+    const zip = normalizeZip(get().profile?.zip_code);
+    if (!zip) return;
+    if (get().zipCoords?.zip === zip) return; // already resolved this session
+    try {
+      const { data, error } = await supabase.functions.invoke('geocode-zip', { body: { zip } });
+      if (error) return;
+      const lat = (data as any)?.lat;
+      const lng = (data as any)?.lng;
+      if (typeof lat === 'number' && typeof lng === 'number') {
+        set({ zipCoords: { lat, lng, zip } });
+      }
+    } catch {
+      /* offline or function down — fallback chain handles it */
+    }
   },
 }));
+
+// "33133-1234" / " 33133 " → "33133"; anything shorter than 5 digits → null.
+function normalizeZip(raw: string | null | undefined): string | null {
+  const digits = String(raw ?? '').replace(/[^0-9]/g, '');
+  return digits.length >= 5 ? digits.slice(0, 5) : null;
+}
+
+// Synchronous read of the resolved ZIP centroid, for the location helper.
+export function getZipCoords(): ZipCoords | null {
+  return useUserStore.getState().zipCoords;
+}
 
 // Read the current user's preferred search radius without subscribing. Used
 // by the API layer (specialists/milk/events/gear) as the fallback when a caller
