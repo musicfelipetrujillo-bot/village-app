@@ -12,7 +12,7 @@ import { FONTS } from '@utils/constants';
 import { select, tap } from '@utils/haptics';
 import { isProUser, isProEnabled } from '@/lib/pro';
 import DeepDiveVideoCard from './DeepDiveVideoCard';
-import type { CategoryContent, Checklist, Article, Info, Helps } from '@/manual/manualWeekContent';
+import type { CategoryContent, Checklist, Article, Info, Helps, StoryCard } from '@/manual/manualWeekContent';
 
 const SAGE = '#6F7A43';
 const SAGE_BG = '#EAEDD8';
@@ -101,12 +101,12 @@ function ModuleLabel({ type, icon, divider }: { type: string; icon?: React.React
   );
 }
 
-function ChecklistModule({ data, lang }: { data: Checklist; lang: Lang }) {
+function ChecklistModule({ data, lang, embedded }: { data: Checklist; lang: Lang; embedded?: boolean }) {
   const [done, setDone] = useState<Record<number, boolean>>({});
   return (
     <View>
-      <ModuleLabel type={CH.checklist[lang]} icon={<CheckGlyph />} />
-      <Text style={s.panelTitle}>{data.title}</Text>
+      {!embedded && <ModuleLabel type={CH.checklist[lang]} icon={<CheckGlyph />} />}
+      {!embedded && <Text style={s.panelTitle}>{data.title}</Text>}
       <View style={s.panel}>
         {data.items.map((it, i) => {
           const on = !!done[i];
@@ -133,10 +133,10 @@ function ChecklistModule({ data, lang }: { data: Checklist; lang: Lang }) {
   );
 }
 
-function ExpertCard({ data, lang }: { data: Article; lang: Lang }) {
+function ExpertCard({ data, lang, embedded }: { data: Article; lang: Lang; embedded?: boolean }) {
   return (
     <View style={s.tip}>
-      <Text style={s.tipAsk}>{CH.momAsked[lang]}</Text>
+      {!embedded && <Text style={s.tipAsk}>{CH.momAsked[lang]}</Text>}
       <Text style={s.tipQ}>{data.question}</Text>
       <View style={s.tipQuoteRow}>
         <Text style={s.quoteMark}>“</Text>
@@ -161,16 +161,16 @@ function ExpertCard({ data, lang }: { data: Article; lang: Lang }) {
 }
 
 // Swipeable expert cards (3–4 per chapter). Full-width paging + dots.
-function ArticleModule({ articles, lang }: { articles: Article[]; lang: Lang }) {
+function ArticleModule({ articles, lang, embedded }: { articles: Article[]; lang: Lang; embedded?: boolean }) {
   const [w, setW] = useState(0);
   const [idx, setIdx] = useState(0);
   if (!articles.length) return null;
   return (
     <View>
-      <ModuleLabel type={CH.expert[lang]} icon={<AskGlyph />} divider />
+      {!embedded && <ModuleLabel type={CH.expert[lang]} icon={<AskGlyph />} divider />}
       <View onLayout={(e) => setW(e.nativeEvent.layout.width)}>
         {articles.length === 1 ? (
-          <ExpertCard data={articles[0]} lang={lang} />
+          <ExpertCard data={articles[0]} lang={lang} embedded={embedded} />
         ) : w > 0 ? (
           <>
             <ScrollView
@@ -184,7 +184,7 @@ function ArticleModule({ articles, lang }: { articles: Article[]; lang: Lang }) 
             >
               {articles.map((a, i) => (
                 <View key={i} style={{ width: w }}>
-                  <ExpertCard data={a} lang={lang} />
+                  <ExpertCard data={a} lang={lang} embedded={embedded} />
                 </View>
               ))}
             </ScrollView>
@@ -202,16 +202,17 @@ function ArticleModule({ articles, lang }: { articles: Article[]; lang: Lang }) 
 
 const STORAGE_ICON: Record<string, string> = { counter: '🌡️', fridge: '🧊', freezer: '❄️' };
 
-function InfographicModule({ data, lang }: { data: Info; lang: Lang }) {
+function InfographicModule({ data, lang, embedded }: { data: Info; lang: Lang; embedded?: boolean }) {
   return (
     <View>
-      <ModuleLabel type={CH.info[lang]} icon={<GlanceGlyph />} divider />
-      <LinearGradient colors={['#FDF0DC', '#FDECEF']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.info}>
-        <Text style={s.infoTitle}>{data.title}</Text>
+      {!embedded && <ModuleLabel type={CH.info[lang]} icon={<GlanceGlyph />} divider />}
+      <LinearGradient colors={['#FDF0DC', '#FDECEF']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={[s.info, embedded && s.infoEmb]}>
+        {!embedded && <Text style={s.infoTitle}>{data.title}</Text>}
 
         {data.kind === 'wakewindows' && (() => {
           // A rising CURVE (not bars) — "awake time ramps up fast" as one shape.
-          const W = Dimensions.get('window').width - 80;
+          // Narrower budget when embedded in a briefing row (less container pad).
+          const W = Dimensions.get('window').width - (embedded ? 104 : 80);
           const H = 128, pad = 16;
           const maxPct = Math.max(...data.rows.map((r) => r.pct), 1);
           const pts = data.rows.map((r, i) => ({
@@ -310,11 +311,11 @@ function InfographicModule({ data, lang }: { data: Info; lang: Lang }) {
 // Things that help — the honest commerce lane, split OUT of the story deck so a
 // product recommendation never masquerades as education. Tips first (optional),
 // then curated picks, with an FTC disclosure line. Products open in the browser.
-function HelpsModule({ data, lang }: { data: Helps; lang: Lang }) {
+function HelpsModule({ data, lang, embedded }: { data: Helps; lang: Lang; embedded?: boolean }) {
   const open = (url: string) => { tap(); Linking.openURL(url).catch(() => {}); };
   return (
     <View>
-      <ModuleLabel type={CH.helps[lang]} icon={<LookGlyph />} divider />
+      {!embedded && <ModuleLabel type={CH.helps[lang]} icon={<LookGlyph />} divider />}
       <View style={s.helps}>
         <Text style={s.helpsNote}>{CH.helpsNote[lang]}</Text>
         {!!data.tips?.length && (
@@ -376,7 +377,77 @@ function AskVillieModule({ onPress, lang }: { onPress: () => void; lang: Lang })
   );
 }
 
-export default function ManualModules({ content, onAskVillie, lang = 'en', week, category, audience = 'baby' }: { content: CategoryContent; onAskVillie?: () => void; lang?: Lang; week?: number; category?: string; audience?: 'mom' | 'baby' }) {
+// Per-pillar accent for the teaching rows (dot + say line). Kept subtle so
+// contrast stays high and nothing is over-bold.
+const TEACH_INK: Record<string, string> = {
+  sleep: '#A9692F', feed: '#9A6E12', grow: '#9E2F4C', care: '#63702F', hospital: '#8A5E38',
+};
+
+// A 27px slot holding a module's typed glyph, tinted per type.
+function BriefGlyph({ children, tint }: { children: React.ReactNode; tint: string }) {
+  return <View style={[s.brGl, { backgroundColor: tint }]}>{children}</View>;
+}
+
+// One collapsible line in the briefing. Collapsed = glyph + title + a one-line
+// preview; tap to reveal the detail inline. This is the whole format — you scan
+// rows, and open one at a time, instead of scrolling a wall of boxes.
+function BriefRow({ glyph, title, preview, first, defaultOpen, serifTitle, children }: {
+  glyph: React.ReactNode; title: string; preview?: string;
+  first?: boolean; defaultOpen?: boolean; serifTitle?: boolean; children: React.ReactNode;
+}) {
+  const [open, setOpen] = useState(!!defaultOpen);
+  return (
+    <View>
+      {!first ? <View style={s.brDiv} /> : null}
+      <TouchableOpacity
+        style={s.brHead}
+        activeOpacity={0.7}
+        onPress={() => { select(); setOpen((o) => !o); }}
+        accessibilityRole="button"
+        accessibilityState={{ expanded: open }}
+        accessibilityLabel={title}
+      >
+        {glyph}
+        <View style={s.brBody}>
+          <Text style={serifTitle ? s.brTitleSerif : s.brTitle} numberOfLines={open ? 2 : 1}>{title}</Text>
+          {preview && !open ? <Text style={s.brPrev} numberOfLines={1}>{preview}</Text> : null}
+        </View>
+        <Text style={s.brTog}>{open ? '−' : '+'}</Text>
+      </TouchableOpacity>
+      {open ? <View style={s.brContent}>{children}</View> : null}
+    </View>
+  );
+}
+
+// The teaching detail (say / body / affiliate link) revealed when a read-row
+// opens — same content the accordion showed, minus its own box.
+function StoryBody({ card, ink, lang }: { card: StoryCard; ink: string; lang: Lang }) {
+  return (
+    <>
+      {card.say ? <Text style={[s.stSay, { color: ink }]}>{card.say}</Text> : null}
+      {card.body ? <Text style={s.stBody}>{card.body}</Text> : null}
+      {card.link ? (
+        <TouchableOpacity
+          style={s.stLink}
+          activeOpacity={0.8}
+          onPress={() => Linking.openURL(card.link!.url).catch(() => {})}
+          accessibilityRole="link"
+          accessibilityLabel={card.link.label}
+        >
+          <Text style={s.stLinkGl}>{card.link.kind === 'shop' ? '🛍' : '↗'}</Text>
+          <Text style={[s.stLinkT, { color: ink }]} numberOfLines={1}>{card.link.label}</Text>
+        </TouchableOpacity>
+      ) : null}
+      {card.link?.kind === 'shop' ? (
+        <Text style={s.stFtc}>
+          {lang === 'es' ? 'Enlace de afiliado — podemos ganar una comisión.' : 'Affiliate link — we may earn a small commission.'}
+        </Text>
+      ) : null}
+    </>
+  );
+}
+
+export default function ManualModules({ content, story, onAskVillie, lang = 'en', week, category, audience = 'baby' }: { content: CategoryContent; story?: StoryCard[]; onAskVillie?: () => void; lang?: Lang; week?: number; category?: string; audience?: 'mom' | 'baby' }) {
   const navigation = useNavigation<any>();
 
   // villie+ deep-dive: play (pro) / preview (tease) → the shared ClipPlayer.
@@ -421,30 +492,140 @@ export default function ManualModules({ content, onAskVillie, lang = 'en', week,
     );
   };
 
+  // The whole week as ONE scannable briefing (2026-08-12): every section is a
+  // collapsed row on a shared surface — you scroll rows, not a stack of hero
+  // boxes. Tap opens the detail inline, one at a time. Only the video (above,
+  // in ManualScrollV3) earns a full block.
+  const ink = TEACH_INK[category ?? 'grow'] ?? TEACH_INK.grow;
+  const picks = content.helps?.picks.length ?? 0;
+  const L = (en: string, es: string) => (lang === 'es' ? es : en);
+
   return (
     <View style={s.wrap}>
-      {/* Priority order (2026-08-10): do-this-week → expert answer → visual →
-          things-that-help → ask. Reads as one briefing, most-useful first. */}
-      <ChecklistModule data={content.checklist} lang={lang} />
-      <ArticleModule articles={content.articles} lang={lang} />
-      {content.info && <InfographicModule data={content.info} lang={lang} />}
-      {DEEPDIVE_ENABLED && content.deepDive && (
-        <DeepDiveVideoCard
-          data={content.deepDive}
-          lang={lang}
-          isPro={isProUser()}
-          onOpen={openDeepDive}
-          onUnlock={promptPro}
-        />
-      )}
-      {!!content.helps?.picks.length && <HelpsModule data={content.helps} lang={lang} />}
-      {onAskVillie && <AskVillieModule onPress={onAskVillie} lang={lang} />}
+      <Text style={s.slab}>{L('this week', 'esta semana')}</Text>
+      <View style={s.card}>
+        <BriefRow
+          first
+          defaultOpen
+          glyph={<BriefGlyph tint="#F7DFE6"><CheckGlyph /></BriefGlyph>}
+          title={L('Do this week', 'Para esta semana')}
+          preview={content.checklist.title}
+        >
+          <ChecklistModule data={content.checklist} lang={lang} embedded />
+        </BriefRow>
+
+        {content.articles.length ? (
+          <BriefRow
+            glyph={<BriefGlyph tint="#F5E9DF"><AskGlyph /></BriefGlyph>}
+            title={L('A mom asked', 'Una mamá preguntó')}
+            preview={content.articles[0].question}
+          >
+            <ArticleModule articles={content.articles} lang={lang} embedded />
+          </BriefRow>
+        ) : null}
+
+        {content.info ? (
+          <BriefRow
+            glyph={<BriefGlyph tint="#F5EACF"><GlanceGlyph /></BriefGlyph>}
+            title={L('At a glance', 'De un vistazo')}
+            preview={content.info.title}
+          >
+            <InfographicModule data={content.info} lang={lang} embedded />
+          </BriefRow>
+        ) : null}
+
+        {picks ? (
+          <BriefRow
+            glyph={<BriefGlyph tint="#E7EAD4"><LookGlyph /></BriefGlyph>}
+            title={L('Worth a look', 'Vale la pena')}
+            preview={`${picks} ${picks === 1 ? L('pick', 'idea') : L('picks', 'ideas')}`}
+          >
+            <HelpsModule data={content.helps!} lang={lang} embedded />
+          </BriefRow>
+        ) : null}
+      </View>
+
+      {story && story.length ? (
+        <>
+          <Text style={[s.slab, { marginTop: 22 }]}>{L('read this week', 'para leer')}</Text>
+          <View style={s.card}>
+            {story.map((card, i) => (
+              <BriefRow
+                key={i}
+                first={i === 0}
+                defaultOpen={i === 0}
+                serifTitle
+                glyph={<View style={s.slot}><View style={[s.dot, { backgroundColor: ink }]} /></View>}
+                title={(card.title ?? '').replace(/\n/g, ' ')}
+                preview={card.eyebrow}
+              >
+                <StoryBody card={card} ink={ink} lang={lang} />
+              </BriefRow>
+            ))}
+          </View>
+        </>
+      ) : null}
+
+      {DEEPDIVE_ENABLED && content.deepDive ? (
+        <View style={{ marginTop: 22 }}>
+          <DeepDiveVideoCard
+            data={content.deepDive}
+            lang={lang}
+            isPro={isProUser()}
+            onOpen={openDeepDive}
+            onUnlock={promptPro}
+          />
+        </View>
+      ) : null}
+
+      {onAskVillie ? (
+        <TouchableOpacity
+          style={s.ask}
+          activeOpacity={0.9}
+          onPress={() => { tap(); onAskVillie(); }}
+          accessibilityRole="button"
+          accessibilityLabel={CH.avA11y[lang]}
+        >
+          <View style={s.askAv} />
+          <Text style={s.askText}>{CH.avInput[lang]}</Text>
+          <Text style={s.askGo}>›</Text>
+        </TouchableOpacity>
+      ) : null}
     </View>
   );
 }
 
 const s = StyleSheet.create({
-  wrap: { marginTop: 24, gap: 22, paddingHorizontal: 20 },
+  wrap: { marginTop: 22, paddingHorizontal: 20 },
+
+  // ── Briefing: the week as one scannable list, not a stack of boxes ──────
+  slab: { fontFamily: FONTS.bodyBold, fontSize: 11, letterSpacing: 1.6, color: LABEL, marginBottom: 9, marginLeft: 3 },
+  card: { backgroundColor: '#FDF9EF', borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(67,38,15,0.09)', overflow: 'hidden' },
+  brDiv: { height: StyleSheet.hairlineWidth, backgroundColor: 'rgba(67,38,15,0.08)', marginLeft: 54 },
+  brHead: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 14, paddingHorizontal: 15 },
+  brGl: { width: 27, height: 27, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
+  slot: { width: 27, alignItems: 'center', justifyContent: 'center' },
+  dot: { width: 8, height: 8, borderRadius: 4 },
+  brBody: { flex: 1, minWidth: 0 },
+  brTitle: { fontFamily: FONTS.bodySemiBold, fontSize: 15, lineHeight: 20, letterSpacing: -0.1, color: INK },
+  brTitleSerif: { fontFamily: FONTS.v3_display, fontSize: 15.5, lineHeight: 20, letterSpacing: -0.2, color: INK },
+  brPrev: { fontFamily: FONTS.v2_body, fontSize: 12.5, lineHeight: 16, color: '#A6957F', marginTop: 2 },
+  brTog: { fontFamily: FONTS.v2_body, fontSize: 21, lineHeight: 21, color: '#B7A48C', marginTop: -2 },
+  brContent: { paddingHorizontal: 15, paddingBottom: 16, marginTop: -2 },
+
+  // teaching detail inside an open read-row
+  stSay: { fontFamily: FONTS.v2_body, fontSize: 13, lineHeight: 18, fontStyle: 'italic' },
+  stBody: { fontFamily: FONTS.v2_body, fontSize: 14, lineHeight: 21, color: '#6B5540', marginTop: 6 },
+  stLink: { flexDirection: 'row', alignItems: 'center', gap: 7, alignSelf: 'flex-start', marginTop: 12, backgroundColor: '#FBF4E6', borderRadius: 999, paddingHorizontal: 12, paddingVertical: 7, borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(122,74,40,0.14)' },
+  stLinkGl: { fontSize: 12 },
+  stLinkT: { fontFamily: FONTS.bodySemiBold, fontSize: 12.5, letterSpacing: 0.2 },
+  stFtc: { fontFamily: FONTS.v2_body, fontSize: 10, color: '#9A8672', marginTop: 8, letterSpacing: 0.2 },
+
+  // ask villie — a quiet composer row, not a dark hero box
+  ask: { marginTop: 16, flexDirection: 'row', alignItems: 'center', gap: 11, paddingHorizontal: 15, paddingVertical: 13, borderRadius: 14, backgroundColor: '#FBEAEF', borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(158,47,76,0.15)' },
+  askAv: { width: 30, height: 30, borderRadius: 15, backgroundColor: ROSE },
+  askText: { flex: 1, fontFamily: FONTS.v2_body, fontSize: 14, color: '#A6957F' },
+  askGo: { fontFamily: FONTS.v2_body, fontSize: 18, color: ACCENT },
 
   // Editorial hairline that opens each section (except the first) so the stack
   // reads as distinct beats instead of one continuous wall.
@@ -520,6 +701,7 @@ const s = StyleSheet.create({
   // infographic shell — distinct tinted card + curve viz so it reads as a data
   // graphic, not another checklist.
   info: { borderRadius: 20, borderWidth: 1, borderColor: 'rgba(224,106,136,0.18)', padding: 20 },
+  infoEmb: { borderRadius: 14, borderWidth: 0, padding: 12 },
   wwAxis: { flex: 1, textAlign: 'center', fontFamily: FONTS.bodySemiBold, fontSize: 9, color: '#9A8264' },
   wwNow: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: 'rgba(224,106,136,0.25)', borderRadius: 12, paddingHorizontal: 11, paddingVertical: 9, marginTop: 10 },
   wwNowDot: { width: 9, height: 9, borderRadius: 5, backgroundColor: ACCENT },

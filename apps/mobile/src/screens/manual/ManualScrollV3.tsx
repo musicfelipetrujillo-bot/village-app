@@ -42,7 +42,6 @@ import { useT } from '@/i18n';
 import { useUserStore } from '@store/user';
 import { useHomeStore } from '@store/home';
 import { homeApi } from '@/api/home';
-import ManualVerticalStory from '@/components/manual/ManualVerticalStory';
 import ManualModules from '@/components/manual/ManualModules';
 import PlaybookTracker from '@/components/manual/PlaybookTracker';
 import { getManualContent } from '@/manual/manualWeekContent';
@@ -1413,17 +1412,15 @@ export default function ManualScrollV3() {
           </View>
         </View>
 
-        {/* Vertical story — the week's teaching read down the page as calm,
-            chapter-tinted cards (replaces the horizontal swipe deck, 2026-08-10:
-            "drop the swipe cards, less is more"). Keyed by category so it swaps
-            when the chapter chip changes. */}
-        <ManualVerticalStory key={chapter.cat} story={manualContent?.story ?? []} category={chapter.cat} lang={lang} />
-
-        {/* Below-deck modules: checklist → article/video → infographic —
-            the repeatable Manual baseline, driven by manualWeekContent. */}
+        {/* The whole week as ONE scannable briefing (2026-08-12): teaching +
+            modules fold into a single list of collapsed rows (tap to open
+            inline), so scrolling reads as rows, not a stack of hero boxes.
+            Keyed by category so it swaps when the chapter chip changes. */}
         {manualContent && (
           <ManualModules
+            key={chapter.cat}
             content={manualContent}
+            story={manualContent.story ?? []}
             lang={lang}
             week={week}
             category={chapter.cat}
