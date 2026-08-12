@@ -298,11 +298,21 @@ async function harvestFeed(feed: any): Promise<{ found: number; upserted: number
     });
     if (dup) continue;
 
+    // Per-event format overrides the feed default. This is what makes a page
+    // mixing virtual and in-person registerable: an in-person event elsewhere
+    // becomes a 'local' row with a real address, gets geocoded by the existing
+    // sweep, and then falls outside a Miami mother's radius on its own. Correct
+    // typing IS the geographic filter — no extra filtering logic exists or is
+    // needed. 'unknown' keeps today's behavior for single-format feeds.
+    const eventIsWebinar = ev.format === 'virtual' ? true
+      : ev.format === 'in_person' ? false
+      : isWebinar;
+
     // For a webinar the link IS the event, so it belongs in stream_url where
     // EventDetailScreen's "Join stream" CTA reads it — not buried in prose.
     const description = [
       (ev.description ?? '').slice(0, 3800),
-      ev.event_url && !isWebinar ? `\n\nDetails & tickets: ${ev.event_url}` : '',
+      ev.event_url && !eventIsWebinar ? `\n\nDetails & tickets: ${ev.event_url}` : '',
     ].join('');
 
     // ends_at is NOT NULL. Prefer the page's own end time; fall back to a
@@ -323,14 +333,14 @@ async function harvestFeed(feed: any): Promise<{ found: number; upserted: number
     // instruction. Dropping those would discard some of the best free
     // postpartum sources we have, so fall back to the source page — it always
     // tells her how to actually get in.
-    const streamUrl = isWebinar ? (ev.event_url ?? url) : null;
+    const streamUrl = eventIsWebinar ? (ev.event_url ?? url) : null;
     // The hosting org is a truthful venue when the page names no other.
-    const venueName = ev.venue_name ?? (isWebinar ? null : feed.partner_name);
+    const venueName = ev.venue_name ?? (eventIsWebinar ? null : feed.partner_name);
 
     const { data: idData, error } = await supabase.rpc('upsert_ingested_event', {
       p_source_feed_id: feed.id,
       p_source_uid: uid,
-      p_type: feed.default_event_type ?? 'local',
+      p_type: eventIsWebinar ? 'webinar' : 'local',
       p_title: ev.title.slice(0, 200),
       p_description: description,
       p_host_name: feed.partner_name,
@@ -346,7 +356,11 @@ async function harvestFeed(feed: any): Promise<{ found: number; upserted: number
       p_lat: null,
       p_lng: null,
       p_stream_url: streamUrl,
-      p_platform: isWebinar ? 'other' : null,
+      p_platform: eventIsWebinar ? 'other' : null,
+      // is_free true ONLY for an explicit free signal. Both 'paid' and
+      // 'unknown' write false, which is what the screener gate keys on.
+      p_is_free: ev.cost === 'free',
+      p_price_cents: ev.cost === 'paid' ? (ev.price_cents ?? null) : null,
     });
     if (error || !idData) {
       console.error(`[events-harvest] upsert failed ${feed.partner_name}/${uid}:`, error?.message);
