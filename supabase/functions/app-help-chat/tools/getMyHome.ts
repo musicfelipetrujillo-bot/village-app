@@ -15,11 +15,24 @@ async function run(ctx: ToolContext, input: any) {
       .select('type, title, body, is_read, created_at')
       .order('created_at', { ascending: false }).limit(10);
     if (unreadOnly) q = q.eq('is_read', false);
-    const { data, error } = await q;
-    if (error) return { error: error.message };
-    const rows = (data ?? []) as any[];
+    // Separate exact counts. Reporting rows.length as "you have N" was wrong:
+    // the founder had 60 unread and Billy confidently said 10 — his page size
+    // (2026-08-12). `shown` and `unread_total` are now distinct on purpose.
+    const [listR, unreadCountR] = await Promise.all([
+      q,
+      supabase.from('user_notifications_feed')
+        .select('id', { count: 'exact', head: true }).eq('is_read', false),
+    ]);
+    if (listR.error) return { error: listR.error.message };
+    const rows = (listR.data ?? []) as any[];
+    const unreadTotal = unreadCountR?.count ?? null;
     return {
-      scope, count: rows.length, unread: rows.filter((n) => n.is_read === false).length,
+      scope,
+      unread_total: unreadTotal,
+      shown: rows.length,
+      // Everything here is one repeating daily nudge more often than not — say
+      // "a stack of check-in reminders", never list 10 near-identical rows.
+      note: 'unread_total is the real number; `shown` is only how many you can see. Never quote `shown` as the total. If most share a type, summarize the group instead of listing them.',
       items: rows.map((n) => ({
         type: n.type, title: n.title,
         body: typeof n.body === 'string' ? n.body.slice(0, 160) : undefined,
