@@ -253,15 +253,17 @@ async function harvestFeed(feed: any): Promise<{ found: number; upserted: number
       : new Date(starts + DEFAULT_DURATION_MS).toISOString();
 
     // Two table CHECKs will reject a row outright rather than degrade it, and
-    // the RPC surfaces that only as a console line. Satisfy them here so the
-    // loss is either prevented or counted:
+    // the RPC surfaces that only as a console line. Satisfy them here:
     //   webinar_has_url    — type='webinar' REQUIRES stream_url
     //   local_has_location — type='local' REQUIRES venue_name (location is
     //                        already covered by the RPC's Null-Island sentinel)
-    if (isWebinar && !ev.event_url) {
-      skipped.push({ title: ev.title, reason: 'webinar_missing_url' });
-      continue;
-    }
+    //
+    // Plenty of real virtual groups publish no per-event link: La Leche League
+    // emails the Zoom link on request, so the listing page IS the join
+    // instruction. Dropping those would discard some of the best free
+    // postpartum sources we have, so fall back to the source page — it always
+    // tells her how to actually get in.
+    const streamUrl = isWebinar ? (ev.event_url ?? url) : null;
     // The hosting org is a truthful venue when the page names no other.
     const venueName = ev.venue_name ?? (isWebinar ? null : feed.partner_name);
 
@@ -283,8 +285,8 @@ async function harvestFeed(feed: any): Promise<{ found: number; upserted: number
       p_city: feed.default_city,
       p_lat: null,
       p_lng: null,
-      p_stream_url: isWebinar ? ev.event_url : null,
-      p_platform: isWebinar && ev.event_url ? 'other' : null,
+      p_stream_url: streamUrl,
+      p_platform: isWebinar ? 'other' : null,
     });
     if (error || !idData) {
       console.error(`[events-harvest] upsert failed ${feed.partner_name}/${uid}:`, error?.message);
