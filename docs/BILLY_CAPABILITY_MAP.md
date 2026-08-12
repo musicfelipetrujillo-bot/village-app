@@ -11,10 +11,16 @@ Tier values: `read` = pure read/search, `do` = reversible low-stakes write (Bill
 branch `feat/billy-capability-coverage`, pending `supabase functions deploy` + eval run;
 `no` = not built yet.
 
-**Scoreboard 2026-08-12: 30 yes · 17 code · 105 no.** Wave 3 **Tranche A** is built and
+**Scoreboard 2026-08-12: 47 yes · 0 code · 105 no.** Wave 3 **Tranche A is GREEN** — Wave 3 **Tranche A** is built and
 deployed (`app-help-chat` v38) — 5 new tools covering 17 read rows, **zero migrations**:
-`get_my_day`, `get_my_week`, `read_manual`, `get_my_home`, `get_saved`. All 17 sit at `code`
-until the founder eval run; see `docs/BILLY_WAVE3_PLAN.md` for tranches B and C.
+`get_my_day`, `get_my_week`, `read_manual`, `get_my_home`, `get_saved` — all 17 verified by the
+founder 2026-08-12. See `docs/BILLY_WAVE3_PLAN.md` for tranches B and C.
+
+The eval run caught one real bug and two misleading answers: `list_manual_videos` /
+`list_manual_pieces` filter with `category = p_category`, and SQL equality against NULL is
+never true — so a null category returned ZERO rows, not all of them, and Billy reported an
+empty video library over 22 approved videos. Fixed by fanning out across every category
+(which also surfaced `soothe`, missing from both our list and the client's union).
 
 ⚠️ **The plan said Tranche A was 18 rows — it is 17.** `E-read-saved-events` does NOT come
 back from `get_saved_dashboard` (that RPC returns videos / specialists / donors / gear only —
@@ -45,35 +51,35 @@ Wave 3 — the read tranche, planned in `docs/BILLY_WAVE3_PLAN.md`.
 | Remember a fact from conversation (Billy's brain) | do | insert:villie_memories (mig 109) | N | yes | E-remember-fact |
 | Jot a freeform baby note | do | insert:baby_log_notes | N | no | E-log-note |
 | Parse a voice/text jot into structured logs | do | fn:playbook-parse-note | N | no | E-parse-note |
-| Read today's logs (feeds/naps/diapers) | read | (client) baby_sleep/feed/diaper_logs | N | code | E-read-today-logs |
-| Read active sleep/feed timer | read | (client) baby_sleep/feed_logs | N | code | E-read-active-timer |
+| Read today's logs (feeds/naps/diapers) | read | (client) baby_sleep/feed/diaper_logs | N | yes | E-read-today-logs |
+| Read active sleep/feed timer | read | (client) baby_sleep/feed_logs | N | yes | E-read-active-timer |
 | Set up / edit my baby profile (DOB, gender, feeding) | do | upsert:baby_profiles | N | no | E-upsert-baby-profile |
 | Set my Playbook preferences | do | update:baby_profiles | N | no | E-baby-playbook-prefs |
-| Read my current milestone | read | rpc:get_my_current_milestone | N | code | E-read-current-milestone |
-| Read milestones for a given week | read | rpc:get_milestones_for_week | N | code | E-read-week-milestones |
-| Read my notifications feed | read | (client) user_notifications_feed | N | code | E-read-notifications |
+| Read my current milestone | read | rpc:get_my_current_milestone | N | yes | E-read-current-milestone |
+| Read milestones for a given week | read | rpc:get_milestones_for_week | N | yes | E-read-week-milestones |
+| Read my notifications feed | read | (client) user_notifications_feed | N | yes | E-read-notifications |
 | Mark a notification read | do | update:user_notifications_feed | N | no | E-mark-notification-read |
 | Read today's check-in | read | rpc:get_today_checkin | N | no | E-read-today-checkin |
 | Read my recent mood check-ins | read | (client) daily_checkins | N | no | E-read-recent-checkins |
 | Submit a daily mood/energy check-in | do | rpc:upsert_daily_checkin + fn:ai-daily-checkin | N | no | E-submit-checkin |
-| Read my Home feed | read | rpc:get_home_feed | N | code | E-read-home-feed |
+| Read my Home feed | read | rpc:get_home_feed | N | yes | E-read-home-feed |
 | Refresh my Home feed | do | fn:home-feed-curator | N | no | E-refresh-home-feed |
-| Read this week's Manual videos/pieces | read | rpc:list_this_week_manual | N | code | E-read-this-week-manual |
-| Browse Manual video library | read | rpc:list_manual_videos | N | code | E-list-manual-videos |
-| Read Manual pieces (stories/checklists/infographics) | read | rpc:list_manual_pieces | N | code | E-list-manual-pieces |
-| Read a single Manual video + week intro | read | rpc:get_manual_week_intro / list_manual_videos | N | code | E-get-manual-video |
+| Read this week's Manual videos/pieces | read | rpc:list_this_week_manual | N | yes | E-read-this-week-manual |
+| Browse Manual video library | read | rpc:list_manual_videos | N | yes | E-list-manual-videos |
+| Read Manual pieces (stories/checklists/infographics) | read | rpc:list_manual_pieces | N | yes | E-list-manual-pieces |
+| Read a single Manual video + week intro | read | rpc:get_manual_week_intro / list_manual_videos | N | yes | E-get-manual-video |
 | Mark a Manual video watched | do | rpc:mark_video_watched | N | no | E-mark-video-watched |
 | Save / unsave a Manual video | do | rpc:toggle_manual_save | N | no | E-toggle-manual-save |
-| Read my saved Manual videos | read | rpc:list_my_saved_manual | N | code | E-list-saved-manual |
+| Read my saved Manual videos | read | rpc:list_my_saved_manual | N | yes | E-list-saved-manual |
 | Log a Manual video share | do | rpc:log_manual_share | N | no | E-log-manual-share |
-| Read the weekly journey for a week | read | rpc:get_weekly_journey | N | code | E-read-weekly-journey |
+| Read the weekly journey for a week | read | rpc:get_weekly_journey | N | yes | E-read-weekly-journey |
 | Check off a weekly-journey checklist item | do | insert:user_week_checklist_completions | N | no | E-check-journey-item |
 | Uncheck a weekly-journey checklist item | do | delete:user_week_checklist_completions | N | no | E-uncheck-journey-item |
-| Read Villie Picks (curated products) | read | (client) villie_picks | N | code | E-read-picks |
-| Read my unified Saved dashboard | read | rpc:get_saved_dashboard | N | code | E-read-saved-dashboard |
+| Read Villie Picks (curated products) | read | (client) villie_picks | N | yes | E-read-picks |
+| Read my unified Saved dashboard | read | rpc:get_saved_dashboard | N | yes | E-read-saved-dashboard |
 | Read a specialist profile | read | (client) specialists | N | no | E-read-specialist |
 | Read a specialist's reviews | read | (client) reviews | N | no | E-read-specialist-reviews |
-| Read my saved specialists | read | (client) favorites | N | code | E-read-saved-specialists |
+| Read my saved specialists | read | (client) favorites | N | yes | E-read-saved-specialists |
 | Save / unsave (favorite) a specialist | do | insert/delete:favorites | N | yes | E-toggle-favorite-specialist |
 | Write a specialist review | route | insert:reviews | Y | yes | E-write-specialist-review |
 | AI-match me to best-fit specialists | read | fn:ai-match | N | no | E-ai-match-specialists |
@@ -87,7 +93,7 @@ Wave 3 — the read tranche, planned in `docs/BILLY_WAVE3_PLAN.md`.
 | Read my specialist message thread | read | (client) messages | N | no | E-read-specialist-thread |
 | Read a milk donor profile | read | (client) milk_donor_profiles | N | no | E-read-donor-profile |
 | Read a donor's active listing | read | (client) milk_listings | N | no | E-read-donor-listing |
-| Read my saved donors | read | (client) milk_saved_donors | N | code | E-read-saved-donors |
+| Read my saved donors | read | (client) milk_saved_donors | N | yes | E-read-saved-donors |
 | Save / unsave a milk donor | do | insert/delete:milk_saved_donors | N | yes | E-toggle-save-donor |
 | AI-match me to best-fit donors | read | fn:milk-match-donors | N | no | E-milk-match-donors |
 | Ask AI a question about a donor | read | fn:milk-donor-qa | N | no | E-milk-donor-qa |
@@ -122,7 +128,7 @@ Wave 3 — the read tranche, planned in `docs/BILLY_WAVE3_PLAN.md`.
 | Configure a Milk Vault shipping kit | route | upsert:milk_vault_shipping_kits | Y | no | E-vault-shipping-kit |
 | Read a gear listing detail | read | rpc:get_gear_listing | N | no | E-read-gear-listing |
 | Read my gear listings | read | rpc:list_my_gear_listings | N | no | E-read-my-gear-listings |
-| Read my saved gear | read | rpc:list_my_saved_gear | N | code | E-read-saved-gear |
+| Read my saved gear | read | rpc:list_my_saved_gear | N | yes | E-read-saved-gear |
 | Save / unsave a gear listing | do | insert/delete:gear_saved_listings | N | yes | E-toggle-save-gear |
 | Create a gear listing | route | rpc:create_gear_listing + insert:gear_listing_images | Y | yes | E-create-gear-listing |
 | Change a gear listing status (sold/withdraw/reactivate) | route | rpc:update_gear_status (updateStatus) | Y | yes | E-update-gear-status |
