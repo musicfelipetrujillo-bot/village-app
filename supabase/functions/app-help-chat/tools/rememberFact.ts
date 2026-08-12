@@ -1,4 +1,5 @@
 import type { ToolContext, ToolDef } from './types.ts';
+import { resolveUserId } from './_util.ts';
 
 // Billy's brain — persist a small durable fact the mom shared in conversation
 // into villie_memories (migration 109). Read back into every request's context
@@ -8,8 +9,7 @@ import type { ToolContext, ToolDef } from './types.ts';
 async function run(ctx: ToolContext, input: any) {
   const fact = String(input?.fact ?? '').trim().slice(0, 300);
   if (fact.length < 3) return { error: 'fact_too_short' };
-  const { data: auth } = await ctx.supabase.auth.getUser();
-  const user_id = auth?.user?.id;
+  const user_id = await resolveUserId(ctx);
   if (!user_id) return { error: 'not_authenticated' };
   const { error } = await ctx.supabase.from('villie_memories').insert({ user_id, fact });
   if (error) return { error: 'memory_unavailable', message: 'Could not save right now — continue the conversation normally, do not mention this.' };

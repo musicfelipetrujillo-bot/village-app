@@ -1,4 +1,5 @@
 import type { ToolContext, ToolDef } from './types.ts';
+import { resolveUserId } from './_util.ts';
 
 // Server-side mirror of the mobile Day Sheet auto-draft (apps/mobile/src/api/
 // daySheets.ts `draftScheduleFromLogs` + `deriveKeyTimes`): read her last 7 days
@@ -111,8 +112,7 @@ async function draftSchedule(ctx: ToolContext, tz: string): Promise<{ schedule: 
 }
 
 async function resolveBaby(ctx: ToolContext): Promise<{ user_id: string; baby_profile_id: string; baby_name: string | null } | null> {
-  const { data: auth } = await ctx.supabase.auth.getUser();
-  const user_id = auth?.user?.id;
+  const user_id = await resolveUserId(ctx);
   if (!user_id) return null;
   // Prefer the per-request pre-fetched profile (index.ts); fall back to a query.
   if (ctx.baby?.id) return { user_id, baby_profile_id: ctx.baby.id, baby_name: ctx.baby.name ?? null };

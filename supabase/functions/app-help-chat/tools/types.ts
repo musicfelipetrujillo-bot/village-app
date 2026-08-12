@@ -9,6 +9,12 @@ export interface ToolContext {
   supabase: SupabaseClient;      // user-scoped (RLS) — reads/writes ONLY her rows
   loc: Loc;                      // best-effort device location
   baby?: BabyCtx;                // her baby profile, pre-fetched per request (null = none yet)
+  // Resolved ONCE per request in index.ts. Before Wave 3 every tool that needed
+  // the caller's id paid its own supabase.auth.getUser() round-trip; the read
+  // tranche roughly triples how often that happens.
+  userId?: string | null;
+  locale?: 'en' | 'es';          // her preferred_language — content RPCs are localized
+  tz?: string;                   // notif_prefs.quiet_hours.tz — "today" must mean HER today
 }
 
 // A do/read tool returns any JSON (becomes the tool_result the model reads).
