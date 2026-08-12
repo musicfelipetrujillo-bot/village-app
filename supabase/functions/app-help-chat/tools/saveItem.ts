@@ -1,4 +1,5 @@
 import type { ToolContext, ToolDef } from './types.ts';
+import { resolveUserId } from './_util.ts';
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -33,8 +34,7 @@ async function run(ctx: ToolContext, input: any) {
     };
   }
 
-  const { data: auth } = await ctx.supabase.auth.getUser();
-  const user_id = auth?.user?.id;
+  const user_id = await resolveUserId(ctx);
   if (!user_id) return { error: 'not_signed_in' };
 
   if (input?.unsave === true) {

@@ -68,6 +68,11 @@ const NAV_ROUTES: Record<string, { tab?: string; screen: string; params?: Record
   // The Playbook tracker lives on Insights since the Manual/Playbook toggle
   // was retired (2026-07-15) — the tracker is embedded at the top there.
   playbook:           { tab: 'Home',    screen: 'Insights' },
+  // Wave 3 content destinations. `playbook` is the TRACKER, not the library —
+  // before these existed, a "what's in the Manual this week" answer produced a
+  // pill labelled "Open the Manual" that opened Insights.
+  manual:             { tab: 'Manual',  screen: 'ManualHome' },
+  saved_manual:       { tab: 'Manual',  screen: 'SavedManual' },
   // Wave 2 route batch.
   // ReviewSubmit + Messaging both require a specialistId param Billy can't
   // supply (find_specialists returns no ids) — ReviewSubmit even renders

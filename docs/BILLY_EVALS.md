@@ -40,6 +40,30 @@ have no reachable route.
 **Wave 3 — the read tranche.** 44 capabilities in 12 tools, zero migrations. Plan and open
 decisions in `docs/BILLY_WAVE3_PLAN.md`.
 
+**Wave 3 Tranche A — DEPLOYED 2026-08-12, awaiting eval** (`app-help-chat` v38; map `code` →
+`yes` on green). 5 tools, 17 rows: `get_my_day` (`E-read-today-logs`, `E-read-active-timer`),
+`get_my_week` (`E-read-current-milestone`, `E-read-week-milestones`, `E-read-weekly-journey`),
+`read_manual` (`E-read-this-week-manual`, `E-list-manual-videos`, `E-list-manual-pieces`,
+`E-get-manual-video`, `E-list-saved-manual`), `get_my_home` (`E-read-home-feed`,
+`E-read-notifications`, `E-read-picks`), `get_saved` (`E-read-saved-dashboard`,
+`E-read-saved-specialists`, `E-read-saved-donors`, `E-read-saved-gear`).
+
+These are READS, so the "pill must be tapped" rule mostly doesn't bite — but two things do
+need a tap: the **Manual** pill and the **Playbook** pill, because Tranche A added the
+`manual` + `saved_manual` nav targets. Reason worth remembering: an unauthenticated probe of
+`read_manual` returned a pill labelled **"Open the Manual" pointing at `playbook`** — which is
+the Insights *tracker*, not the library. There was no `manual` target, so Haiku picked the
+nearest allowed key and mislabelled it. Same defect family as the 2026-08-02 run, found by
+probing the deployed function instead of waiting for the founder. Both targets now exist on
+the server allowlist AND in the client `NAV_ROUTES`, and `navigate`'s description states
+plainly that `playbook` ≠ `manual`.
+
+Verification note: all five tools were probed live against the deployed function before
+hand-off (HTTP 200 each). `get_saved` correctly **fails soft** for an unauthenticated caller
+because `get_saved_dashboard` is revoked from `anon` (migration 054) — Billy degrades to a
+warm "can't pull that up right now" instead of crashing. That path only exercises fully when
+signed in.
+
 ## Read (shipped)
 
 - [x] E-find-specialists — "Find me a lactation consultant near me." → calls specialists_near and lists nearby specialists with distance.
