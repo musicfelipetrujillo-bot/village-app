@@ -4,12 +4,18 @@
 Read this first. Update it last. When sessions collide (duplicate migration numbers, duplicate
 feature builds, stepping on shared files), the fix is: everyone coordinates *here*.
 
-- **Last updated:** 2026-07-30 (three OTAs shipped · The Buzz live · see §0 RELEASE LOG)
-- **`main` head:** `f2d8e57` — **pushed; `main` == `origin/main`, no drift.**
+- **Last updated:** 2026-08-12 (62-commit branch drift CLOSED · Billy waves 1+2 verified · see §0 RELEASE LOG)
+- **`main` head:** `e9d1515` — **pushed; `main` == `origin/main`, no drift.**
 - **Authoritative for:** in-flight work, migration numbers, deploy queue, launch sequence.
 - **NOT authoritative for:** per-phase build history (`CLAUDE.md`), env/key setup (`docs/OPS_RUNBOOK.md`), product intent (`docs/source/*`). This doc points at those; it doesn't replace them.
 
-> 🟢 **§0 · RELEASE LOG — 2026-07-30 (read this first; it supersedes everything below).**
+> 🟢 **§0 · RELEASE LOG — 2026-08-12 (newest; read this first).**
+> **`feat/billy-capability-coverage` is MERGED into `main` and pushed** (merge `e9d1515`, parents `91e07d3` + `1903489`). It had grown to **62 commits ahead / 5 behind**, and **44 of those had never been pushed anywhere** — the raspberry rebrand, the roo icon + iOS modular-headers fix, the week-anchor Home, the Manual vertical-card story, global search, the Insights/Log rework, and all of Billy waves 1+2 existed on one unpushed local branch. **Migrations 113/114/115 lived only there, and 113 was already APPLIED TO PROD** — so prod schema was not reproducible from `main` until this merge. It is now. Migrations on disk: **115**, no duplicate numbers, **next free = 117** (116 is on `chore/mig-116-reviewer-roles`).
+> Two add/add conflicts, both resolved deliberately: **migration `112`** — both sides wrote the same file with identical SQL; kept the branch copy for its fuller provenance note. **`events-harvest/index.ts`** — kept `main`'s 429-line version (it carries `b51a667` + `91e07d3`, the probe/render fixes that took Villie Plans from 0→6 live events on 2026-08-12) and verified it already contained the branch's `auto_publish_threshold: 1.0` fix verbatim, so nothing was lost. Merged tree typechecks clean.
+> **Billy scoreboard: 30 yes / 0 code / 122 no.** Waves 1+2 verified on device 2026-08-02; `app-help-chat` **v36** is live. That eval run fixed five prod bugs — hidden-tab deep-links rendering blank (native-driver fade racing a cold lazy mount), a `JSON.parse` failure that was impersonating a "call 911" crisis reply, a deep-link step racing the tab crossfade, pills promising screens they don't open, and Billy asking a mom for a uuid (tool results don't survive between turns — he must re-run the search). **Standing rule: an eval is green only when the pill was TAPPED and the destination rendered** — 9 of those 11 produced a perfect reply + pill and still failed. Next Billy work = **Wave 3 read tranche**, `docs/BILLY_WAVE3_PLAN.md` (44 caps → 12 tools, 0 migrations, 3 founder calls open).
+> ⚠️ **Still-open drift of the same kind:** `supabase/functions/events-harvest/index.ts` and `gear-moderation-daily-digest/index.ts` have **uncommitted edits in the shared checkout while the deployed `events-harvest` is v4 (deployed 2026-08-12)** — prod is again running code that is not committed. Left alone because another session is mid-edit; whoever owns it should commit. Deploying from a dirty tree is how the daycare two-keyword fix went live-but-uncommitted for 11 days (`93c499a`).
+>
+> 🟢 **§0 · RELEASE LOG — 2026-07-30 (superseded by the entry above, still accurate for its own contents).**
 > **Three OTAs shipped to the `production` channel today**, all runtime `1.0.0` (reaches every current store build), all from `main`:
 > | Update group | Contents |
 > |---|---|
