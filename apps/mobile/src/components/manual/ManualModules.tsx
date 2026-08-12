@@ -412,8 +412,8 @@ function BriefGlyph({ children, tint, ring }: { children: React.ReactNode; tint:
 // One collapsible line in the briefing. Collapsed = glyph + title + a one-line
 // preview; tap to reveal the detail inline. This is the whole format — you scan
 // rows, and open one at a time, instead of scrolling a wall of boxes.
-function BriefRow({ glyph, title, preview, first, defaultOpen, serifTitle, children }: {
-  glyph: React.ReactNode; title: string; preview?: string;
+function BriefRow({ glyph, title, meta, first, defaultOpen, serifTitle, children }: {
+  glyph: React.ReactNode; title: string; meta?: string;
   first?: boolean; defaultOpen?: boolean; serifTitle?: boolean; children: React.ReactNode;
 }) {
   const [open, setOpen] = useState(!!defaultOpen);
@@ -429,10 +429,8 @@ function BriefRow({ glyph, title, preview, first, defaultOpen, serifTitle, child
         accessibilityLabel={title}
       >
         {glyph}
-        <View style={s.brBody}>
-          <Text style={serifTitle ? s.brTitleSerif : s.brTitle} numberOfLines={open ? 2 : 1}>{title}</Text>
-          {preview && !open ? <Text style={s.brPrev} numberOfLines={1}>{preview}</Text> : null}
-        </View>
+        <Text style={[serifTitle ? s.brTitleSerif : s.brTitle, s.brBody]} numberOfLines={1}>{title}</Text>
+        {meta && !open ? <Text style={s.brMeta}>{meta}</Text> : null}
         <Text style={[s.brChev, open && s.brChevOpen]}>›</Text>
       </TouchableOpacity>
       {open ? <View style={s.brContent}>{children}</View> : null}
@@ -528,10 +526,9 @@ export default function ManualModules({ content, story, onAskVillie, lang = 'en'
       <View style={s.card}>
         <BriefRow
           first
-          defaultOpen
           glyph={<BriefGlyph tint="#F7DFE6" ring="rgba(158,47,76,0.22)"><CheckGlyph color="#9E2F4C" /></BriefGlyph>}
           title={L('Do this week', 'Para esta semana')}
-          preview={content.checklist.title}
+          meta={`${content.checklist.items.length}`}
         >
           <ChecklistModule data={content.checklist} lang={lang} embedded />
         </BriefRow>
@@ -540,7 +537,6 @@ export default function ManualModules({ content, story, onAskVillie, lang = 'en'
           <BriefRow
             glyph={<BriefGlyph tint="#F5E4D6" ring="rgba(168,86,43,0.22)"><AskGlyph color="#A8562B" /></BriefGlyph>}
             title={L('A mom asked', 'Una mamá preguntó')}
-            preview={content.articles[0].question}
           >
             <ArticleModule articles={content.articles} lang={lang} embedded />
           </BriefRow>
@@ -550,7 +546,6 @@ export default function ManualModules({ content, story, onAskVillie, lang = 'en'
           <BriefRow
             glyph={<BriefGlyph tint="#F5EACF" ring="rgba(154,110,18,0.24)"><GlanceGlyph color="#9A6E12" /></BriefGlyph>}
             title={L('At a glance', 'De un vistazo')}
-            preview={content.info.title}
           >
             <InfographicModule data={content.info} lang={lang} embedded />
           </BriefRow>
@@ -560,7 +555,7 @@ export default function ManualModules({ content, story, onAskVillie, lang = 'en'
           <BriefRow
             glyph={<BriefGlyph tint="#E7EAD4" ring="rgba(99,112,47,0.26)"><LookGlyph color="#63702F" /></BriefGlyph>}
             title={L('Worth a look', 'Vale la pena')}
-            preview={`${picks} ${picks === 1 ? L('pick', 'idea') : L('picks', 'ideas')}`}
+            meta={`${picks}`}
           >
             <HelpsModule data={content.helps!} lang={lang} embedded />
           </BriefRow>
@@ -575,11 +570,9 @@ export default function ManualModules({ content, story, onAskVillie, lang = 'en'
               <BriefRow
                 key={i}
                 first={i === 0}
-                defaultOpen={i === 0}
                 serifTitle
                 glyph={<View style={s.slot}><View style={[s.dot, { backgroundColor: ink }]} /></View>}
                 title={(card.title ?? '').replace(/\n/g, ' ')}
-                preview={card.eyebrow}
               >
                 <StoryBody card={card} ink={ink} lang={lang} />
               </BriefRow>
@@ -630,15 +623,15 @@ const s = StyleSheet.create({
     shadowColor: '#43260F', shadowOpacity: 0.05, shadowOffset: { width: 0, height: 4 }, shadowRadius: 12, elevation: 1,
   },
   brDiv: { height: StyleSheet.hairlineWidth, backgroundColor: 'rgba(67,38,15,0.09)', marginLeft: 55 },
-  brHead: { flexDirection: 'row', alignItems: 'center', gap: 13, paddingVertical: 14, paddingHorizontal: 15 },
-  brGl: { width: 28, height: 28, borderRadius: 9, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
-  slot: { width: 28, alignItems: 'center', justifyContent: 'center' },
+  brHead: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 11, paddingHorizontal: 15 },
+  brGl: { width: 26, height: 26, borderRadius: 8, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
+  slot: { width: 26, alignItems: 'center', justifyContent: 'center' },
   dot: { width: 8, height: 8, borderRadius: 4 },
   brBody: { flex: 1, minWidth: 0 },
-  brTitle: { fontFamily: FONTS.bodySemiBold, fontSize: 15, lineHeight: 19, letterSpacing: -0.2, color: INK },
-  brTitleSerif: { fontFamily: FONTS.v3_display, fontSize: 16, lineHeight: 20, letterSpacing: -0.3, color: INK },
-  brPrev: { fontFamily: FONTS.v2_body, fontSize: 12.5, lineHeight: 16, color: '#AA9880', marginTop: 3 },
-  brChev: { fontFamily: FONTS.v2_body, fontSize: 20, lineHeight: 20, color: '#C6B7A2', marginTop: -1, width: 14, textAlign: 'center' },
+  brTitle: { fontFamily: FONTS.bodySemiBold, fontSize: 14.5, lineHeight: 19, letterSpacing: -0.2, color: INK },
+  brTitleSerif: { fontFamily: FONTS.v3_display, fontSize: 15.5, lineHeight: 19, letterSpacing: -0.3, color: INK },
+  brMeta: { fontFamily: FONTS.bodyBold, fontSize: 11.5, color: '#B7A48C', marginRight: 1 },
+  brChev: { fontFamily: FONTS.v2_body, fontSize: 20, lineHeight: 20, color: '#C6B7A2', marginTop: -1, width: 13, textAlign: 'center' },
   brChevOpen: { color: '#9E8B72', transform: [{ rotate: '90deg' }] },
   brContent: { paddingHorizontal: 15, paddingBottom: 16, marginTop: -2 },
 
