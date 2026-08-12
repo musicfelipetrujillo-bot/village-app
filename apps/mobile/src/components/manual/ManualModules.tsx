@@ -105,7 +105,7 @@ function ChecklistModule({ data, lang }: { data: Checklist; lang: Lang }) {
 
 function ExpertCard({ data, lang }: { data: Article; lang: Lang }) {
   return (
-    <LinearGradient colors={['#FCEFE0', '#F4DEC8']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.tip}>
+    <View style={s.tip}>
       <Text style={s.tipAsk}>{CH.momAsked[lang]}</Text>
       <Text style={s.tipQ}>{data.question}</Text>
       <View style={s.tipQuoteRow}>
@@ -126,7 +126,7 @@ function ExpertCard({ data, lang }: { data: Article; lang: Lang }) {
           <Text style={s.verifiedT}>{CH.verified[lang]}</Text>
         </View>
       </View>
-    </LinearGradient>
+    </View>
   );
 }
 
@@ -393,9 +393,11 @@ export default function ManualModules({ content, onAskVillie, lang = 'en', week,
 
   return (
     <View style={s.wrap}>
-      {content.info && <InfographicModule data={content.info} lang={lang} />}
-      <ArticleModule articles={content.articles} lang={lang} />
+      {/* Priority order (2026-08-10): do-this-week → expert answer → visual →
+          things-that-help → ask. Reads as one briefing, most-useful first. */}
       <ChecklistModule data={content.checklist} lang={lang} />
+      <ArticleModule articles={content.articles} lang={lang} />
+      {content.info && <InfographicModule data={content.info} lang={lang} />}
       {DEEPDIVE_ENABLED && content.deepDive && (
         <DeepDiveVideoCard
           data={content.deepDive}
@@ -447,7 +449,7 @@ const s = StyleSheet.create({
   avSub: { fontFamily: FONTS.body, fontSize: 10, color: '#C9B79F', marginTop: 9 },
 
   // checklist
-  panelTitle: { fontFamily: FONTS.headerBold, fontSize: 24, letterSpacing: -0.4, color: INK, marginBottom: 12 },
+  panelTitle: { fontFamily: FONTS.headerBold, fontSize: 18, lineHeight: 23, letterSpacing: -0.3, color: INK, marginBottom: 12 },
   panel: { backgroundColor: CREAM, borderRadius: 20, borderWidth: 1, borderColor: HAIR, overflow: 'hidden' },
   ci: { flexDirection: 'row', alignItems: 'center', gap: 13, paddingVertical: 14, paddingHorizontal: 18 },
   ciBorder: { borderTopWidth: 1, borderTopColor: HAIR },
@@ -461,14 +463,13 @@ const s = StyleSheet.create({
 
   // article / expert (editorial pull-quote card)
   tip: {
-    borderRadius: 22, borderWidth: 1, borderColor: 'rgba(190,133,31,0.20)',
-    paddingHorizontal: 22, paddingTop: 16, paddingBottom: 18, overflow: 'hidden',
-    shadowColor: '#43260F', shadowOpacity: 0.1, shadowOffset: { width: 0, height: 10 }, shadowRadius: 22, elevation: 2,
+    backgroundColor: '#FBEAEF', borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(158,47,76,0.18)',
+    paddingHorizontal: 18, paddingTop: 15, paddingBottom: 16, overflow: 'hidden',
   },
-  tipAsk: { fontFamily: FONTS.bodyBold, fontSize: 11, letterSpacing: 1.4, textTransform: 'uppercase', color: ACCENT, marginBottom: 6 },
-  tipQ: { fontFamily: FONTS.headerBold, fontSize: 22, lineHeight: 26, letterSpacing: -0.4, color: INK },
-  tipQuoteRow: { flexDirection: 'row', marginTop: 12 },
-  quoteMark: { fontFamily: FONTS.headerBold, fontSize: 46, lineHeight: 42, color: ACCENT, width: 28, marginTop: -4 },
+  tipAsk: { fontFamily: FONTS.v2_mono, fontSize: 10, letterSpacing: 1.6, textTransform: 'uppercase', color: ACCENT, fontWeight: '600', marginBottom: 6 },
+  tipQ: { fontFamily: FONTS.headerBold, fontSize: 18, lineHeight: 23, letterSpacing: -0.3, color: INK },
+  tipQuoteRow: { flexDirection: 'row', marginTop: 10 },
+  quoteMark: { fontFamily: FONTS.headerBold, fontSize: 30, lineHeight: 28, color: ACCENT, width: 20, marginTop: -2 },
   tipA: { flex: 1, fontFamily: FONTS.body, fontSize: 15.5, lineHeight: 24, color: INK },
   tipDivider: { height: 1, backgroundColor: 'rgba(67,38,15,0.1)', marginTop: 16 },
   artDots: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 6, marginTop: 12 },
@@ -490,7 +491,7 @@ const s = StyleSheet.create({
   wwNow: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: 'rgba(224,106,136,0.25)', borderRadius: 12, paddingHorizontal: 11, paddingVertical: 9, marginTop: 10 },
   wwNowDot: { width: 9, height: 9, borderRadius: 5, backgroundColor: ACCENT },
   wwNowText: { flex: 1, fontFamily: FONTS.body, fontSize: 12.5, color: INK },
-  infoTitle: { fontFamily: FONTS.headerBold, fontSize: 20, letterSpacing: -0.3, color: INK, marginBottom: 14 },
+  infoTitle: { fontFamily: FONTS.headerBold, fontSize: 18, lineHeight: 23, letterSpacing: -0.3, color: INK, marginBottom: 14 },
   infoFoot: { fontFamily: FONTS.body, fontSize: 12.5, lineHeight: 18, color: INKSOFT, marginTop: 8, paddingTop: 12, borderTopWidth: 1, borderTopColor: HAIR },
 
   // wake windows
