@@ -382,6 +382,26 @@ function AskVillieModule({ onPress, lang }: { onPress: () => void; lang: Lang })
 const TEACH_INK: Record<string, string> = {
   sleep: '#A9692F', feed: '#9A6E12', grow: '#9E2F4C', care: '#63702F', hospital: '#8A5E38',
 };
+// Faint pillar wash + edge for the "read this week" card, so it reads as its
+// own surface — not a continuation of the cream "this week" card.
+const TEACH_TINT: Record<string, { wash: string; edge: string }> = {
+  sleep:    { wash: '#FAF1E8', edge: 'rgba(169,105,47,0.22)' },
+  feed:     { wash: '#FAF4E4', edge: 'rgba(154,110,18,0.22)' },
+  grow:     { wash: '#FBEDF1', edge: 'rgba(158,47,76,0.20)' },
+  care:     { wash: '#F2F5E8', edge: 'rgba(99,112,47,0.22)' },
+  hospital: { wash: '#F9F3EC', edge: 'rgba(138,94,56,0.20)' },
+};
+
+// Editorial section header — an accent bar + label that announces a new group,
+// so "this week" and "read this week" read as distinct sections.
+function SectionHead({ label, accent, style }: { label: string; accent: string; style?: any }) {
+  return (
+    <View style={[s.secHead, style]}>
+      <View style={[s.secBar, { backgroundColor: accent }]} />
+      <Text style={s.secLabel}>{label}</Text>
+    </View>
+  );
+}
 
 // A 28px slot holding a module's typed glyph — tinted fill + a hairline ring in
 // the glyph's own tone so the icon reads crisp, not floated on a pastel wash.
@@ -498,12 +518,13 @@ export default function ManualModules({ content, story, onAskVillie, lang = 'en'
   // boxes. Tap opens the detail inline, one at a time. Only the video (above,
   // in ManualScrollV3) earns a full block.
   const ink = TEACH_INK[category ?? 'grow'] ?? TEACH_INK.grow;
+  const tint = TEACH_TINT[category ?? 'grow'] ?? TEACH_TINT.grow;
   const picks = content.helps?.picks.length ?? 0;
   const L = (en: string, es: string) => (lang === 'es' ? es : en);
 
   return (
     <View style={s.wrap}>
-      <Text style={s.slab}>{L('this week', 'esta semana')}</Text>
+      <SectionHead label={L('this week', 'esta semana')} accent="#B7A48C" />
       <View style={s.card}>
         <BriefRow
           first
@@ -548,8 +569,8 @@ export default function ManualModules({ content, story, onAskVillie, lang = 'en'
 
       {story && story.length ? (
         <>
-          <Text style={[s.slab, { marginTop: 22 }]}>{L('read this week', 'para leer')}</Text>
-          <View style={s.card}>
+          <SectionHead label={L('read this week', 'para leer')} accent={ink} style={{ marginTop: 30 }} />
+          <View style={[s.card, { backgroundColor: tint.wash, borderColor: tint.edge }]}>
             {story.map((card, i) => (
               <BriefRow
                 key={i}
@@ -600,7 +621,9 @@ const s = StyleSheet.create({
   wrap: { marginTop: 22, paddingHorizontal: 20 },
 
   // ── Briefing: the week as one scannable list, not a stack of boxes ──────
-  slab: { fontFamily: FONTS.bodyBold, fontSize: 10.5, letterSpacing: 1.8, color: LABEL, marginBottom: 9, marginLeft: 4 },
+  secHead: { flexDirection: 'row', alignItems: 'center', gap: 9, marginBottom: 11, marginLeft: 2 },
+  secBar: { width: 3.5, height: 14, borderRadius: 2 },
+  secLabel: { fontFamily: FONTS.bodyBold, fontSize: 13, letterSpacing: 0.2, color: '#5A4230' },
   card: {
     backgroundColor: '#FDFAF2', borderRadius: 18,
     borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(67,38,15,0.11)',
