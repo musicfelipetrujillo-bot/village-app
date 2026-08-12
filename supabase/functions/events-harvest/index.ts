@@ -5,7 +5,7 @@
 //   → fetch page HTML → Haiku extracts structured events → upsert_ingested_event
 //   → the EXISTING chain (events-geocode → ai-event-screen → founder review)
 //   takes over. Nothing publishes without review unless the feed's
-//   auto_publish_threshold says so (harvest sources ship at 1.01 = never).
+//   auto_publish_threshold says so (harvest sources ship at the 1.0 CHECK cap).
 //
 // The mom always finishes on the source site (tickets/registration) — the
 // event's ticket link is appended to the description. villie sources; she buys.
@@ -34,6 +34,15 @@ const json = (body: unknown, status = 200) =>
 const HARVEST_PREFIX = 'harvest:';
 const UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126 Safari/537.36 villie-events/1.0';
 
+// Minimum extracted-text length worth sending to the model. Below this the page
+// is a shell (SPA root div, cookie wall) rather than content.
+const MIN_PAGE_TEXT = 200;
+
+// Fallback ends_at when a page states a start but no end. events.ends_at is
+// NOT NULL and list_events_near filters on `ends_at > now()`, so passing null
+// makes upsert_ingested_event fail and the event is dropped entirely.
+const DEFAULT_DURATION_MS = 90 * 60 * 1000;
+
 // ── HTML → readable text (cheap, no DOM dep) ────────────────────────────
 function htmlToText(html: string): string {
   return html
@@ -46,7 +55,11 @@ function htmlToText(html: string): string {
     .replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&#39;|&apos;/g, "'").replace(/&quot;/g, '"')
     .replace(/[ \t]+/g, ' ')
     .replace(/\n\s*\n+/g, '\n')
-    .slice(0, 30000);
+    // Long org pages (PSI's support-meeting index, county library calendars)
+    // carry their schedule well past the old 30k cut, so the slice silently
+    // truncated exactly the content we came for. Haiku's context absorbs 60k
+    // characters (~15k tokens) comfortably.
+    .slice(0, 60000);
 }
 
 const EXTRACT_SYSTEM = `You extract REAL, DATED, upcoming events from the text of a venue/organization web page for a maternal-health app (audience: moms with 0-12 month babies).
@@ -75,6 +88,50 @@ interface HarvestedEvent {
   venue_name: string | null; address: string | null; event_url: string | null;
 }
 
+// ── Page fetch, with a JS-rendering fallback ────────────────────────────
+// The plain fetch below never executes JavaScript. Most modern class calendars
+// (hospital SPAs, county-library widgets, Mindbody/Momence/Wix booking embeds)
+// render events client-side, so a direct fetch returns a shell and extracts
+// ZERO events while still reporting HTTP 200. Verified 2026-08-12 against
+// events.baptisthealth.com (hash-routed SPA) and mdpls.org/events.
+//
+// Direct fetch stays first: it is free, fast, and sufficient for the sources
+// that do server-render (postpartum.net, theunderline.org). The proxy is only
+// paid for when the cheap path comes back empty — see harvestFeed().
+async function fetchDirect(url: string): Promise<string> {
+  const res = await fetch(url, { headers: { 'User-Agent': UA }, redirect: 'follow' });
+  if (!res.ok) throw new Error(`fetch_${res.status}`);
+  return htmlToText(await res.text());
+}
+
+// Renders the page (JS executed) and returns readable text. Uses r.jina.ai,
+// which needs no key on its free tier; RENDER_PROXY_KEY raises the rate limit
+// when set. Returns null on any failure so a proxy outage degrades to
+// "direct-fetch only" rather than failing the whole feed.
+async function fetchRendered(url: string): Promise<string | null> {
+  try {
+    const key = Deno.env.get('RENDER_PROXY_KEY');
+    const headers: Record<string, string> = { 'User-Agent': UA };
+    if (key) headers['Authorization'] = `Bearer ${key}`;
+    const res = await fetch(`https://r.jina.ai/${url}`, {
+      headers,
+      redirect: 'follow',
+      signal: AbortSignal.timeout(45000),
+    });
+    if (!res.ok) {
+      console.error(`[events-harvest] render proxy ${res.status} for ${url}`);
+      return null;
+    }
+    // The proxy already returns markdown-ish text, so htmlToText would only
+    // strip the few inline tags it leaves behind — cheap and harmless.
+    const text = htmlToText(await res.text());
+    return text.length >= MIN_PAGE_TEXT ? text : null;
+  } catch (e) {
+    console.error(`[events-harvest] render proxy failed for ${url}:`, e instanceof Error ? e.message : String(e));
+    return null;
+  }
+}
+
 async function extractEvents(pageText: string, tz: string, sourceName: string): Promise<HarvestedEvent[]> {
   const resp = await anthropic.messages.create({
     model: 'claude-haiku-4-5-20251001',
@@ -88,7 +145,27 @@ async function extractEvents(pageText: string, tz: string, sourceName: string): 
   });
   const raw = (resp.content.find((b: any) => b.type === 'text') as any)?.text ?? '[]';
   const cleaned = raw.trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '');
-  const parsed = JSON.parse(cleaned);
+
+  // The model occasionally emits trailing prose after the array, or a fence it
+  // was told not to use. A bare JSON.parse throws on that and — now that a
+  // zero-yield run counts against consecutive_failures — a formatting hiccup
+  // could retire a perfectly good source. Salvage the outermost array first;
+  // only give up if there is genuinely no array in the response.
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(cleaned);
+  } catch {
+    const start = cleaned.indexOf('[');
+    const end = cleaned.lastIndexOf(']');
+    if (start === -1 || end <= start) {
+      throw new Error('extract_unparseable');
+    }
+    try {
+      parsed = JSON.parse(cleaned.slice(start, end + 1));
+    } catch {
+      throw new Error('extract_unparseable');
+    }
+  }
   if (!Array.isArray(parsed)) return [];
   return parsed.filter((e: any) => e && typeof e.title === 'string' && typeof e.starts_at === 'string');
 }
@@ -108,15 +185,43 @@ async function invokeEdge(fnName: string, body: unknown) {
   } catch { /* cron sweeps mop up */ }
 }
 
-async function harvestFeed(feed: any): Promise<{ found: number; upserted: number; error?: string }> {
+async function harvestFeed(feed: any): Promise<{ found: number; upserted: number; rendered: boolean; skipped: number; error?: string }> {
   const url = String(feed.ics_url).slice(HARVEST_PREFIX.length);
-  const res = await fetch(url, { headers: { 'User-Agent': UA }, redirect: 'follow' });
-  if (!res.ok) throw new Error(`fetch_${res.status}`);
-  const text = htmlToText(await res.text());
-  if (text.length < 200) throw new Error('page_too_thin');
 
-  const events = await extractEvents(text, feed.default_timezone, feed.partner_name);
+  // Direct fetch first. A thin page is treated the same as a zero-event page —
+  // both mean "the cheap path found nothing", which is exactly the render
+  // proxy's cue. Only a hard transport error (non-2xx) throws, because that is
+  // a genuinely broken feed rather than a client-rendered one.
+  let text = '';
+  let events: HarvestedEvent[] = [];
+  try {
+    text = await fetchDirect(url);
+  } catch (e) {
+    // Non-2xx: still worth one render attempt — some hosts 403 a bare fetch
+    // but serve the proxy fine. If the proxy also fails we rethrow below.
+    console.error(`[events-harvest] direct fetch failed ${feed.partner_name}:`, e instanceof Error ? e.message : String(e));
+  }
+  if (text.length >= MIN_PAGE_TEXT) {
+    events = await extractEvents(text, feed.default_timezone, feed.partner_name);
+  }
+
+  // Render fallback — the trigger is "zero events", not "fetch failed", so a
+  // page that returns 200 with an empty SPA shell is still rescued.
+  let rendered = false;
+  if (events.length === 0) {
+    const renderedText = await fetchRendered(url);
+    if (renderedText) {
+      rendered = true;
+      events = await extractEvents(renderedText, feed.default_timezone, feed.partner_name);
+    } else if (text.length < MIN_PAGE_TEXT) {
+      // Neither path produced usable text — this feed is genuinely broken.
+      throw new Error('page_too_thin');
+    }
+  }
+
   const horizon = Date.now() + 120 * 86400000;
+  const isWebinar = (feed.default_event_type ?? 'local') === 'webinar';
+  const skipped: { title: string; reason: string }[] = [];
   let upserted = 0;
 
   for (const ev of events) {
@@ -133,10 +238,32 @@ async function harvestFeed(feed: any): Promise<{ found: number; upserted: number
     });
     if (dup) continue;
 
+    // For a webinar the link IS the event, so it belongs in stream_url where
+    // EventDetailScreen's "Join stream" CTA reads it — not buried in prose.
     const description = [
       (ev.description ?? '').slice(0, 3800),
-      ev.event_url ? `\n\nDetails & tickets: ${ev.event_url}` : '',
+      ev.event_url && !isWebinar ? `\n\nDetails & tickets: ${ev.event_url}` : '',
     ].join('');
+
+    // ends_at is NOT NULL. Prefer the page's own end time; fall back to a
+    // 90-minute block so an event that only states a start still ingests.
+    const parsedEnd = ev.ends_at ? Date.parse(ev.ends_at) : NaN;
+    const endsAt = Number.isFinite(parsedEnd) && parsedEnd > starts
+      ? new Date(parsedEnd).toISOString()
+      : new Date(starts + DEFAULT_DURATION_MS).toISOString();
+
+    // Two table CHECKs will reject a row outright rather than degrade it, and
+    // the RPC surfaces that only as a console line. Satisfy them here so the
+    // loss is either prevented or counted:
+    //   webinar_has_url    — type='webinar' REQUIRES stream_url
+    //   local_has_location — type='local' REQUIRES venue_name (location is
+    //                        already covered by the RPC's Null-Island sentinel)
+    if (isWebinar && !ev.event_url) {
+      skipped.push({ title: ev.title, reason: 'webinar_missing_url' });
+      continue;
+    }
+    // The hosting org is a truthful venue when the page names no other.
+    const venueName = ev.venue_name ?? (isWebinar ? null : feed.partner_name);
 
     const { data: idData, error } = await supabase.rpc('upsert_ingested_event', {
       p_source_feed_id: feed.id,
@@ -148,19 +275,20 @@ async function harvestFeed(feed: any): Promise<{ found: number; upserted: number
       p_host_avatar_url: feed.partner_avatar_url,
       p_is_partner: feed.is_partner,
       p_starts_at: new Date(starts).toISOString(),
-      p_ends_at: ev.ends_at && Number.isFinite(Date.parse(ev.ends_at)) ? new Date(Date.parse(ev.ends_at)).toISOString() : null,
+      p_ends_at: endsAt,
       p_timezone: feed.default_timezone,
       p_age_tags: feed.default_age_tags,
-      p_venue_name: ev.venue_name,
+      p_venue_name: venueName,
       p_address: ev.address,
       p_city: feed.default_city,
       p_lat: null,
       p_lng: null,
-      p_stream_url: null,
-      p_platform: null,
+      p_stream_url: isWebinar ? ev.event_url : null,
+      p_platform: isWebinar && ev.event_url ? 'other' : null,
     });
     if (error || !idData) {
       console.error(`[events-harvest] upsert failed ${feed.partner_name}/${uid}:`, error?.message);
+      skipped.push({ title: ev.title, reason: `upsert: ${error?.message ?? 'no_id'}` });
       continue;
     }
     upserted++;
@@ -168,13 +296,59 @@ async function harvestFeed(feed: any): Promise<{ found: number; upserted: number
     await invokeEdge('events-geocode', { mode: 'event', event_id: idData });
     await invokeEdge('ai-event-screen', { mode: 'event', event_id: idData });
   }
-  return { found: events.length, upserted };
+  if (skipped.length) {
+    console.error(`[events-harvest] ${feed.partner_name} skipped ${skipped.length}:`, JSON.stringify(skipped));
+  }
+  return { found: events.length, upserted, rendered, skipped: skipped.length };
 }
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: CORS });
   try {
     const body = await req.json().catch(() => ({}));
+
+    // Dry-run vetting. body.probe = { url, timezone? }. Fetches, renders if
+    // needed, extracts, and RETURNS the events without touching the registry
+    // or the events table.
+    //
+    // Registering a URL blind is how a source silently yields nothing forever:
+    // a JS-rendered page registers "successfully" and just never produces a
+    // row. Probe first, register what actually parses.
+    if (body.probe?.url) {
+      const url = String(body.probe.url);
+      const tz = body.probe.timezone ?? 'America/New_York';
+      let direct = '';
+      let directErr: string | null = null;
+      try {
+        direct = await fetchDirect(url);
+      } catch (e) {
+        directErr = e instanceof Error ? e.message : String(e);
+      }
+
+      let events: HarvestedEvent[] = [];
+      if (direct.length >= MIN_PAGE_TEXT) {
+        events = await extractEvents(direct, tz, 'probe');
+      }
+      let rendered = false;
+      if (events.length === 0) {
+        const renderedText = await fetchRendered(url);
+        if (renderedText) {
+          rendered = true;
+          events = await extractEvents(renderedText, tz, 'probe');
+        }
+      }
+
+      return json({
+        ok: true,
+        url,
+        direct_text_chars: direct.length,
+        direct_error: directErr,
+        needs_render: rendered,
+        harvestable: events.length > 0,
+        found: events.length,
+        events,
+      });
+    }
 
     // Self-serve source registration (service-role callers only — this fn sits
     // behind verify_jwt). body.register = { partner_name, url, city?, timezone?,
@@ -194,7 +368,7 @@ Deno.serve(async (req) => {
           default_age_tags: r.age_tags ?? ['0-3mo', '3-6mo', '6-12mo'],
           default_event_type: r.event_type ?? 'local',
           is_active: true,
-          auto_publish_threshold: 1.01, // founder reviews everything from harvest sources
+          auto_publish_threshold: 1.0, // CHECK caps at 1.0 — only a perfect-confidence event skips review
           notes: `Tier-A AI harvest source, self-registered ${new Date().toISOString().slice(0, 10)}.`,
         });
         if (insErr) return json({ error: insErr.message }, 500);
@@ -211,11 +385,30 @@ Deno.serve(async (req) => {
       try {
         const r = await harvestFeed(feed);
         report[feed.partner_name] = r;
-        await supabase.from('events_partner_feeds').update({
-          last_synced_at: new Date().toISOString(),
-          last_sync_status: `harvested ${r.upserted}/${r.found}`,
-          consecutive_failures: 0,
-        }).eq('id', feed.id);
+
+        // A run that extracts nothing is a FAILURE, not a success. Previously
+        // this reset consecutive_failures unconditionally, so a source that
+        // yields zero forever (JS-rendered page, site redesign, venue stopped
+        // publishing) recorded `harvested 0/0` and read as permanently healthy.
+        // That is the state that let Villie Plans empty out unnoticed.
+        // By this point the render fallback has already been tried, so zero
+        // here means genuinely nothing to harvest.
+        if (r.found === 0) {
+          const failures = (feed.consecutive_failures ?? 0) + 1;
+          const patch: Record<string, unknown> = {
+            last_synced_at: new Date().toISOString(),
+            last_sync_status: 'yielded 0 events',
+            consecutive_failures: failures,
+          };
+          if (failures >= 3) patch.is_active = false;
+          await supabase.from('events_partner_feeds').update(patch).eq('id', feed.id);
+        } else {
+          await supabase.from('events_partner_feeds').update({
+            last_synced_at: new Date().toISOString(),
+            last_sync_status: `harvested ${r.upserted}/${r.found}${r.rendered ? ' (rendered)' : ''}${r.skipped ? ` · ${r.skipped} skipped` : ''}`,
+            consecutive_failures: 0,
+          }).eq('id', feed.id);
+        }
       } catch (e) {
         const msg = e instanceof Error ? e.message : String(e);
         report[feed.partner_name] = { error: msg };

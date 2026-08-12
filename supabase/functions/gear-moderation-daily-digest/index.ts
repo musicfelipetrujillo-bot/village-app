@@ -110,19 +110,47 @@ function statusBadge(s: ReportRow['status'], autoEscalated: boolean): string {
   return `<span style="color:#7A4A28;font-size:12px;">${s}</span>`;
 }
 
+// ── Villie Plans liveness ───────────────────────────────────────────────
+// Villie Plans went fully empty in production and nobody found out until a
+// human opened the tab (2026-08-12). It has several ways to fail quietly:
+// the harvest cron not firing, a feed yielding zero, a feed auto-deactivating
+// after 3 failures, or simply nothing approved and upcoming. None of those
+// raise an error anywhere. This block rides along on a digest that is already
+// scheduled and already read, so the tab reports its own health daily.
+export interface PlansHealth {
+  approvedUpcoming: number;
+  pendingReview: number;
+  staleFeeds: { partner_name: string; last_sync_status: string | null; consecutive_failures: number; is_active: boolean }[];
+  lastHarvestAt: string | null;
+}
+
+function plansSeverity(h: PlansHealth): 'critical' | 'warn' | 'ok' {
+  if (h.approvedUpcoming === 0) return 'critical';
+  if (h.staleFeeds.length > 0 || h.approvedUpcoming < 3) return 'warn';
+  return 'ok';
+}
+
 function renderEmail(args: {
   overdueP0: ReportRow[];
   open: ReportRow[];
   autoEscalatedToday: ReportRow[];
   resolvedToday: ReportRow[];
+  plans: PlansHealth | null;
   generatedAt: string;
 }): { subject: string; html: string; text: string } {
-  const { overdueP0, open, autoEscalatedToday, resolvedToday, generatedAt } = args;
+  const { overdueP0, open, autoEscalatedToday, resolvedToday, plans, generatedAt } = args;
 
   const totalActive = overdueP0.length + open.length;
-  const subject = totalActive === 0
+  const plansSev = plans ? plansSeverity(plans) : 'ok';
+
+  // An empty Plans tab is a user-visible outage, so it outranks a quiet gear
+  // queue in the subject line — the whole point is that it can't go unnoticed.
+  const baseSubject = totalActive === 0
     ? `Villie · Gear moderation — quiet day (${generatedAt})`
     : `Villie · Gear moderation — ${totalActive} open${overdueP0.length ? `, ${overdueP0.length} P0 overdue` : ''}`;
+  const subject = plansSev === 'critical'
+    ? `⚠️ Villie Plans is EMPTY · ${baseSubject}`
+    : baseSubject;
 
   const overdueSection = overdueP0.length === 0 ? '' : `
     <h2 style="font-family:Georgia,serif;color:#C73E2F;font-size:18px;margin:24px 0 8px;">P0 overdue — needs immediate attention</h2>
@@ -174,6 +202,35 @@ function renderEmail(args: {
     </table>
   `;
 
+  const plansSection = !plans ? '' : (() => {
+    const color = plansSev === 'critical' ? '#C73E2F' : plansSev === 'warn' ? '#C07840' : '#606E46';
+    const headline = plansSev === 'critical'
+      ? 'EMPTY — no approved upcoming events. Moms see a blank tab.'
+      : plansSev === 'warn'
+        ? 'Thin or degraded — check the feeds below.'
+        : 'Healthy.';
+    const feedRows = plans.staleFeeds.length === 0 ? '' : `
+      <table style="width:100%;border-collapse:collapse;font-family:Georgia,serif;font-size:13px;margin-top:8px;">
+        ${plans.staleFeeds.map((f) => `
+          <tr style="border-bottom:1px solid #E5DBC4;">
+            <td style="padding:8px 8px 8px 0;vertical-align:top;">
+              <strong style="color:#3D1F0E;">${f.partner_name}</strong>
+              ${f.is_active ? '' : ' <span style="color:#C73E2F;font-size:12px;">· DEACTIVATED</span>'}
+              <br><span style="color:#7A4A28;font-size:12px;">${f.last_sync_status ?? 'never synced'} · ${f.consecutive_failures} consecutive failure(s)</span>
+            </td>
+          </tr>
+        `).join('')}
+      </table>`;
+    return `
+      <h2 style="font-family:Georgia,serif;color:${color};font-size:18px;margin:24px 0 8px;">Villie Plans — ${headline}</h2>
+      <p style="font-family:Georgia,serif;color:#7A4A28;font-size:13px;margin:0;">
+        Approved &amp; upcoming: <strong style="color:${color};">${plans.approvedUpcoming}</strong>
+        · Awaiting your review: <strong>${plans.pendingReview}</strong>
+        · Last harvest: ${plans.lastHarvestAt ? isoAgo(plans.lastHarvestAt) : 'never'}
+      </p>
+      ${feedRows}`;
+  })();
+
   const quietSection = totalActive === 0 && autoEscalatedToday.length === 0 ? `
     <p style="font-family:Georgia,serif;color:#7A4A28;font-size:14px;margin:24px 0;">No open reports. No auto-actions in the last 24h. Quiet day.</p>
     <p style="font-family:Georgia,serif;color:#A77349;font-size:12px;margin:8px 0;font-style:italic;">If this is the third consecutive quiet day, sanity-check that the daily digest cron is still firing on real data, not just sending zero-state mails.</p>
@@ -188,6 +245,7 @@ function renderEmail(args: {
       ${openSection}
       ${autoSection}
       ${quietSection}
+      ${plansSection}
       <hr style="border:none;border-top:1px solid #E5DBC4;margin:28px 0 16px;">
       <p style="font-family:Georgia,serif;color:#A77349;font-size:11px;line-height:17px;margin:0;">
         Open reports in Supabase Studio · query: <code style="background:#F0EADB;padding:1px 5px;border-radius:3px;font-size:10px;">SELECT * FROM gear_listing_reports WHERE status IN ('open','under_review') ORDER BY severity, created_at;</code><br>
@@ -210,6 +268,14 @@ function renderEmail(args: {
     ...(overdueP0.length ? ['── P0 OVERDUE ──', ...overdueP0.map((r) => `  ${r.severity} · ${reasonLabel(r.reason_code)} · ${r.listing_title ?? '(listing)'} · ${isoAgo(r.created_at)}`), ''] : []),
     ...(open.length ? ['── OPEN ──', ...open.map((r) => `  ${r.severity} · ${reasonLabel(r.reason_code)} · ${r.listing_title ?? '(listing)'} · ${isoAgo(r.created_at)} · ${r.status}`), ''] : []),
     ...(autoEscalatedToday.length ? ['── AUTO-ACTIONED ──', ...autoEscalatedToday.map((r) => `  ${r.severity} · ${reasonLabel(r.reason_code)} · ${r.listing_title ?? '(listing)'}`), ''] : []),
+    ...(plans ? [
+      '── VILLIE PLANS ──',
+      `  Approved & upcoming: ${plans.approvedUpcoming}${plans.approvedUpcoming === 0 ? '  *** EMPTY TAB ***' : ''}`,
+      `  Awaiting review: ${plans.pendingReview}`,
+      `  Last harvest: ${plans.lastHarvestAt ? isoAgo(plans.lastHarvestAt) : 'never'}`,
+      ...plans.staleFeeds.map((f) => `  ! ${f.partner_name}${f.is_active ? '' : ' (DEACTIVATED)'} · ${f.last_sync_status ?? 'never synced'} · ${f.consecutive_failures} failure(s)`),
+      '',
+    ] : []),
   ];
   return { subject, html, text: textLines.join('\n') };
 }
@@ -326,9 +392,50 @@ Deno.serve(async (req) => {
   const autoEscalatedToday = flatten(autoRaw);
   const resolvedToday: ReportRow[] = []; // not surfaced in the email body, just count
 
+  // ── 1b. Villie Plans liveness. ──
+  // Wrapped so a Plans query failure can never take down the gear digest —
+  // this block is a passenger, not the payload.
+  let plans: PlansHealth | null = null;
+  try {
+    const nowIso = new Date().toISOString();
+    const [{ count: approvedUpcoming }, { count: pendingReview }, { data: feeds }] = await Promise.all([
+      supabase.from('events').select('*', { count: 'exact', head: true })
+        .eq('review_status', 'approved').in('status', ['upcoming', 'live']).gt('ends_at', nowIso),
+      supabase.from('events').select('*', { count: 'exact', head: true })
+        .eq('review_status', 'pending'),
+      supabase.from('events_partner_feeds')
+        .select('partner_name, last_sync_status, consecutive_failures, is_active, last_synced_at'),
+    ]);
+    const allFeeds = feeds ?? [];
+    plans = {
+      approvedUpcoming: approvedUpcoming ?? 0,
+      pendingReview: pendingReview ?? 0,
+      // A feed is "stale" if it is failing OR has been switched off by the
+      // 3-strike rule. Both states silently reduce supply.
+      staleFeeds: allFeeds
+        .filter((f: any) => (f.consecutive_failures ?? 0) > 0 || f.is_active === false)
+        .map((f: any) => ({
+          partner_name: f.partner_name,
+          last_sync_status: f.last_sync_status,
+          consecutive_failures: f.consecutive_failures ?? 0,
+          is_active: f.is_active !== false,
+        })),
+      lastHarvestAt: allFeeds
+        .map((f: any) => f.last_synced_at)
+        .filter(Boolean)
+        .sort()
+        .pop() ?? null,
+    };
+  } catch (e) {
+    console.error('[digest] Villie Plans health check failed:', e instanceof Error ? e.message : String(e));
+  }
+
   // ── 2. Decide whether to send. ──
   const totalActive = overdueP0.length + open.length + autoEscalatedToday.length;
-  if (totalActive === 0 && !sendWhenEmpty) {
+  // An empty Plans tab must always send, even on a silent gear day — a quiet
+  // queue is normal, a blank user-facing tab is an outage.
+  const plansNeedsAttention = plans !== null && plansSeverity(plans) === 'critical';
+  if (totalActive === 0 && !sendWhenEmpty && !plansNeedsAttention) {
     return new Response(JSON.stringify({ ok: true, sent: 0, reason: 'quiet_day_silenced' }), {
       status: 200, headers: { ...CORS, 'Content-Type': 'application/json' },
     });
@@ -346,6 +453,7 @@ Deno.serve(async (req) => {
     open,
     autoEscalatedToday,
     resolvedToday,
+    plans,
     generatedAt,
   });
 
@@ -422,5 +530,13 @@ Deno.serve(async (req) => {
       auto_escalated_today: autoEscalatedToday.length,
       resolved_today: resolvedCount ?? 0,
     },
+    // Echoed so the GH Actions cron log carries Plans health too — a second
+    // place to notice the tab emptying, independent of anyone reading email.
+    villie_plans: plans ? {
+      severity: plansSeverity(plans),
+      approved_upcoming: plans.approvedUpcoming,
+      pending_review: plans.pendingReview,
+      stale_feeds: plans.staleFeeds.map((f) => f.partner_name),
+    } : null,
   }), { status: 200, headers: { ...CORS, 'Content-Type': 'application/json' } });
 });
