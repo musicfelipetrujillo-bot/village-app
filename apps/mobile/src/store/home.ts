@@ -40,8 +40,16 @@ export const useHomeStore = create<HomeState>((set) => ({
     set({ loading: true });
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      const [profile, feed, checkin, notifResult] = await Promise.all([
-        homeApi.getMyBabyProfile(),
+      // getMyBabyProfile was the ONLY call here without a .catch(), so any error
+      // rejected the whole Promise.all and skipped the set() below — one flaky
+      // lookup blanked feed, check-in and notifications too. Now it resolves to a
+      // tagged result so a failure stays contained AND is distinguishable from a
+      // genuine "no baby yet".
+      const [profileResult, feed, checkin, notifResult] = await Promise.all([
+        homeApi.getMyBabyProfile().then(
+          (p) => ({ known: true as const, profile: p }),
+          () => ({ known: false as const, profile: null }),
+        ),
         homeApi.getHomeFeed().catch(() => null),
         homeApi.getTodayCheckin().catch(() => null),
         user
@@ -53,13 +61,17 @@ export const useHomeStore = create<HomeState>((set) => ({
               .then((r) => r, () => ({ count: 0 }))
           : Promise.resolve({ count: 0 }),
       ]);
+      const profile = profileResult.profile;
       let milestone: CurrentMilestone | null = null;
       if (profile) {
         milestone = await homeApi.getMyCurrentMilestone().catch(() => null);
       }
       set({
-        babyProfile: profile,
-        currentMilestone: milestone,
+        // ONLY overwrite the baby when the lookup actually answered. A failed or
+        // session-less refetch keeps whatever we already had — it must never
+        // downgrade a real baby to null, which is what made the profile look
+        // like it "kept resetting" (reported 2026-08-12).
+        ...(profileResult.known ? { babyProfile: profile, currentMilestone: milestone } : {}),
         feed,
         todayCheckin: checkin,
         loadedAt: Date.now(),

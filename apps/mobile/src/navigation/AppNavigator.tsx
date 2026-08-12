@@ -52,6 +52,22 @@ const hiddenButton = () => null;
 
 export function AppNavigator() {
   const unreadNotifCount = useHomeStore((s) => s.unreadNotifCount);
+
+  // Hydrate the home store ONCE for the whole authenticated shell.
+  //
+  // When the Home tab moved from the v9 HomeScreen to HomeScreenV3, the v9
+  // mount-time `fetchAll()` was not carried over — leaving `BabyProfileSetupScreen`
+  // as the ONLY live caller. The store isn't persisted, so after every cold start
+  // `babyProfile` was null and every consumer (Home hero, Manual masthead, Manual
+  // week, Day Plan, Mama's Corner) fell back to PLACEHOLDER_BABY_NAME at week 1.
+  // That is what "the baby profile keeps resetting" was: it reset on every launch
+  // and only came back if she reopened baby setup (2026-08-12).
+  //
+  // It lives here rather than on Home because tabs are lazy — a Billy `manual`
+  // pill can focus the Manual without Home ever mounting.
+  const fetchHome = useHomeStore((s) => s.fetchAll);
+  const homeLoadedAt = useHomeStore((s) => s.loadedAt);
+  React.useEffect(() => { if (!homeLoadedAt) fetchHome(); }, [homeLoadedAt, fetchHome]);
   const { tabs: middleTabs } = useCustomMiddleTabs();
 
   // Visible set = LOCKED_LEFT + user's middle pair + LOCKED_RIGHT.
