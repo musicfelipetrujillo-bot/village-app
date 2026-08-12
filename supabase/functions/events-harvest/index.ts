@@ -72,7 +72,10 @@ Return ONLY a JSON array (no prose, no fences). Each element:
   "ends_at": string | null,              // ISO 8601 or null if the page gives no end
   "venue_name": string | null,
   "address": string | null,              // street address if shown, else null
-  "event_url": string | null             // the event's own detail/ticket link from [link: ...] markers, absolute URL
+  "event_url": string | null,            // the event's own detail/ticket link from [link: ...] markers, absolute URL
+  "cost": "free" | "paid" | "unknown",
+  "price_cents": number | null,          // only when cost is "paid" AND a figure is stated. 30 dollars -> 3000
+  "format": "in_person" | "virtual" | "unknown"
 }
 
 HARD RULES:
@@ -81,11 +84,22 @@ HARD RULES:
 - A recurring pattern stated on the page (e.g. "third Saturday of every month, 9am-12pm") COUNTS: emit the next 2 occurrences with computed dates.
 - If a time is missing use 10:00 local. If the year is missing, infer the next future occurrence.
 - Do NOT invent venues, addresses, or URLs — null when the page doesn't say.
+- "cost": say "free" ONLY when the page says so — free, no cost, complimentary,
+  donation based, pay what you can. Donation-based counts as free: nobody is
+  turned away. Say "paid" when any figure or ticket purchase is mentioned; with
+  a range, use the LOWEST stated figure ("$30 a class, 4 for $90" -> 3000).
+  Sliding scale or "determined by insurance" is "paid" with price_cents null.
+  Say "unknown" when the page simply does not mention cost. Do NOT guess free.
+- "format": "virtual" for Zoom/online/webinar/virtual signals, "in_person" when
+  a physical venue or street address is given, "unknown" when neither is clear.
 - Max 20 events. If the page has none, return [].`;
 
 interface HarvestedEvent {
   title: string; description: string; starts_at: string; ends_at: string | null;
   venue_name: string | null; address: string | null; event_url: string | null;
+  cost: 'free' | 'paid' | 'unknown';
+  price_cents: number | null;
+  format: 'in_person' | 'virtual' | 'unknown';
 }
 
 // ── Page fetch, with a JS-rendering fallback ────────────────────────────
