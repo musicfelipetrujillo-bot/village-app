@@ -6,7 +6,8 @@
 // gathering + upcoming rows, wired to the live events store — because local
 // community (meetups, circles, classes) is what the Village tab uniquely owns.
 
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import * as Location from 'expo-location';
 import {
   View, Text, StyleSheet, TouchableOpacity, Animated, Image,
   StyleProp, ViewStyle,
@@ -30,9 +31,9 @@ const T = {
   parchment: COLORS.v2_parchment,
   cocoa:     COLORS.v2_cocoa,
   walnut:    COLORS.v2_walnut,
-  rose:      '#E84B79',
-  roseInk:   '#B0234F',
-  honey:     '#F5C842',
+  rose:      '#E14A32',
+  roseInk:   '#B03A22',
+  honey:     '#DA9A2C',
   rule:      'rgba(61,31,14,0.13)',
 };
 
@@ -67,11 +68,15 @@ type Vertical = {
   isNew?: boolean;
 };
 
+// Soft Cherry bento: cheery, not harsh. Each card is a SOFT candy tint (not a
+// full-saturation block); the spark lives in the deep-toned title + arrow. `ink`
+// carries every text color on the card and is a deep, readable version of the
+// card's own hue so it pops on the pale ground without glare.
 const VERTICALS: Vertical[] = [
-  { title: 'Milk Hub',     sub: 'Your stash, plus peer milk.',    stat: 'track · share · find', bg: '#F7C5CB', ink: '#9B4B60', route: 'Milk',    isNew: true },
-  { title: 'Care',         sub: 'Doctors, doulas, lactation — and extra hands.', stat: '12 verified',  bg: '#F3B79C', ink: '#8A4A2E', route: 'Experts' },
-  { title: 'Baby Gear',    sub: 'Hand-me-downs from real moms.',  stat: '37 listed',            bg: '#F5C842', ink: '#8A6A1E', route: 'Gear'    },
-  { title: 'Villie Plans', sub: 'Classes, circles, real coffee.', stat: '5 this week',          bg: '#EFB2C8', ink: '#94436A', route: 'Village' },
+  { title: 'Milk Hub',     sub: 'Your stash, plus peer milk.',    stat: 'track · share · find', bg: '#F6C9D0', ink: '#C63A24', route: 'Milk',    isNew: true },
+  { title: 'Care',         sub: 'Doctors, doulas, lactation — and extra hands.', stat: '12 verified',  bg: '#F4CBA8', ink: '#B85A2E', route: 'Experts' },
+  { title: 'Baby Gear',    sub: 'Hand-me-downs from real moms.',  stat: '37 listed',            bg: '#EFD79A', ink: '#8A6A1E', route: 'Gear'    },
+  { title: 'Villie Plans', sub: 'Classes, circles, real coffee.', stat: '5 this week',          bg: '#F6C2B8', ink: '#A83420', route: 'Village' },
 ];
 
 // Short weekday + day-of-month for the calendar chip.
@@ -95,9 +100,27 @@ export default function VillageHomeScreenV3() {
   const upcoming = useEventsStore((s) => s.upcoming);
   const fetchUpcoming = useEventsStore((s) => s.fetchUpcoming);
 
-  const locationLine = lang === 'es'
-    ? 'Brooklyn, NY · 62 cerca de ti'
-    : 'Brooklyn, NY · 62 nearby';
+  // Real location, best-effort: reverse-geocode the device position when the
+  // permission is already granted (never prompts here). Falls back to a
+  // neutral line — no fabricated city or counts.
+  const [geoCity, setGeoCity] = useState<string | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const { status } = await Location.getForegroundPermissionsAsync();
+        if (status !== 'granted') return;
+        const pos = (await Location.getLastKnownPositionAsync()) ?? (await Location.getCurrentPositionAsync({}));
+        if (!pos) return;
+        const geos = await Location.reverseGeocodeAsync({ latitude: pos.coords.latitude, longitude: pos.coords.longitude });
+        const g = geos?.[0];
+        const city = g?.city ?? g?.subregion;
+        if (city && !cancelled) setGeoCity(g?.region ? `${city}, ${g.region}` : city);
+      } catch { /* best-effort */ }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+  const locationLine = geoCity ?? (lang === 'es' ? 'Cerca de ti' : 'Near you');
 
   const goVertical = (route: string) => navigation.getParent()?.navigate(route as never);
   const goAllPlans = () => navigation.navigate('EventsList' as never);
@@ -151,10 +174,8 @@ export default function VillageHomeScreenV3() {
           </TouchableOpacity>
         </View>
 
-        <View style={{ marginTop: -10 }}><Eyebrow>{lang === 'es' ? 'Refuerzos' : 'Reinforcements'}</Eyebrow></View>
         <Text style={styles.headline}>
-          {lang === 'es' ? 'Tu refuerzo está ' : 'Your backup is '}
-          <Text style={styles.headlineItalic}>{lang === 'es' ? 'aquí.' : 'here.'}</Text>
+          {lang === 'es' ? 'Tu refuerzo está aquí' : 'Your backup is here'}
         </Text>
         <Text style={styles.locMono}>{locationLine}</Text>
 
@@ -180,14 +201,7 @@ export default function VillageHomeScreenV3() {
                   <Text style={[styles.tileBadgeText, { color: v.ink }]}>new</Text>
                 </View>
               )}
-              <View>
-                <Text style={styles.tileTitle}>{v.title}.</Text>
-                <Text style={[styles.tileSub, { color: v.ink }]}>{v.sub}</Text>
-              </View>
-              <View style={[styles.tileFooter, { borderTopColor: hexAlpha(v.ink, 0.28) }]}>
-                <Text style={[styles.tileStat, { color: v.ink }]}>{v.stat}</Text>
-                <ArrowRight color={v.ink} />
-              </View>
+              <Text style={[styles.tileTitle, { color: v.ink }]}>{v.title}</Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -268,16 +282,9 @@ export default function VillageHomeScreenV3() {
   );
 }
 
-// Small hex→rgba helper for tile hairlines (ink at low alpha).
-function hexAlpha(hex: string, a: number): string {
-  const h = hex.replace('#', '');
-  const r = parseInt(h.slice(0, 2), 16), g = parseInt(h.slice(2, 4), 16), b = parseInt(h.slice(4, 6), 16);
-  return `rgba(${r},${g},${b},${a})`;
-}
-
 // ─── Styles ────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: T.paper, overflow: 'hidden' },
+  container: { flex: 1, backgroundColor: '#FBF4E6', overflow: 'hidden' },
   scroll: { paddingTop: 56, paddingHorizontal: 22, paddingBottom: 96 },
 
   header: { flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center' },
@@ -287,12 +294,8 @@ const styles = StyleSheet.create({
   },
 
   headline: {
-    fontFamily: FONTS.v3_display, fontSize: 44, lineHeight: 52,
-    color: T.cocoa, letterSpacing: -1.76, marginTop: 14,
-  },
-  headlineItalic: {
-    fontFamily: FONTS.v3_display_italic, color: '#E98A6A',
-    fontSize: 54, lineHeight: 52,
+    fontFamily: FONTS.v3_display, fontSize: 29, lineHeight: 34,
+    color: T.cocoa, letterSpacing: -0.6, marginTop: 12,
   },
   locMono: {
     marginTop: 12,
@@ -307,12 +310,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row', flexWrap: 'wrap', gap: 12,
   },
   tile: {
-    width: '48%', minHeight: 150,
+    width: '48%', minHeight: 92,
     padding: 16, paddingBottom: 14,
     borderRadius: 14, overflow: 'hidden',
-    justifyContent: 'space-between',
-    shadowColor: T.walnut, shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.18, shadowRadius: 26, elevation: 3,
+    justifyContent: 'flex-end',
+    shadowColor: T.walnut, shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.12, shadowRadius: 20, elevation: 2,
   },
   tileBadge: {
     position: 'absolute', top: 12, right: 12,
@@ -324,18 +327,8 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase', fontWeight: '600',
   },
   tileTitle: {
-    fontFamily: FONTS.v3_display, fontSize: 23, lineHeight: 24,
-    color: T.cocoa, letterSpacing: -0.67,
-  },
-  tileSub: { fontFamily: FONTS.v2_body, fontSize: 12, marginTop: 6, lineHeight: 16.5 },
-  tileFooter: {
-    marginTop: 12, paddingTop: 9,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-  },
-  tileStat: {
-    fontFamily: FONTS.v2_mono, fontSize: 9.5, letterSpacing: 1.2,
-    textTransform: 'uppercase', fontWeight: '600',
+    fontFamily: FONTS.v3_display, fontSize: 21, lineHeight: 24,
+    color: T.cocoa, letterSpacing: -0.5,
   },
 
   sectionHead: {
@@ -355,7 +348,7 @@ const styles = StyleSheet.create({
     backgroundColor: T.paper,
   },
   eventCover: { width: '100%', height: 96 },
-  eventCoverFallback: { backgroundColor: '#F5C842', alignItems: 'center', justifyContent: 'center' },
+  eventCoverFallback: { backgroundColor: '#DA9A2C', alignItems: 'center', justifyContent: 'center' },
   eventBody: { padding: 13 },
   eventTitle: { fontFamily: FONTS.v3_display, fontSize: 20, color: T.cocoa, letterSpacing: -0.4 },
   eventFooterRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 8 },

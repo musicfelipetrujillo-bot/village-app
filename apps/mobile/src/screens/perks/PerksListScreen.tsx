@@ -1,14 +1,18 @@
 // V4 Phase G3 — Perks list (brand deals feed, category + age filters)
-import React, { useCallback, useEffect, useState } from 'react';
+// Reworked 2026-08-09 to the "mamas corner" calm pattern (Felipe: "calm and
+// organized, not chaotic/wordy"): calm header (BackButton + dot + lowercase
+// title + bee), ONE short intro line, a quiet chip filter row, and ONE quiet
+// bordered list of rows (logo/emoji square + brand + ≤5-word blurb + chevron).
+// The editorial masthead + card-heavy feed were cut. Nav + data unchanged.
+import React, { useCallback, useEffect } from 'react';
 import {
-  View, Text, StyleSheet, TouchableOpacity, RefreshControl,
+  View, Text, StyleSheet, TouchableOpacity, ScrollView, RefreshControl, Image,
 } from 'react-native';
-import { FlashList } from '@shopify/flash-list';
 import { useNavigation } from '@react-navigation/native';
-import { COLORS, FONTS } from '@utils/constants';
-import { cardLift, cardLiftBorder } from '@utils/cardLift';
-import { V9PageBackdrop } from '@components/shared/V9PageBackdrop';
 import { LinearGradient } from 'expo-linear-gradient';
+import { COLORS, FONTS } from '@utils/constants';
+import { V9PageBackdrop } from '@components/shared/V9PageBackdrop';
+import { BackButton } from '@components/shared/BackButton';
 import { usePerksStore } from '@store/perks';
 import { useHomeStore } from '@store/home';
 import {
@@ -16,11 +20,15 @@ import {
   type PerkCard,
   type DealCategory,
 } from '@api/perks';
-import { PerkCardSkeleton } from '@components/shared/SkeletonLoader';
 import type { AgeTag } from '@api/events';
 import { useT } from '@/i18n';
 
 type TFn = (key: string, params?: Record<string, string | number>) => string;
+
+const VILLIE_BEE = require('../../../assets/brand/villie-bee.png');
+
+const ROSE = '#C24A63', ROSE_DEEP = '#9E2F4C';
+const INK = '#43260F', INKSOFT = '#7A5A3A';
 
 const CATEGORY_FILTER_KEYS: { key: DealCategory | 'all'; labelKey: string }[] = [
   { key: 'all',      labelKey: 'perksList.filterAll' },
@@ -31,13 +39,18 @@ const CATEGORY_FILTER_KEYS: { key: DealCategory | 'all'; labelKey: string }[] = 
   { key: 'apparel',  labelKey: 'perksList.filterApparel' },
 ];
 
+const CATEGORY_EMOJI: Record<DealCategory, string> = {
+  feeding: '🍼', sleep: '😴', gear: '🧸', apparel: '👕',
+  health: '🩹', learning: '📚', services: '✨', other: '🎁',
+};
+
 export default function PerksListScreen() {
   const t = useT();
   const navigation = useNavigation<any>();
   const { perks, loading, fetchPerks } = usePerksStore();
   const { babyProfile } = useHomeStore();
-  const [category, setCategory] = useState<DealCategory | 'all'>('all');
-  const [ageOnly, setAgeOnly] = useState(true);
+  const [category, setCategory] = React.useState<DealCategory | 'all'>('all');
+  const [ageOnly, setAgeOnly] = React.useState(true);
 
   const babyAgeTag = useCallback((): AgeTag | null => {
     if (!babyProfile) return null;
@@ -64,251 +77,191 @@ export default function PerksListScreen() {
       <V9PageBackdrop />
       <LinearGradient
         pointerEvents="none"
-        colors={['rgba(233,138,106,0.40)', 'rgba(233,138,106,0.12)', 'rgba(252,247,239,0)']}
-        locations={[0, 0.45, 1]}
+        colors={['rgba(194,74,99,0.30)', 'rgba(194,74,99,0.10)', 'rgba(252,247,239,0)']}
+        locations={[0, 0.5, 1]}
         style={styles.pageWash}
       />
+
+      {/* calm header — chevron back, dot, lowercase title, mine link, bee */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} accessibilityLabel={t('perksList.backA11y')}>
-          <Text style={styles.back}>{t('perksList.back')}</Text>
+        <BackButton color={ROSE} accessibilityLabel={t('perksList.backA11y')} />
+        <View style={styles.dot} />
+        <Text style={styles.hTitle}>{t('perksList.title')}</Text>
+        <View style={{ flex: 1 }} />
+        <TouchableOpacity onPress={() => navigation.navigate('MyClaims')} accessibilityLabel={t('perksList.mineA11y')} hitSlop={8}>
+          <Text style={styles.mineLink}>{t('perksList.mine').toLowerCase()}</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>{t('perksList.title')}</Text>
-        <TouchableOpacity onPress={() => navigation.navigate('MyClaims')} accessibilityLabel={t('perksList.mineA11y')}>
-          <Text style={styles.headerLink}>{t('perksList.mine')}</Text>
-        </TouchableOpacity>
+        <View style={styles.beeWrap}><Image source={VILLIE_BEE} style={styles.bee} /></View>
       </View>
 
-      <View style={styles.masthead}>
-        <View style={styles.mastheadEyebrowRow}>
-          <View style={styles.mastheadAccentBar} />
-          <Text style={styles.mastheadEyebrow}>{t('perksList.mastheadEyebrow')}</Text>
+      <ScrollView
+        contentContainerStyle={styles.scroll}
+        showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={loading} onRefresh={load} tintColor={ROSE} />}
+      >
+        {/* one calm line */}
+        <Text style={styles.intro}>{t('perksList.mastheadTitle')}</Text>
+
+        {/* quiet filter chips */}
+        <View style={styles.filterRow}>
+          {CATEGORY_FILTER_KEYS.map((f) => {
+            const on = category === f.key;
+            return (
+              <TouchableOpacity
+                key={f.key}
+                style={[styles.chip, on && styles.chipActive]}
+                onPress={() => setCategory(f.key)}
+                accessibilityRole="button"
+                accessibilityState={{ selected: on }}
+              >
+                <Text style={[styles.chipText, on && styles.chipTextActive]}>{t(f.labelKey)}</Text>
+              </TouchableOpacity>
+            );
+          })}
         </View>
-        <Text style={styles.mastheadTitle}>{t('perksList.mastheadTitle')}</Text>
-        <Text style={styles.mastheadSub}>{t('perksList.mastheadSub')}</Text>
-      </View>
 
-      <View style={styles.filterRow}>
-        {CATEGORY_FILTER_KEYS.map((f) => (
+        {/* quiet age-match toggle */}
+        {babyProfile && (
           <TouchableOpacity
-            key={f.key}
-            style={[styles.chip, category === f.key && styles.chipActive]}
-            onPress={() => setCategory(f.key)}
-            accessibilityRole="button"
-            accessibilityState={{ selected: category === f.key }}
+            style={styles.ageRow}
+            onPress={() => setAgeOnly((v) => !v)}
+            accessibilityRole="switch"
+            accessibilityState={{ checked: ageOnly }}
           >
-            <Text style={[styles.chipText, category === f.key && styles.chipTextActive]}>
-              {t(f.labelKey)}
+            <View style={[styles.ageCheck, ageOnly && styles.ageCheckActive]}>
+              {ageOnly && <Text style={styles.ageCheckMark}>✓</Text>}
+            </View>
+            <Text style={styles.ageText} numberOfLines={1}>
+              {t('perksList.ageMatchToggleNamed', { name: babyProfile.baby_name ?? t('perksList.ageMatchToggleYourBaby') })}
             </Text>
           </TouchableOpacity>
-        ))}
-      </View>
+        )}
 
-      {babyProfile && (
-        <TouchableOpacity
-          style={styles.ageRow}
-          onPress={() => setAgeOnly((v) => !v)}
-          accessibilityRole="switch"
-          accessibilityState={{ checked: ageOnly }}
-        >
-          <View style={[styles.ageCheck, ageOnly && styles.ageCheckActive]}>
-            {ageOnly && <Text style={styles.ageCheckMark}>✓</Text>}
+        {loading && perks.length === 0 ? (
+          <View style={styles.group}>
+            {[0, 1, 2].map((i) => (
+              <View key={i} style={[styles.row, i < 2 && styles.divider]}>
+                <View style={[styles.iconSquare, styles.skelSquare]} />
+                <View style={{ flex: 1 }}>
+                  <View style={styles.skelLineWide} />
+                  <View style={styles.skelLineNarrow} />
+                </View>
+              </View>
+            ))}
           </View>
-          <Text style={styles.ageText}>
-            {t('perksList.ageMatchToggleNamed', { name: babyProfile.baby_name ?? t('perksList.ageMatchToggleYourBaby') })}
-          </Text>
-        </TouchableOpacity>
-      )}
-
-      {loading && perks.length === 0 ? (
-        <View style={{ paddingHorizontal: 16, paddingTop: 16 }}>
-          <PerkCardSkeleton />
-          <PerkCardSkeleton />
-          <PerkCardSkeleton />
-        </View>
-      ) : (
-        <FlashList
-          data={perks}
-          keyExtractor={(p) => p.id}
-          renderItem={({ item }) => (
-            <PerkCardView
-              perk={item}
-              onPress={() => navigation.navigate('PerkDetail', { id: item.id })}
-              t={t}
-            />
-          )}
-          ListEmptyComponent={
-            <View style={styles.empty}>
-              <Text style={styles.emptyTitle}>{t('perksList.emptyTitle')}</Text>
-              <Text style={styles.emptyBody}>
-                {ageOnly
-                  ? t('perksList.emptyBodyAgeOn')
-                  : t('perksList.emptyBodyAgeOff')}
-              </Text>
-            </View>
-          }
-          contentContainerStyle={{ padding: 16, paddingBottom: 120 }}
-          refreshControl={<RefreshControl refreshing={loading} onRefresh={load} tintColor={COLORS.coco} />}
-        />
-      )}
+        ) : perks.length === 0 ? (
+          <View style={styles.empty}>
+            <Text style={styles.emptyTitle}>{t('perksList.emptyTitle')}</Text>
+            <Text style={styles.emptyBody}>
+              {ageOnly ? t('perksList.emptyBodyAgeOn') : t('perksList.emptyBodyAgeOff')}
+            </Text>
+          </View>
+        ) : (
+          <View style={styles.group}>
+            {perks.map((p, i) => (
+              <PerkRow
+                key={p.id}
+                perk={p}
+                last={i === perks.length - 1}
+                onPress={() => navigation.navigate('PerkDetail', { id: p.id })}
+                t={t}
+              />
+            ))}
+          </View>
+        )}
+      </ScrollView>
     </View>
   );
 }
 
-function PerkCardView({ perk, onPress, t }: { perk: PerkCard; onPress: () => void; t: TFn }) {
-  // Concept B feed-row pattern — eyebrow + italic Playfair brand + title +
-  // bullet-dot meta + footer chips. Mirrors SpecialistCard / DonorCard.
+function PerkRow({ perk, onPress, last, t }: { perk: PerkCard; onPress: () => void; last: boolean; t: TFn }) {
+  // ≤5-word blurb: prefer the offer label (e.g. "20% off"), else the category.
+  const blurb = perk.discount_label ?? categoryLabel(perk.category);
   return (
-    <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.9} accessibilityRole="button">
-      {/* Eyebrow row — category + partner badge */}
-      <View style={styles.cardHeaderRow}>
-        <Text style={styles.cardCategory}>{categoryLabel(perk.category).toUpperCase()}</Text>
-        {perk.is_partner && <Text style={styles.partnerBadge}>{t('perksList.partnerBadge')}</Text>}
+    <TouchableOpacity
+      onPress={onPress}
+      activeOpacity={0.7}
+      style={[styles.row, !last && styles.divider]}
+      accessibilityRole="button"
+      accessibilityLabel={perk.brand_name}
+    >
+      {perk.brand_logo_url ? (
+        <Image source={{ uri: perk.brand_logo_url }} style={styles.iconSquare} resizeMode="cover" />
+      ) : (
+        <View style={styles.iconSquare}><Text style={{ fontSize: 17 }}>{CATEGORY_EMOJI[perk.category]}</Text></View>
+      )}
+      <View style={{ flex: 1, minWidth: 0 }}>
+        <Text style={styles.rowTitle} numberOfLines={1}>{perk.brand_name}</Text>
+        <Text style={styles.rowSub} numberOfLines={1}>{blurb}</Text>
       </View>
-      {/* Italic Playfair brand — the editorial hero line. Brand carries
-          the italic-terra accent the way a surname does on the specialist
-          card; the perk title sits in body type underneath. */}
-      <Text style={styles.brandHero}>{perk.brand_name}</Text>
-      <Text style={styles.cardTitle} numberOfLines={2}>{perk.title}</Text>
-      {perk.short_description ? (
-        <Text style={styles.cardDesc} numberOfLines={2}>{perk.short_description}</Text>
-      ) : null}
-      <View style={styles.cardFooter}>
-        {perk.discount_label && (
-          <View style={styles.offerChip}>
-            <Text style={styles.offerChipText}>{perk.discount_label.toUpperCase()}</Text>
-          </View>
-        )}
-        {perk.already_claimed && (
-          <View style={styles.claimedChip}>
-            <Text style={styles.claimedChipText}>{t('perksList.claimedPill').toUpperCase()}</Text>
-          </View>
-        )}
-        <View style={{ flex: 1 }} />
-        <Text style={styles.arrow}>→</Text>
-      </View>
+      {perk.already_claimed
+        ? <View style={styles.claimedPill}><Text style={styles.claimedPillText}>{t('perksList.claimedPill')}</Text></View>
+        : <Text style={styles.chevron}>›</Text>}
     </TouchableOpacity>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: 'transparent' },
-  pageWash: { position: 'absolute', top: 0, left: 0, right: 0, height: 620 },
+  pageWash: { position: 'absolute', top: 0, left: 0, right: 0, height: 420 },
+
+  // calm header
   header: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingTop: 56, paddingBottom: 12, paddingHorizontal: 16,
-    backgroundColor: COLORS.paper,
-    borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.06)',
+    flexDirection: 'row', alignItems: 'center', gap: 9,
+    paddingTop: 58, paddingBottom: 6, paddingHorizontal: 18,
   },
-  back: { fontSize: 15, color: '#E84B79', fontFamily: FONTS.bodySemiBold },
-  headerTitle: { fontSize: 16, fontFamily: FONTS.bodySemiBold, color: COLORS.bark },
-  headerLink: { fontSize: 14, color: '#E84B79', fontFamily: FONTS.bodySemiBold },
+  dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: ROSE },
+  hTitle: { fontFamily: FONTS.v2_bold, fontSize: 17, color: INK, textTransform: 'lowercase' },
+  mineLink: { fontFamily: FONTS.bodySemiBold, fontSize: 13.5, color: ROSE, textTransform: 'lowercase' },
+  beeWrap: { opacity: 0.65 },
+  bee: { width: 34, height: 34, transform: [{ rotate: '-12deg' }] },
 
-  // Editorial masthead — see EventsListScreen for rationale. Same accent-bar
-  // + uppercase eyebrow + Playfair italic signature so the page matches the
-  // Home / Me magazine spread.
-  masthead: {
-    backgroundColor: COLORS.paper,
-    paddingHorizontal: 16, paddingTop: 18, paddingBottom: 14,
-  },
-  mastheadEyebrowRow: {
-    flexDirection: 'row', alignItems: 'center', marginBottom: 6,
-  },
-  mastheadAccentBar: {
-    width: 12, height: 2, backgroundColor: COLORS.coco,
-    marginRight: 8, borderRadius: 1,
-  },
-  mastheadEyebrow: {
-    fontSize: 11, lineHeight: 16, letterSpacing: 1.6,
-    fontFamily: FONTS.bodySemiBold,
-    color: COLORS.barkSoft, textTransform: 'uppercase',
-  },
-  mastheadTitle: {
-    fontSize: 28, lineHeight: 34,
-    fontFamily: FONTS.headerItalic, fontStyle: 'italic',
-    color: COLORS.bark, marginBottom: 4,
-  },
-  mastheadSub: {
-    fontSize: 13, lineHeight: 19, color: COLORS.barkSoft,
-    fontFamily: FONTS.body, maxWidth: 340,
-  },
+  scroll: { paddingBottom: 120 },
 
-  filterRow: {
-    flexDirection: 'row', flexWrap: 'wrap', gap: 8,
-    paddingHorizontal: 16, paddingVertical: 12,
-    backgroundColor: COLORS.paper,
-  },
+  // one calm line
+  intro: { paddingHorizontal: 22, paddingTop: 12, fontFamily: FONTS.v3_display, fontSize: 22, lineHeight: 28, color: INK, letterSpacing: -0.5 },
+
+  // quiet filter chips
+  filterRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingHorizontal: 22, paddingTop: 16 },
   chip: {
-    paddingHorizontal: 14, paddingVertical: 8, borderRadius: 16,
-    borderWidth: 1.5, borderColor: 'rgba(150,80,50,0.18)', backgroundColor: COLORS.paper,
+    paddingHorizontal: 13, paddingVertical: 7, borderRadius: 999,
+    borderWidth: 1, borderColor: 'rgba(194,74,99,0.22)', backgroundColor: COLORS.v2_paper,
   },
-  chipActive: { backgroundColor: COLORS.coco, borderColor: COLORS.coco },
-  chipText: { fontSize: 13, fontFamily: FONTS.bodySemiBold, color: COLORS.barkSoft },
+  chipActive: { backgroundColor: ROSE, borderColor: ROSE },
+  chipText: { fontSize: 12.5, fontFamily: FONTS.bodySemiBold, color: INKSOFT },
   chipTextActive: { color: '#FFFCF6' },
 
-  ageRow: {
-    flexDirection: 'row', alignItems: 'center', gap: 10,
-    paddingHorizontal: 16, paddingBottom: 12,
-    backgroundColor: COLORS.paper,
-    borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.06)',
-  },
+  // quiet age toggle
+  ageRow: { flexDirection: 'row', alignItems: 'center', gap: 9, paddingHorizontal: 22, paddingTop: 14 },
   ageCheck: {
-    width: 20, height: 20, borderRadius: 5,
-    borderWidth: 1.5, borderColor: COLORS.coco,
-    alignItems: 'center', justifyContent: 'center',
+    width: 19, height: 19, borderRadius: 5,
+    borderWidth: 1.5, borderColor: ROSE, alignItems: 'center', justifyContent: 'center',
   },
-  ageCheckActive: { backgroundColor: COLORS.coco },
-  ageCheckMark: { color: '#FFFCF6', fontSize: 13, fontFamily: FONTS.bodySemiBold },
-  ageText: { fontSize: 12, color: COLORS.barkSoft, flex: 1 },
+  ageCheckActive: { backgroundColor: ROSE },
+  ageCheckMark: { color: '#FFFCF6', fontSize: 12, fontFamily: FONTS.bodySemiBold },
+  ageText: { flex: 1, fontSize: 12, color: INKSOFT, fontFamily: FONTS.v2_body },
 
-  // Perk card — paper-lifted v3 surface (was flat per blend audit).
-  card: {
-    backgroundColor: COLORS.v2_card,
-    borderRadius: 14,
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-    marginBottom: 12,
-    ...cardLiftBorder,
-    ...cardLift,
+  // one quiet bordered group
+  group: {
+    marginHorizontal: 22, marginTop: 18, backgroundColor: COLORS.v2_paper, borderRadius: 18, overflow: 'hidden',
+    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(122,74,40,0.14)',
   },
-  cardHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
-  cardCategory: { fontSize: 10, fontFamily: FONTS.bodySemiBold, letterSpacing: 1.6, color: '#C76B41' }, // Perks signature: coral
-  partnerBadge: {
-    fontSize: 9, fontFamily: FONTS.bodySemiBold, letterSpacing: 0.6, color: COLORS.sand,
-    backgroundColor: 'rgba(196,163,90,0.15)', borderRadius: 999, paddingHorizontal: 7, paddingVertical: 2,
-  },
-  // Italic Playfair brand hero — the editorial accent that carries each card.
-  brandHero: {
-    fontSize: 24,
-    lineHeight: 30,
-    fontFamily: FONTS.headerItalic,
-    fontStyle: 'italic',
-    color: '#C76B41', // Perks signature: coral brand line
-    marginTop: 2,
-  },
-  cardTitle: { fontSize: 15, fontFamily: FONTS.bodySemiBold, color: COLORS.bark, marginTop: 4 },
-  cardDesc: { fontSize: 12, color: COLORS.barkSoft, marginTop: 6, lineHeight: 17 },
-  cardFooter: {
-    flexDirection: 'row', alignItems: 'center', gap: 8,
-    marginTop: 12, paddingTop: 10,
-    borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: COLORS.sandSoft,
-  },
-  offerChip: {
-    borderWidth: 1, borderColor: COLORS.coco, borderRadius: 999,
-    paddingHorizontal: 10, paddingVertical: 3,
-  },
-  offerChipText: {
-    fontSize: 10, fontFamily: FONTS.bodySemiBold, letterSpacing: 0.6, color: '#7A4A24',
-  },
-  claimedChip: {
-    borderWidth: 1, borderColor: COLORS.sage, borderRadius: 999,
-    paddingHorizontal: 10, paddingVertical: 3,
-  },
-  claimedChipText: {
-    fontSize: 10, fontFamily: FONTS.bodySemiBold, letterSpacing: 0.6, color: COLORS.sage,
-  },
-  arrow: { fontSize: 18, fontFamily: FONTS.bodySemiBold, color: COLORS.coco },
+  row: { flexDirection: 'row', alignItems: 'center', gap: 13, paddingVertical: 13, paddingHorizontal: 15 },
+  divider: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(122,74,40,0.12)' },
+  iconSquare: { width: 40, height: 40, borderRadius: 11, backgroundColor: '#F6EAF0', alignItems: 'center', justifyContent: 'center' },
+  rowTitle: { fontFamily: FONTS.v3_display, fontSize: 16, color: INK, letterSpacing: -0.3 },
+  rowSub: { fontFamily: FONTS.v2_body, fontSize: 11.5, color: INKSOFT, marginTop: 1 },
+  chevron: { fontFamily: FONTS.v2_link, fontSize: 20, color: '#C9B7A2' },
+  claimedPill: { backgroundColor: '#F6EAF0', borderRadius: 999, paddingHorizontal: 9, paddingVertical: 3, borderWidth: 1, borderColor: 'rgba(194,74,99,0.28)' },
+  claimedPillText: { fontFamily: FONTS.v2_mono, fontSize: 9.5, letterSpacing: 0.4, color: ROSE_DEEP, fontWeight: '600' },
 
-  empty: { alignItems: 'center', paddingVertical: 60 },
-  emptyTitle: { fontSize: 15, fontFamily: FONTS.bodySemiBold, color: COLORS.bark, marginBottom: 4 },
-  emptyBody: { fontSize: 13, color: COLORS.textLight, textAlign: 'center' },
+  // skeleton
+  skelSquare: { backgroundColor: '#EFE2E8' },
+  skelLineWide: { height: 12, width: '55%', borderRadius: 6, backgroundColor: '#EFE2E8' },
+  skelLineNarrow: { height: 9, width: '32%', borderRadius: 5, backgroundColor: '#F1E7EC', marginTop: 7 },
+
+  // empty
+  empty: { alignItems: 'center', paddingVertical: 56, paddingHorizontal: 32 },
+  emptyTitle: { fontSize: 15, fontFamily: FONTS.bodySemiBold, color: INK, marginBottom: 5 },
+  emptyBody: { fontSize: 13, color: INKSOFT, textAlign: 'center', fontFamily: FONTS.v2_body },
 });

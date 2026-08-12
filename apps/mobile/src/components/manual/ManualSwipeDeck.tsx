@@ -75,11 +75,11 @@ const PALETTES: Record<string, Scheme[]> = {
   feed: [ // amber / honey
     { grad: ['#F7E7BE', '#F2DCA4'], fg: '#5A4012', sub: '#A87A18', track: 'rgba(90,64,18,0.18)' },
     { grad: ['#EFC85C', '#E8B83C'], fg: '#43300A', sub: '#7A560F', track: 'rgba(67,48,10,0.22)' },
-    { grad: ['#E0A52E', '#CE9220'], fg: '#43300A', sub: '#FBE9BE', track: 'rgba(67,48,10,0.22)' },
+    { grad: ['#E0A52E', '#CE9220'], fg: '#43300A', sub: '#FBE0E8', track: 'rgba(67,48,10,0.22)' },
     { grad: ['#C0801A', '#A66C12'], fg: '#FFFBF0', sub: '#F6E2B0', track: 'rgba(255,255,255,0.4)' },
   ],
   grow: [ // rose / pink
-    { grad: ['#F9D7DF', '#F3C2CE'], fg: '#7A2E47', sub: '#B0234F', track: 'rgba(122,46,71,0.16)' },
+    { grad: ['#F9D7DF', '#F3C2CE'], fg: '#7A2E47', sub: '#9E2F4C', track: 'rgba(122,46,71,0.16)' },
     { grad: ['#EC9DB1', '#E588A0'], fg: '#FFFFFF', sub: '#FCE2E8', track: 'rgba(255,255,255,0.4)' },
     { grad: ['#DE6E8C', '#D45878'], fg: '#FFFFFF', sub: '#FCE2E8', track: 'rgba(255,255,255,0.4)' },
     { grad: ['#C24E72', '#A8405E'], fg: '#FFFFFF', sub: '#F7D2DD', track: 'rgba(255,255,255,0.4)' },

@@ -11,6 +11,7 @@ async function run(supabase: any, loc: Loc) {
   return {
     count: rows.length,
     results: rows.slice(0, 5).map((d) => ({
+      id: d.id,
       name: d.display_name ?? d.donor_name ?? d.name,
       badge: d.badge_level,
       distance_mi: num(d.distance_miles ?? d.distance_mi ?? d.distance),

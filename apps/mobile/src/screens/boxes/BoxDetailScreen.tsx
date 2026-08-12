@@ -95,48 +95,35 @@ export default function BoxDetailScreen() {
 
   return (
     <View style={styles.container}>
+      {/* Compact header — no big editorial gradient hero */}
+      <View style={styles.headerBar}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn} accessibilityRole="button" accessibilityLabel="Back">
+          <Text style={styles.backChevron}>‹</Text>
+        </TouchableOpacity>
+        <Text style={styles.headerTitle} numberOfLines={1}>The {box.pop} Box</Text>
+        <View style={{ width: 40 }} />
+      </View>
+
       <ScrollView
         style={{ flex: 1 }}
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
       >
-        {/* Hero */}
-        <LinearGradient
-          colors={box.hero as readonly [string, string, ...string[]]}
-          start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-          style={styles.hero}
-        >
-          <LinearGradient
-            colors={[box.glow, 'rgba(255,255,255,0)']}
-            start={{ x: 0.15, y: 0.1 }} end={{ x: 0.9, y: 1 }}
-            style={StyleSheet.absoluteFillObject}
-            pointerEvents="none"
-          />
-          <TouchableOpacity
-            onPress={() => navigation.goBack()}
-            accessibilityRole="button"
-            accessibilityLabel="Back"
-            style={styles.heroBack}
-          >
-            <Svg width={20} height={20} viewBox="0 0 24 24">
-              <Path d="M15 18l-6-6 6-6" stroke={T.cocoa} strokeWidth={2} fill="none" strokeLinecap="round" strokeLinejoin="round" />
-            </Svg>
-          </TouchableOpacity>
-
-          <View style={styles.heroBadge}>
-            <Text style={styles.heroBadgeText}>{box.badge}</Text>
-          </View>
-          <Text style={[styles.heroPop, { color: box.popColor }]}>{box.pop}</Text>
-        </LinearGradient>
-
         <View style={styles.body}>
-          <Text style={styles.stage}>{box.stage}</Text>
-          <Text style={styles.title}>
-            The <Text style={[styles.titleEm, { color: T.caramel }]}>{box.pop}</Text> Box
-          </Text>
-          <Text style={styles.blurb}>{box.blurb}</Text>
+          {/* Slim practical meta — stage · price · trust (not an editorial masthead) */}
+          <View style={styles.metaRow}>
+            <View style={{ flex: 1, minWidth: 0 }}>
+              <Text style={styles.stage}>{box.stage}</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 8, marginTop: 3 }}>
+                <Text style={styles.priceNow}>{formatPrice(pricing.now)}</Text>
+                <Text style={styles.priceWas}>{formatPrice(pricing.was)}</Text>
+              </View>
+            </View>
+            <View style={styles.priceSaveChip}>
+              <Text style={styles.priceSaveText}>save {formatPrice(pricing.save)}</Text>
+            </View>
+          </View>
 
-          {/* Trust chips */}
           <View style={styles.trustRow}>
             {box.trust.map(([icon, label]) => (
               <View key={label} style={styles.trustChip}>
@@ -146,23 +133,6 @@ export default function BoxDetailScreen() {
             ))}
           </View>
 
-          {/* Live price summary */}
-          <View style={styles.priceCard}>
-            <View style={{ flex: 1 }}>
-              <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 8 }}>
-                <Text style={styles.priceNow}>{formatPrice(pricing.now)}</Text>
-                <Text style={styles.priceWas}>{formatPrice(pricing.was)}</Text>
-              </View>
-              <Text style={styles.priceMeta}>
-                {pricing.includedCount} items
-                {pricing.addTotal > 0 ? ` · +${formatPrice(pricing.addTotal)} add-ons` : ''}
-              </Text>
-            </View>
-            <View style={styles.priceSaveChip}>
-              <Text style={styles.priceSaveText}>save {formatPrice(pricing.save)}</Text>
-            </View>
-          </View>
-
           {pricing.removedCount > 0 && (
             <Text style={styles.skipNote}>
               You skipped {pricing.removedCount} {pricing.removedCount === 1 ? 'item' : 'items'} —
@@ -170,12 +140,9 @@ export default function BoxDetailScreen() {
             </Text>
           )}
 
-          {/* Make it yours / contents header */}
+          {/* What's inside — leads the screen */}
           <View style={styles.contentsHead}>
-            <View>
-              <Text style={styles.eyebrow}>what&apos;s inside</Text>
-              <Text style={styles.contentsTitle}>Make it yours</Text>
-            </View>
+            <Text style={styles.sectionTitle}>What&apos;s inside</Text>
             <View style={styles.layoutToggle}>
               {(['grid', 'list'] as ContentsLayout[]).map((opt) => {
                 const active = contentsLayout === opt;
@@ -222,8 +189,7 @@ export default function BoxDetailScreen() {
 
           {/* Add-on shelf */}
           <View style={styles.addonHead}>
-            <Text style={styles.eyebrow}>make it more</Text>
-            <Text style={styles.contentsTitle}>Add-ons</Text>
+            <Text style={styles.sectionTitle}>Add-ons</Text>
           </View>
           <View style={{ gap: 10 }}>
             {box.addons.map((addon, i) => (
@@ -366,23 +332,20 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: T.cream },
   scroll: { paddingBottom: 130 },
 
-  // ── Hero ──────────────────────────────────────────────────────────────
-  hero: { height: 220, justifyContent: 'flex-end', padding: 18, paddingTop: 56 },
-  heroBack: {
-    position: 'absolute', top: 52, left: 16,
-    width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center',
-    backgroundColor: 'rgba(255,255,255,0.82)',
+  // ── Compact header ────────────────────────────────────────────────────
+  headerBar: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingTop: 56, paddingBottom: 10, paddingHorizontal: 12,
+    backgroundColor: T.cream,
+    borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: T.rule,
   },
-  heroBadge: {
-    alignSelf: 'flex-start',
-    backgroundColor: 'rgba(255,255,255,0.85)', borderRadius: 999,
-    paddingHorizontal: 11, paddingVertical: 5, marginBottom: 8,
-  },
-  heroBadgeText: {
-    fontFamily: FONTS.v2_mono, fontSize: 10, letterSpacing: 1.3,
-    textTransform: 'uppercase', fontWeight: '600', color: T.cocoa,
-  },
-  heroPop: { fontFamily: FONTS.v3_display_italic, fontSize: 56, lineHeight: 58 },
+  backBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
+  backChevron: { fontSize: 30, color: '#C24A63', marginTop: -4 },
+  headerTitle: { flex: 1, textAlign: 'center', fontFamily: FONTS.v3_display, fontSize: 18, color: T.cocoa, letterSpacing: -0.4 },
+
+  // Slim practical meta + section titles
+  metaRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  sectionTitle: { fontFamily: FONTS.v3_display, fontSize: 22, color: T.cocoa, letterSpacing: -0.6 },
 
   body: { paddingHorizontal: 22, paddingTop: 20 },
   stage: {

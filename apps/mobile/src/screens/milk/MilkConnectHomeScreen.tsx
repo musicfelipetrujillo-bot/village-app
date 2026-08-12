@@ -27,8 +27,8 @@ type Props = NativeStackScreenProps<MilkStackParamList, 'MilkHome'>;
 
 const C = {
   cream: '#FCF7EF', paper: '#FDF7EC',
-  rose: '#E84B79', roseInk: '#B0234F', roseTint: '#FDECEF', blush: '#F7C5CB',
-  honey: '#F5C842', honeyCard: '#FBE9BE', honeyInk: '#B98A1E',
+  rose: '#C24A63', roseInk: '#9E2F4C', roseTint: '#FDECEF', blush: '#F7C5CB',
+  honey: '#D9789A', honeyCard: '#FBE0E8', honeyInk: '#A84A66',
   cocoa: '#43260F', ink: '#3D2116', walnut: '#8A6A55', sage: '#7B8A46', muted: '#A6957F',
   track: '#F0E6D6', hair: 'rgba(61,31,14,0.08)',
 };
@@ -146,7 +146,17 @@ export default function MilkConnectHomeScreen({ navigation }: Props) {
     <View style={styles.container}>
       <SafeAreaView style={{ flex: 1 }} edges={['top']}>
         <View style={styles.header}>
-          <View style={styles.brandRow}><View style={styles.brandDot} /><Text style={styles.brand}>milk hub</Text></View>
+          <View style={styles.brandRow}>
+            <TouchableOpacity
+              onPress={() => (navigation.canGoBack() ? navigation.goBack() : (navigation.getParent() as any)?.navigate('Village'))}
+              accessibilityRole="button"
+              accessibilityLabel="Back"
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <Text style={styles.backArrow}>‹</Text>
+            </TouchableOpacity>
+            <View style={styles.brandDot} /><Text style={styles.brand}>milk hub</Text>
+          </View>
           <View style={styles.headerIcons}>
             <TouchableOpacity style={styles.iconBtn} onPress={() => navigation.navigate('SavedDonors')} accessibilityRole="button" accessibilityLabel={t('milk.saved')}><Glyph d={ICON.heart} color={C.roseInk} size={17} /></TouchableOpacity>
             <TouchableOpacity style={styles.iconBtn} onPress={() => navigation.navigate('MilkMessageThreads')} accessibilityRole="button" accessibilityLabel={t('milk.messagesA11y')}><Glyph d={ICON.chat} color={C.walnut} size={17} /></TouchableOpacity>
@@ -160,7 +170,7 @@ export default function MilkConnectHomeScreen({ navigation }: Props) {
 
         <ScrollView contentContainerStyle={{ paddingBottom: 110 }} showsVerticalScrollIndicator={false}>
           {/* SHARE — the loud supply hero */}
-          <LinearGradient colors={['#E84B79', '#F6C94F']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.shareHero}>
+          <LinearGradient colors={['#C24A63', '#E894AC']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.shareHero}>
             <View style={styles.shareHeroTop}>
               <View style={styles.shareHeroIcon}><Glyph d={ICON.drop} color={C.cocoa} size={22} /></View>
               <View style={{ flex: 1 }}>
@@ -249,6 +259,8 @@ const styles = StyleSheet.create({
 
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 18, paddingTop: 6, paddingBottom: 14 },
   brandRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  // Mirrors MilkVaultDashboard's back chevron so both toggle halves can exit.
+  backArrow: { fontSize: 30, color: C.walnut, marginTop: -4, fontWeight: '400', marginRight: 2 },
   brandDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: C.honey },
   brand: { fontFamily: FONTS.v2_bold, fontSize: 17, color: C.ink },
   headerIcons: { flexDirection: 'row', gap: 8 },

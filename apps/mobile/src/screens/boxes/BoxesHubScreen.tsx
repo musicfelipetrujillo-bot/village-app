@@ -1,209 +1,57 @@
 // Villie Boxes — hub screen.
 //
-// Faithful RN port of the 2026-06 design handoff `villie-boxes.html` hub:
-// editorial masthead → compact/editorial layout toggle → the three stage
-// boxes (hero gradient band, badge, Caveat pop title, stage, tagline, price
-// vs was, item count, trust chips) → the "Full Journey" bundle banner (all
-// three at 10% off). A sticky cart bar surfaces when the cart is non-empty.
+// Reworked 2026-08-09 to the calm "mamas corner" pattern (Felipe: the old hub
+// "feels super editorial"). One quiet header, one intro line, ONE warm rose→
+// blush moment (the Full Journey bundle), a quiet bordered list of the three
+// stage boxes, and a single scarlet cart spark. No masthead / eyebrow stack,
+// no animated gift illustration, no dark bundle banner, no per-card taglines.
 //
-// Matches the app's v2/v3 brand kit (COLORS/FONTS) rather than the handoff's
-// slightly-different hexes, per memory project_villie_boxes. One cinnamon
-// spark per surface = the primary CTA.
+// Functionality preserved 1:1 — box taps → BoxDetail, bundle add/remove →
+// toggleBundle, My orders → BoxOrders, sticky cart → BoxesCart. Catalog still
+// reads from @api/boxes.
 
-import React, { useEffect, useRef } from 'react';
-import {
-  View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Animated, Easing,
-} from 'react-native';
+import React from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import Svg, { Path, Rect, Ellipse, Polygon, Line } from 'react-native-svg';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { COLORS, FONTS } from '@utils/constants';
-import {
-  BOXES, computeBoxPricing, bundlePricing, formatPrice, type Box,
-} from '@api/boxes';
+import { BOXES, bundlePricing, formatPrice, type Box } from '@api/boxes';
 import { useBoxesStore, cartTotal } from '@store/boxes';
+import { BackButton } from '@components/shared/BackButton';
+import { WarmGlowBackdrop } from '@components/shared/WarmGlowBackdrop';
 import type { HomeStackParamList } from '@/navigation/HomeNavigator';
 
-// villie-bee.png — perched on the rim of the opened-box illustration so the
-// art reads as villie-branded (the mascot greets you from inside the box).
 const VILLIE_BEE = require('../../../assets/brand/villie-bee.png');
-const V_MARK = require('../../../assets/brand/villie-v-mark-v2.png');
 
-// Soft per-box card tints (by index) — the plain paper cards blended into the
-// cream page, so each card now sits on its own warm wash for separation.
-const CARD_TINTS = ['#F8ECE2', '#FBE7EC', '#FBF1D6'];
-const CARD_BORDERS = ['rgba(233,138,106,0.30)', 'rgba(217,108,136,0.28)', 'rgba(244,197,60,0.40)'];
-
-const T = {
-  paper: COLORS.v2_paper,
-  cream: COLORS.v2_cream,
-  parchment: COLORS.v2_parchment,
-  butter: COLORS.v2_butter,
-  cinnamon: COLORS.v2_cinnamon,
-  caramel: COLORS.v2_caramel,
-  blush: COLORS.v2_blush,
-  cocoa: COLORS.v2_cocoa,
-  walnut: COLORS.v2_walnut,
-  rule: 'rgba(61,31,14,0.13)',
-};
+const ROSE = '#C24A63', ROSE_DEEP = '#9E2F4C', BLUSH = '#E894AC', SCARLET = '#E14A32';
+const INK = '#43260F', INKSOFT = '#7A5A3A';
 
 type Nav = NativeStackNavigationProp<HomeStackParamList>;
 
-function Eyebrow({ children }: { children: React.ReactNode }) {
+// One box card — tells a mom what this box IS: name + stage + the plain-English
+// description (tagline) + price, with a "what's inside" way in.
+function BoxCard({ box, onPress }: { box: Box; onPress: () => void }) {
   return (
-    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-      <View style={{ width: 16, height: 1.5, backgroundColor: T.walnut, marginRight: 8 }} />
-      <Text style={styles.eyebrow}>{children}</Text>
-    </View>
-  );
-}
-
-// Opened gift box with items spilling up + the villie bee on the rim. Flat,
-// brand-colored, compact (smaller than the photographic reference). The bee
-// is the real mascot PNG layered over the SVG so the art is villie-branded.
-// A 4-point sparkle for the twinkles drifting around the gift.
-const STAR4 = 'M12 2c1 5 2 6 7 7-5 1-6 2-7 7-1-5-2-6-7-7 5-1 6-2 7-7z';
-
-function Twinkle({ pos, delay, color, size = 13 }: { pos: object; delay: number; color: string; size?: number }) {
-  const a = useRef(new Animated.Value(0)).current;
-  useEffect(() => {
-    const loop = Animated.loop(Animated.sequence([
-      Animated.delay(delay),
-      Animated.timing(a, { toValue: 1, duration: 600, useNativeDriver: true }),
-      Animated.timing(a, { toValue: 0, duration: 800, useNativeDriver: true }),
-      Animated.delay(700),
-    ]));
-    loop.start();
-    return () => loop.stop();
-  }, [a, delay]);
-  return (
-    <Animated.View pointerEvents="none" style={[
-      { position: 'absolute', opacity: a, transform: [{ scale: a.interpolate({ inputRange: [0, 1], outputRange: [0.4, 1] }) }] },
-      pos,
-    ]}>
-      <Svg width={size} height={size} viewBox="0 0 24 24"><Path d={STAR4} fill={color} /></Svg>
-    </Animated.View>
-  );
-}
-
-// The balloon bunch lifting the box (villie pastel palette).
-const BALLOONS = [
-  { cx: 56, cy: 20, fill: '#F7C5CB' },
-  { cx: 80, cy: 17, fill: '#F4B89C' },
-  { cx: 42, cy: 30, fill: '#F4C868' },
-  { cx: 96, cy: 32, fill: '#EE9C7C' },
-  { cx: 67, cy: 30, fill: '#E98AA6' },
-  { cx: 52, cy: 46, fill: '#FBEFD9' },
-  { cx: 88, cy: 48, fill: '#F7C5CB' },
-  { cx: 72, cy: 49, fill: '#E87B7B' },
-];
-
-// A kraft box lifted by a bunch of pastel balloons, drifting up through a soft
-// sky — our own villie-palette take on the reference (the brand bee floats
-// along; a honey hex marks the box). Gently bobs + sways in a loop.
-function GiftBoxArt({ size = 150 }: { size?: number }) {
-  const w = size, h = size * 1.07;
-  const f = useRef(new Animated.Value(0)).current;
-  useEffect(() => {
-    const loop = Animated.loop(Animated.sequence([
-      Animated.timing(f, { toValue: 1, duration: 2400, easing: Easing.inOut(Easing.quad), useNativeDriver: true }),
-      Animated.timing(f, { toValue: 0, duration: 2400, easing: Easing.inOut(Easing.quad), useNativeDriver: true }),
-    ]));
-    loop.start();
-    return () => loop.stop();
-  }, [f]);
-  const translateY = f.interpolate({ inputRange: [0, 1], outputRange: [5, -8] });
-  const rotate = f.interpolate({ inputRange: [0, 1], outputRange: ['-2deg', '2deg'] });
-  return (
-    <Animated.View style={{ width: w, height: h, transform: [{ translateY }, { rotate }] }}>
-      <Svg width={w} height={h} viewBox="0 0 140 150">
-        {/* soft clouds */}
-        <Ellipse cx={30} cy={122} rx={30} ry={12} fill="#FFFFFF" opacity={0.45} />
-        <Ellipse cx={112} cy={134} rx={28} ry={11} fill="#FFFFFF" opacity={0.4} />
-        <Ellipse cx={70} cy={143} rx={42} ry={12} fill="#FFFFFF" opacity={0.32} />
-        {/* strings */}
-        {BALLOONS.map((b, i) => (
-          <Line key={`s${i}`} x1={b.cx} y1={b.cy + 11} x2={70} y2={66} stroke="rgba(120,90,70,0.3)" strokeWidth={0.7} />
-        ))}
-        <Line x1={70} y1={66} x2={70} y2={101} stroke="rgba(120,90,70,0.45)" strokeWidth={1.3} />
-        {/* balloons + gloss */}
-        {BALLOONS.map((b, i) => (
-          <Ellipse key={`b${i}`} cx={b.cx} cy={b.cy} rx={9.5} ry={12} fill={b.fill} />
-        ))}
-        {BALLOONS.map((b, i) => (
-          <Ellipse key={`g${i}`} cx={b.cx - 3} cy={b.cy - 4} rx={2.4} ry={3.4} fill="#FFFFFF" opacity={0.5} />
-        ))}
-        {/* box — kraft body + cream label carrying the real villie V-mark logo
-            (Image overlaid below), flanked by tiny honeycomb cells. */}
-        <Rect x={50} y={101} width={40} height={38} rx={4} fill="#E7D2AC" />
-        <Path d="M50 109 H90" stroke="#C9AF82" strokeWidth={1.1} />
-        <Polygon points="55,106 58,106 59.5,108.5 58,111 55,111 53.5,108.5" fill="none" stroke="#C9A24A" strokeWidth={0.9} />
-        <Polygon points="82,127 85,127 86.5,129.5 85,132 82,132 80.5,129.5" fill="none" stroke="#C9A24A" strokeWidth={0.9} />
-        <Rect x={55} y={114} width={30} height={20} rx={4} fill="#FFFCF6" stroke="#E4D3B4" strokeWidth={0.8} />
-      </Svg>
-      <Image
-        source={VILLIE_BEE}
-        resizeMode="contain"
-        accessible={false}
-        style={{ position: 'absolute', top: 4, left: w * 0.26, width: 22, height: 22, transform: [{ rotate: '-14deg' }] }}
-      />
-      <Image
-        source={V_MARK}
-        resizeMode="contain"
-        accessible={false}
-        style={{ position: 'absolute', top: h * 0.755, left: w * 0.405, width: 28, height: 21 }}
-      />
-    </Animated.View>
-  );
-}
-
-// Small gift glyph stamped on each card's hero thumbnail.
-const GIFT_PATH = 'M4 11h16v9H4zM3 7h18v4H3zM12 7v13M8.5 7C6.6 7 5.5 4 7 3.2 8.6 2.4 12 7 12 7m0 0s3.4-4.6 5-3.8C18.5 4 17.4 7 15.5 7';
-
-function BoxCard({ box, tint, border, onPress }: { box: Box; tint: string; border: string; onPress: () => void }) {
-  // "Now" price with no customization (full box).
-  const pricing = computeBoxPricing(box, new Set(), new Set());
-  return (
-    <TouchableOpacity activeOpacity={0.93} onPress={onPress} style={[styles.card, { backgroundColor: tint, borderColor: border }]}>
-      <View style={styles.cardRow}>
-        {/* Hero gradient thumbnail with a gift glyph stamp. */}
-        <LinearGradient
-          colors={box.hero as readonly [string, string, ...string[]]}
-          start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-          style={styles.cardThumb}
-        >
-          <LinearGradient
-            colors={[box.glow, 'rgba(255,255,255,0)']}
-            start={{ x: 0.15, y: 0.1 }} end={{ x: 0.9, y: 1 }}
-            style={StyleSheet.absoluteFillObject}
-            pointerEvents="none"
-          />
-          <Svg width={30} height={30} viewBox="0 0 24 24">
-            <Path d={GIFT_PATH} stroke="#FFFFFF" strokeWidth={1.8} fill="none" strokeLinecap="round" strokeLinejoin="round" />
-          </Svg>
+    <TouchableOpacity
+      onPress={onPress}
+      activeOpacity={0.9}
+      style={styles.boxCard}
+      accessibilityRole="button"
+      accessibilityLabel={`The ${box.pop} Box, ${box.stage}, ${formatPrice(box.price)}. ${box.tagline}`}
+    >
+      <View style={styles.boxTop}>
+        <LinearGradient colors={[ROSE, BLUSH]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.boxIcon}>
+          <Text style={styles.boxIconGlyph}>🎁</Text>
         </LinearGradient>
-
         <View style={{ flex: 1, minWidth: 0 }}>
-          <Text style={styles.cardStage}>{box.stage}</Text>
-          <Text style={styles.cardTitle}>
-            The <Text style={[styles.cardTitleEm, { color: T.caramel }]}>{box.pop}</Text> Box
-          </Text>
-          <Text style={styles.cardItemCount}>{pricing.totalCount} items</Text>
+          <Text style={styles.boxName}>The {box.pop} Box</Text>
+          <Text style={styles.boxStage} numberOfLines={1}>{box.stage}</Text>
         </View>
+        <Text style={styles.boxPrice}>{formatPrice(box.price)}</Text>
       </View>
-
-      <Text style={styles.cardTagline} numberOfLines={2}>{box.tagline}</Text>
-
-      <View style={styles.cardPriceRow}>
-        <Text style={styles.cardPriceNow}>{formatPrice(box.price)}</Text>
-        <Text style={styles.cardPriceWas}>{formatPrice(box.was)}</Text>
-        <View style={styles.cardSaveChip}>
-          <Text style={styles.cardSaveChipText}>save {formatPrice(box.was - box.price)}</Text>
-        </View>
-        <View style={{ flex: 1 }} />
-        <Text style={styles.cardCta}>View box →</Text>
-      </View>
+      <Text style={styles.boxDesc} numberOfLines={3}>{box.tagline}</Text>
+      <Text style={styles.boxInsideLink}>see what&apos;s inside  ›</Text>
     </TouchableOpacity>
   );
 }
@@ -220,107 +68,69 @@ export default function BoxesHubScreen() {
 
   return (
     <View style={styles.container}>
-      <ScrollView
-        style={{ flex: 1 }}
-        contentContainerStyle={styles.scroll}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Back + masthead */}
-        <View style={styles.headRow}>
-          <TouchableOpacity
-            onPress={() => navigation.goBack()}
-            accessibilityRole="button"
-            accessibilityLabel="Back"
-            style={styles.backBtn}
-          >
-            <Svg width={20} height={20} viewBox="0 0 24 24">
-              <Path d="M15 18l-6-6 6-6" stroke={T.cocoa} strokeWidth={2} fill="none" strokeLinecap="round" strokeLinejoin="round" />
-            </Svg>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => navigation.navigate('BoxOrders')}
-            accessibilityRole="button"
-            accessibilityLabel="Your orders"
-          >
-            <Text style={styles.ordersLink}>My orders →</Text>
-          </TouchableOpacity>
-        </View>
+      <WarmGlowBackdrop />
+      <LinearGradient
+        pointerEvents="none"
+        colors={['rgba(247,197,203,0.40)', 'rgba(247,197,203,0.10)', 'rgba(252,247,239,0)']}
+        locations={[0, 0.5, 1]}
+        style={styles.pageWash}
+      />
 
-        <View style={{ marginTop: 8 }}><Eyebrow>curated by villie</Eyebrow></View>
-        <Text style={styles.title}>
-          Villie <Text style={styles.titleEm}>Boxes</Text>
-        </Text>
-        <Text style={styles.sub}>
-          The right things, gathered for each stage — so you can stop building registries and
-          start resting.
-        </Text>
-
-        {/* Opened gift-box illustration — villie-branded masthead visual. */}
-        <LinearGradient
-          colors={['#F8DDE9', '#EFDCEE', '#E2DAF4']}
-          start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }}
-          style={styles.heroArtBand}
+      {/* calm header */}
+      <View style={styles.header}>
+        <BackButton color={ROSE} />
+        <View style={styles.dot} />
+        <Text style={styles.hTitle}>villie boxes</Text>
+        <TouchableOpacity
+          style={styles.ordersLink}
+          onPress={() => navigation.navigate('BoxOrders')}
+          accessibilityRole="button"
+          accessibilityLabel="My orders"
         >
-          <Twinkle pos={{ top: 24, left: 40 }} delay={0} color="#FFFFFF" size={10} />
-          <Twinkle pos={{ top: 60, left: 28 }} delay={500} color="#FBEFD9" size={8} />
-          <Twinkle pos={{ top: 40, right: 44 }} delay={1000} color="#FFFFFF" size={11} />
-          <Twinkle pos={{ bottom: 30, right: 36 }} delay={1500} color="#FFFFFF" size={8} />
-          <Twinkle pos={{ bottom: 46, left: 52 }} delay={2000} color="#FBEFD9" size={9} />
-          <GiftBoxArt size={150} />
-        </LinearGradient>
+          <Text style={styles.ordersLinkText}>my orders ›</Text>
+        </TouchableOpacity>
+      </View>
 
-        <View style={styles.countRow}>
-          <Text style={styles.toggleLabel}>{BOXES.length} boxes</Text>
-          <Text style={styles.countHint}>tap any box to customize →</Text>
-        </View>
+      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+        {/* one calm line */}
+        <Text style={styles.intro}>The right things, gathered for each stage.</Text>
 
-        <View style={{ gap: 14, marginTop: 4 }}>
-          {BOXES.map((box, i) => (
-            <BoxCard
-              key={box.id}
-              box={box}
-              tint={CARD_TINTS[i % CARD_TINTS.length]}
-              border={CARD_BORDERS[i % CARD_BORDERS.length]}
-              onPress={() => navigation.navigate('BoxDetail', { boxId: box.id })}
-            />
-          ))}
-        </View>
-
-        {/* Full Journey bundle banner */}
-        <View style={styles.bundle}>
-          <View style={styles.bundleHalo} pointerEvents="none" />
-          <Text style={styles.bundleEyebrow}>the full journey</Text>
-          <Text style={styles.bundleTitle}>
-            All three boxes, <Text style={styles.bundleTitleEm}>one tap.</Text>
-          </Text>
-          <Text style={styles.bundleBlurb}>
-            Delivery, Newborn &amp; Mama — bundled at 10% off so the whole first chapter is handled.
-          </Text>
-          <View style={styles.bundlePriceRow}>
-            <Text style={styles.bundleNow}>{formatPrice(bundle.now)}</Text>
-            <Text style={styles.bundleWas}>{formatPrice(bundle.was)}</Text>
-            <View style={styles.bundleSaveChip}>
-              <Text style={styles.bundleSaveText}>save {formatPrice(bundle.save)}</Text>
+        {/* the one warm moment — the Full Journey bundle */}
+        <TouchableOpacity
+          style={styles.heroCard}
+          activeOpacity={0.92}
+          onPress={toggleBundle}
+          accessibilityRole="button"
+          accessibilityLabel={bundleInCart ? 'Remove the full journey bundle from cart' : 'Add all three boxes to cart'}
+        >
+          <LinearGradient colors={[ROSE, BLUSH]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.heroInner}>
+            <View style={styles.heroBee}><Image source={VILLIE_BEE} style={{ width: 26, height: 26 }} resizeMode="contain" /></View>
+            <Text style={styles.heroTitle}>the full journey</Text>
+            <Text style={styles.heroSub}>all three boxes, bundled at 10% off</Text>
+            <View style={styles.heroPriceRow}>
+              <Text style={styles.heroNow}>{formatPrice(bundle.now)}</Text>
+              <Text style={styles.heroWas}>{formatPrice(bundle.was)}</Text>
+              <View style={styles.heroSaveChip}><Text style={styles.heroSaveText}>save {formatPrice(bundle.save)}</Text></View>
             </View>
-          </View>
-          <TouchableOpacity
-            onPress={toggleBundle}
-            activeOpacity={0.9}
-            accessibilityRole="button"
-            style={[styles.bundleBtn, bundleInCart && styles.bundleBtnAdded]}
-          >
-            <Text style={[styles.bundleBtnText, bundleInCart && styles.bundleBtnTextAdded]}>
-              {bundleInCart ? '✓ Added to cart' : 'Add all three'}
-            </Text>
-          </TouchableOpacity>
-        </View>
+            <View style={[styles.heroPill, bundleInCart && styles.heroPillAdded]}>
+              <Text style={styles.heroPillText}>{bundleInCart ? '✓ in cart' : 'add all three ›'}</Text>
+            </View>
+          </LinearGradient>
+        </TouchableOpacity>
 
-        <Text style={styles.foot}>
-          Photos and final retail pricing are placeholders pending the launch catalog.
-        </Text>
+        {/* the three stage boxes — a descriptive card each */}
+        {BOXES.map((box) => (
+          <BoxCard
+            key={box.id}
+            box={box}
+            onPress={() => navigation.navigate('BoxDetail', { boxId: box.id })}
+          />
+        ))}
+
+        <Text style={styles.foot}>Photos and pricing are placeholders pending the launch catalog.</Text>
       </ScrollView>
 
-      {/* Sticky cart bar */}
+      {/* sticky cart bar — the one scarlet spark */}
       {cartCount > 0 && (
         <TouchableOpacity
           activeOpacity={0.92}
@@ -329,9 +139,7 @@ export default function BoxesHubScreen() {
           accessibilityLabel={`View cart, ${cartCount} ${cartCount === 1 ? 'item' : 'items'}, ${formatPrice(total)}`}
           style={styles.cartBar}
         >
-          <View style={styles.cartBadge}>
-            <Text style={styles.cartBadgeText}>{cartCount}</Text>
-          </View>
+          <View style={styles.cartBadge}><Text style={styles.cartBadgeText}>{cartCount}</Text></View>
           <Text style={styles.cartBarText}>View cart</Text>
           <View style={{ flex: 1 }} />
           <Text style={styles.cartBarTotal}>{formatPrice(total)}  →</Text>
@@ -342,197 +150,77 @@ export default function BoxesHubScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: T.cream },
-  scroll: { paddingTop: 56, paddingHorizontal: 22, paddingBottom: 140 },
+  container: { flex: 1, backgroundColor: 'transparent' },
+  pageWash: { position: 'absolute', top: 0, left: 0, right: 0, height: 420 },
 
-  headRow: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6,
+  // Header — calm: back + dot + lowercase title + orders link
+  header: {
+    flexDirection: 'row', alignItems: 'center', gap: 9,
+    paddingTop: 58, paddingBottom: 6, paddingHorizontal: 18,
   },
-  backBtn: {
-    width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center',
-    backgroundColor: T.paper, borderWidth: StyleSheet.hairlineWidth, borderColor: T.rule,
-    marginLeft: -4,
-  },
-  ordersLink: { fontFamily: FONTS.v2_link, fontSize: 13, color: T.cinnamon },
+  dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: ROSE },
+  hTitle: { fontFamily: FONTS.v2_bold, fontSize: 17, color: INK },
+  ordersLink: { marginLeft: 'auto' },
+  ordersLinkText: { fontFamily: FONTS.v2_link, fontSize: 13, color: ROSE },
 
-  eyebrow: {
-    fontFamily: FONTS.v2_mono, fontSize: 11, letterSpacing: 2.6,
-    textTransform: 'uppercase', fontWeight: '500', color: T.walnut,
-  },
-  title: {
-    fontFamily: FONTS.v3_display, fontSize: 38, lineHeight: 40,
-    color: T.cocoa, letterSpacing: -1.4, marginTop: 12,
-  },
-  titleEm: { fontFamily: FONTS.v3_display_italic, color: T.cinnamon, fontSize: 36 },
-  sub: {
-    fontFamily: FONTS.v2_body, fontSize: 14, lineHeight: 21,
-    color: T.walnut, marginTop: 12,
+  scroll: { paddingBottom: 120 },
+
+  // Intro — one calm line
+  intro: {
+    paddingHorizontal: 22, paddingTop: 12,
+    fontFamily: FONTS.v3_display, fontSize: 22, lineHeight: 28, color: INK, letterSpacing: -0.5,
   },
 
-  heroArtBand: {
-    marginTop: 18, borderRadius: 22, height: 178,
-    alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
-    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(217,108,136,0.20)',
+  // Hero — the one warm moment (Full Journey bundle)
+  heroCard: {
+    marginHorizontal: 22, marginTop: 18, borderRadius: 20,
+    shadowColor: ROSE_DEEP, shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.20, shadowRadius: 20, elevation: 4,
   },
-  countRow: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    marginTop: 22, marginBottom: 14,
-    paddingBottom: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: T.rule,
-  },
-  countHint: {
-    fontFamily: FONTS.v2_link, fontSize: 11.5, color: T.cinnamon,
-  },
+  heroInner: { borderRadius: 20, paddingVertical: 18, paddingHorizontal: 18, overflow: 'hidden' },
+  heroBee: { position: 'absolute', top: 14, right: 16, opacity: 0.9 },
+  heroTitle: { fontFamily: FONTS.v3_display, fontSize: 22, color: '#FFFDF8', letterSpacing: -0.4 },
+  heroSub: { fontFamily: FONTS.v2_body, fontSize: 13, color: 'rgba(255,253,248,0.92)', marginTop: 4, maxWidth: '82%' },
+  heroPriceRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 14 },
+  heroNow: { fontFamily: FONTS.v2_display_big, fontSize: 24, color: '#FFFDF8' },
+  heroWas: { fontFamily: FONTS.v2_body, fontSize: 13, color: 'rgba(255,253,248,0.78)', textDecorationLine: 'line-through' },
+  heroSaveChip: { backgroundColor: 'rgba(255,255,255,0.22)', borderRadius: 999, paddingHorizontal: 9, paddingVertical: 3 },
+  heroSaveText: { fontFamily: FONTS.v2_bold, fontSize: 10.5, color: '#FFFDF8' },
+  heroPill: { marginTop: 14, alignSelf: 'flex-start', backgroundColor: 'rgba(255,255,255,0.24)', borderRadius: 999, paddingHorizontal: 14, paddingVertical: 7 },
+  heroPillAdded: { backgroundColor: 'rgba(255,255,255,0.16)' },
+  heroPillText: { fontFamily: FONTS.v2_bold, fontSize: 12, color: '#fff', letterSpacing: 0.3 },
 
-  // ── Box card (compact, tinted) ────────────────────────────────────────
-  cardRow: { flexDirection: 'row', alignItems: 'center', gap: 14 },
-  cardThumb: {
-    width: 72, height: 72, borderRadius: 16, overflow: 'hidden',
-    alignItems: 'center', justifyContent: 'center',
+  // Descriptive box cards — one per box, with the plain-English description
+  boxCard: {
+    marginHorizontal: 22, marginTop: 12, backgroundColor: COLORS.v2_paper, borderRadius: 18,
+    paddingVertical: 15, paddingHorizontal: 15,
+    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(122,74,40,0.14)',
   },
-
-  toggleRow: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    marginTop: 22, marginBottom: 16,
-    paddingBottom: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: T.rule,
-  },
-  toggleLabel: {
-    fontFamily: FONTS.v2_mono, fontSize: 10, letterSpacing: 1.8,
-    textTransform: 'uppercase', fontWeight: '600', color: T.walnut,
-  },
-  toggle: {
-    flexDirection: 'row', backgroundColor: T.parchment, borderRadius: 11, padding: 3,
-  },
-  toggleBtn: { paddingHorizontal: 14, paddingVertical: 6, borderRadius: 9 },
-  toggleBtnActive: { backgroundColor: T.paper },
-  toggleText: {
-    fontFamily: FONTS.v2_label, fontSize: 12, color: T.walnut, textTransform: 'capitalize',
-  },
-  toggleTextActive: { color: T.cocoa, fontFamily: FONTS.v2_bold },
-
-  // ── Box card ──────────────────────────────────────────────────────────
-  card: {
-    backgroundColor: T.paper, borderRadius: 20, overflow: 'hidden', padding: 16,
-    borderWidth: 1, borderColor: T.rule,
-    shadowColor: '#43260F', shadowOpacity: 0.07, shadowRadius: 16,
-    shadowOffset: { width: 0, height: 8 }, elevation: 2,
-  },
-  cardHero: { justifyContent: 'flex-end', padding: 14 },
-  cardBadge: {
-    position: 'absolute', top: 12, left: 12,
-    backgroundColor: 'rgba(255,255,255,0.82)', borderRadius: 999,
-    paddingHorizontal: 10, paddingVertical: 4,
-  },
-  cardBadgeText: {
-    fontFamily: FONTS.v2_mono, fontSize: 9.5, letterSpacing: 1.2,
-    textTransform: 'uppercase', fontWeight: '600', color: T.cocoa,
-  },
-  cardHeroPop: { fontFamily: FONTS.v3_display_italic, fontSize: 40, lineHeight: 42 },
-
-  cardBody: { padding: 18 },
-  cardStage: {
-    fontFamily: FONTS.v2_mono, fontSize: 10, letterSpacing: 1.4,
-    textTransform: 'uppercase', fontWeight: '600', color: T.caramel,
-  },
-  cardTitle: {
-    fontFamily: FONTS.v3_display, fontSize: 23, lineHeight: 26,
-    color: T.cocoa, letterSpacing: -0.6, marginTop: 6,
-  },
-  cardTitleEm: { fontFamily: FONTS.v3_display_italic, fontSize: 23 },
-  cardTagline: {
-    fontFamily: FONTS.v2_body, fontSize: 13, lineHeight: 19,
-    color: T.walnut, marginTop: 8,
-  },
-
-  cardPriceRow: { flexDirection: 'row', alignItems: 'center', marginTop: 14, gap: 8 },
-  cardPriceNow: { fontFamily: FONTS.v2_display_big, fontSize: 22, color: T.cocoa },
-  cardPriceWas: {
-    fontFamily: FONTS.v2_body, fontSize: 13, color: T.walnut,
-    textDecorationLine: 'line-through', opacity: 0.7,
-  },
-  cardSaveChip: {
-    backgroundColor: 'rgba(217,108,136,0.12)', borderRadius: 999,
-    paddingHorizontal: 9, paddingVertical: 3,
-  },
-  cardSaveChipText: {
-    fontFamily: FONTS.v2_bold, fontSize: 10.5, color: T.cinnamon,
-    textTransform: 'lowercase',
-  },
-  cardItemCount: { fontFamily: FONTS.v2_label, fontSize: 11.5, color: T.walnut, marginTop: 4 },
-
-  cardTrustRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 14 },
-  cardTrustChip: {
-    flexDirection: 'row', alignItems: 'center', gap: 6,
-    backgroundColor: T.cream, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 5,
-    borderWidth: StyleSheet.hairlineWidth, borderColor: T.rule,
-  },
-  cardTrustText: { fontFamily: FONTS.v2_label, fontSize: 11, color: T.walnut },
-
-  cardCtaRow: {
-    marginTop: 16, paddingTop: 14,
-    borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: T.rule,
-  },
-  cardCta: { fontFamily: FONTS.v2_link, fontSize: 14, color: T.cinnamon },
-
-  // ── Bundle banner ─────────────────────────────────────────────────────
-  bundle: {
-    marginTop: 24, backgroundColor: T.cocoa, borderRadius: 22, padding: 22,
-    overflow: 'hidden',
-  },
-  bundleHalo: {
-    position: 'absolute', top: -50, right: -40, width: 170, height: 170,
-    borderRadius: 85, backgroundColor: 'rgba(244,197,60,0.16)',
-  },
-  bundleEyebrow: {
-    fontFamily: FONTS.v2_mono, fontSize: 10.5, letterSpacing: 2.4,
-    textTransform: 'uppercase', fontWeight: '600', color: T.butter,
-  },
-  bundleTitle: {
-    fontFamily: FONTS.v3_display, fontSize: 26, lineHeight: 29,
-    color: T.paper, letterSpacing: -0.8, marginTop: 10,
-  },
-  bundleTitleEm: { fontFamily: FONTS.v3_display_italic, color: T.butter, fontSize: 25 },
-  bundleBlurb: {
-    fontFamily: FONTS.v2_body, fontSize: 13, lineHeight: 19,
-    color: 'rgba(252,247,239,0.82)', marginTop: 10,
-  },
-  bundlePriceRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 16 },
-  bundleNow: { fontFamily: FONTS.v2_display_big, fontSize: 28, color: T.paper },
-  bundleWas: {
-    fontFamily: FONTS.v2_body, fontSize: 14, color: 'rgba(252,247,239,0.7)',
-    textDecorationLine: 'line-through',
-  },
-  bundleSaveChip: {
-    backgroundColor: 'rgba(244,197,60,0.18)', borderRadius: 999,
-    paddingHorizontal: 10, paddingVertical: 4,
-  },
-  bundleSaveText: { fontFamily: FONTS.v2_bold, fontSize: 11, color: T.butter },
-  bundleBtn: {
-    marginTop: 18, backgroundColor: T.cinnamon, borderRadius: 14,
-    paddingVertical: 14, alignItems: 'center',
-  },
-  bundleBtnAdded: { backgroundColor: 'rgba(252,247,239,0.16)' },
-  bundleBtnText: { fontFamily: FONTS.v2_bold, fontSize: 15, color: T.paper },
-  bundleBtnTextAdded: { color: T.paper },
+  boxTop: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  boxIcon: { width: 40, height: 40, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
+  boxIconGlyph: { fontSize: 19 },
+  boxName: { fontFamily: FONTS.v3_display, fontSize: 17, color: INK, letterSpacing: -0.3 },
+  boxStage: { fontFamily: FONTS.v2_body, fontSize: 11.5, color: INKSOFT, marginTop: 1 },
+  boxPrice: { fontFamily: FONTS.v2_bold, fontSize: 16, color: ROSE },
+  boxDesc: { fontFamily: FONTS.v2_body, fontSize: 13, color: '#6B5540', lineHeight: 19, marginTop: 11 },
+  boxInsideLink: { fontFamily: FONTS.v2_link, fontSize: 12.5, color: ROSE, marginTop: 10 },
 
   foot: {
     fontFamily: FONTS.v2_body, fontSize: 11, lineHeight: 16,
-    color: T.walnut, opacity: 0.7, marginTop: 22, textAlign: 'center',
+    color: INKSOFT, opacity: 0.7, marginTop: 22, marginHorizontal: 22, textAlign: 'center',
   },
 
-  // ── Sticky cart bar ───────────────────────────────────────────────────
+  // Sticky cart bar — one scarlet spark
   cartBar: {
     position: 'absolute', left: 16, right: 16, bottom: 24,
     flexDirection: 'row', alignItems: 'center',
-    backgroundColor: T.cinnamon, borderRadius: 16, paddingVertical: 15, paddingHorizontal: 18,
-    shadowColor: '#43260F', shadowOpacity: 0.18, shadowRadius: 16,
-    shadowOffset: { width: 0, height: 8 }, elevation: 6,
+    backgroundColor: SCARLET, borderRadius: 16, paddingVertical: 15, paddingHorizontal: 18,
+    shadowColor: ROSE_DEEP, shadowOpacity: 0.20, shadowRadius: 16, shadowOffset: { width: 0, height: 8 }, elevation: 6,
   },
   cartBadge: {
     minWidth: 22, height: 22, borderRadius: 11, paddingHorizontal: 6,
-    backgroundColor: 'rgba(255,255,255,0.25)', alignItems: 'center', justifyContent: 'center',
-    marginRight: 10,
+    backgroundColor: 'rgba(255,255,255,0.25)', alignItems: 'center', justifyContent: 'center', marginRight: 10,
   },
-  cartBadgeText: { fontFamily: FONTS.v2_bold, fontSize: 12, color: T.paper },
-  cartBarText: { fontFamily: FONTS.v2_bold, fontSize: 15, color: T.paper },
-  cartBarTotal: { fontFamily: FONTS.v2_bold, fontSize: 15, color: T.paper },
+  cartBadgeText: { fontFamily: FONTS.v2_bold, fontSize: 12, color: '#FFFDF8' },
+  cartBarText: { fontFamily: FONTS.v2_bold, fontSize: 15, color: '#FFFDF8' },
+  cartBarTotal: { fontFamily: FONTS.v2_bold, fontSize: 15, color: '#FFFDF8' },
 });

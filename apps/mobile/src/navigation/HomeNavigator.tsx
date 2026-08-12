@@ -16,6 +16,7 @@ import TheBuzzScreen from '@screens/home/TheBuzzScreen';
 import InsightsScreen from '@screens/home/InsightsScreen';
 import MomHubScreen from '@screens/home/MomHubScreen';
 import NotificationsScreen from '@screens/home/NotificationsScreen';
+import SearchScreen from '@screens/home/SearchScreen';
 import WeeklyJourneyScreen from '@screens/home/WeeklyJourneyScreen';
 import EventsListScreen from '@screens/events/EventsListScreen';
 import EventDetailScreen from '@screens/events/EventDetailScreen';
@@ -51,6 +52,7 @@ export type HomeStackParamList = {
   TheBuzz: { issueId?: string } | undefined;
   Insights: undefined;
   Notifications: undefined;
+  Search: undefined;
   WeeklyJourney: { week?: number } | undefined;
   EventsList: undefined;
   EventDetail: { id: string };
@@ -80,6 +82,7 @@ export function HomeNavigator() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="HomeRoot" component={HomeScreen} />
+      <Stack.Screen name="Search" component={SearchScreen} />
       <Stack.Screen name="DayPlan" component={DayPlanScreen} />
       <Stack.Screen name="DaySheetList" component={DaySheetListScreen} />
       <Stack.Screen name="DaySheetBuilder" component={DaySheetBuilderScreen} />

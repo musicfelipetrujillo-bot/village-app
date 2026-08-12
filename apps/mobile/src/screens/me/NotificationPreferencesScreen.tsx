@@ -166,7 +166,7 @@ export default function NotificationPreferencesScreen({ navigation }: Props) {
         </TouchableOpacity>
         <Text style={s.topTitle}>{t('notifPrefs.topTitle')}</Text>
         <View style={s.topSpacer}>
-          {saving ? <ActivityIndicator color="#E84B79" /> : null}
+          {saving ? <ActivityIndicator color="#C24A63" /> : null}
         </View>
       </View>
 
@@ -307,7 +307,7 @@ const s = StyleSheet.create({
   topLink: {
     fontFamily: FONTS.bodySemiBold,
     fontSize: 14,
-    color: '#E84B79',
+    color: '#C24A63',
   },
   topSpacer: { width: 52, alignItems: 'flex-end' },
 
@@ -321,7 +321,7 @@ const s = StyleSheet.create({
     fontFamily: FONTS.headerBold, fontSize: 32, color: COLORS.bark,
     lineHeight: 38, letterSpacing: -0.5, marginBottom: 4,
   },
-  headerTitleEm: { fontFamily: FONTS.headerItalic, fontStyle: 'italic', color: '#E84B79' },
+  headerTitleEm: { fontFamily: FONTS.headerItalic, fontStyle: 'italic', color: '#C24A63' },
   headerRule: {
     height: StyleSheet.hairlineWidth, backgroundColor: 'rgba(61,31,13,0.18)',
     marginTop: 6, marginBottom: 4, width: 48,
@@ -428,7 +428,7 @@ const s = StyleSheet.create({
   stepBtnText: {
     fontFamily: FONTS.bodySemiBold,
     fontSize: 18,
-    color: '#E84B79',
+    color: '#C24A63',
     lineHeight: 20,
   },
   stepperValue: {

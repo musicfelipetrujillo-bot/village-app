@@ -67,7 +67,20 @@ export function AppNavigator() {
           headerShown: false,
           // 150ms opacity crossfade on tab switch — softer than the default
           // instant cut; keeps the warm palette feel between surfaces.
-          animation: 'fade' as const,
+          //
+          // …but ONLY on tabs that are actually in the bar. `forFade` drives
+          // scene opacity through a NATIVE-DRIVER Animated.Value that starts at
+          // ±1 (= opacity 0) for every unfocused tab. A hidden tab is only ever
+          // reached by a Billy deep-link, which cold-mounts its stack in the
+          // same commit that starts the fade — if the native view attaches after
+          // the animation node is configured, it keeps opacity 0 and the mom
+          // gets a BLANK SCREEN with a working tab bar (photographed 2026-08-02
+          // on "message my OB" → Care and "message this donor" → Milk).
+          // 'none' skips the interpolator entirely, so visibility falls to
+          // react-native-screens activityState and there is nothing to race.
+          // Nothing is lost visually: you arrive from a dismissing chat modal,
+          // so there was no crossfade to preserve.
+          animation: (hidden ? 'none' : 'fade') as 'none' | 'fade',
           // v2 brand kit: tab-label · Plus Jakarta 500 · cinnamon active / amber idle
           tabBarActiveTintColor: COLORS.v2_cinnamon,
           tabBarInactiveTintColor: COLORS.v2_amber,

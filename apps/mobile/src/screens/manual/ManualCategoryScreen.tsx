@@ -59,9 +59,9 @@ type ParamList = {
 // ═══════════════════════════════════════════════════════════════════════
 // V9 palette — exact CSS variable values from the v9 mockup.
 // Use these directly for this screen; do NOT route through COLORS.coco/
-// rust since those resolve to brand-v2 cinnamon (#E84B79), which is a
+// rust since those resolve to brand-v2 cinnamon (#E14A32), which is a
 // different shade than the v9 mockup's --coco (#AD795B) / --rust
-// (#E84B79). The screen is meant to look exactly like the mockup.
+// (#E14A32). The screen is meant to look exactly like the mockup.
 // ═══════════════════════════════════════════════════════════════════════
 const V9 = {
   paper: '#FFFCF6',
@@ -77,8 +77,8 @@ const V9 = {
   // Kit canon (2026-05-16): old rust/rust-deep retired; cinnamon family is the
   // app's canonical warm action color. Token names kept for grep compatibility
   // across the Manual file (60+ refs in masthead + week hero + tile SVG).
-  rust: '#E84B79',     // cinnamon (was #E84B79)
-  rustDeep: '#E84B79', // action-deep (was #7A4A24)
+  rust: '#C24A63',     // cinnamon (was #E14A32)
+  rustDeep: '#C24A63', // action-deep (was #7A4A24)
   sage: '#E98A6A',
   sageDeep: '#E98A6A',
   coco: '#AD795B',
@@ -126,17 +126,17 @@ export const CHAPTER_THEME_DEFAULT: ChapterTheme = {
 //
 //   Feel/Grow    → Salmon   #F7C5CB (empathy, warmth, expansion)
 //   Heal/Care    → Moss     #E98A6A (body, recovery, garden)
-//   Nourish/Feed → Butter   #F4C53C (fuel, halo)
+//   Nourish/Feed → Butter   #DA9A2C (fuel, halo)
 //   Rest/Sleep   → Sage     #F2E6DD (kit "cool exhale", quiet drowsy)
-//   Tips/Tips    → Marigold #F4C53C (kit "hero pop", small-wins spark)
+//   Tips/Tips    → Marigold #DA9A2C (kit "hero pop", small-wins spark)
 // Single source of truth shared with the Manual home chips (ManualScrollV3
 // CHIP_TONE). accent = the chapter's deep color (dots/bars + accent text);
 // bg/yolkBg = a light wash of it. Pairing mirrors the home: sleep↔heal,
 // feed↔nourish, grow↔feel, care↔rest, soothe↔tips.
 export const CHAPTER_THEME: Record<string, ChapterTheme> = {
   // Grow / Feel — rose
-  'baby/grow':  { accent: '#E84B79', accentDeep: '#E84B79', bg: '#FAE2E7', yolkBg: '#FAE2E7' },
-  'mom/feel':   { accent: '#E84B79', accentDeep: '#E84B79', bg: '#FAE2E7', yolkBg: '#FAE2E7' },
+  'baby/grow':  { accent: '#C24A63', accentDeep: '#C24A63', bg: '#FAE2E7', yolkBg: '#FAE2E7' },
+  'mom/feel':   { accent: '#C24A63', accentDeep: '#C24A63', bg: '#FAE2E7', yolkBg: '#FAE2E7' },
   // Sleep / Heal — terracotta
   'baby/sleep': { accent: '#C46A45', accentDeep: '#C46A45', bg: '#F0D7C3', yolkBg: '#F0D7C3' },
   'mom/heal':   { accent: '#C46A45', accentDeep: '#C46A45', bg: '#F0D7C3', yolkBg: '#F0D7C3' },
@@ -1298,7 +1298,7 @@ const styles = StyleSheet.create({
   },
   clipThumbGlyph: { color: '#fff', fontSize: 9, marginLeft: 1.5 },
   clipProPill: {
-    position: 'absolute', top: 3, left: 3, backgroundColor: '#E84B79',
+    position: 'absolute', top: 3, left: 3, backgroundColor: '#C24A63',
     borderRadius: 999, paddingHorizontal: 5, paddingVertical: 1,
   },
   clipProPillText: { color: '#FFFCF6', fontSize: 7.5, fontFamily: FONTS.bodyBold, letterSpacing: 0.8, textTransform: 'uppercase' },

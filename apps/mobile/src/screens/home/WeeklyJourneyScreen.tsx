@@ -166,7 +166,7 @@ export default function WeeklyJourneyScreen() {
   if (loading && !payload) {
     return (
       <View style={[styles.container, styles.center]}>
-        <ActivityIndicator color="#E84B79" />
+        <ActivityIndicator color="#C24A63" />
       </View>
     );
   }
@@ -477,7 +477,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.paper,
     borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.06)',
   },
-  headerBack: { fontSize: 15, color: '#E84B79', fontFamily: FONTS.bodySemiBold },
+  headerBack: { fontSize: 15, color: '#C24A63', fontFamily: FONTS.bodySemiBold },
   headerTitle: { fontSize: 16, fontFamily: FONTS.bodySemiBold, color: COLORS.bark },
 
   // paddingBottom clears the global Villie FAB.
@@ -622,7 +622,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14, paddingVertical: 11,
     borderWidth: 1, borderColor: 'rgba(216,117,48,0.22)',
   },
-  crisisFooterText: { fontSize: 13, color: '#E84B79', fontFamily: FONTS.bodySemiBold, lineHeight: 18 },
+  crisisFooterText: { fontSize: 13, color: '#C24A63', fontFamily: FONTS.bodySemiBold, lineHeight: 18 },
 
   // To-dos grid
   todosGrid: {
@@ -638,7 +638,7 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(150,80,50,0.18)',  // v9 rust hairline
   },
   todoTileEssential: {
-    borderColor: '#E84B79', borderWidth: 1.5,                                    // active essential = cinnamon
+    borderColor: '#C24A63', borderWidth: 1.5,                                    // active essential = cinnamon
   },
   todoTileDone: {
     backgroundColor: COLORS.cream,
@@ -666,7 +666,7 @@ const styles = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
   },
   // v9 active state — action-deep
-  checkboxChecked: { backgroundColor: '#E84B79', borderColor: '#E84B79' },
+  checkboxChecked: { backgroundColor: '#C24A63', borderColor: '#C24A63' },
   checkmark: { color: '#FFFCF6', fontSize: 14, fontFamily: FONTS.bodySemiBold, lineHeight: 16 },
   todoText: {
     fontSize: 13, color: COLORS.bark, lineHeight: 19, fontFamily: FONTS.body,
@@ -689,5 +689,5 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.bodyMedium,
   },
   crisisLink: { alignSelf: 'center', marginTop: 14, paddingVertical: 8, paddingHorizontal: 12 },
-  crisisLinkText: { fontSize: 13, color: '#E84B79', fontFamily: FONTS.bodySemiBold },
+  crisisLinkText: { fontSize: 13, color: '#C24A63', fontFamily: FONTS.bodySemiBold },
 });

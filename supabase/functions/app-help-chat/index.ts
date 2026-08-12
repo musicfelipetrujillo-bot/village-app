@@ -14,6 +14,24 @@ import { NAV_TARGETS } from './tools/navigate.ts';
 
 const anthropic = new Anthropic({ apiKey: Deno.env.get('ANTHROPIC_API_KEY')! });
 
+// Haiku occasionally answers in prose instead of the JSON envelope — usually on
+// the turn straight after a tool call. That used to throw to the catch at the
+// bottom, which told the mom to call 911 for what was really a parse error
+// (photographed 2026-08-02: three times in one eval run, and retyping the same
+// sentence worked every time — so a perfectly good answer was being binned).
+// Try strict parse, then a JSON object embedded in prose, before giving up.
+function extractJson(raw: string): any | null {
+  const cleaned = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim();
+  if (!cleaned) return null;
+  try { return JSON.parse(cleaned); } catch { /* try the embedded-object path */ }
+  const first = cleaned.indexOf('{');
+  const last = cleaned.lastIndexOf('}');
+  if (first !== -1 && last > first) {
+    try { return JSON.parse(cleaned.slice(first, last + 1)); } catch { /* give up */ }
+  }
+  return null;
+}
+
 const CORS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -93,10 +111,22 @@ When she tells you a small durable practical fact about her routines or preferen
 "reply" is rendered VERBATIM — plain text only, no markdown (**bold**, bullets, headers). 1–2 short paragraphs max.
 
 ## Tappable open-button (cta)
-You MAY add an optional "cta" key to the response JSON: {"label": "short label ≤24 chars", "screen": "one of: playbook | booking | appointment_book | gear_create | box_checkout | gear_boost | become_donor | donor_profile_edit | account_settings | baby_profile_setup"}. Use it whenever a screen lets her SEE or FINISH what you just did. NOT optional after logging: EVERY successful log_baby_event reply MUST carry {"label":"Open Playbook","screen":"playbook"} (label "See the timer" when a timer is running). At most one cta; omit when irrelevant.
+You MAY add an optional "cta" key to the response JSON: {"label": "short label ≤24 chars", "screen": "one of: playbook | booking | appointment_book | gear_create | box_checkout | gear_boost | become_donor | donor_profile_edit | account_settings | baby_profile_setup | write_review | message_specialist | create_milk_listing | milk_messages | vault_create_listing | gear_status | gear_messages | report_gear | day_sheet | milk_vault"}. Use it whenever a screen lets her SEE or FINISH what you just did. NOT optional after logging: EVERY successful log_baby_event reply MUST carry {"label":"Open Playbook","screen":"playbook"} (label "See the timer" when a timer is running). At most one cta; omit when irrelevant.
 
-## Booking = navigate, not just search
-When she asks to BOOK an appointment, ALWAYS call the navigate tool with screen 'booking' — it lands her on the Care directory where she picks a provider and taps Book. You may also mention nearby matches from find_specialists, but never answer a "book me" request with search results alone, even when nothing is nearby (the directory lets her widen the search herself).
+## "That one" / "the first one" — you must re-search, not ask
+Your chat history arrives as plain text. Tool results — and every id in them — are DROPPED at the end of each request. So the moment she refers back to something you listed a second ago ("save it", "the first one", "the UPPAbaby", "message that donor"), you no longer hold its id. Do NOT tell her that. Do NOT ask her for an id, and do NOT send her off to tap it herself — she asked you precisely so she wouldn't have to. Silently call the SAME search tool again with the SAME query (so the ordering she saw still holds), then act on the row she meant. You have room for several tool calls in one turn; use them. The words "id" and "ID" must never appear in your reply.
+
+## Do-it-for-me asks = navigate, EVERY time
+When she asks you to DO one of these, ALWAYS call the navigate tool. Never answer with how-to directions alone ("head to the Experts tab and tap…") — that is the one failure mode moms notice, because she asked you to handle it and got homework instead. Same sentence must produce the same pill every time:
+- book / schedule an appointment → 'booking'
+- message / ask / contact a provider, OB, midwife, doula, lactation consultant → 'message_specialist'
+- review / rate a provider → 'write_review'
+- sell / list / post gear → 'gear_create'   · mark sold / withdraw / relist → 'gear_status'
+- boost / promote a listing → 'gear_boost'  · report / flag a listing → 'report_gear'
+- post / list milk → 'create_milk_listing'  · message a donor → 'milk_messages'
+- become a donor → 'become_donor'           · edit donor profile → 'donor_profile_edit'
+- sell or donate stashed milk → 'vault_create_listing'
+You may ALSO mention relevant nearby matches from a find_* tool, but never let search results stand in for the pill — even when nothing is nearby, since the destination lets her widen the search herself. If you cannot do the thing yourself, say that in one short clause and give her the pill; do not apologize at length or list manual steps.
 Always return ONLY the JSON object described above (even after using a tool). You MAY add the optional "quick_replies" and "cta" keys to that same JSON.`;
 
 interface InboundMessage {
@@ -224,9 +254,26 @@ Reply with JSON only.`
 
     const textBlock = aiResponse.content.find((b: any) => b.type === 'text');
     const raw = (textBlock?.text ?? '').trim();
-    // Strip possible ```json fences
-    const cleaned = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '');
-    const parsed = JSON.parse(cleaned);
+    let parsed = extractJson(raw);
+    if (!parsed) {
+      // Repair turn — hand the model its own malformed output back and ask for
+      // the contract. We RE-ASK rather than salvage the prose because the crisis
+      // flag only exists inside the envelope; shipping loose prose would quietly
+      // drop crisis detection for that turn. Costs one cheap Haiku call, and
+      // only on the rare turns that miss the format.
+      const repair = await anthropic.messages.create({
+        model: 'claude-haiku-4-5-20251001', max_tokens: 700,
+        system: systemBlocks as any,
+        messages: [
+          ...convo,
+          { role: 'assistant', content: raw || '(empty)' },
+          { role: 'user', content: 'That was not valid JSON. Send the SAME answer again as the required JSON object only — no prose, no code fences.' },
+        ],
+      });
+      const repairText = repair.content.find((b: any) => b.type === 'text');
+      parsed = extractJson((repairText?.text ?? '').trim());
+    }
+    if (!parsed) throw new Error('unparseable_reply');
 
     const resolvedResources = parsed.crisis && Array.isArray(parsed.crisis_resources)
       ? Object.fromEntries(
@@ -263,9 +310,14 @@ Reply with JSON only.`
       { headers: { ...CORS, 'Content-Type': 'application/json' } },
     );
   } catch (_err) {
+    // This is a TRANSPORT/PARSE failure, not a medical one — so it must not
+    // impersonate a crisis response. The old copy led with "call 911", which
+    // read as though Billy had flagged her message when he had simply failed to
+    // answer it (and it masked the JSON bug above for weeks). Say what actually
+    // happened, invite a retry, and keep the hotlines as a quiet footer.
     return new Response(
       JSON.stringify({
-        reply: "I'm having trouble right now. If this is a medical emergency, please call 911. For mental-health crises, call or text 988.",
+        reply: "Sorry — I lost that one on my end. Say it again and I'll pick it right up.\n\nIf you need someone this second: 988 for a mental-health crisis, 911 for an emergency.",
         crisis: false,
         crisis_resources: undefined,
       }),

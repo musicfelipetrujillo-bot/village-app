@@ -116,10 +116,21 @@ export function muxStreamUrl(playbackId: string): string {
 export function muxPlayerUrl(playbackId: string, opts?: {
   autoplay?: boolean;
   poster?: string | null;
+  // Preferred caption language. Mux Player reads the text tracks attached to
+  // the ASSET; this only decides which one is on by default. Passing it when
+  // the asset has no tracks is harmless — the player just shows no CC button.
+  //
+  // Without this the caption columns on manual_videos fed nothing at all: we
+  // advertised "captions in english + español" on the paywall while the player
+  // had no caption plumbing whatsoever (found 2026-07-30). Wired ahead of the
+  // video drop so captions light up the moment the tracks are uploaded, with
+  // no client release required.
+  subtitleLang?: 'en' | 'es';
 }): string {
   const params = new URLSearchParams();
   if (opts?.autoplay) params.set('autoplay', 'true');
   if (opts?.poster) params.set('poster', opts.poster);
+  if (opts?.subtitleLang) params.set('default-subtitle-lang', opts.subtitleLang);
   const qs = params.toString();
   return `https://player.mux.com/${playbackId}${qs ? `?${qs}` : ''}`;
 }

@@ -16,7 +16,7 @@ import { useUserStore } from '@store/user';
 import { BEFORE_BABY, BEFORE_BABY_TOTAL, beforeBabyHtml } from '@/manual/beforeBaby';
 
 const STORE_KEY = 'village.beforeBaby.checked.v1';
-const GRAD: [string, string] = ['#E84B79', '#F6C94F'];
+const GRAD: [string, string] = ['#E14A32', '#E894AC'];
 
 function weeksAlong(dueDate: string | null): number | null {
   if (!dueDate) return null;
@@ -173,7 +173,7 @@ export default function BeforeBabyScreen() {
   );
 }
 
-const INK = '#43260F', INKSOFT = '#7A5A3A', ROSE = COLORS.v2_cinnamon, HONEY = '#B98A1E';
+const INK = '#43260F', INKSOFT = '#7A5A3A', ROSE = COLORS.v2_cinnamon, HONEY = '#A84A66';
 const s = StyleSheet.create({
   screen: { flex: 1, backgroundColor: COLORS.v2_cream },
   header: { flexDirection: 'row', alignItems: 'center', gap: 9, paddingHorizontal: 18, paddingVertical: 8 },

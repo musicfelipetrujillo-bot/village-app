@@ -62,7 +62,7 @@ duplicate is an unsubscribe.
 
 ### Content state
 
-52 weeks × EN/ES = **104 rows generated and live**. Regenerate or extend:
+52 weeks × EN/ES = **104 rows live, all hand-authored** (migration 113). Regenerate or extend:
 
 ```bash
 # fill anything missing (idempotent)
@@ -108,8 +108,12 @@ resolved, tz correct).
 - [ ] **Nobody receives these yet in practice** — the test accounts have no
       registered devices, so OneSignal accepts and delivers to 0. Confirm on a
       real device with a TestFlight build before judging open rates.
-- [ ] Felipe: skim the 104 generated rows in Studio (`week_nudges`) and edit
-      any that miss the voice. A few ES rows still read slightly translated.
+- [x] ~~Review the 104 generated rows.~~ Done 2026-07-30 (migration 113): all
+      104 hand-rewritten. Found and fixed a factual error (w43 pitched cow's
+      milk at ~10 months), two wrong age citations, three gendered-adjective
+      slips, three duplicate pushes, and a heavy `we've got` / `te contamos` /
+      `alrededor de ahora` formula. Rows are now `generator='hand'`, so a
+      future `mode:'missing'` generator run will not touch them.
 - [ ] Weeks 53–104 have no copy (and no `milestone_library` rows) — the RPC
       caps at week 52, so second-year babies get nothing. Decide whether year
       two matters before launch.

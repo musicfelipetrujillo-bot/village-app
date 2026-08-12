@@ -103,11 +103,11 @@ export function beforeBabyHtml(checked: Set<string>, babyName?: string): string 
     body{font-family:-apple-system,Helvetica,Arial,sans-serif;color:#3D2116;margin:0;padding:28px 26px;}
     h1{font-size:24px;margin:0 0 2px;}
     .sub{color:#8A6A55;font-size:13px;margin:0 0 20px;}
-    h2{font-size:15px;letter-spacing:.14em;text-transform:uppercase;color:#B0234F;margin:22px 0 8px;border-bottom:1px solid #EFE0C8;padding-bottom:6px;}
+    h2{font-size:15px;letter-spacing:.14em;text-transform:uppercase;color:#B03A22;margin:22px 0 8px;border-bottom:1px solid #EFE0C8;padding-bottom:6px;}
     .grp{font-size:13px;font-weight:700;color:#B98A1E;margin:14px 0 4px;}
     .row{display:flex;gap:10px;align-items:flex-start;padding:5px 0;}
-    .bx{width:16px;height:16px;border:1.5px solid #B0234F;border-radius:4px;flex:0 0 auto;text-align:center;line-height:15px;color:#fff;font-size:11px;}
-    .bx.on{background:#B0234F;}
+    .bx{width:16px;height:16px;border:1.5px solid #B03A22;border-radius:4px;flex:0 0 auto;text-align:center;line-height:15px;color:#fff;font-size:11px;}
+    .bx.on{background:#B03A22;}
     .lbl{font-size:14px;} .lbl.done{color:#8A6A55;} .note{color:#8A6A55;font-size:12px;}
     .foot{margin-top:26px;color:#a08a6c;font-size:11px;}
   </style></head><body>

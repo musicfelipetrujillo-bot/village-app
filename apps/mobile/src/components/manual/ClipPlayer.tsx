@@ -37,7 +37,7 @@ import {
   type ManualAudience,
 } from '@/api/manual';
 
-const ROSE = '#E84B79';
+const ROSE = '#E14A32';
 
 // playbackId (+ title/poster/duration) lets a clip carry its Mux asset directly,
 // for videos that live outside manual_videos (e.g. the week-level intro video) —
@@ -203,7 +203,15 @@ export default function ClipPlayer({ clips, startIndex = 0, onClose }: ClipPlaye
   const playerUrl = video
     ? (video.html_url
         ?? (video.mux_playback_id
-              ? muxPlayerUrl(video.mux_playback_id, { autoplay: true, poster: video.poster_url })
+              ? muxPlayerUrl(video.mux_playback_id, {
+                  autoplay: true,
+                  poster: video.poster_url,
+                  // Default the CC track to her app language when this video
+                  // claims to have it. No-op until the Mux asset carries tracks.
+                  subtitleLang: (lang === 'es' ? video.has_captions_es : video.has_captions_en)
+                    ? lang
+                    : undefined,
+                })
               : null))
     : null;
   const localHtml = useMemo(
@@ -346,7 +354,7 @@ export default function ClipPlayer({ clips, startIndex = 0, onClose }: ClipPlaye
     >
       {loading && (
         <View style={styles.center}>
-          <ActivityIndicator color={ROSE} />
+          <ActivityIndicator color="#C24A63" />
         </View>
       )}
 

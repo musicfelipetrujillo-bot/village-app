@@ -38,15 +38,15 @@ export const COLORS = {
   v2_paper:       '#FFFCF6',  // alt page surface
   v2_parchment:   '#F2E6DD',  // card bg, "Week 30" surfaces
   v2_card:        '#FFFCF6',  // pure-white substitute — use instead of #FFFFFF
-  v2_butter:      '#F4C53C',  // sunshine honey — card gradients, hero halos
-  v2_marigold:    '#F4C53C',  // IG hero pop ("honey" energy)
+  v2_butter:      '#DA9A2C',  // sunshine honey — card gradients, hero halos
+  v2_marigold:    '#DA9A2C',  // IG hero pop ("honey" energy)
 
   // --- V10 Gen Z named tokens (canonical -- see docs/V10_GENZ_REBRAND.md) ---
   genz_cream:      '#FCF7EF',  // app / page canvas
   genz_bone:       '#FFFCF6',  // cards, raised surfaces
-  genz_honey:      '#F4C53C',  // bee, sunshine, secondary button
-  genz_rose:       '#E84B79',  // PRIMARY action
-  genz_berry:      '#B0234F',  // deep pink -- pressed CTA, small action text
+  genz_honey:      '#DA9A2C',  // bee, sunshine, secondary button
+  genz_rose:       '#E14A32',  // PRIMARY action
+  genz_berry:      '#B03A22',  // deep pink -- pressed CTA, small action text
   genz_blush:      '#F7C5CB',  // soft tiles, chips, rings, empathy
   genz_caramel:    '#E98A6A',  // warm chestnut accent, feature tiles
   genz_clay:       '#F2E6DD',  // dividers, dashed borders, muted warm fills
@@ -54,8 +54,8 @@ export const COLORS = {
   genz_softink:    '#7A4A24',  // secondary text, captions, eyebrows
 
   // ─── Action (one cinnamon per screen) ───
-  v2_cinnamon:    '#E84B79',  // wordmark, CTA, link, active tab — the one spark
-  v2_cinnamon_dk: '#B0234F',  // pressed CTA
+  v2_cinnamon:    '#E14A32',  // wordmark, CTA, link, active tab — the one spark
+  v2_cinnamon_dk: '#B03A22',  // pressed CTA
 
   // ─── Support row ───
   v2_caramel:     '#E98A6A',  // italic-name accent, neutral chips, "second spark" fallback
@@ -75,9 +75,9 @@ export const COLORS = {
   // ─── Manual chapter pills · "fresh" preset (in-app default) ───
   v2_pill_feel:   '#F7C5CB',  // salmon
   v2_pill_heal:   '#E98A6A',  // moss
-  v2_pill_feed:   '#F4C53C',  // butter
+  v2_pill_feed:   '#DA9A2C',  // butter
   v2_pill_sleep:  '#F2E6DD',  // caramel
-  v2_pill_tips:   '#B0234F',  // cinnamon
+  v2_pill_tips:   '#B03A22',  // cinnamon
 
   // ─── Manual chapter sub-palette · "original" preset (alternate, not default) ───
   v2_feel_orig:   '#E98A6A',
@@ -102,18 +102,18 @@ export const COLORS = {
   // counterparts serve different roles (sage v2 is much lighter; pink v2 is
   // a different blush; no v2 mauve/sand equivalent).
   pink:         '#F7C5CB',  // hero accent, decorative wash, pill bg (v1)
-  pinkDeep:     '#E84B79',  // pressed/active pink (e.g. selected pill)
+  pinkDeep:     '#E14A32',  // pressed/active pink (e.g. selected pill)
   pinkSoft:     '#FAE2DB',  // softer wash for surface tints
-  coco:         '#E84B79',  // ▲ ROUTED → v2 cinnamon (was #AD795B)
-  cocoDeep:     '#B0234F',  // ▲ ROUTED → v2 cinnamon dark (was #E98A6A)
+  coco:         '#E14A32',  // ▲ ROUTED → v2 cinnamon (was #AD795B)
+  cocoDeep:     '#B03A22',  // ▲ ROUTED → v2 cinnamon dark (was #E98A6A)
   cocoSoft:     '#E98A6A',  // ▲ ROUTED → v2 caramel (was #E98A6A)
   cream:        '#FCF7EF',  // ▲ ROUTED → v2 cream (was #F5EFE6)
 
   // Secondary support
   bark:         '#43260F',  // ▲ ROUTED → v2 cocoa (was #3D1F0D, ~identical)
   barkSoft:     '#7A4A24',  // ▲ ROUTED → v2 walnut (was #7A4A24)
-  sienna:       '#E84B79',  // ▲ ROUTED → v2 cinnamon (alias of coco)
-  siennaDeep:   '#B0234F',  // ▲ ROUTED → v2 cinnamon dark
+  sienna:       '#E14A32',  // ▲ ROUTED → v2 cinnamon (alias of coco)
+  siennaDeep:   '#B03A22',  // ▲ ROUTED → v2 cinnamon dark
   sage:         '#E98A6A',  // calm / success / nature (v1 — v2 sage is a different role)
   sageDeep:     '#E98A6A',
   sageSoft:     '#F2E6DD',  // light sage wash — specialty tiles, success tints
@@ -126,17 +126,17 @@ export const COLORS = {
   statusAlert:   '#D87530', // orange — active/expiring/time-sensitive states
   statusSuccess: '#2E7D32', // green  — verified/fulfilled/complete states
   blush:        '#F7C5CB',  // = pink (legacy callers)
-  blushDeep:    '#E84B79',  // = pinkDeep
+  blushDeep:    '#E14A32',  // = pinkDeep
   ceramic:      '#FCF7EF',  // ▲ ROUTED → v2 cream (was #F5EFE6)
 
   // ─── Legacy aliases — @deprecated ───────────────────────────────────────
   // These resolve to canonical Brand Kit v5 tokens. New code should use
   // the canonical name directly. Aliases will be removed in a future sweep.
-  rust:         '#E84B79',  // ▲ ROUTED → v2 cinnamon (was #AD795B)
-  rustDark:     '#B0234F',  // ▲ ROUTED → v2 cinnamon dark
+  rust:         '#E14A32',  // ▲ ROUTED → v2 cinnamon (was #AD795B)
+  rustDark:     '#B03A22',  // ▲ ROUTED → v2 cinnamon dark
   rustLight:    '#E98A6A',  // ▲ ROUTED → v2 caramel
-  diner:        '#E84B79',  // ▲ ROUTED → v2 cinnamon
-  dinerDark:    '#B0234F',  // ▲ ROUTED → v2 cinnamon dark
+  diner:        '#E14A32',  // ▲ ROUTED → v2 cinnamon
+  dinerDark:    '#B03A22',  // ▲ ROUTED → v2 cinnamon dark
   dinerLight:   '#E98A6A',  // ▲ ROUTED → v2 caramel
   brownDeep:    '#43260F',  // ▲ ROUTED → v2 cocoa
   brownMid:     '#7A4A24',  // ▲ ROUTED → v2 walnut

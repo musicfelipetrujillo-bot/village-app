@@ -80,8 +80,9 @@ function loggedLabel(counts: { sleep: number; feed: number; diaper: number }, es
 
 type Pane = 'sleep' | 'feed' | 'diaper' | null;
 
-export default function PlaybookTracker({ babyProfileId, babyName, week, lang }: {
+export default function PlaybookTracker({ babyProfileId, babyName, week, lang, initialPane, onNeedBaby }: {
   babyProfileId: string | null; babyName: string; week: number; lang: 'en' | 'es';
+  initialPane?: Pane; onNeedBaby?: () => void;
 }) {
   const es = lang === 'es';
   const store = useTrackerStore();
@@ -97,7 +98,7 @@ export default function PlaybookTracker({ babyProfileId, babyName, week, lang }:
   }, [activeSleep, activeFeed]);
   const nowMs = Date.now();
 
-  const [open, setOpen] = useState<Pane>(null);
+  const [open, setOpen] = useState<Pane>(initialPane ?? null);
   const [ozDraft, setOzDraft] = useState(3);
   const [note, setNote] = useState('');
   const [parsing, setParsing] = useState(false);
@@ -105,11 +106,16 @@ export default function PlaybookTracker({ babyProfileId, babyName, week, lang }:
 
   const wakeMin = wakeWindowMinutes(week);
 
-  const onStartSleep = async () => { select(); setOpen(null); await store.startSleep(); await scheduleWakeAlarm(wakeMin * 60, babyName); };
+  // No baby profile yet → every log is a silent no-op in the store. Instead of
+  // dead buttons, send the user to set up their baby first.
+  // Keep the pane OPEN on start so the L/R (or sleep) control the user just
+  // tapped visibly becomes the live "running" row in place — no collapse, no
+  // "did anything happen?" (founder 2026-08-10).
+  const onStartSleep = async () => { if (!babyProfileId) return onNeedBaby?.(); select(); await store.startSleep(); await scheduleWakeAlarm(wakeMin * 60, babyName); };
   const onStopSleep = async () => { tap(); await cancelWakeAlarm(); await store.stopSleep(); };
-  const onStartFeed = (method: 'breast' | 'bottle', side: 'left' | 'right' | null) => { select(); setOzDraft(3); setOpen(null); store.startFeed(method, side); };
+  const onStartFeed = (method: 'breast' | 'bottle', side: 'left' | 'right' | null) => { if (!babyProfileId) return onNeedBaby?.(); select(); setOzDraft(3); store.startFeed(method, side); };
   const onStopFeed = () => { tap(); store.stopFeed(activeFeed?.method === 'bottle' ? ozDraft : null); };
-  const onDiaper = (kind: 'wet' | 'dirty' | 'both') => { tap(); store.logDiaper(kind); };
+  const onDiaper = (kind: 'wet' | 'dirty' | 'both') => { if (!babyProfileId) return onNeedBaby?.(); tap(); store.logDiaper(kind); };
   const onSaveNote = async () => {
     if (!note.trim() || parsing) return;
     tap();
@@ -151,16 +157,17 @@ export default function PlaybookTracker({ babyProfileId, babyName, week, lang }:
     return es ? `Ventanas más cortas que el ~${wakeMin}m típico — atenta a las señales de sueño temprano.` : `Awake windows are shorter than the ~${wakeMin}m typical — watch for sleepy cues early.`;
   })();
 
-  const PILLS: { k: Exclude<Pane, null>; icon: string; label: string; active: boolean }[] = [
-    { k: 'sleep', icon: ICON.moon, label: es ? 'Sueño' : 'Sleep', active: !!activeSleep },
-    { k: 'feed', icon: ICON.bottle, label: es ? 'Toma' : 'Feed', active: !!activeFeed },
-    { k: 'diaper', icon: ICON.droplet, label: es ? 'Pañal' : 'Diaper', active: false },
+  const PILLS: { k: Exclude<Pane, null>; icon: string; label: string; active: boolean; bg: string; bgOn: string; ink: string }[] = [
+    { k: 'feed', icon: ICON.bottle, label: es ? 'Toma' : 'Feed', active: !!activeFeed, bg: '#F7E7BE', bgOn: '#EFD497', ink: '#5A4012' },
+    { k: 'sleep', icon: ICON.moon, label: es ? 'Sueño' : 'Sleep', active: !!activeSleep, bg: '#F3DFC9', bgOn: '#E7C6A2', ink: '#8A4E28' },
+    { k: 'diaper', icon: ICON.droplet, label: es ? 'Pañal' : 'Diaper', active: false, bg: '#E4E7C8', bgOn: '#D2D8AB', ink: '#3F4516' },
   ];
 
   return (
-    <View style={{ marginTop: 14 }}>
-      {/* Live sleep timer — the "don't oversleep" widget, only while napping. */}
-      {activeSleep && (
+    <View style={{ marginTop: 14, paddingHorizontal: 16 }}>
+      {/* Live sleep timer — the "don't oversleep" widget, only while napping.
+          Hidden while the Sleep pane is open (the pane shows the live row). */}
+      {activeSleep && open !== 'sleep' && (
         <View style={styles.sleepActive}>
           <View style={styles.rowBetween}>
             <Text style={styles.sleepEyebrow}>{es ? 'SUEÑO · EN CURSO' : 'SLEEP · IN PROGRESS'}</Text>
@@ -185,8 +192,9 @@ export default function PlaybookTracker({ babyProfileId, babyName, week, lang }:
         </View>
       )}
 
-      {/* Live feed timer — only while a feed runs. */}
-      {activeFeed && (
+      {/* Live feed timer — only while a feed runs. Hidden while the Feed pane is
+          open (the pane shows the live row in place of L/R). */}
+      {activeFeed && open !== 'feed' && (
         <View style={styles.feedActiveCard}>
           <View style={styles.rowBetween}>
             <Text style={styles.feedActiveLabel}>
@@ -209,26 +217,44 @@ export default function PlaybookTracker({ babyProfileId, babyName, week, lang }:
         </View>
       )}
 
-      {/* Compact pill control — Sleep | Feed | Diaper. Tap to log. */}
-      <View style={styles.logCard}>
-        <Text style={styles.logEyebrow}>{es ? 'REGISTRAR' : 'LOG'}</Text>
-        <View style={styles.pillRow}>
-          {PILLS.map((p) => {
-            const on = open === p.k;
-            return (
-              <TouchableOpacity key={p.k} onPress={() => togglePane(p.k)} activeOpacity={0.85} style={[styles.pill, on && styles.pillOn]}>
-                <Glyph d={p.icon} color={on ? C.cocoa : C.walnut} size={15} sw={1.8} />
-                <Text style={[styles.pillText, on && styles.pillTextOn]}>{p.label}</Text>
-                {p.active && <View style={styles.pillDot} />}
-              </TouchableOpacity>
-            );
-          })}
-        </View>
+      {/* LOG — the hero: three big, colored actions. Tap one to open its
+          quick control below. */}
+      <View style={styles.bigPillRow}>
+        {PILLS.map((p) => {
+          const on = open === p.k;
+          return (
+            <TouchableOpacity
+              key={p.k}
+              onPress={() => togglePane(p.k)}
+              activeOpacity={0.85}
+              style={[styles.bigPill, { backgroundColor: on ? p.bgOn : p.bg }, on && { borderColor: p.ink }]}
+              accessibilityRole="button"
+              accessibilityState={{ expanded: on }}
+              accessibilityLabel={p.label}
+            >
+              <Glyph d={p.icon} color={p.ink} size={23} sw={1.8} />
+              <Text style={[styles.bigPillText, { color: p.ink }]}>{p.label}</Text>
+              {p.active ? <View style={[styles.bigPillDot, { backgroundColor: p.ink }]} /> : null}
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+
+      {open ? (
+        <View style={styles.panelCard}>
 
         {open === 'sleep' && (
           <View style={styles.panel}>
             {activeSleep ? (
-              <Text style={styles.panelHint}>{es ? 'siesta en curso — temporizador arriba ↑' : 'nap running — timer above ↑'}</Text>
+              <View style={styles.runRow}>
+                <View style={[styles.runDot, { backgroundColor: C.clayInk }]} />
+                <Text style={styles.runLabel}>{es ? 'Siesta en curso' : 'Nap running'}</Text>
+                <Text style={styles.runTimer}>{elapsedLabel(sleepElapsed)}</Text>
+                <TouchableOpacity onPress={onStopSleep} activeOpacity={0.9} style={styles.sleepStopBtn}>
+                  <Glyph d={ICON.stop} color="#9A4E28" size={13} fill="#9A4E28" sw={0} />
+                  <Text style={styles.sleepStopText}>{es ? 'parar' : 'stop'}</Text>
+                </TouchableOpacity>
+              </View>
             ) : (
               <TouchableOpacity onPress={onStartSleep} activeOpacity={0.9} style={styles.startBtn}>
                 <Glyph d={ICON.play} color={C.clayInk} size={14} fill={C.clayInk} sw={0} />
@@ -242,7 +268,27 @@ export default function PlaybookTracker({ babyProfileId, babyName, week, lang }:
         {open === 'feed' && (
           <View style={styles.panel}>
             {activeFeed ? (
-              <Text style={styles.panelHint}>{es ? 'toma en curso — temporizador arriba ↑' : 'feed running — timer above ↑'}</Text>
+              <>
+                <View style={styles.runRow}>
+                  <View style={[styles.runDot, { backgroundColor: '#C24A63' }]} />
+                  <Text style={styles.runLabel}>
+                    {activeFeed.method === 'bottle' ? (es ? 'Biberón' : 'Bottle') : activeFeed.side === 'left' ? (es ? 'Pecho izq.' : 'Left breast') : (es ? 'Pecho der.' : 'Right breast')}
+                  </Text>
+                  <Text style={styles.runTimer}>{elapsedLabel(feedElapsed)}</Text>
+                  <TouchableOpacity onPress={onStopFeed} activeOpacity={0.9} style={styles.feedStopBtn}>
+                    <Glyph d={ICON.stop} color="#fff" size={12} fill="#fff" sw={0} />
+                    <Text style={styles.feedStopText}>{es ? 'parar' : 'stop'}</Text>
+                  </TouchableOpacity>
+                </View>
+                {activeFeed.method === 'bottle' && (
+                  <View style={styles.ozRow}>
+                    <Text style={styles.ozLabel}>{es ? 'onzas' : 'oz'}</Text>
+                    <TouchableOpacity onPress={() => setOzDraft((o) => Math.max(0.5, Math.round((o - 0.5) * 2) / 2))} style={styles.ozBtn}><Text style={styles.ozBtnText}>−</Text></TouchableOpacity>
+                    <Text style={styles.ozValue}>{ozDraft}</Text>
+                    <TouchableOpacity onPress={() => setOzDraft((o) => Math.min(12, Math.round((o + 0.5) * 2) / 2))} style={styles.ozBtn}><Text style={styles.ozBtnText}>+</Text></TouchableOpacity>
+                  </View>
+                )}
+              </>
             ) : (
               <>
                 <View style={{ flexDirection: 'row', gap: 7 }}>
@@ -275,7 +321,8 @@ export default function PlaybookTracker({ babyProfileId, babyName, week, lang }:
             <Text style={styles.feedTip}>{diaperCount} {es ? 'hoy' : 'today'}</Text>
           </View>
         )}
-      </View>
+        </View>
+      ) : null}
 
       {/* Jot — text / dictation */}
       <View style={styles.jotCard}>
@@ -324,28 +371,9 @@ export default function PlaybookTracker({ babyProfileId, babyName, week, lang }:
         </View>
       )}
 
-      {/* Phase 3 — "what your logs say": curated from the mom's real recent data. */}
-      {hasInsights && stats && (
-        <View style={styles.insightCard}>
-          <Text style={styles.insightEyebrow}>{es ? 'LO QUE DICEN TUS REGISTROS' : 'WHAT YOUR LOGS SAY'}</Text>
-          <View style={styles.insightChips}>
-            {stats.avgWakeWindowMin != null && (
-              <View style={styles.insightChip}><Text style={styles.insightVal}>{hm(stats.avgWakeWindowMin)}</Text><Text style={styles.insightKey}>{es ? 'VIGILIA' : 'WAKE WINDOW'}</Text></View>
-            )}
-            {stats.avgFeedGapMin != null && (
-              <View style={styles.insightChip}><Text style={styles.insightVal}>{es ? 'c/' : 'q'}{hm(stats.avgFeedGapMin)}</Text><Text style={styles.insightKey}>{es ? 'TOMAS' : 'FEEDS'}</Text></View>
-            )}
-            {stats.avgNapMin != null && (
-              <View style={styles.insightChip}><Text style={styles.insightVal}>{hm(stats.avgNapMin)}</Text><Text style={styles.insightKey}>{es ? 'SIESTA' : 'NAP AVG'}</Text></View>
-            )}
-            {stats.diapersPerDay != null && (
-              <View style={styles.insightChip}><Text style={styles.insightVal}>{stats.diapersPerDay}/{es ? 'd' : 'd'}</Text><Text style={styles.insightKey}>{es ? 'PAÑALES' : 'DIAPERS'}</Text></View>
-            )}
-          </View>
-          {takeaway && <Text style={styles.insightTakeaway}>{takeaway}</Text>}
-          <Text style={styles.insightDisc}>{es ? 'Patrones de tus registros — apoyo, no consejo médico.' : 'Patterns from your logs — supportive, not medical advice.'}</Text>
-        </View>
-      )}
+      {/* "What your logs say" read-back removed from the Log zone (2026-08-10):
+          it duplicated the Insights section below and cluttered the logger.
+          Insights now lives only in the screen's "Insights" zone. */}
     </View>
   );
 }
@@ -423,8 +451,20 @@ const styles = StyleSheet.create({
   pillTextOn: { color: C.cocoa },
   pillDot: { position: 'absolute', top: 6, right: 10, width: 7, height: 7, borderRadius: 4, backgroundColor: C.rose },
 
-  panel: { marginTop: 12 },
+  // LOG hero — three big colored actions + the quick-control card they open.
+  bigPillRow: { flexDirection: 'row', gap: 9 },
+  bigPill: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 15, borderRadius: 16, gap: 6, borderWidth: 2, borderColor: 'transparent' },
+  bigPillText: { fontFamily: FONTS.v2_bold, fontSize: 13.5 },
+  bigPillDot: { position: 'absolute', top: 9, right: 11, width: 8, height: 8, borderRadius: 4 },
+  panelCard: { marginTop: 10, backgroundColor: C.paper, borderRadius: 14, padding: 13, borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(122,74,40,0.14)' },
+
+  panel: { marginTop: 0 },
   panelHint: { fontFamily: FONTS.v2_body, fontSize: 12, color: C.walnut, textAlign: 'center', paddingVertical: 6 },
+  // Inline "running" row — the L/R (or sleep) control turns into this in place.
+  runRow: { flexDirection: 'row', alignItems: 'center', gap: 9, paddingVertical: 2 },
+  runDot: { width: 8, height: 8, borderRadius: 4 },
+  runLabel: { flex: 1, fontFamily: FONTS.v2_bold, fontSize: 13.5, color: C.cocoa },
+  runTimer: { fontFamily: FONTS.v2_bold, fontSize: 15, color: C.cocoa, letterSpacing: 0.3 },
   startBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: C.clay, borderRadius: 12, paddingVertical: 13 },
   startBtnText: { fontFamily: FONTS.v3_display, fontSize: 15, color: C.clayInk },
   startBtnSub: { fontFamily: FONTS.v2_body, fontSize: 10.5, color: C.claySub },

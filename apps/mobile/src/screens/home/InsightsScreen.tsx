@@ -10,7 +10,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useNavigation, useFocusEffect, useRoute } from '@react-navigation/native';
 import { babyTrackerApi, type RecentStats } from '@api/babyTracker';
 import { homeApi } from '@api/home';
 import { useHomeStore } from '@store/home';
@@ -22,8 +22,8 @@ import PlaybookTracker from '@/components/manual/PlaybookTracker';
 
 const C = {
   cream: '#FCF7EF', paper: '#FFFCF6',
-  rose: '#E84B79', roseInk: '#B0234F', roseTint: '#FDECEF',
-  honey: '#F5C842', honeyCard: '#FBE9BE', honeyInk: '#B98A1E',
+  rose: '#C24A63', roseInk: '#9E2F4C', roseTint: '#FDECEF',
+  honey: '#D9789A', honeyCard: '#FBE0E8', honeyInk: '#A84A66',
   cocoa: '#3D2116', walnut: '#8A6A55', sage: '#7B8A46', muted: '#A6957F',
   hair: 'rgba(61,31,14,0.08)',
 };
@@ -44,33 +44,40 @@ function fmtMin(m: number | null | undefined): string {
   const h = Math.floor(m / 60), mm = Math.round(m % 60);
   return h > 0 ? `${h}h ${mm}m` : `${mm}m`;
 }
-const MOOD_DOT = ['#E0D6BE', '#E84B79', '#F3B9C8', '#FBE0A6', '#C3D19A', '#A7C070'];
+const MOOD_DOT = ['#E0D6BE', '#C24A63', '#F3B9C8', '#FBE0A6', '#C3D19A', '#A7C070'];
 
 export default function InsightsScreen() {
   const nav = useNavigation<any>();
+  const route = useRoute<any>();
   const babyProfile = useHomeStore((s) => s.babyProfile);
+  const setBabyProfile = useHomeStore((s) => s.setBabyProfile);
   const milestone = useHomeStore((s) => s.currentMilestone);
   const vault = useMilkVaultStore((s) => s.core);
   const fetchVault = useMilkVaultStore((s) => s.fetchAll);
 
   const [stats, setStats] = useState<RecentStats | null>(null);
-  const [moods, setMoods] = useState<{ checkin_date: string; mood_score: number }[]>([]);
   const [loading, setLoading] = useState(true);
+  // 0 = this week; 1 = last week; etc. The "this week" chip steps this back so
+  // moms can see past weeks' real patterns.
+  const [weekOffset, setWeekOffset] = useState(0);
 
   useFocusEffect(
     useCallback(() => {
       let cancelled = false;
       (async () => {
         setLoading(true);
-        const [s, m] = await Promise.all([
-          babyTrackerApi.getRecentStats(7).catch(() => null),
-          homeApi.getRecentCheckins(7).catch(() => [] as { checkin_date: string; mood_score: number }[]),
-        ]);
+        // The tracker's logging (feed/sleep/diaper) is a silent no-op unless a
+        // baby profile is loaded. Don't rely on Home having populated the store
+        // — if it's missing, pull it here so L/R, diaper, and sleep actually work.
+        if (!babyProfile) {
+          homeApi.getMyBabyProfile().then((p) => { if (!cancelled && p) setBabyProfile(p); }).catch(() => {});
+        }
+        const s = await babyTrackerApi.getRecentStats(7, weekOffset).catch(() => null);
         fetchVault().catch(() => {});
-        if (!cancelled) { setStats(s); setMoods(m); setLoading(false); }
+        if (!cancelled) { setStats(s); setLoading(false); }
       })();
       return () => { cancelled = true; };
-    }, [fetchVault]),
+    }, [fetchVault, babyProfile, setBabyProfile, weekOffset]),
   );
 
   const babyName = babyProfile?.baby_name ?? 'your baby';
@@ -78,41 +85,70 @@ export default function InsightsScreen() {
   const lang = (useUserStore.getState().profile?.preferred_language ?? 'en') as 'en' | 'es';
   const ww = stats?.avgWakeWindowMin ?? null;
   const milkAdded = vault?.weeklyOuncesAdded ?? 0;
-  const goodDays = moods.filter((m) => m.mood_score >= 3).length;
-  const hardDays = moods.filter((m) => m.mood_score <= 2).length;
+  const isCurrentWeek = weekOffset === 0;
+  const displayWeek = week != null ? Math.max(1, week - weekOffset) : null;
+  const weekLabel = weekOffset === 0
+    ? (lang === 'es' ? 'esta semana' : 'this week')
+    : weekOffset === 1
+      ? (lang === 'es' ? 'semana pasada' : 'last week')
+      : (lang === 'es' ? `hace ${weekOffset} sem` : `${weekOffset} wks ago`);
 
   const bits: string[] = [];
-  if (ww) bits.push(`${babyName}'s wake windows are averaging about ${fmtMin(ww)}${ww >= 120 ? ' — a sign they may be ready to stretch to fewer, longer naps' : ''}.`);
-  if (milkAdded > 0) bits.push(`Your freezer's up ${milkAdded} oz this week.`);
-  if (moods.length > 0) bits.push(hardDays > goodDays ? 'A couple of harder days this week — worth a gentle look below.' : `You logged ${goodDays} good ${goodDays === 1 ? 'day' : 'days'}.`);
-  const narration = bits.length > 0 ? bits.join(' ') : `Log a few naps, feeds, or a daily check-in and Villie will start reading your week back to you here.`;
+  if (ww) bits.push(`${babyName}'s wake windows averaged about ${fmtMin(ww)} ${isCurrentWeek ? 'this week' : 'that week'}${ww >= 120 ? ' — a sign they may be ready to stretch to fewer, longer naps' : ''}.`);
+  if (isCurrentWeek && milkAdded > 0) bits.push(`Your freezer's up ${milkAdded} oz this week.`);
+  const narration = bits.length > 0
+    ? bits.join(' ')
+    : (isCurrentWeek
+        ? `Log a few naps or feeds and Villie will start reading your week back to you here.`
+        : `No naps or feeds logged ${weekLabel}.`);
 
   return (
     <View style={styles.container}>
       <SafeAreaView style={{ flex: 1 }} edges={['top']}>
         <View style={styles.header}>
           <BackButton color={C.roseInk} />
-          <Text style={styles.title}>insights</Text>
-          <View style={styles.weekChip}><Text style={styles.weekChipText}>this week</Text></View>
+          <Text style={styles.title}>your day</Text>
+          <View style={styles.weekStepper}>
+            <TouchableOpacity
+              onPress={() => setWeekOffset((o) => Math.min(o + 1, week != null ? week - 1 : 12))}
+              disabled={weekOffset >= (week != null ? week - 1 : 12)}
+              hitSlop={{ top: 10, bottom: 10, left: 8, right: 6 }}
+              accessibilityRole="button" accessibilityLabel={lang === 'es' ? 'Semana anterior' : 'Previous week'}
+            >
+              <Text style={[styles.weekArrow, weekOffset >= (week != null ? week - 1 : 12) && { opacity: 0.25 }]}>‹</Text>
+            </TouchableOpacity>
+            <Text style={styles.weekStepperText}>{weekLabel}</Text>
+            <TouchableOpacity
+              onPress={() => setWeekOffset((o) => Math.max(o - 1, 0))}
+              disabled={weekOffset === 0}
+              hitSlop={{ top: 10, bottom: 10, left: 6, right: 8 }}
+              accessibilityRole="button" accessibilityLabel={lang === 'es' ? 'Semana siguiente' : 'Next week'}
+            >
+              <Text style={[styles.weekArrow, weekOffset === 0 && { opacity: 0.25 }]}>›</Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         {loading ? (
           <View style={styles.center}><ActivityIndicator color={C.rose} /></View>
         ) : (
           <ScrollView contentContainerStyle={{ paddingBottom: 90 }} showsVerticalScrollIndicator={false}>
-            {/* Log first (2026-07-15 — the retired Manual/Playbook view's tracker
-                now lives HERE): quick-log on Home lands on this screen, so the
-                sleep/feed/diaper logger sits at the top, and everything below
-                is the read-back on what she logged. */}
+            {/* Two clearly-labeled zones (founder 2026-08-10): LOG at the top (do),
+                INSIGHTS below (read back). Quick-log on Home lands here. */}
+            <Text style={styles.sectionLabel}>{lang === 'es' ? 'Registrar' : 'Log'}</Text>
             <PlaybookTracker
               babyProfileId={babyProfile?.id ?? null}
               babyName={babyProfile?.baby_name ?? 'baby'}
               week={week ?? 1}
               lang={lang}
+              initialPane={route.params?.pane}
+              onNeedBaby={() => nav.navigate('BabyProfileSetup')}
             />
 
+            <Text style={[styles.sectionLabel, { marginTop: 26 }]}>{lang === 'es' ? 'Análisis' : 'Insights'}</Text>
+
             {/* Villie's read — the gradient "Villie moment" */}
-            <LinearGradient colors={['#E84B79', '#F6C94F']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.narrCard}>
+            <LinearGradient colors={['#C24A63', '#E894AC']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.narrCard}>
               <View style={styles.narrHead}>
                 <View style={styles.narrBee}><Glyph d={ICON.spark} color={C.honeyInk} size={15} /></View>
                 <Text style={styles.narrEyebrow}>villie's read on your week</Text>
@@ -131,48 +167,30 @@ export default function InsightsScreen() {
                   <Text style={styles.cardBody}>Naps averaging {fmtMin(stats?.avgNapMin)} · {stats?.sleepSessions ?? 0} logged this week.</Text>
                 </>
               ) : (
-                <TouchableOpacity onPress={() => nav.getParent()?.navigate('Manual' as never)} accessibilityRole="button"><Text style={styles.emptyLink}>Start logging naps in Playbook →</Text></TouchableOpacity>
+                <Text style={styles.cardBody}>{lang === 'es' ? 'Registra una siesta arriba ↑ y tus patrones de sueño aparecen aquí.' : 'Log a nap up in Log ↑ and your sleep patterns show up here.'}</Text>
               )}
             </View>
 
             {/* Milk + growth */}
             <View style={styles.twoUp}>
-              <View style={[styles.miniCard, { backgroundColor: C.roseTint }]}>
-                <Text style={[styles.miniEyebrow, { color: C.roseInk }]}>milk stashed</Text>
-                <Text style={styles.miniBig}>+{milkAdded}<Text style={styles.miniUnit}> oz</Text></Text>
-                <Text style={styles.miniSub}>{vault?.totalFreezerOz ?? 0} oz in the freezer</Text>
-              </View>
-              <View style={[styles.miniCard, { backgroundColor: C.honeyCard }]}>
-                <Text style={[styles.miniEyebrow, { color: C.honeyInk }]}>{babyName} is</Text>
-                <Text style={styles.miniBig}>{week ?? '—'}<Text style={styles.miniUnit}> {week ? 'wks' : ''}</Text></Text>
-                <Text style={styles.miniSub} numberOfLines={2}>{milestone?.title ?? 'growing every day'}</Text>
-              </View>
-            </View>
-
-            {/* Mood */}
-            <View style={styles.card}>
-              <View style={styles.cardHead}>
-                <View style={styles.rowGap}><Glyph d={ICON.heart} color={C.roseInk} size={15} /><Text style={styles.cardEyebrow}>how you're doing</Text></View>
-                {moods.length > 0 && <Text style={styles.cardMeta}>{goodDays} good · {hardDays} hard</Text>}
-              </View>
-              {moods.length > 0 ? (
-                <>
-                  <View style={styles.moodRow}>
-                    {moods.slice(-7).map((m, i) => (
-                      <View key={i} style={[styles.moodDot, { backgroundColor: MOOD_DOT[m.mood_score] ?? MOOD_DOT[0] }, m.mood_score <= 2 && styles.moodDotWarn]} />
-                    ))}
-                  </View>
-                  {hardDays > 0 && (
-                    <TouchableOpacity style={styles.moodNudge} onPress={() => nav.navigate('DailyCheckin')} accessibilityRole="button">
-                      <Glyph d={ICON.heart} color={C.roseInk} size={16} />
-                      <Text style={styles.moodNudgeText}>A rough patch shows here. A quick check-in, or someone to talk to?</Text>
-                      <Glyph d={ICON.chev} color="#D19AAA" size={16} />
-                    </TouchableOpacity>
-                  )}
-                </>
+              {isCurrentWeek ? (
+                <View style={[styles.miniCard, { backgroundColor: C.roseTint }]}>
+                  <Text style={[styles.miniEyebrow, { color: C.roseInk }]}>milk stashed</Text>
+                  <Text style={styles.miniBig}>+{milkAdded}<Text style={styles.miniUnit}> oz</Text></Text>
+                  <Text style={styles.miniSub}>{vault?.totalFreezerOz ?? 0} oz in the freezer</Text>
+                </View>
               ) : (
-                <TouchableOpacity onPress={() => nav.navigate('DailyCheckin')} accessibilityRole="button"><Text style={styles.emptyLink}>Do a daily check-in to track how you're feeling →</Text></TouchableOpacity>
+                <View style={[styles.miniCard, { backgroundColor: C.roseTint }]}>
+                  <Text style={[styles.miniEyebrow, { color: C.roseInk }]}>feeds a day</Text>
+                  <Text style={styles.miniBig}>{stats?.feedsPerDay ?? '—'}</Text>
+                  <Text style={styles.miniSub}>{stats?.feeds ?? 0} feeds logged that week</Text>
+                </View>
               )}
+              <View style={[styles.miniCard, { backgroundColor: C.honeyCard }]}>
+                <Text style={[styles.miniEyebrow, { color: C.honeyInk }]}>{babyName} {isCurrentWeek ? 'is' : 'was'}</Text>
+                <Text style={styles.miniBig}>{displayWeek ?? '—'}<Text style={styles.miniUnit}> {displayWeek ? 'wks' : ''}</Text></Text>
+                <Text style={styles.miniSub} numberOfLines={2}>{isCurrentWeek ? (milestone?.title ?? 'growing every day') : 'looking back'}</Text>
+              </View>
             </View>
 
             <Text style={styles.disclaimer}>patterns from your own logs — not medical advice</Text>
@@ -194,6 +212,10 @@ const styles = StyleSheet.create({
   title: { fontFamily: FONTS.headerBold, fontSize: 28, color: C.cocoa, letterSpacing: -0.5 },
   weekChip: { backgroundColor: '#F2E6DD', borderRadius: 999, paddingHorizontal: 11, paddingVertical: 5 },
   weekChipText: { fontFamily: FONTS.v2_mono, fontSize: 9, letterSpacing: 1.3, textTransform: 'uppercase', color: C.walnut, fontWeight: '600' },
+  weekStepper: { flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: '#F2E6DD', borderRadius: 999, paddingHorizontal: 6, paddingVertical: 4 },
+  weekStepperText: { fontFamily: FONTS.v2_mono, fontSize: 9.5, letterSpacing: 1, textTransform: 'uppercase', color: C.walnut, fontWeight: '600', minWidth: 64, textAlign: 'center' },
+  weekArrow: { fontFamily: FONTS.v2_link, fontSize: 18, color: C.roseInk, paddingHorizontal: 3, marginTop: -2 },
+  sectionLabel: { fontFamily: FONTS.v2_mono, fontSize: 11, letterSpacing: 2, textTransform: 'uppercase', color: C.walnut, fontWeight: '600', marginHorizontal: 16, marginTop: 6, marginBottom: 8 },
 
   narrCard: { borderRadius: 18, padding: 18, marginHorizontal: 16, overflow: 'hidden' },
   narrHead: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 },

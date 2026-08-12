@@ -15,6 +15,11 @@
 --
 -- Idempotent + id-scoped: a no-op where the row doesn't exist (fresh/local
 -- resets) or where it has already been archived.
+--
+-- NOTE: this migration was applied to hosted directly and had no file in the
+-- repo, which blocked every later `supabase db push` with "Remote migration
+-- versions not found in local migrations directory". Recovered verbatim from
+-- supabase_migrations.schema_migrations on 2026-07-30 to restore parity.
 UPDATE public.trending_issues
    SET status = 'archived'
  WHERE id = '678ef93f-c883-40be-b92b-c43eef790466'

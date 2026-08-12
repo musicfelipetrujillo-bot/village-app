@@ -332,12 +332,12 @@ const styles = StyleSheet.create({
   // Primary CTA — cinnamon (the one spark)
   // v9 canonical CTA — action-deep (WCAG AA on paper text)
   btn: {
-    backgroundColor: '#E84B79',
+    backgroundColor: '#E14A32',
     borderRadius: 999,
     paddingVertical: 15,
     alignItems: 'center',
     marginTop: 8,
-    shadowColor: '#E84B79',
+    shadowColor: '#E14A32',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.24,
     shadowRadius: 10,

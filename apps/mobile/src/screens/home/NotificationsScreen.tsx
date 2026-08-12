@@ -55,7 +55,9 @@ export default function NotificationsScreen() {
     try {
       setError(null);
       const rows = await homeApi.listMyNotifications(50);
-      setItems(rows);
+      // Bell = true notifications only. Daily check-in nudges ("How are you
+      // today?") are a Home prompt, not an inbox item — keep them out of here.
+      setItems(rows.filter((r) => r.type !== 'daily_checkin'));
     } catch (err: any) {
       setError(err?.message ?? 'Could not load notifications.');
     }
@@ -125,7 +127,7 @@ export default function NotificationsScreen() {
 
       {loading ? (
         <View style={styles.loadingWrap}>
-          <ActivityIndicator color="#E84B79" />
+          <ActivityIndicator color="#C24A63" />
         </View>
       ) : error ? (
         <View style={styles.emptyWrap}>
@@ -226,9 +228,9 @@ const styles = StyleSheet.create({
   },
   // v9 canonical CTA — cinnamon + action-deep shadow.
   retryPill: {
-    marginTop: 18, backgroundColor: '#E84B79',
+    marginTop: 18, backgroundColor: '#E14A32',
     paddingHorizontal: 24, paddingVertical: 12, borderRadius: 999,
-    shadowColor: '#E84B79', shadowOffset: { width: 0, height: 4 },
+    shadowColor: '#E14A32', shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.24, shadowRadius: 10, elevation: 3,
   },
   retryPillText: {
@@ -270,7 +272,7 @@ const styles = StyleSheet.create({
   },
   unreadDot: {
     width: 8, height: 8, borderRadius: 4,
-    backgroundColor: '#E84B79',                                        // v9 unread = cinnamon (action affordance)
+    backgroundColor: '#C24A63',                                        // v9 unread = cinnamon (action affordance)
     marginLeft: 10, marginTop: 16,
   },
 });

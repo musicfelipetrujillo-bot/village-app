@@ -233,15 +233,19 @@ export const babyTrackerApi = {
   // ── Recent stats (Phase 3 curation) ───────────────────────────────────────
   // Aggregates the last `days` of logs into gentle patterns: average wake
   // window, feed cadence, and diaper counts per day. Fails soft → null.
-  async getRecentStats(days = 3): Promise<RecentStats | null> {
-    const since = new Date(Date.now() - days * 86400000).toISOString();
+  // weekOffset shifts the window back by whole weeks: 0 = the last `days`,
+  // 1 = the 7 days before that, etc. — so Insights can show past weeks.
+  async getRecentStats(days = 3, weekOffset = 0): Promise<RecentStats | null> {
+    const end = Date.now() - weekOffset * 7 * 86400000;
+    const endISO = new Date(end).toISOString();
+    const since = new Date(end - days * 86400000).toISOString();
     const [sleepR, feedR, diaperR] = await Promise.all([
       supabase.from('baby_sleep_logs').select('started_at, ended_at')
-        .gte('started_at', since).order('started_at', { ascending: true }),
+        .gte('started_at', since).lt('started_at', endISO).order('started_at', { ascending: true }),
       supabase.from('baby_feed_logs').select('started_at')
-        .gte('started_at', since).order('started_at', { ascending: true }),
+        .gte('started_at', since).lt('started_at', endISO).order('started_at', { ascending: true }),
       supabase.from('baby_diaper_logs').select('kind, occurred_at')
-        .gte('occurred_at', since),
+        .gte('occurred_at', since).lt('occurred_at', endISO),
     ]);
     if (sleepR.error && feedR.error && diaperR.error) {
       console.warn('[tracker] getRecentStats', sleepR.error?.message);

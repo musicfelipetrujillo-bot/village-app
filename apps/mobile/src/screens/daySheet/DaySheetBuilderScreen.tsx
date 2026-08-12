@@ -187,7 +187,7 @@ const s = StyleSheet.create({
   headTitle: { fontFamily: FONTS.v3_display, fontSize: 18, color: COLORS.v2_cocoa },
   save: { fontFamily: FONTS.bodySemiBold, fontSize: 15, color: COLORS.v2_cinnamon },
   card: { backgroundColor: '#FFFCF6', borderRadius: 14, padding: 14, borderWidth: 1, borderColor: 'rgba(61,31,14,0.08)' },
-  lbl: { fontFamily: FONTS.v2_mono, fontSize: 9.5, letterSpacing: 1.2, textTransform: 'uppercase', color: '#B98A1E', fontWeight: '700', marginBottom: 5 },
+  lbl: { fontFamily: FONTS.v2_mono, fontSize: 9.5, letterSpacing: 1.2, textTransform: 'uppercase', color: '#A84A66', fontWeight: '700', marginBottom: 5 },
   input: { fontFamily: FONTS.v2_body, fontSize: 14, color: COLORS.v2_cocoa, backgroundColor: '#FDF6EC', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10, borderWidth: 1, borderColor: 'rgba(61,31,14,0.08)' },
   sectionTitle: { fontFamily: FONTS.v3_display, fontSize: 19, color: COLORS.v2_cocoa, marginTop: 22, marginBottom: 4 },
   hint: { fontFamily: FONTS.v2_body, fontSize: 12.5, color: COLORS.v2_walnut, marginBottom: 10, lineHeight: 17 },

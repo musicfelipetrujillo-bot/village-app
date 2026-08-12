@@ -61,7 +61,8 @@ export default function ExpertsHomeScreen({ navigation, route }: Props) {
   const [activeChip, setActiveChip] = React.useState(initialChipKey);
   // Care two-tier directory — grouped into Clinical (NPI-verified) + Extra hands
   // (background-checked) sections, with a text search + checked-only filter.
-  const [tier, setTier] = React.useState<'all' | 'clinical' | 'help' | 'daycare'>('all');
+  // No "All" tier — the directory always opens on Clinical (founder call 2026-07-31).
+  const [tier, setTier] = React.useState<'clinical' | 'help' | 'daycare'>('clinical');
   const [query, setQuery] = React.useState('');
   const [checkedOnly, setCheckedOnly] = React.useState(false);
   const [daycares, setDaycares] = React.useState<Daycare[]>([]);
@@ -82,11 +83,11 @@ export default function ExpertsHomeScreen({ navigation, route }: Props) {
     const clinical = rows.filter((r) => (r.provider_kind ?? 'clinical') === 'clinical');
     const help = rows.filter((r) => r.provider_kind === 'help');
     const out: CareRow[] = [];
-    if ((tier === 'all' || tier === 'clinical') && clinical.length) {
+    if (tier === 'clinical' && clinical.length) {
       out.push({ kind: 'header', title: 'Clinical care', tag: 'NPI-verified' });
       clinical.forEach((item, idx) => out.push({ kind: 'provider', item, idx }));
     }
-    if ((tier === 'all' || tier === 'help') && help.length) {
+    if (tier === 'help' && help.length) {
       out.push({ kind: 'header', title: 'Extra hands', tag: 'Background-checked' });
       help.forEach((item, idx) => out.push({ kind: 'provider', item, idx }));
     }
@@ -236,7 +237,7 @@ export default function ExpertsHomeScreen({ navigation, route }: Props) {
 
       {/* Care tier toggle — clinical vs extra hands */}
       <View style={styles.tierRow}>
-        {(['all', 'clinical', 'help', 'daycare'] as const).map((k) => (
+        {(['clinical', 'help', 'daycare'] as const).map((k) => (
           <TouchableOpacity
             key={k}
             style={[styles.tierSeg, tier === k && styles.tierSegActive]}
@@ -245,7 +246,7 @@ export default function ExpertsHomeScreen({ navigation, route }: Props) {
             accessibilityState={{ selected: tier === k }}
           >
             <Text style={[styles.tierSegText, tier === k && styles.tierSegTextActive]} numberOfLines={1} adjustsFontSizeToFit>
-              {k === 'all' ? 'All' : k === 'clinical' ? 'Clinical' : k === 'help' ? 'Extra hands' : 'Daycare'}
+              {k === 'clinical' ? 'Clinical' : k === 'help' ? 'Extra hands' : 'Daycare'}
             </Text>
           </TouchableOpacity>
         ))}
@@ -389,7 +390,7 @@ const dc = StyleSheet.create({
   pillOpen: { backgroundColor: '#E7F0E2', color: '#3B7D52' },
   pillClosed: { backgroundColor: '#F1E7D8', color: '#8A6A55' },
   licBadge: { fontFamily: FONTS.v2_mono, fontSize: 9.5, color: '#8A6A55', marginTop: 5, letterSpacing: 0.2 },
-  licVerify: { color: '#B0234F', fontFamily: FONTS.v2_bold },
+  licVerify: { color: '#9E2F4C', fontFamily: FONTS.v2_bold },
   chevron: { fontFamily: FONTS.v2_bold, fontSize: 18, color: '#C9B7A2' },
   dist: { fontFamily: FONTS.v2_mono, fontSize: 10, color: '#A6957F', marginTop: 2 },
 });
@@ -415,7 +416,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   backToVillage: { paddingVertical: 4, paddingRight: 8 },
-  backToVillageText: { fontSize: 14, color: '#E84B79', fontFamily: FONTS.bodySemiBold },
+  backToVillageText: { fontSize: 14, color: '#C24A63', fontFamily: FONTS.bodySemiBold },
   headerActions: { flexDirection: 'row', gap: 8 },
   savedBtn: {
     flexDirection: 'row',
@@ -545,7 +546,7 @@ const styles = StyleSheet.create({
   careName: { fontFamily: FONTS.v3_display, fontSize: 26, letterSpacing: -0.6, color: COLORS.v2_cocoa },
 
   careSearchRow: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#FDF7EC', borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(61,31,14,0.14)', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 4, marginTop: 2 },
-  careSearchIcon: { fontSize: 18, color: '#B0234F' },
+  careSearchIcon: { fontSize: 18, color: '#9E2F4C' },
   careSearchInput: { flex: 1, fontFamily: FONTS.v2_body, fontSize: 13.5, color: '#3D2116', paddingVertical: 9 },
   checkedChip: { backgroundColor: '#EAF0DE', borderRadius: 999, paddingHorizontal: 9, paddingVertical: 5 },
   checkedChipActive: { backgroundColor: '#7B8A46' },
@@ -557,7 +558,7 @@ const styles = StyleSheet.create({
   careRowGap: { height: 10 },
   tierRow: { flexDirection: 'row', gap: 8, paddingTop: 14 },
   tierSeg: { flex: 1, alignItems: 'center', paddingVertical: 9, borderRadius: 999, backgroundColor: '#F2E6DD' },
-  tierSegActive: { backgroundColor: '#E84B79' },
+  tierSegActive: { backgroundColor: '#C24A63' },
   tierSegText: { fontFamily: FONTS.bodySemiBold, fontSize: 12.5, color: '#8A6A55' },
   tierSegTextActive: { color: '#fff' },
   // Secondary refinements — a single LIGHT text line (not a second row of
@@ -567,7 +568,7 @@ const styles = StyleSheet.create({
   chip: { paddingVertical: 2 },
   chipActive: {},
   chipText: { fontSize: 12.5, fontFamily: FONTS.bodySemiBold, color: COLORS.v2_walnut },
-  chipTextActive: { color: '#E84B79', textDecorationLine: 'underline' },
+  chipTextActive: { color: '#C24A63', textDecorationLine: 'underline' },
 
   // gap removed — FlashList doesn't apply contentContainerStyle gap to its
   // cells, so the cards read as crammed. Real spacing comes from the

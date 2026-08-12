@@ -23,6 +23,10 @@ prepare_react_native_project!
 target 'villie' do
   use_expo_modules!
 
+
+  # MODULAR_HEADERS_PATCH: link GoogleSignIn's AppCheckCore (Swift) against its
+  # non-modular deps as static libs — see plugins/withModularHeaders.js.
+  use_modular_headers!
   if ENV['EXPO_USE_COMMUNITY_AUTOLINKING'] == '1'
     config_command = ['node', '-e', "process.argv=['', '', 'config'];require('@react-native-community/cli').run()"];
   else

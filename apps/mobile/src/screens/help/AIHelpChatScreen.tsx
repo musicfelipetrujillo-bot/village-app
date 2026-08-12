@@ -39,6 +39,8 @@ interface UIMessage {
   crisisResources?: Record<string, CrisisResource>;
   quickReplies?: string[];
   cta?: { label: string; screen: string };
+  /** Params the pill passes through to runNavigate (e.g. box_checkout {box}). */
+  ctaParams?: Record<string, unknown>;
 }
 
 // The model is told plain-text-only, but strip any markdown emphasis that slips
@@ -66,15 +68,46 @@ const NAV_ROUTES: Record<string, { tab?: string; screen: string; params?: Record
   // The Playbook tracker lives on Insights since the Manual/Playbook toggle
   // was retired (2026-07-15) — the tracker is embedded at the top there.
   playbook:           { tab: 'Home',    screen: 'Insights' },
+  // Wave 2 route batch.
+  // ReviewSubmit + Messaging both require a specialistId param Billy can't
+  // supply (find_specialists returns no ids) — ReviewSubmit even renders
+  // spec.full_name unguarded — so, like booking above, both land on the Care
+  // directory (pick a provider → review / message).
+  write_review:       { tab: 'Experts', screen: 'ExpertsHome' },
+  message_specialist: { tab: 'Experts', screen: 'ExpertsHome' },
+  // Milk's CreateListing requires donorProfileId; DonorListingManager resolves
+  // the donor profile from the store and its "+" passes the id along.
+  create_milk_listing: { tab: 'Milk',   screen: 'DonorListingManager' },
+  milk_messages:      { tab: 'Milk',    screen: 'MilkMessageThreads' },
+  vault_create_listing: { tab: 'Milk',  screen: 'MilkVaultKeepSell' },
+  // Private freezer-stash dashboard (paramless) — landing route of the Milk tab.
+  milk_vault:         { tab: 'Milk',    screen: 'MilkVaultDashboard' },
+  gear_status:        { tab: 'Gear',    screen: 'MyListings' },
+  gear_messages:      { tab: 'Gear',    screen: 'GearMessageThreads' },
+  // Reporting lives in a modal on GearListingDetail, which needs a listing id —
+  // the browse list is the safe paramless entry.
+  report_gear:        { tab: 'Gear',    screen: 'GearBrowse' },
+  // Day Sheet caregiver handoff. The list is the safe paramless entry — a
+  // Billy-drafted sheet sorts to the top (updated_at desc); DaySheetBuilder
+  // without an id would start a fresh draft instead of opening Billy's.
+  day_sheet:          { tab: 'Home',    screen: 'DaySheetList' },
 };
 
 // Root-stack screen that hosts the bottom-tab navigator.
 const TABS_ROUTE = 'App';
 
 function runNavigate(navigation: any, action: { screen: string; params?: Record<string, unknown> }) {
-  const target = NAV_ROUTES[action.screen];
+  let target = NAV_ROUTES[action.screen];
   if (!target) return;
-  const params = { ...(target.params ?? {}), ...(action.params ?? {}) };
+  const params: Record<string, unknown> = { ...(target.params ?? {}), ...(action.params ?? {}) };
+  // Box-specific checkout: when Billy names a box (params.box), land on its
+  // detail page instead of the hub ("buy the newborn box" → The Newborn Box).
+  const boxKey = String(params.box ?? params.boxId ?? '').toLowerCase();
+  if (action.screen === 'box_checkout' && ['delivery', 'newborn', 'mama'].includes(boxKey)) {
+    target = { tab: 'Home', screen: 'BoxDetail' };
+    params.boxId = boxKey;
+    delete params.box;
+  }
   // Dispatch at the CONTAINER level (navigationRef), not through this modal's
   // own navigation prop: a dispatch tied to a dismissing screen can be dropped.
   // React Navigation v7: navigate() PUSHES a new instance instead of going back
@@ -83,8 +116,34 @@ function runNavigate(navigation: any, action: { screen: string; params?: Record<
   // focused, navigate updates it in place and the nested tab jump resolves.
   const nav: any = navigationRef.isReady() ? navigationRef : navigation;
   if (target.tab) {
+    const { tab, screen } = target as { tab: string; screen: string };
     nav.dispatch(StackActions.popTo(TABS_ROUTE));
-    nav.navigate(TABS_ROUTE, { screen: target.tab, params: { screen: target.screen, params } });
+    // TWO-STEP jump: focus the tab first (mounts its stack at the initial
+    // route), THEN push the destination. A hidden lazy tab that first mounts
+    // directly onto a deep screen renders a blank scene (native-stack glitch —
+    // shipped once as the "sell frozen milk → grey screen" bug). The two-step
+    // also leaves the tab root under the destination so Back behaves.
+    nav.navigate(TABS_ROUTE, { screen: tab });
+    // Step 2 was originally a bare setTimeout(150) — the SAME duration as the
+    // tab crossfade, so it landed mid-transition and got dropped ("list my
+    // bouncer" reached Gear browse but never opened the New listing form).
+    //
+    // The first fix routed it through InteractionManager.runAfterInteractions,
+    // which was WORSE: a dismissing modal holds an interaction handle, so the
+    // callback can be starved indefinitely and step 2 never runs at all. That
+    // regressed every destination to "pill dismisses the chat and nothing else
+    // happens" (2026-08-02, all 9 routes). Never gate navigation on interaction
+    // handles you don't own.
+    //
+    // Plain timers can't be starved. Fire once the transition is comfortably
+    // done, then VERIFY we actually arrived and re-fire if not — landing on the
+    // tab root instead of the destination is exactly the failure we're chasing,
+    // and getCurrentRoute() tells us which happened.
+    const pushDeep = () => nav.navigate(TABS_ROUTE, { screen: tab, params: { screen, params } });
+    const arrived = () => navigationRef.isReady() && navigationRef.getCurrentRoute()?.name === screen;
+    setTimeout(pushDeep, 260);
+    setTimeout(() => { if (!arrived()) pushDeep(); }, 560);
+    setTimeout(() => { if (!arrived()) pushDeep(); }, 900);
   } else {
     nav.navigate(target.screen, params);
   }
@@ -181,6 +240,15 @@ export default function AIHelpChatScreen() {
         .filter((m) => m.id !== 'greeting')
         .map((m) => ({ role: m.role, content: m.content }));
       const res = await appHelpApi.sendMessage(history, ctx, loc, avail);
+      // Navigation is ALWAYS her tap, never automatic (founder call 2026-07-30:
+      // auto-jumping mid-read felt like the app grabbing the wheel). A navigate
+      // action without a cta gets a synthesized pill so there's always a button.
+      const navAction = res.crisis ? undefined : res.navigate;
+      const cta = res.crisis
+        ? undefined
+        : res.cta ?? (navAction
+          ? { label: lang === 'es' ? 'Llévame ahí' : 'Take me there', screen: navAction.screen }
+          : undefined);
       setMessages((prev) => [
         ...prev,
         {
@@ -191,12 +259,11 @@ export default function AIHelpChatScreen() {
           // Suppress the tap-pills in a crisis turn — the crisis card must be the
           // only thing she reaches for there.
           quickReplies: res.crisis ? undefined : res.quick_replies,
-          cta: res.crisis ? undefined : res.cta,
+          cta,
+          // Carry navigate params through the pill (e.g. box_checkout {box:'newborn'}).
+          ctaParams: navAction && cta && navAction.screen === cta.screen ? navAction.params : undefined,
         },
       ]);
-      if (res.navigate) {
-        setTimeout(() => runNavigate(navigation, res.navigate!), 350);
-      }
     } catch (e) {
       const msg = e instanceof Error ? e.message : t('help.errorGeneric');
       setMessages((prev) => [
@@ -260,7 +327,7 @@ export default function AIHelpChatScreen() {
             <TouchableOpacity
               style={styles.ctaPill}
               activeOpacity={0.85}
-              onPress={() => runNavigate(navigation, { screen: item.cta!.screen })}
+              onPress={() => runNavigate(navigation, { screen: item.cta!.screen, params: item.ctaParams })}
               accessibilityRole="button"
               accessibilityLabel={item.cta.label}
             >
@@ -333,7 +400,7 @@ export default function AIHelpChatScreen() {
 
       {sending && (
         <View style={styles.typingRow}>
-          <ActivityIndicator color="#E84B79" size="small" />
+          <ActivityIndicator color="#C24A63" size="small" />
           <Text style={styles.typingText}>{t('help.typing')}</Text>
         </View>
       )}
@@ -372,7 +439,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1, borderBottomColor: 'rgba(122,74,40,0.08)',
   },
   headerSide: { width: 44, height: 40, alignItems: 'center', justifyContent: 'center' },
-  headerClose: { fontSize: 32, color: '#B0234F', marginTop: -6, fontFamily: FONTS.body },
+  headerClose: { fontSize: 32, color: '#9E2F4C', marginTop: -6, fontFamily: FONTS.body },
   headerTitleWrap: { flex: 1, alignItems: 'center' },
   headerTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   headerBee: { width: 20, height: 20 },
@@ -385,7 +452,7 @@ const styles = StyleSheet.create({
   bubbleRowMine: { justifyContent: 'flex-end' },
   bubbleRowTheirs: { justifyContent: 'flex-start' },
   bubble: { maxWidth: '82%', paddingHorizontal: 14, paddingVertical: 10, borderRadius: 18 },
-  bubbleMine: { backgroundColor: '#E84B79', borderBottomRightRadius: 4 },
+  bubbleMine: { backgroundColor: '#C24A63', borderBottomRightRadius: 4 },
   bubbleTheirs: { backgroundColor: '#FFFDFA', borderBottomLeftRadius: 4, borderWidth: 1, borderColor: 'rgba(122,74,40,0.08)' },
   bubbleText: { fontSize: 15, color: '#3D2116', lineHeight: 21, fontFamily: FONTS.body },
 
@@ -398,12 +465,12 @@ const styles = StyleSheet.create({
     borderWidth: 1.5, borderColor: 'rgba(224,106,136,0.45)',
     shadowColor: '#B4785A', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 1,
   },
-  qrText: { fontSize: 14, color: '#B0234F', fontFamily: FONTS.bodySemiBold, letterSpacing: 0.1 },
+  qrText: { fontSize: 14, color: '#9E2F4C', fontFamily: FONTS.bodySemiBold, letterSpacing: 0.1 },
 
   // Deep-link CTA pill — filled (vs the outlined send-a-reply pills) so it
   // reads as "this takes you somewhere", not "this answers the question".
   ctaPill: {
-    backgroundColor: '#B0234F', borderRadius: 18, paddingHorizontal: 16, paddingVertical: 10,
+    backgroundColor: '#9E2F4C', borderRadius: 18, paddingHorizontal: 16, paddingVertical: 10,
     shadowColor: '#B4785A', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.10, shadowRadius: 6, elevation: 2,
   },
   ctaText: { fontSize: 14, color: '#FFFCF6', fontFamily: FONTS.bodySemiBold, letterSpacing: 0.1 },
@@ -430,7 +497,7 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: 'rgba(224,106,136,0.16)',
     shadowColor: '#B4785A', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.06, shadowRadius: 8, elevation: 1,
   },
-  suggestArrow: { fontSize: 17, color: '#E84B79', fontFamily: FONTS.bodySemiBold, marginTop: -1 },
+  suggestArrow: { fontSize: 17, color: '#C24A63', fontFamily: FONTS.bodySemiBold, marginTop: -1 },
   suggestText: { flex: 1, fontSize: 14, color: '#5A4030', fontFamily: FONTS.bodyMedium, lineHeight: 19 },
 
   typingRow: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 20, paddingBottom: 6 },
@@ -450,7 +517,7 @@ const styles = StyleSheet.create({
   },
   sendBtn: {
     width: 44, height: 44, borderRadius: 22,
-    backgroundColor: '#E84B79', alignItems: 'center', justifyContent: 'center',
+    backgroundColor: '#E14A32', alignItems: 'center', justifyContent: 'center',
   },
   sendBtnDisabled: { opacity: 0.4 },
   sendBtnText: { color: '#FFFCF6', fontSize: 22, fontFamily: FONTS.bodySemiBold },
