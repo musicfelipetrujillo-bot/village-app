@@ -142,3 +142,52 @@ export function clampOz(n: number): number {
   const snapped = Math.round(n * 2) / 2;
   return Math.min(MAX_OZ, Math.max(MIN_OZ, snapped));
 }
+
+/**
+ * Was a key genuinely supplied?
+ *
+ * `'k' in patch` is not enough: tsconfig lacks exactOptionalPropertyTypes, so
+ * `{ ended_at: undefined }` type-checks, satisfies `in`, and is then dropped by
+ * JSON.stringify — validating one thing and writing another.
+ */
+export function has<T extends object, K extends keyof T>(patch: T, key: K): boolean {
+  return key in patch && patch[key] !== undefined;
+}
+
+export interface FeedState {
+  method: FeedMethod;
+  side: BreastSide | null;
+  started_at: string;
+  ended_at: string | null;
+  amount_oz: number | null;
+}
+export type FeedPatch = Partial<FeedState>;
+
+export type MergeResult<T> =
+  | { ok: true; payload: T }
+  | { ok: false; code: ValidationCode; reason: string };
+
+/**
+ * Merge an edit onto a stored feed, normalise it, and validate the result.
+ * Returns the exact row to write — never a partial patch — so what was
+ * validated is what lands.
+ */
+export function mergeFeedPatch(
+  current: FeedState, patch: FeedPatch, nowMs: number,
+): MergeResult<FeedState> {
+  const method = has(patch, 'method') ? patch.method! : current.method;
+  const rawSide = has(patch, 'side') ? patch.side! : current.side;
+  const rawOz = has(patch, 'amount_oz') ? patch.amount_oz! : current.amount_oz;
+  const started_at = has(patch, 'started_at') ? patch.started_at! : current.started_at;
+  const ended_at = has(patch, 'ended_at') ? patch.ended_at! : current.ended_at;
+
+  // A method switch must never leave an orphan side or ounce behind.
+  const side = method === 'bottle' ? null : rawSide;
+  const amount_oz = method === 'breast' ? null : (rawOz == null ? null : clampOz(rawOz));
+
+  const shape = validateFeedShape(method, side, amount_oz);
+  if (!shape.ok) return shape;
+  const interval = validateInterval(started_at, ended_at, nowMs);
+  if (!interval.ok) return interval;
+  return { ok: true, payload: { method, side, started_at, ended_at, amount_oz } };
+}

@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   validateInterval, validateFeedShape, isRunaway,
   dayKeyLocal, groupByDay, minutesAgoISO, clampOz,
+  has, mergeFeedPatch, type FeedState,
 } from './logEntry';
 
 const NOW = Date.parse('2026-08-13T15:00:00.000Z');
@@ -149,5 +150,56 @@ describe('clampOz', () => {
   it('saturates infinities at the right end', () => {
     expect(clampOz(Infinity)).toBe(12);
     expect(clampOz(-Infinity)).toBe(0);
+  });
+});
+
+describe('mergeFeedPatch', () => {
+  const base: FeedState = {
+    method: 'breast', side: 'left',
+    started_at: '2026-08-13T10:00:00.000Z', ended_at: '2026-08-13T10:20:00.000Z',
+    amount_oz: null,
+  };
+  it('leaves untouched fields alone', () => {
+    const r = mergeFeedPatch(base, { side: 'right' }, NOW);
+    expect(r.ok && r.payload).toEqual({ ...base, side: 'right' });
+  });
+  it('treats an explicitly-undefined key as not supplied', () => {
+    // The bug this function exists to prevent: `'ended_at' in patch` was true,
+    // validation passed on undefined, and the write silently dropped the key.
+    const r = mergeFeedPatch(base, { started_at: '2026-08-13T11:00:00.000Z', ended_at: undefined }, NOW);
+    expect(r.ok).toBe(false);           // 11:00 start vs stored 10:20 end
+    expect(r.ok === false && r.code).toBe('end_before_start');
+  });
+  it('drops the side when switching to a bottle', () => {
+    const r = mergeFeedPatch(base, { method: 'bottle', amount_oz: 4 }, NOW);
+    expect(r.ok && r.payload.side).toBe(null);
+    expect(r.ok && r.payload.amount_oz).toBe(4);
+  });
+  it('drops stale ounces when switching to a breast feed', () => {
+    const bottle: FeedState = { ...base, method: 'bottle', side: null, amount_oz: 5 };
+    const r = mergeFeedPatch(bottle, { method: 'breast', side: 'left' }, NOW);
+    expect(r.ok && r.payload.amount_oz).toBe(null);
+  });
+  it('clamps supplied ounces', () => {
+    const bottle: FeedState = { ...base, method: 'bottle', side: null, amount_oz: 3 };
+    const r = mergeFeedPatch(bottle, { amount_oz: 99 }, NOW);
+    expect(r.ok && r.payload.amount_oz).toBe(12);
+  });
+  it('clears ounces when explicitly given null', () => {
+    const bottle: FeedState = { ...base, method: 'bottle', side: null, amount_oz: 3 };
+    const r = mergeFeedPatch(bottle, { amount_oz: null }, NOW);
+    expect(r.ok && r.payload.amount_oz).toBe(null);
+  });
+});
+
+describe('has', () => {
+  it('is false for an explicitly-undefined key', () => {
+    expect(has({ a: undefined } as { a?: string }, 'a')).toBe(false);
+  });
+  it('is true for null', () => {
+    expect(has({ a: null } as { a: string | null }, 'a')).toBe(true);
+  });
+  it('is false for an absent key', () => {
+    expect(has({} as { a?: string }, 'a')).toBe(false);
   });
 });
