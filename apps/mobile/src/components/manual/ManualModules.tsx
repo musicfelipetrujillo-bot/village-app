@@ -580,7 +580,7 @@ export default function ManualModules({ content, story, onAskVillie, lang = 'en'
   return (
     <View style={s.wrap}>
       <SectionHead label={L('this week', 'esta semana')} accent="#B7A48C" />
-      <View style={s.card}>
+      <View style={s.toolList}>
         <BriefRow
           first
           glyph={<BriefGlyph tint="#F7DFE6" ring="rgba(158,47,76,0.22)"><CheckGlyph color="#9E2F4C" /></BriefGlyph>}
@@ -684,6 +684,10 @@ const s = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(67,38,15,0.11)',
     shadowColor: '#43260F', shadowOpacity: 0.05, shadowOffset: { width: 0, height: 4 }, shadowRadius: 12, elevation: 1,
   },
+  // "this week" tools = an OPEN list on the page (no fill/shadow, just top+bottom
+  // hairlines) so it reads flat — a deliberate contrast to the one raised,
+  // tinted "read" card below, instead of two look-alike boxes stacked.
+  toolList: { borderTopWidth: StyleSheet.hairlineWidth, borderBottomWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(67,38,15,0.13)' },
   brDiv: { height: StyleSheet.hairlineWidth, backgroundColor: 'rgba(67,38,15,0.09)', marginLeft: 55 },
   brHead: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 11, paddingHorizontal: 15 },
   brGl: { width: 26, height: 26, borderRadius: 8, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
@@ -699,8 +703,8 @@ const s = StyleSheet.create({
 
   // "read this week" cover — one card that opens the full read
   readCover: {
-    borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 18, paddingTop: 15, paddingBottom: 14,
-    shadowColor: '#43260F', shadowOpacity: 0.05, shadowOffset: { width: 0, height: 4 }, shadowRadius: 12, elevation: 1,
+    borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 18, paddingTop: 16, paddingBottom: 15,
+    shadowColor: '#43260F', shadowOpacity: 0.09, shadowOffset: { width: 0, height: 6 }, shadowRadius: 16, elevation: 2,
   },
   readEyebrow: { fontFamily: FONTS.bodyBold, fontSize: 10.5, letterSpacing: 1.6, marginBottom: 5 },
   readTitle: { fontFamily: FONTS.v3_display, fontSize: 22, lineHeight: 26, letterSpacing: -0.5, color: INK },
