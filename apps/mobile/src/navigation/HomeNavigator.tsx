@@ -15,6 +15,7 @@ import DiscoverHomeScreen from '@screens/home/DiscoverHomeScreen';
 import TheBuzzScreen from '@screens/home/TheBuzzScreen';
 import InsightsScreen from '@screens/home/InsightsScreen';
 import ResetRechargeScreen from '@screens/home/ResetRechargeScreen';
+import MomTipsScreen from '@screens/home/MomTipsScreen';
 import MomHubScreen from '@screens/home/MomHubScreen';
 import NotificationsScreen from '@screens/home/NotificationsScreen';
 import SearchScreen from '@screens/home/SearchScreen';
@@ -53,6 +54,7 @@ export type HomeStackParamList = {
   TheBuzz: { issueId?: string } | undefined;
   Insights: undefined;
   ResetRecharge: undefined;
+  MomTips: undefined;
   Notifications: undefined;
   Search: undefined;
   WeeklyJourney: { week?: number } | undefined;
@@ -96,6 +98,7 @@ export function HomeNavigator() {
       <Stack.Screen name="CheckinResponse" component={CheckinResponseScreen} />
       <Stack.Screen name="DiscoverHome" component={DiscoverHomeScreen} />
       <Stack.Screen name="ResetRecharge" component={ResetRechargeScreen} />
+      <Stack.Screen name="MomTips" component={MomTipsScreen} />
       <Stack.Screen name="TheBuzz" component={TheBuzzScreen} />
       <Stack.Screen name="Insights" component={InsightsScreen} />
       <Stack.Screen name="Notifications" component={NotificationsScreen} />

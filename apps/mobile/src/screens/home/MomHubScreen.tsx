@@ -44,6 +44,7 @@ export default function MomHubScreen() {
   const goDayPlan = () => { tap(); navigation.navigate('DayPlan'); };
   const goDaySheet = () => { tap(); navigation.navigate('DaySheetList'); };
   const goReset = () => { tap(); navigation.navigate('ResetRecharge'); };
+  const goTips = () => { tap(); navigation.navigate('MomTips'); };
   const askVillie = (seed: string) => {
     tap();
     navigation.getParent()?.getParent()?.navigate('AIHelpChat', { seed, autosend: true });
@@ -110,7 +111,9 @@ export default function MomHubScreen() {
               : 'Help me plan something for me this week — a class, an appointment, or just a break that fits my schedule.')} />
           <MomRow emoji="🌿" title={es ? 'Tu cuerpo, tu ritmo' : 'Your body, your pace'}
             sub={es ? 'piso pélvico y recuperación' : 'pelvic floor + recovery'} onPress={goBody} />
-          <MomRow emoji="💡" title={es ? 'Trucos de mamá' : 'Mom hacks'} soon onPress={comingSoon} />
+          <MomRow emoji="💡" title={es ? 'Tips de mamá' : 'Mom tips'}
+            sub={es ? 'Una idea al día, para su semana' : "One idea a day, for her week"}
+            onPress={goTips} />
           <MomRow emoji="📖" title={es ? 'Lecturas para tu etapa' : 'Reads for your stage'} soon onPress={comingSoon} last />
         </View>
 
