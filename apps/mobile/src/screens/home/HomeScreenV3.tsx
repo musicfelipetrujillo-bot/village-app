@@ -563,9 +563,15 @@ const styles = StyleSheet.create({
   heroGreetName: { fontFamily: FONTS.v3_display_italic, fontSize: 23, color: '#C24A63' },
   ringWrap: { marginTop: 14, width: 252, height: 252, alignItems: 'center', justifyContent: 'center' },
   ringCenter: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center' },
+  // Her baby's name, not a label. At 12px mono against a 76px week number it
+  // read as chrome — the eye went straight past it to the digits (founder,
+  // 2026-08-12). Sized up to sit as the ring's subject: Playfair display so it
+  // reads as a NAME, deeper raspberry for contrast on the cream disc, and the
+  // wide mono tracking dropped since it fought legibility at this size. Still
+  // well under the 76px number, so the week stays the anchor.
   ringBabyName: {
-    fontFamily: FONTS.v2_mono, fontSize: 12, letterSpacing: 3, textTransform: 'lowercase',
-    color: '#B0637E', marginBottom: 2,
+    fontFamily: FONTS.v3_display, fontSize: 26, lineHeight: 29, letterSpacing: -0.3,
+    textTransform: 'lowercase', color: '#A33F5C', marginBottom: 1,
   },
   ringNumber: {
     fontFamily: FONTS.v3_display, fontSize: 76, lineHeight: 80, color: '#C24A63',
