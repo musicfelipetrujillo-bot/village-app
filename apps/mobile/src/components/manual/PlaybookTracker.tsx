@@ -13,11 +13,12 @@
 // State flows through useTrackerStore. Fails soft if migration 093 isn't applied.
 import React, { useEffect, useState } from 'react';
 import {
-  View, Text, StyleSheet, TouchableOpacity, TextInput, Keyboard, ActivityIndicator,
+  View, Text, StyleSheet, TouchableOpacity, TextInput, Keyboard, ActivityIndicator, Alert,
 } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { COLORS, FONTS } from '@utils/constants';
 import { select, tap } from '@utils/haptics';
+import { isRunaway } from '@utils/logEntry';
 import { useTrackerStore } from '@store/babyTracker';
 import { wakeWindowMinutes, scheduleWakeAlarm, cancelWakeAlarm } from '@utils/sleepAlarm';
 import { babyTrackerApi } from '@api/babyTracker';
@@ -101,6 +102,7 @@ export default function PlaybookTracker({ babyProfileId, babyName, week, lang, i
   const [editing, setEditing] = useState<LogEntry | null>(null);
   const [logAt, setLogAt] = useState<string | null>(null);   // null === now
   const resetTime = () => setLogAt(null);
+  const [rescueDismissed, setRescueDismissed] = useState(false);
 
   const wakeMin = wakeWindowMinutes(week);
 
@@ -148,11 +150,51 @@ export default function PlaybookTracker({ babyProfileId, babyName, week, lang, i
     setParseMsg(n > 0 ? `${es ? 'villie registró' : 'villie logged'}: ${loggedLabel(res!.counts, es)}` : (es ? 'guardado' : 'saved'));
   };
 
+  const onDiscardSleep = () => {
+    Alert.alert(
+      es ? '¿Descartar esta siesta?' : 'Discard this nap?',
+      es ? 'Se borrará por completo.' : "It'll be deleted entirely.",
+      [
+        { text: es ? 'Cancelar' : 'Cancel', style: 'cancel' },
+        {
+          text: es ? 'Descartar' : 'Discard', style: 'destructive',
+          onPress: async () => {
+            if (!activeSleep) return;
+            await cancelWakeAlarm();
+            await store.deleteEntry({ kind: 'sleep', row: activeSleep });
+          },
+        },
+      ],
+    );
+  };
+
+  const onDiscardFeed = () => {
+    Alert.alert(
+      es ? '¿Descartar esta toma?' : 'Discard this feed?',
+      es ? 'Se borrará por completo.' : "It'll be deleted entirely.",
+      [
+        { text: es ? 'Cancelar' : 'Cancel', style: 'cancel' },
+        {
+          text: es ? 'Descartar' : 'Discard', style: 'destructive',
+          onPress: async () => {
+            if (!activeFeed) return;
+            await store.deleteEntry({ kind: 'feed', row: activeFeed });
+          },
+        },
+      ],
+    );
+  };
+
   const togglePane = (p: Exclude<Pane, null>) => { select(); setOpen((o) => (o === p ? null : p)); };
 
   const sleepElapsed = activeSleep ? Math.floor((nowMs - new Date(activeSleep.started_at).getTime()) / 1000) : 0;
   const wakeRemaining = wakeMin * 60 - sleepElapsed;
   const feedElapsed = activeFeed ? Math.floor((nowMs - new Date(activeFeed.started_at).getTime()) / 1000) : 0;
+  // Deliberately generous ceilings (isRunaway) — a real overnight sleep can
+  // legitimately run 8h+, so only escalate to the three-way rescue prompt
+  // once a session is unambiguously a forgotten timer.
+  const sleepRunaway = !!activeSleep && !rescueDismissed && isRunaway('sleep', activeSleep.started_at, nowMs);
+  const feedRunaway = !!activeFeed && !rescueDismissed && isRunaway('feed', activeFeed.started_at, nowMs);
 
   const lastFeed = today.feeds.find((f) => f.ended_at) ?? null;
   const lastFeedAgoMin = lastFeed ? Math.round((nowMs - new Date(lastFeed.ended_at!).getTime()) / 60000) : null;
@@ -205,11 +247,36 @@ export default function PlaybookTracker({ babyProfileId, babyName, week, lang, i
                   : <Text style={{ fontFamily: FONTS.v2_bold, color: C.clayInk }}>{es ? 'ventana alcanzada' : 'wake window reached'}</Text>}
               </Text>
             </View>
-            <TouchableOpacity onPress={onStopSleep} activeOpacity={0.9} style={styles.sleepStopBtn}>
-              <Glyph d={ICON.stop} color="#9A4E28" size={14} fill="#9A4E28" sw={0} />
-              <Text style={styles.sleepStopText}>{es ? 'parar' : 'stop'}</Text>
-            </TouchableOpacity>
+            {!sleepRunaway && (
+              <>
+                <TouchableOpacity onPress={() => { select(); setEditing({ kind: 'sleep', row: activeSleep }); }} style={styles.endedAtBtn} accessibilityRole="button" accessibilityLabel={es ? 'Corregir la hora de fin' : 'Correct the end time'}>
+                  <Text style={styles.endedAtTxt}>{es ? 'terminó a las…' : 'ended at…'}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={onStopSleep} activeOpacity={0.9} style={styles.sleepStopBtn}>
+                  <Glyph d={ICON.stop} color="#9A4E28" size={14} fill="#9A4E28" sw={0} />
+                  <Text style={styles.sleepStopText}>{es ? 'parar' : 'stop'}</Text>
+                </TouchableOpacity>
+              </>
+            )}
           </View>
+          {sleepRunaway ? (
+            <View style={{ gap: 9, marginTop: 10 }}>
+              <Text style={styles.rescueAsk}>
+                {es ? '¿Sigue durmiendo, o el cronómetro quedó corriendo?' : 'Still asleep, or did the timer keep running?'}
+              </Text>
+              <View style={{ flexDirection: 'row', gap: 7 }}>
+                <TouchableOpacity onPress={() => { select(); setRescueDismissed(true); }} style={styles.rescueBtn} accessibilityRole="button">
+                  <Text style={styles.rescueBtnTxt}>{es ? 'sigue durmiendo' : 'still asleep'}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => { select(); setEditing({ kind: 'sleep', row: activeSleep! }); }} style={styles.rescueBtn} accessibilityRole="button">
+                  <Text style={styles.rescueBtnTxt}>{es ? 'terminó a las…' : 'ended at…'}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={onDiscardSleep} style={[styles.rescueBtn, styles.rescueDanger]} accessibilityRole="button">
+                  <Text style={[styles.rescueBtnTxt, { color: '#fff' }]}>{es ? 'descartar' : 'discard'}</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          ) : null}
         </View>
       )}
 
@@ -222,11 +289,36 @@ export default function PlaybookTracker({ babyProfileId, babyName, week, lang, i
               {activeFeed.method === 'bottle' ? (es ? 'Biberón' : 'Bottle') : activeFeed.side === 'left' ? (es ? 'Pecho izq.' : 'Left breast') : (es ? 'Pecho der.' : 'Right breast')}
               {'  '}<Text style={styles.feedActiveTimer}>{elapsedLabel(feedElapsed)}</Text>
             </Text>
-            <TouchableOpacity onPress={onStopFeed} activeOpacity={0.9} style={styles.feedStopBtn}>
-              <Glyph d={ICON.stop} color="#fff" size={12} fill="#fff" sw={0} />
-              <Text style={styles.feedStopText}>{es ? 'parar' : 'stop'}</Text>
-            </TouchableOpacity>
+            {!feedRunaway && (
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                <TouchableOpacity onPress={() => { select(); setEditing({ kind: 'feed', row: activeFeed }); }} style={styles.endedAtBtn} accessibilityRole="button" accessibilityLabel={es ? 'Corregir la hora de fin' : 'Correct the end time'}>
+                  <Text style={styles.endedAtTxt}>{es ? 'terminó a las…' : 'ended at…'}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={onStopFeed} activeOpacity={0.9} style={styles.feedStopBtn}>
+                  <Glyph d={ICON.stop} color="#fff" size={12} fill="#fff" sw={0} />
+                  <Text style={styles.feedStopText}>{es ? 'parar' : 'stop'}</Text>
+                </TouchableOpacity>
+              </View>
+            )}
           </View>
+          {feedRunaway ? (
+            <View style={{ gap: 9, marginTop: 10 }}>
+              <Text style={styles.rescueAsk}>
+                {es ? '¿Sigue comiendo, o el cronómetro quedó corriendo?' : 'Still feeding, or did the timer keep running?'}
+              </Text>
+              <View style={{ flexDirection: 'row', gap: 7 }}>
+                <TouchableOpacity onPress={() => { select(); setRescueDismissed(true); }} style={styles.rescueBtn} accessibilityRole="button">
+                  <Text style={styles.rescueBtnTxt}>{es ? 'sigue comiendo' : 'still feeding'}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => { select(); setEditing({ kind: 'feed', row: activeFeed! }); }} style={styles.rescueBtn} accessibilityRole="button">
+                  <Text style={styles.rescueBtnTxt}>{es ? 'terminó a las…' : 'ended at…'}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={onDiscardFeed} style={[styles.rescueBtn, styles.rescueDanger]} accessibilityRole="button">
+                  <Text style={[styles.rescueBtnTxt, { color: '#fff' }]}>{es ? 'descartar' : 'discard'}</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          ) : null}
           {activeFeed.method === 'bottle' && (
             <View style={styles.ozRow}>
               <Text style={styles.ozLabel}>{es ? 'onzas' : 'oz'}</Text>
@@ -423,6 +515,16 @@ const styles = StyleSheet.create({
   sleepMeta: { fontFamily: FONTS.v2_body, fontSize: 10, color: C.claySub, marginTop: 2 },
   sleepStopBtn: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: C.clayInk, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8 },
   sleepStopText: { fontFamily: FONTS.v2_bold, fontSize: 12, color: '#9A4E28' },
+
+  // Runaway-timer rescue prompt (Task 9) — shared by the sleep + feed live
+  // cards. Only ever rendered on the dark C.clay / C.honeyBg live-card
+  // backgrounds, never standalone.
+  rescueAsk: { fontFamily: FONTS.v2_body, fontSize: 12, color: C.claySub, lineHeight: 17 },
+  rescueBtn: { flex: 1, backgroundColor: 'rgba(255,249,242,0.2)', borderRadius: 10, paddingVertical: 9, alignItems: 'center' },
+  rescueDanger: { backgroundColor: '#9A4E28' },
+  rescueBtnTxt: { fontFamily: FONTS.v2_bold, fontSize: 11, color: C.clayInk },
+  endedAtBtn: { paddingHorizontal: 10, paddingVertical: 8 },
+  endedAtTxt: { fontFamily: FONTS.v2_link, fontSize: 11.5, color: C.claySub },
 
   // Live feed widget
   feedActiveCard: { backgroundColor: C.honeyBg, borderRadius: 16, padding: 13, marginBottom: 11 },
