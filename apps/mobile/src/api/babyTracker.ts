@@ -229,6 +229,26 @@ export const babyTrackerApi = {
     return { ok: true };
   },
 
+  // Every row a given jot produced — powers "remove what Villie logged from this".
+  async getNoteExtractions(noteId: string): Promise<{ sleep: number; feed: number; diaper: number }> {
+    const [s, f, d] = await Promise.all([
+      supabase.from('baby_sleep_logs').select('id', { count: 'exact', head: true }).eq('note_id', noteId),
+      supabase.from('baby_feed_logs').select('id', { count: 'exact', head: true }).eq('note_id', noteId),
+      supabase.from('baby_diaper_logs').select('id', { count: 'exact', head: true }).eq('note_id', noteId),
+    ]);
+    return { sleep: s.count ?? 0, feed: f.count ?? 0, diaper: d.count ?? 0 };
+  },
+
+  async deleteNoteExtractions(noteId: string): Promise<MutationResult> {
+    const results = await Promise.all([
+      supabase.from('baby_sleep_logs').delete().eq('note_id', noteId),
+      supabase.from('baby_feed_logs').delete().eq('note_id', noteId),
+      supabase.from('baby_diaper_logs').delete().eq('note_id', noteId),
+    ]);
+    const failed = results.find((r) => r.error);
+    return failed?.error ? mutationError('deleteNoteExtractions', failed.error) : { ok: true };
+  },
+
   // ── Feeds ─────────────────────────────────────────────────────────────────
   async getActiveFeed(): Promise<FeedLog | null> {
     const { data, error } = await supabase

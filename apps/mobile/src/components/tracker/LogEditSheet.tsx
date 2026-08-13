@@ -2,12 +2,13 @@
 //
 // Hard edit, no trail (spec D2): saving overwrites, deleting removes. The guard
 // against accidental loss is the destructive confirm, not an audit column.
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Modal, TextInput, Alert, ScrollView, ActivityIndicator } from 'react-native';
 import { COLORS, FONTS } from '@utils/constants';
 import { tap } from '@utils/haptics';
 import { clampOz } from '@utils/logEntry';
 import { useTrackerStore } from '@store/babyTracker';
+import { babyTrackerApi } from '@api/babyTracker';
 import type { LogEntry, DiaperKind } from '@api/babyTracker';
 import TimeField from './TimeField';
 
@@ -35,6 +36,14 @@ export default function LogEditSheet({ entry, lang, onClose }: {
       : { raw_text: entry.row.raw_text, occurred_at: entry.row.occurred_at });
     setError(null);
   }
+
+  // Phase 2 group-undo (migration 125): what this note extracted, so the sheet
+  // can offer "remove those entries" without a trail of its own.
+  const [extracted, setExtracted] = useState<{ sleep: number; feed: number; diaper: number } | null>(null);
+  useEffect(() => {
+    if (entry?.kind !== 'note') { setExtracted(null); return; }
+    babyTrackerApi.getNoteExtractions(entry.row.id).then(setExtracted).catch(() => setExtracted(null));
+  }, [entry]);
 
   if (!entry) return null;
   const set = (k: string, v: unknown) => setDraft((d) => ({ ...d, [k]: v }));
@@ -161,6 +170,38 @@ export default function LogEditSheet({ entry, lang, onClose }: {
                   accessibilityLabel={es ? 'Texto de la nota' : 'Note text'}
                 />
                 <TimeField label={es ? 'Hora' : 'Time'} value={draft.occurred_at as string} onChange={(v) => set('occurred_at', v)} lang={lang} />
+                {extracted && extracted.sleep + extracted.feed + extracted.diaper > 0 && (
+                  <View style={s.extractCard}>
+                    <Text style={s.extractTxt}>
+                      {es
+                        ? `villie registró ${extracted.feed} toma(s), ${extracted.sleep} sueño, ${extracted.diaper} pañal(es) de esta nota.`
+                        : `villie logged ${extracted.feed} feed(s), ${extracted.sleep} sleep, ${extracted.diaper} diaper(s) from this note.`}
+                    </Text>
+                    <TouchableOpacity
+                      onPress={() => Alert.alert(
+                        es ? '¿Quitar lo que villie registró?' : 'Remove what villie logged?',
+                        es ? 'La nota se queda; los registros que sacó de ella se borran.' : 'The note stays; the entries it created are deleted.',
+                        [
+                          { text: es ? 'Cancelar' : 'Cancel', style: 'cancel' },
+                          {
+                            text: es ? 'Quitar' : 'Remove', style: 'destructive',
+                            onPress: async () => {
+                              setBusy(true);
+                              const res = await babyTrackerApi.deleteNoteExtractions(entry.row.id);
+                              setBusy(false);
+                              if (res.ok) close();
+                              else setError(res.reason ?? (es ? 'No se pudo quitar.' : "That didn't clear."));
+                            },
+                          },
+                        ],
+                      )}
+                      accessibilityRole="button"
+                      accessibilityLabel={es ? 'Quitar los registros de esta nota' : 'Remove the entries from this note'}
+                    >
+                      <Text style={s.extractLink}>{es ? 'quitar esos registros' : 'remove those entries'}</Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
               </>
             )}
 
@@ -198,6 +239,9 @@ const s = StyleSheet.create({
   ozBtnTxt: { fontFamily: FONTS.v2_display_big, fontSize: 16, color: C.cocoa, marginTop: -2 },
   ozVal: { fontFamily: FONTS.v2_display_big, fontSize: 18, color: C.cocoa, minWidth: 34, textAlign: 'center' },
   noteInput: { backgroundColor: C.paper, borderRadius: 12, borderWidth: 1, borderColor: 'rgba(122,74,40,0.2)', padding: 12, minHeight: 76, fontFamily: FONTS.v2_body, fontSize: 14, color: C.cocoa },
+  extractCard: { backgroundColor: '#FBEFD9', borderRadius: 12, padding: 12, gap: 7 },
+  extractTxt: { fontFamily: FONTS.v2_body, fontSize: 12.5, lineHeight: 18, color: C.cocoa },
+  extractLink: { fontFamily: FONTS.v2_link, fontSize: 12.5, color: C.rose },
   ghostBtn: { backgroundColor: C.parchment, borderRadius: 12, paddingVertical: 13, alignItems: 'center' },
   ghostTxt: { fontFamily: FONTS.v2_link, fontSize: 13, color: C.walnut },
   error: { fontFamily: FONTS.v2_body, fontSize: 12.5, color: C.rose, textAlign: 'center' },
