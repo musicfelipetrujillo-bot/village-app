@@ -24,6 +24,7 @@ import { babyTrackerApi } from '@api/babyTracker';
 import type { RecentStats, LogEntry } from '@api/babyTracker';
 import LogTimeline, { buildTimeline, clockLabel, feedShort } from '@components/tracker/LogTimeline';
 import LogEditSheet from '@components/tracker/LogEditSheet';
+import TimeChips from '@components/tracker/TimeChips';
 
 const C = {
   paper: COLORS.v2_paper, cream: COLORS.v2_cream, parchment: COLORS.v2_parchment, cocoa: COLORS.v2_cocoa,
@@ -98,6 +99,8 @@ export default function PlaybookTracker({ babyProfileId, babyName, week, lang, i
   const [parsing, setParsing] = useState(false);
   const [parseMsg, setParseMsg] = useState<string | null>(null);
   const [editing, setEditing] = useState<LogEntry | null>(null);
+  const [logAt, setLogAt] = useState<string | null>(null);   // null === now
+  const resetTime = () => setLogAt(null);
 
   const wakeMin = wakeWindowMinutes(week);
 
@@ -106,11 +109,34 @@ export default function PlaybookTracker({ babyProfileId, babyName, week, lang, i
   // Keep the pane OPEN on start so the L/R (or sleep) control the user just
   // tapped visibly becomes the live "running" row in place — no collapse, no
   // "did anything happen?" (founder 2026-08-10).
-  const onStartSleep = async () => { if (!babyProfileId) return onNeedBaby?.(); select(); await store.startSleep(); await scheduleWakeAlarm(wakeMin * 60, babyName); };
+  const onStartSleep = async () => {
+    if (!babyProfileId) return onNeedBaby?.();
+    select();
+    await store.startSleep(logAt ?? undefined);
+    resetTime();
+    await scheduleWakeAlarm(wakeMin * 60, babyName);
+  };
   const onStopSleep = async () => { tap(); await cancelWakeAlarm(); await store.stopSleep(); };
-  const onStartFeed = (method: 'breast' | 'bottle', side: 'left' | 'right' | null) => { if (!babyProfileId) return onNeedBaby?.(); select(); setOzDraft(3); store.startFeed(method, side); };
+  const onStartFeed = (method: 'breast' | 'bottle', side: 'left' | 'right' | null) => {
+    if (!babyProfileId) return onNeedBaby?.();
+    select(); setOzDraft(3);
+    store.startFeed(method, side, logAt ?? undefined);
+    resetTime();
+  };
   const onStopFeed = () => { tap(); store.stopFeed(activeFeed?.method === 'bottle' ? ozDraft : null); };
-  const onDiaper = (kind: 'wet' | 'dirty' | 'both') => { if (!babyProfileId) return onNeedBaby?.(); tap(); store.logDiaper(kind); };
+  const onDiaper = (kind: 'wet' | 'dirty' | 'both') => {
+    if (!babyProfileId) return onNeedBaby?.();
+    tap();
+    store.logDiaper(kind, logAt ?? undefined);
+    resetTime();
+  };
+  // Finished bottle — no timer. This wires the previously-unreachable logBottle path.
+  const onLogFinishedBottle = () => {
+    if (!babyProfileId) return onNeedBaby?.();
+    tap();
+    store.logBottle(ozDraft, logAt ?? undefined);
+    resetTime();
+  };
   const onSaveNote = async () => {
     if (!note.trim() || parsing) return;
     tap();
@@ -251,11 +277,14 @@ export default function PlaybookTracker({ babyProfileId, babyName, week, lang, i
                 </TouchableOpacity>
               </View>
             ) : (
-              <TouchableOpacity onPress={onStartSleep} activeOpacity={0.9} style={styles.startBtn}>
-                <Glyph d={ICON.play} color={C.clayInk} size={14} fill={C.clayInk} sw={0} />
-                <Text style={styles.startBtnText}>{es ? 'iniciar sueño' : 'start sleep'}</Text>
-                <Text style={styles.startBtnSub}>{es ? `ventana ~${wakeMin}m` : `~${wakeMin}m window`}</Text>
-              </TouchableOpacity>
+              <>
+                <TouchableOpacity onPress={onStartSleep} activeOpacity={0.9} style={styles.startBtn}>
+                  <Glyph d={ICON.play} color={C.clayInk} size={14} fill={C.clayInk} sw={0} />
+                  <Text style={styles.startBtnText}>{es ? 'iniciar sueño' : 'start sleep'}</Text>
+                  <Text style={styles.startBtnSub}>{es ? `ventana ~${wakeMin}m` : `~${wakeMin}m window`}</Text>
+                </TouchableOpacity>
+                <TimeChips valueIso={logAt} onChange={setLogAt} lang={lang} />
+              </>
             )}
           </View>
         )}
@@ -299,6 +328,10 @@ export default function PlaybookTracker({ babyProfileId, babyName, week, lang, i
                     ? `${es ? 'última' : 'last'}: ${feedShort(lastFeed, es)} · ${lastFeedAgoMin < 60 ? `${lastFeedAgoMin}m` : `${Math.round(lastFeedAgoMin / 60)}h`}${es ? '' : ' ago'}`
                     : (es ? 'toca un lado para iniciar el cronómetro' : 'tap a side to start the timer')}
                 </Text>
+                <TouchableOpacity onPress={onLogFinishedBottle} style={styles.startBtn} accessibilityRole="button" accessibilityLabel={es ? 'Registrar biberón terminado' : 'Log a finished bottle'}>
+                  <Text style={styles.startBtnText}>{es ? `biberón terminado · ${ozDraft} oz` : `finished bottle · ${ozDraft} oz`}</Text>
+                </TouchableOpacity>
+                <TimeChips valueIso={logAt} onChange={setLogAt} lang={lang} />
               </>
             )}
           </View>
@@ -314,6 +347,7 @@ export default function PlaybookTracker({ babyProfileId, babyName, week, lang, i
               ))}
             </View>
             <Text style={styles.feedTip}>{diaperCount} {es ? 'hoy' : 'today'}</Text>
+            <TimeChips valueIso={logAt} onChange={setLogAt} lang={lang} />
           </View>
         )}
         </View>
