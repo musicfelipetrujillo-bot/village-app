@@ -56,6 +56,14 @@ const rand = () => {
 const jitter = (base, pct) => base * (1 + (rand() - 0.5) * 2 * pct);
 const pick = (xs) => xs[Math.floor(rand() * xs.length)];
 
+// Local calendar day key. Mirrors dayKeyLocal() in apps/mobile/src/utils/logEntry.ts —
+// a UTC prefix (iso.slice(0,10)) pulls the previous evening into this day and drops
+// this evening out of it, which is the exact bug the tracker feature exists to fix.
+const dayKeyLocal = (iso) => {
+  const d = new Date(iso);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+};
+
 async function resolveTargets() {
   const { data: users, error: uErr } = await db
     .from('users').select('id, email').eq('email', EMAIL).limit(1);
@@ -223,11 +231,12 @@ function report(rows, cases, baby) {
   for (const [kind, n] of Object.entries(counts)) console.log(`  ${kind.padEnd(7)} ${n}`);
   console.log(`  ${'TOTAL'.padEnd(7)} ${rows.length}\n`);
 
+  const sampleKey = dayKeyLocal(new Date(Date.now() - 3 * 86400000).toISOString());
   const sampleDay = rows
-    .filter((r) => r.payload.started_at?.startsWith(new Date(Date.now() - 3 * 86400000).toISOString().slice(0, 10))
-      || r.payload.occurred_at?.startsWith(new Date(Date.now() - 3 * 86400000).toISOString().slice(0, 10)))
+    .filter((r) => dayKeyLocal(r.payload.started_at ?? r.payload.occurred_at) === sampleKey)
+    .sort((a, b) => (a.payload.started_at ?? a.payload.occurred_at).localeCompare(b.payload.started_at ?? b.payload.occurred_at))
     .slice(0, 12);
-  console.log('Sample day (3 days ago, first 12 entries):');
+  console.log(`Sample day (${sampleKey}, first 12 entries by time):`);
   for (const r of sampleDay) {
     const ts = r.payload.started_at ?? r.payload.occurred_at;
     console.log(`  ${ts}  ${r.kind}`);
