@@ -293,6 +293,12 @@ baby's real week number forward so the data *evolves*:
 6. a bottle with a nonsense oz value
 7. a day with no logs at all (tests empty-day rendering in History)
 
+**Dry run by default.** The script generates and prints the month it *would*
+write — per-type row counts, one fully expanded sample day, and each of the
+seven failure cases — and inserts nothing. Writing requires an explicit
+`--commit` flag. This is the primary guard against polluting a live account;
+the undo file below is the secondary one.
+
 **Undo:** every inserted row id is written to
 `scratchpad/seeded-log-ids.json`. `logs:unseed` reads that file and deletes
 exactly those ids. Pre-existing real logs are never matched by a date range and
