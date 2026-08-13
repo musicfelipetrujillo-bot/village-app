@@ -8,7 +8,20 @@ export type LogKind = 'sleep' | 'feed' | 'diaper' | 'note';
 export type FeedMethod = 'breast' | 'bottle';
 export type BreastSide = 'left' | 'right';
 
-export interface ValidationResult { ok: boolean; reason?: string }
+// Subset of LogKind that runs as an open-ended timer (has a start with no
+// guaranteed end) and can therefore go "runaway" if never closed out.
+export type TimedKind = Extract<LogKind, 'sleep' | 'feed'>;
+
+export type ValidationCode =
+  | 'start_invalid' | 'start_future'
+  | 'end_invalid' | 'end_future' | 'end_before_start'
+  | 'side_required' | 'oz_on_breast' | 'side_on_bottle' | 'oz_out_of_range';
+
+// `code` is machine-readable (for localizing this copy per-locale later);
+// `reason` is the English default so today's call sites work unchanged.
+export type ValidationResult =
+  | { ok: true }
+  | { ok: false; code: ValidationCode; reason: string };
 
 export const MIN_OZ = 0;
 export const MAX_OZ = 12;
@@ -16,7 +29,7 @@ export const MAX_OZ = 12;
 // Ceilings past which an open session is unambiguously a forgotten timer.
 // Deliberately generous: a mom logging overnight sleep has a legitimate 8h
 // session, and nagging her about real data is worse than missing a stale row.
-export const RUNAWAY_MS: Record<'sleep' | 'feed', number> = {
+export const RUNAWAY_MS: Record<TimedKind, number> = {
   sleep: 12 * 3600_000,
   feed: 2 * 3600_000,
 };
@@ -31,13 +44,13 @@ export function validateInterval(
   startedAt: string, endedAt: string | null, nowMs: number,
 ): ValidationResult {
   const start = ms(startedAt);
-  if (start == null) return { ok: false, reason: "That start time isn't a valid time." };
-  if (start > nowMs) return { ok: false, reason: 'That start time is in the future.' };
+  if (start == null) return { ok: false, code: 'start_invalid', reason: "That start time isn't a valid time." };
+  if (start > nowMs) return { ok: false, code: 'start_future', reason: 'That start time is in the future.' };
   if (endedAt == null) return { ok: true };
   const end = ms(endedAt);
-  if (end == null) return { ok: false, reason: "That end time isn't a valid time." };
-  if (end > nowMs) return { ok: false, reason: 'That end time is in the future.' };
-  if (end < start) return { ok: false, reason: 'The end time is before the start time.' };
+  if (end == null) return { ok: false, code: 'end_invalid', reason: "That end time isn't a valid time." };
+  if (end > nowMs) return { ok: false, code: 'end_future', reason: 'That end time is in the future.' };
+  if (end < start) return { ok: false, code: 'end_before_start', reason: 'The end time is before the start time.' };
   return { ok: true };
 }
 
@@ -46,23 +59,25 @@ export function validateFeedShape(
   method: FeedMethod, side: BreastSide | null, amountOz: number | null,
 ): ValidationResult {
   if (method === 'breast') {
-    if (!side) return { ok: false, reason: 'Pick a side — left or right.' };
-    if (amountOz != null) return { ok: false, reason: 'Ounces only apply to a bottle.' };
+    if (!side) return { ok: false, code: 'side_required', reason: 'Pick a side — left or right.' };
+    if (amountOz != null) return { ok: false, code: 'oz_on_breast', reason: 'Ounces only apply to a bottle.' };
     return { ok: true };
   }
-  if (side) return { ok: false, reason: "A bottle doesn't have a side." };
-  if (amountOz != null && (amountOz < MIN_OZ || amountOz > MAX_OZ)) {
-    return { ok: false, reason: `Ounces must be between ${MIN_OZ} and ${MAX_OZ}.` };
+  if (side) return { ok: false, code: 'side_on_bottle', reason: "A bottle doesn't have a side." };
+  if (amountOz != null && (!Number.isFinite(amountOz) || amountOz < MIN_OZ || amountOz > MAX_OZ)) {
+    return { ok: false, code: 'oz_out_of_range', reason: `Ounces must be between ${MIN_OZ} and ${MAX_OZ}.` };
   }
   return { ok: true };
 }
 
 /** Has an open session run long enough to be certainly a forgotten timer? */
-export function isRunaway(kind: 'sleep' | 'feed', startedAt: string, nowMs: number): boolean {
+export function isRunaway(kind: TimedKind, startedAt: string, nowMs: number): boolean {
   const start = ms(startedAt);
   if (start == null) return false;
   return nowMs - start > RUNAWAY_MS[kind];
 }
+
+const DATE_ONLY = /^\d{4}-\d{2}-\d{2}$/;
 
 /**
  * Local calendar day key (YYYY-MM-DD).
@@ -73,12 +88,22 @@ export function isRunaway(kind: 'sleep' | 'feed', startedAt: string, nowMs: numb
  * Always group on the day she actually lived.
  */
 export function dayKeyLocal(iso: string): string {
+  // A bare YYYY-MM-DD parses as UTC midnight, which lands on the previous day
+  // in any negative-offset zone. Treat it as the local day it names — this
+  // also makes the function's own output ('YYYY-MM-DD') safe to feed back in.
+  if (DATE_ONLY.test(iso)) return iso;
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return '';
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, '0');
   const day = String(d.getDate()).padStart(2, '0');
   return `${y}-${m}-${day}`;
+}
+
+/** Inverse of dayKeyLocal — local midnight for a day key. */
+export function startOfDayLocal(dayKey: string): Date {
+  const [y, m, d] = dayKey.split('-').map(Number);
+  return new Date(y, m - 1, d);
 }
 
 export interface DayGroup<T> { dayKey: string; items: T[] }
@@ -88,6 +113,7 @@ export function groupByDay<T>(items: T[], isoOf: (item: T) => string): DayGroup<
   const map = new Map<string, T[]>();
   for (const item of items) {
     const key = dayKeyLocal(isoOf(item));
+    if (!key) continue; // unparseable — don't render a blank day heading
     const bucket = map.get(key);
     if (bucket) bucket.push(item);
     else map.set(key, [item]);
@@ -102,9 +128,17 @@ export function minutesAgoISO(minutes: number, nowMs: number): string {
   return new Date(nowMs - minutes * 60_000).toISOString();
 }
 
-/** Snap ounces to the nearest half and hold them inside the allowed range. */
+/**
+ * Snap ounces to the nearest half and hold them inside the allowed range.
+ *
+ * MIN_OZ stays 0 even though the shipped stepper floors at 0.5 when
+ * *starting* a bottle (0oz is meaningless there) — an edit may legitimately
+ * record 0 for a bottle that was offered and refused.
+ */
 export function clampOz(n: number): number {
-  if (!Number.isFinite(n)) return MIN_OZ;
+  if (Number.isNaN(n)) return MIN_OZ;
+  if (n === Infinity) return MAX_OZ;
+  if (n === -Infinity) return MIN_OZ;
   const snapped = Math.round(n * 2) / 2;
   return Math.min(MAX_OZ, Math.max(MIN_OZ, snapped));
 }
