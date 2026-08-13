@@ -185,6 +185,15 @@ export default function GearBrowseScreen() {
             </View>
           )
         }
+        // FlashList v2 turns maintainVisibleContentPosition ON BY DEFAULT. That
+        // is built for chat-style lists where content is prepended; here it was
+        // a bug. The header holds a hero PHOTO that loads async — when it lands
+        // and the header grows, MVCP anchors the visible item rows instead, so
+        // the header expands up out of view and the screen opens on the item
+        // photos with the search bar and category chips scrolled past. It only
+        // misfires when the image is not cached yet, which is why it hit "a lot
+        // of the time" rather than always (founder, 2026-08-12).
+        maintainVisibleContentPosition={{ disabled: true }}
         contentContainerStyle={{ paddingHorizontal: 18, paddingTop: 0, paddingBottom: 140 }}
         refreshControl={<RefreshControl refreshing={loading} onRefresh={load} tintColor={COLORS.coco} />}
       />
