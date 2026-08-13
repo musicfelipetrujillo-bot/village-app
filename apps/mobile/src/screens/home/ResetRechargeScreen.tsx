@@ -23,6 +23,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, ScrollView, Animated, Easing, AppState,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { COLORS, FONTS } from '@utils/constants';
 import { WarmGlowBackdrop } from '@components/shared/WarmGlowBackdrop';
@@ -37,7 +38,52 @@ import {
 
 const ROSE = '#C24A63';
 const INK = '#43260F', INKSOFT = '#7A5A3A', MUTED = '#A6957F';
-const SAGE = '#7C8B6B', SAGE_SOFT = '#EDF1E6';
+
+// ── The design idea: this screen is Mama's Corner at DUSK ────────────────────
+// Plan-my-day is the warm rose daylight card — logistics, the day ahead. This
+// is its counterpart: the same footprint, a different time of day. Reaching for
+// dusk instead of a second rose gradient is what lets this have real presence
+// without competing with the one warm moment upstairs.
+//
+// It also fixes the actual complaint: v1 made every element the same shape —
+// glyph, text, chevron, flat pale card — so the screen read as a wall of rows
+// with no hierarchy. Now there are THREE distinct visual forms: one dusk hero
+// (breathing), three tonal sound tiles, and a magazine index (meditations).
+const DUSK: [string, string] = ['#3F2C4D', '#6A4463'];
+const DUSK_DEEP = '#2E1F3A';
+const CREAM = '#FFFDF8';
+
+// Each sound gets its own tone AND its own waveform signature. A row of three
+// identical emoji tiles is what made these read as filler; a bar signature is
+// legible at a glance, says "sound" without language, and gives each one an
+// identity she can learn. Heights are 0-1 of the plot height.
+const SOUND_TONE: Record<string, { tint: string; ink: string; grad: [string, string]; wave: number[] }> = {
+  // A long soft exhale — tapers away.
+  shush:       { tint: '#FBEAEF', ink: '#B4527A', grad: ['#E58BA8', '#C2556F'], wave: [1, .86, .72, .58, .45, .34, .25, .18] },
+  // Even and unbroken — that's the whole point of white noise.
+  white_noise: { tint: '#E9EEF4', ink: '#5E7392', grad: ['#8AA3C4', '#5E7392'], wave: [.62, .7, .64, .72, .66, .7, .63, .69] },
+  // Irregular, like drops landing.
+  rain:        { tint: '#E6EDF0', ink: '#4E7382', grad: ['#7FA8B8', '#4E7382'], wave: [.35, .85, .28, .62, .9, .3, .7, .42] },
+};
+
+function Waveform({ bars, color, dim = false }: { bars: number[]; color: string; dim?: boolean }) {
+  return (
+    <View style={styles.wave} pointerEvents="none">
+      {bars.map((h, i) => (
+        <View
+          key={i}
+          style={{
+            width: 3.5,
+            borderRadius: 2,
+            height: Math.max(4, h * 30),
+            backgroundColor: color,
+            opacity: dim ? 0.32 : 0.9,
+          }}
+        />
+      ))}
+    </View>
+  );
+}
 
 // ── Breathing ───────────────────────────────────────────────────────────────
 // 4 in · 4 hold · 6 out. The long exhale is the point — it's what actually pulls
@@ -175,18 +221,32 @@ export default function ResetRechargeScreen() {
             </TouchableOpacity>
           </View>
         ) : (
+          /* The hero. This is the reason she opened the screen, so it gets the
+             weight — a dusk field with the breathing rings already visible, so
+             the card previews the thing it does instead of describing it. */
           <TouchableOpacity
-            style={styles.breatheCta} activeOpacity={0.92}
+            style={styles.heroShadow} activeOpacity={0.93}
             onPress={() => { tap(); setBreathing(true); }}
             accessibilityRole="button"
             accessibilityLabel={es ? 'Respira conmigo, un minuto' : 'Breathe with me, one minute'}
           >
-            <Text style={styles.breatheGlyph}>◯</Text>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.breatheTitle}>{es ? 'Respira conmigo' : 'Breathe with me'}</Text>
-              <Text style={styles.breatheSub}>{es ? 'un minuto · sin sonido' : 'one minute · no sound needed'}</Text>
-            </View>
-            <Text style={styles.breatheArrow}>›</Text>
+            <LinearGradient colors={DUSK} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.hero}>
+              {/* Static preview of the breathing circle — concentric rings, so
+                  the card reads as "a moment" rather than another list row. */}
+              <View style={styles.heroRings} pointerEvents="none">
+                <View style={[styles.ring, styles.ring1]} />
+                <View style={[styles.ring, styles.ring2]} />
+                <View style={[styles.ring, styles.ring3]} />
+              </View>
+              <Text style={styles.heroEyebrow}>{es ? 'UN MINUTO' : 'ONE MINUTE'}</Text>
+              <Text style={styles.heroTitle}>{es ? 'Respira\nconmigo' : 'Breathe\nwith me'}</Text>
+              <Text style={styles.heroSub}>
+                {es ? '4 dentro · 4 sostén · 6 fuera' : '4 in · 4 hold · 6 out'}
+              </Text>
+              <View style={styles.heroPill}>
+                <Text style={styles.heroPillText}>{es ? 'empezar ›' : 'start ›'}</Text>
+              </View>
+            </LinearGradient>
           </TouchableOpacity>
         )}
 
@@ -195,21 +255,34 @@ export default function ResetRechargeScreen() {
         <View style={styles.soundRow}>
           {COMFORT_SOUNDS.map((s) => {
             const active = playing === s.id;
+            const tone = SOUND_TONE[s.id] ?? SOUND_TONE.shush;
             return (
               <TouchableOpacity
                 key={s.id}
-                style={[styles.soundTile, active && styles.soundTileActive]}
+                style={[styles.soundTile, { backgroundColor: tone.tint, borderColor: active ? 'transparent' : `${tone.ink}22` },
+                  active && { shadowColor: tone.ink, shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.3, shadowRadius: 14, elevation: 5 }]}
                 activeOpacity={0.9}
                 onPress={() => { void toggleSound(s); }}
                 accessibilityRole="button"
                 accessibilityState={{ selected: active }}
                 accessibilityLabel={es ? s.labelEs : s.labelEn}
               >
-                <Text style={styles.soundEmoji}>{s.emoji}</Text>
-                <Text style={[styles.soundLabel, active && styles.soundLabelActive]}>
+                {/* Playing = the tile fills with its own colour. The state
+                    change is the whole tile, not a small badge, so she can see
+                    what's on from across a dim room. */}
+                {active && (
+                  <LinearGradient
+                    colors={tone.grad} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+                    style={StyleSheet.absoluteFill}
+                  />
+                )}
+                <Waveform bars={tone.wave} color={active ? CREAM : tone.ink} dim={!active} />
+                <Text style={[styles.soundLabel, { color: active ? CREAM : tone.ink }]}>
                   {es ? s.labelEs : s.labelEn}
                 </Text>
-                {active && <Text style={styles.soundPlaying}>{es ? 'sonando' : 'playing'}</Text>}
+                <Text style={[styles.soundState, { color: active ? 'rgba(255,253,248,0.85)' : `${tone.ink}88` }]}>
+                  {active ? (es ? 'sonando' : 'playing') : (es ? 'tocar' : 'tap')}
+                </Text>
               </TouchableOpacity>
             );
           })}
@@ -235,12 +308,15 @@ export default function ResetRechargeScreen() {
 
         {/* Meditations — doors named for how she feels, never logged. */}
         <Text style={styles.sectionLabel}>{es ? 'MEDITACIONES' : 'MEDITATIONS'}</Text>
-        <View style={styles.doorCard}>
+        {/* A numbered index, not a fourth card of chevron rows. Same magazine
+            form Mama's Corner uses for "for you" — it gives the screen a third
+            distinct shape and lets the mood names carry at display size. */}
+        <View style={styles.index}>
           {DOORS.map((d, i) => (
             <TouchableOpacity
               key={d.id}
-              style={[styles.doorRow, i === DOORS.length - 1 && { borderBottomWidth: 0 }]}
-              activeOpacity={0.85}
+              style={[styles.indexRow, i === 0 && { borderTopWidth: 0 }]}
+              activeOpacity={0.7}
               onPress={() => {
                 tap();
                 setNote(es
@@ -250,9 +326,9 @@ export default function ResetRechargeScreen() {
               accessibilityRole="button"
               accessibilityLabel={es ? d.es : d.en}
             >
-              <Text style={styles.doorEmoji}>{d.emoji}</Text>
-              <Text style={styles.doorText}>{es ? d.es : d.en}</Text>
-              <Text style={styles.doorArrow}>›</Text>
+              <Text style={styles.indexNum}>{String(i + 1).padStart(2, '0')}</Text>
+              <Text style={styles.indexText}>{es ? d.es : d.en}</Text>
+              <Text style={styles.indexGlyph}>{d.emoji}</Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -291,43 +367,62 @@ const styles = StyleSheet.create({
   scroll: { paddingHorizontal: 18, paddingBottom: 120 },
   intro: { fontFamily: FONTS.v2_body, fontSize: 15, color: INKSOFT, marginTop: 6, marginBottom: 18 },
 
-  breatheCta: {
-    flexDirection: 'row', alignItems: 'center', gap: 14,
-    backgroundColor: SAGE_SOFT, borderRadius: 20, padding: 18,
-    borderWidth: 1, borderColor: '#DCE4D0',
+  // ── Hero: breathe with me ────────────────────────────────────────────────
+  heroShadow: {
+    borderRadius: 24,
+    shadowColor: DUSK_DEEP, shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.28, shadowRadius: 22, elevation: 5,
   },
-  breatheGlyph: { fontSize: 26, color: SAGE },
-  breatheTitle: { fontFamily: FONTS.v3_display, fontSize: 21, color: INK, letterSpacing: -0.3 },
-  breatheSub: { fontFamily: FONTS.v2_body, fontSize: 13, color: INKSOFT, marginTop: 2 },
-  breatheArrow: { fontSize: 22, color: SAGE },
+  hero: {
+    borderRadius: 24, paddingHorizontal: 20, paddingVertical: 22,
+    minHeight: 186, overflow: 'hidden', justifyContent: 'flex-end',
+  },
+  // Concentric rings, bled off the top-right corner. They preview the breathing
+  // circle so the card shows the thing it does instead of naming it.
+  heroRings: { position: 'absolute', top: -54, right: -46, width: 210, height: 210, alignItems: 'center', justifyContent: 'center' },
+  ring: { position: 'absolute', borderRadius: 999, borderColor: 'rgba(255,253,248,0.30)' },
+  ring1: { width: 210, height: 210, borderWidth: 1 },
+  ring2: { width: 150, height: 150, borderWidth: 1.5 },
+  ring3: { width: 92, height: 92, borderWidth: 2, backgroundColor: 'rgba(255,253,248,0.10)' },
+  heroEyebrow: { fontFamily: FONTS.v2_mono, fontSize: 10, letterSpacing: 2.4, color: 'rgba(255,253,248,0.72)' },
+  heroTitle: { fontFamily: FONTS.v3_display, fontSize: 32, lineHeight: 35, color: CREAM, letterSpacing: -0.8, marginTop: 6 },
+  heroSub: { fontFamily: FONTS.v2_body, fontSize: 13, color: 'rgba(255,253,248,0.82)', marginTop: 7 },
+  heroPill: {
+    marginTop: 15, alignSelf: 'flex-start', backgroundColor: 'rgba(255,255,255,0.22)',
+    borderRadius: 999, paddingHorizontal: 15, paddingVertical: 8,
+  },
+  heroPillText: { fontFamily: FONTS.v2_bold, fontSize: 12.5, color: CREAM, letterSpacing: 0.3 },
 
+  // Breathing, running — same dusk field so starting it feels like the card
+  // opening rather than a jump to a different screen.
   breathCard: {
-    backgroundColor: SAGE_SOFT, borderRadius: 20, paddingVertical: 30, alignItems: 'center',
-    borderWidth: 1, borderColor: '#DCE4D0',
+    backgroundColor: DUSK_DEEP, borderRadius: 24, paddingVertical: 32, alignItems: 'center',
+    overflow: 'hidden',
   },
   breathWrap: { alignItems: 'center' },
   breathCircleTrack: { width: 190, height: 190, alignItems: 'center', justifyContent: 'center' },
-  breathCircle: { width: 190, height: 190, borderRadius: 95, backgroundColor: 'rgba(124,139,107,0.30)' },
-  breathPhase: { fontFamily: FONTS.v3_display, fontSize: 25, color: INK, marginTop: 16, letterSpacing: -0.3 },
-  breathCount: { fontFamily: FONTS.v2_mono, fontSize: 12, color: MUTED, letterSpacing: 2, marginTop: 6 },
-  breathStop: { fontFamily: FONTS.v2_body, fontSize: 15, color: SAGE, marginTop: 18 },
+  breathCircle: { width: 190, height: 190, borderRadius: 95, backgroundColor: 'rgba(240,184,196,0.34)' },
+  breathPhase: { fontFamily: FONTS.v3_display, fontSize: 26, color: CREAM, marginTop: 18, letterSpacing: -0.3 },
+  breathCount: { fontFamily: FONTS.v2_mono, fontSize: 11, color: 'rgba(255,253,248,0.60)', letterSpacing: 2.4, marginTop: 6 },
+  breathStop: { fontFamily: FONTS.v2_body, fontSize: 15, color: 'rgba(255,253,248,0.78)', marginTop: 20 },
 
   sectionLabel: {
     fontFamily: FONTS.v2_mono, fontSize: 11, letterSpacing: 2.4, color: MUTED,
-    marginTop: 28, marginBottom: 10,
+    marginTop: 30, marginBottom: 11,
   },
+
+  // ── Sounds: three tonal tiles, each with its own waveform ────────────────
   soundRow: { flexDirection: 'row', gap: 10 },
   soundTile: {
-    flex: 1, backgroundColor: COLORS.v2_card, borderRadius: 18, paddingVertical: 18,
-    alignItems: 'center', borderWidth: 1, borderColor: '#EFE3D2',
+    flex: 1, borderRadius: 20, paddingVertical: 18, paddingHorizontal: 8,
+    alignItems: 'center', borderWidth: 1, overflow: 'hidden', minHeight: 122,
+    justifyContent: 'center',
   },
-  soundTileActive: { backgroundColor: '#FDECEF', borderColor: '#F3C6D2' },
-  soundEmoji: { fontSize: 24 },
-  soundLabel: { fontFamily: FONTS.v2_body, fontSize: 13, color: INKSOFT, marginTop: 8 },
-  soundLabelActive: { color: ROSE, fontFamily: FONTS.bodySemiBold },
-  soundPlaying: { fontFamily: FONTS.v2_mono, fontSize: 9, letterSpacing: 1.4, color: ROSE, marginTop: 3 },
+  wave: { flexDirection: 'row', alignItems: 'center', gap: 3, height: 32 },
+  soundLabel: { fontFamily: FONTS.bodySemiBold, fontSize: 13, marginTop: 12, textAlign: 'center' },
+  soundState: { fontFamily: FONTS.v2_mono, fontSize: 9, letterSpacing: 1.4, marginTop: 3 },
 
-  timerRow: { flexDirection: 'row', alignItems: 'center', gap: 7, marginTop: 12, flexWrap: 'wrap' },
+  timerRow: { flexDirection: 'row', alignItems: 'center', gap: 7, marginTop: 14, flexWrap: 'wrap' },
   timerLabel: { fontFamily: FONTS.v2_body, fontSize: 12, color: MUTED, marginRight: 2 },
   timerChip: {
     paddingHorizontal: 11, paddingVertical: 6, borderRadius: 999,
@@ -338,18 +433,16 @@ const styles = StyleSheet.create({
   timerChipTextOn: { color: ROSE },
   note: { fontFamily: FONTS.v2_body, fontSize: 13, color: MUTED, marginTop: 10 },
 
-  doorCard: {
-    backgroundColor: COLORS.v2_card, borderRadius: 20,
-    borderWidth: 1, borderColor: '#EFE3D2', overflow: 'hidden',
+  // ── Meditations: magazine index, no card ────────────────────────────────
+  index: { marginTop: 2 },
+  indexRow: {
+    flexDirection: 'row', alignItems: 'center', gap: 14,
+    paddingVertical: 16,
+    borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: 'rgba(122,74,40,0.18)',
   },
-  doorRow: {
-    flexDirection: 'row', alignItems: 'center', gap: 12,
-    paddingHorizontal: 16, paddingVertical: 15,
-    borderBottomWidth: 1, borderBottomColor: '#F4EADB',
-  },
-  doorEmoji: { fontSize: 19 },
-  doorText: { flex: 1, fontFamily: FONTS.v2_body, fontSize: 15, color: INK },
-  doorArrow: { fontSize: 19, color: MUTED },
+  indexNum: { fontFamily: FONTS.v2_mono, fontSize: 10, letterSpacing: 1.6, color: '#C9B7A2', width: 20 },
+  indexText: { flex: 1, fontFamily: FONTS.v3_display, fontSize: 19, color: INK, letterSpacing: -0.4 },
+  indexGlyph: { fontSize: 17, opacity: 0.75 },
 
   crisisLine: { marginTop: 26, paddingVertical: 10 },
   crisisText: { fontFamily: FONTS.v2_body, fontSize: 13, color: INKSOFT, textAlign: 'center' },
