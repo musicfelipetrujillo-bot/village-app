@@ -43,6 +43,7 @@ export default function MomHubScreen() {
 
   const goDayPlan = () => { tap(); navigation.navigate('DayPlan'); };
   const goDaySheet = () => { tap(); navigation.navigate('DaySheetList'); };
+  const goReset = () => { tap(); navigation.navigate('ResetRecharge'); };
   const askVillie = (seed: string) => {
     tap();
     navigation.getParent()?.getParent()?.navigate('AIHelpChat', { seed, autosend: true });
@@ -81,6 +82,21 @@ export default function MomHubScreen() {
             <Text style={styles.planSub}>{es ? 'siestas y pumps alrededor de tu agenda' : 'naps + pumps around your schedule'}</Text>
             <View style={styles.planPill}><Text style={styles.planPillText}>{es ? 'abrir ›' : 'open ›'}</Text></View>
           </LinearGradient>
+        </TouchableOpacity>
+
+        {/* Reset & Recharge — the only part of the corner that's for her nervous
+            system rather than her logistics. Deliberately NOT a second gradient:
+            plan-my-day stays the one spark, this one is the quiet exhale. */}
+        <TouchableOpacity style={styles.resetCard} activeOpacity={0.92} onPress={goReset}
+          accessibilityRole="button" accessibilityLabel={es ? 'Necesito un momento' : 'I need a sec'}>
+          <Text style={styles.resetGlyph}>◯</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.resetTitle}>{es ? 'Necesito un momento' : 'I need a sec'}</Text>
+            <Text style={styles.resetSub}>
+              {es ? 'respira, sonidos, un reinicio' : 'breathe, sounds, a reset'}
+            </Text>
+          </View>
+          <Text style={styles.resetArrow}>›</Text>
         </TouchableOpacity>
 
         {/* everything else — one quiet list */}
@@ -159,6 +175,17 @@ const styles = StyleSheet.create({
   planPillText: { fontFamily: FONTS.v2_bold, fontSize: 12, color: '#fff', letterSpacing: 0.3 },
 
   // Quiet list — everything else, one calm group
+  // Sage, not rose: the corner already has one gradient spark (plan my day).
+  // This is the exhale — it should read calm, not compete.
+  resetCard: {
+    flexDirection: 'row', alignItems: 'center', gap: 14, marginTop: 12,
+    backgroundColor: '#EDF1E6', borderRadius: 20, padding: 18,
+    borderWidth: 1, borderColor: '#DCE4D0',
+  },
+  resetGlyph: { fontSize: 24, color: '#7C8B6B' },
+  resetTitle: { fontFamily: FONTS.v3_display, fontSize: 20, color: INK, letterSpacing: -0.3 },
+  resetSub: { fontFamily: FONTS.v2_body, fontSize: 13, color: INKSOFT, marginTop: 2 },
+  resetArrow: { fontSize: 21, color: '#7C8B6B' },
   momCard: {
     marginHorizontal: 22, marginTop: 20, backgroundColor: COLORS.v2_paper, borderRadius: 18, overflow: 'hidden',
     borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(122,74,40,0.14)',
