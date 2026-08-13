@@ -19,9 +19,10 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
-  ScrollView, ActivityIndicator, Alert, Modal,
+  ActivityIndicator, Alert, Modal,
   KeyboardAvoidingView, Platform, RefreshControl,
 } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
 import { useNavigation } from '@react-navigation/native';
 import {
   clinicalReviewApi,
@@ -45,6 +46,28 @@ interface RejectTarget {
   onDone?: () => void;
 }
 
+interface ClearedRow {
+  id: string;
+  issue_id: string;
+  kind: string;
+  title_en: string;
+  summary_en: string;
+  trend_source_url: string;
+  evidence_source_url: string;
+  created_at: string;
+}
+
+// The weekly-journey queue + The Buzz section render as ONE flat virtualized
+// list. Section headings and cards are interleaved as typed rows so FlashList
+// can recycle each shape into its own pool (see `getItemType`).
+type ListRow =
+  | { kind: 'stats' }
+  | { kind: 'inboxZero' }
+  | { kind: 'week'; week: number }
+  | { kind: 'review'; row: PendingReviewRow }
+  | { kind: 'clearedHeader' }
+  | { kind: 'cleared'; row: ClearedRow };
+
 export default function ClinicalReviewScreen() {
   const navigation = useNavigation<any>();
 
@@ -60,9 +83,7 @@ export default function ClinicalReviewScreen() {
   const [rejecting, setRejecting] = useState(false);
 
   // The Buzz — recently auto-cleared trending_items, flaggable back into review
-  const [clearedRows, setClearedRows] = useState<
-    { id: string; issue_id: string; kind: string; title_en: string; summary_en: string; trend_source_url: string; evidence_source_url: string; created_at: string }[]
-  >([]);
+  const [clearedRows, setClearedRows] = useState<ClearedRow[]>([]);
   const [flaggingId, setFlaggingId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
@@ -109,6 +130,27 @@ export default function ClinicalReviewScreen() {
     const weeks = new Set(rows.map((r) => r.week_number));
     return { weekCount: weeks.size, rowCount: rows.length };
   }, [rows]);
+
+  // Flatten headings + cards into one virtualized list. Loading/error yield an
+  // empty list so they fall through to ListEmptyComponent.
+  const listData = useMemo<ListRow[]>(() => {
+    if (loading || error) return [];
+    const out: ListRow[] = [];
+    if (rows.length === 0) {
+      out.push({ kind: 'inboxZero' });
+    } else {
+      out.push({ kind: 'stats' });
+      for (const [week, weekRows] of grouped) {
+        out.push({ kind: 'week', week });
+        for (const r of weekRows) out.push({ kind: 'review', row: r });
+      }
+    }
+    if (clearedRows.length > 0) {
+      out.push({ kind: 'clearedHeader' });
+      for (const r of clearedRows) out.push({ kind: 'cleared', row: r });
+    }
+    return out;
+  }, [loading, error, rows, grouped, clearedRows]);
 
   // ── approve / reject handlers ──────────────────────────────────────
   async function approve(row: PendingReviewRow) {
@@ -188,104 +230,140 @@ export default function ClinicalReviewScreen() {
         <View style={{ width: 24 }} />
       </View>
 
-      <ScrollView
+      {/* Virtualized. The weekly-journey queue is ~500 rows of full EN + ES
+          body text; as a plain ScrollView every card stayed mounted, so
+          dismissing this modal had to tear the whole tree down before the
+          close animation could run — which is what made ✕ feel laggy. Only
+          the visible window mounts now. */}
+      <FlashList
+        data={listData}
+        extraData={`${busyRowId ?? ''}|${flaggingId ?? ''}`}
+        keyExtractor={(item) => {
+          switch (item.kind) {
+            case 'week': return `w${item.week}`;
+            case 'review': return `r${item.row.row_id}`;
+            case 'cleared': return `c${item.row.id}`;
+            default: return item.kind;
+          }
+        }}
+        // Distinct recycling pool per row shape — headings and cards have very
+        // different heights, and one shared pool causes size thrash.
+        getItemType={(item) => item.kind}
+        // FlashList v2 turns maintainVisibleContentPosition ON BY DEFAULT. It's
+        // built for chat lists that prepend content. Here it is a bug: the
+        // MomTipsReview header loads its own data and GROWS after mount, and
+        // MVCP would pin the rows, opening the screen already scrolled past
+        // the mom-tips section. Off. (Same trap as GearBrowse/ExpertsHome.)
+        maintainVisibleContentPosition={{ disabled: true }}
         contentContainerStyle={s.scroll}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
-      >
-        {/* FIRST, deliberately. The weekly-journey queue below is ~500 rows in
-            a plain (non-virtualized) ScrollView, so anything appended after it
-            is ~500 cards down the page and effectively invisible — which is
-            exactly what happened when this section shipped at the bottom.
-            Mom tips also has the stronger claim on the top slot: it is the one
-            queue gating a feature that is dark in production. */}
-        <MomTipsReview
-          onReject={(tip, onDone) => {
-            setRejectTarget({ table: 'mom_tips', id: tip.id, title: tip.title, onDone });
-            setRejectNotes('');
-          }}
-        />
-
-        {loading ? (
-          <View style={s.loadingBlock}>
-            <ActivityIndicator color={COLORS.coco} />
-            <Text style={s.helpTxt}>Loading pending content…</Text>
-          </View>
-        ) : error ? (
-          <View style={s.errorBanner}>
-            <Text style={s.errorTxt}>{error}</Text>
-            <TouchableOpacity style={s.retryBtn} onPress={load}>
-              <Text style={s.retryBtnTxt}>Retry</Text>
-            </TouchableOpacity>
-          </View>
-        ) : rows.length === 0 ? (
-          <View style={s.emptyBlock}>
-            <Text style={s.emptyEmoji}>✅</Text>
-            <Text style={s.emptyTitle}>Inbox zero</Text>
-            <Text style={s.emptyBody}>
-              Every weekly-journey row has been clinical-advisor-reviewed.
-              Pull down to refresh when the AI cron fills new weeks.
-            </Text>
-          </View>
-        ) : (
-          <>
-            <View style={s.statsBlock}>
-              <Text style={s.statsTxt}>
-                {stats.weekCount} {stats.weekCount === 1 ? 'week' : 'weeks'} pending
-                {' · '}
-                {stats.rowCount} {stats.rowCount === 1 ? 'row' : 'rows'} total
-              </Text>
-              <Text style={s.helpTxt}>
-                Approving a row makes it visible to end users immediately.
-                Rejecting keeps it private + records your notes.
-              </Text>
+        // FIRST, deliberately — unchanged intent from the ScrollView version:
+        // mom tips is the one queue gating a feature that is dark in
+        // production, so it keeps the top slot. As a list header it also
+        // mounts exactly once instead of riding along with every re-render.
+        ListHeaderComponent={
+          <MomTipsReview
+            onReject={(tip, onDone) => {
+              setRejectTarget({ table: 'mom_tips', id: tip.id, title: tip.title, onDone });
+              setRejectNotes('');
+            }}
+          />
+        }
+        ListEmptyComponent={
+          loading ? (
+            <View style={s.loadingBlock}>
+              <ActivityIndicator color={COLORS.coco} />
+              <Text style={s.helpTxt}>Loading pending content…</Text>
             </View>
+          ) : error ? (
+            <View style={s.errorBanner}>
+              <Text style={s.errorTxt}>{error}</Text>
+              <TouchableOpacity style={s.retryBtn} onPress={load}>
+                <Text style={s.retryBtnTxt}>Retry</Text>
+              </TouchableOpacity>
+            </View>
+          ) : null
+        }
+        renderItem={({ item }) => {
+          switch (item.kind) {
+            case 'stats':
+              return (
+                <View style={s.statsBlock}>
+                  <Text style={s.statsTxt}>
+                    {stats.weekCount} {stats.weekCount === 1 ? 'week' : 'weeks'} pending
+                    {' · '}
+                    {stats.rowCount} {stats.rowCount === 1 ? 'row' : 'rows'} total
+                  </Text>
+                  <Text style={s.helpTxt}>
+                    Approving a row makes it visible to end users immediately.
+                    Rejecting keeps it private + records your notes.
+                  </Text>
+                </View>
+              );
 
-            {grouped.map(([week, weekRows]) => (
-              <View key={week} style={s.weekBlock}>
-                <Text style={s.weekHeading}>Week {week}</Text>
-                {weekRows.map((row) => (
-                  <ReviewCard
-                    key={row.row_id}
-                    row={row}
-                    busy={busyRowId === row.row_id}
-                    onApprove={() => approve(row)}
-                    onReject={() => openReject(row)}
-                  />
-                ))}
-              </View>
-            ))}
-          </>
-        )}
+            case 'inboxZero':
+              return (
+                <View style={s.emptyBlock}>
+                  <Text style={s.emptyEmoji}>✅</Text>
+                  <Text style={s.emptyTitle}>Inbox zero</Text>
+                  <Text style={s.emptyBody}>
+                    Every weekly-journey row has been clinical-advisor-reviewed.
+                    Pull down to refresh when the AI cron fills new weeks.
+                  </Text>
+                </View>
+              );
 
-        {clearedRows.length > 0 ? (
-          <View style={s.weekBlock}>
-            <Text style={s.weekHeading}>Recently auto-cleared — The Buzz</Text>
-            <Text style={s.helpTxt}>
-              Non-medical items that auto-cleared without human review. Flag one if it actually touches a
-              health/medical claim.
-            </Text>
-            {clearedRows.map((r) => (
-              <View key={r.id} style={s.cardBlock}>
-                <Text style={s.cardTitle} selectable>{r.title_en}</Text>
-                <Text style={s.bodyTxt} selectable>{r.summary_en}</Text>
-                <TouchableOpacity
-                  style={[s.rejectBtn, flaggingId === r.id && s.btnDisabled]}
-                  onPress={() => flagAsMedical(r.id)}
-                  disabled={flaggingId === r.id}
-                  accessibilityRole="button"
-                  accessibilityLabel={`Flag ${r.title_en} as medical`}
-                >
-                  {flaggingId === r.id
-                    ? <ActivityIndicator color={COLORS.cocoDeep} />
-                    : <Text style={s.rejectBtnTxt}>🚩 Flag as medical</Text>}
-                </TouchableOpacity>
-              </View>
-            ))}
-          </View>
-        ) : null}
-      </ScrollView>
+            case 'week':
+              return (
+                <View style={s.weekBlock}>
+                  <Text style={s.weekHeading}>Week {item.week}</Text>
+                </View>
+              );
+
+            case 'review':
+              return (
+                <ReviewCard
+                  row={item.row}
+                  busy={busyRowId === item.row.row_id}
+                  onApprove={() => approve(item.row)}
+                  onReject={() => openReject(item.row)}
+                />
+              );
+
+            case 'clearedHeader':
+              return (
+                <View style={s.weekBlock}>
+                  <Text style={s.weekHeading}>Recently auto-cleared — The Buzz</Text>
+                  <Text style={s.helpTxt}>
+                    Non-medical items that auto-cleared without human review. Flag one if it actually touches a
+                    health/medical claim.
+                  </Text>
+                </View>
+              );
+
+            case 'cleared':
+              return (
+                <View style={s.cardBlock}>
+                  <Text style={s.cardTitle} selectable>{item.row.title_en}</Text>
+                  <Text style={s.bodyTxt} selectable>{item.row.summary_en}</Text>
+                  <TouchableOpacity
+                    style={[s.rejectBtn, flaggingId === item.row.id && s.btnDisabled]}
+                    onPress={() => flagAsMedical(item.row.id)}
+                    disabled={flaggingId === item.row.id}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Flag ${item.row.title_en} as medical`}
+                  >
+                    {flaggingId === item.row.id
+                      ? <ActivityIndicator color={COLORS.cocoDeep} />
+                      : <Text style={s.rejectBtnTxt}>🚩 Flag as medical</Text>}
+                  </TouchableOpacity>
+                </View>
+              );
+          }
+        }}
+      />
 
       {/* Reject modal */}
       <Modal
