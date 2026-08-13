@@ -329,38 +329,45 @@ export default function ResetRechargeScreen() {
         )}
 
         {/* Meditations — doors named for how she feels, never logged. */}
-        <Text style={styles.sectionLabel}>{es ? 'MEDITACIONES' : 'MEDITATIONS'}</Text>
-        {/* A numbered index, not a fourth card of chevron rows. Same magazine
-            form Mama's Corner uses for "for you" — it gives the screen a third
-            distinct shape and lets the mood names carry at display size. */}
-        <View style={styles.index}>
-          {DOORS.map((d, i) => (
-            <TouchableOpacity
-              key={d.id}
-              style={[styles.indexRow, i === 0 && { borderTopWidth: 0 }, !MEDITATIONS_READY && styles.notReady]}
-              activeOpacity={MEDITATIONS_READY ? 0.7 : 1}
-              onPress={() => { select(); }}
-              accessibilityRole="button"
-              accessibilityState={{ disabled: !MEDITATIONS_READY }}
-              accessibilityLabel={`${es ? d.es : d.en}${MEDITATIONS_READY ? '' : es ? ', pronto' : ', coming soon'}`}
-            >
-              <Text style={styles.indexNum}>{String(i + 1).padStart(2, '0')}</Text>
-              <Text style={styles.indexText}>{es ? d.es : d.en}</Text>
-              {!MEDITATIONS_READY && (
-                <View style={styles.soonPill}>
-                  <Text style={styles.soonPillText}>{es ? 'pronto' : 'soon'}</Text>
-                </View>
-              )}
-              <Text style={styles.indexGlyph}>{d.emoji}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-        {!MEDITATIONS_READY && (
-          <Text style={styles.note}>
-            {es
-              ? 'Las meditaciones llegan con la próxima actualización.'
-              : 'Meditations arrive with the next app update.'}
-          </Text>
+        {/* Until there are recordings, this is ONE line, not four rows.
+            Labelling four dead doors honestly still leaves four dead doors —
+            with the three sound tiles that was seven of nine controls on the
+            screen promising something that isn't there. The breathing hero
+            works, and it is strong enough to carry the screen alone. The full
+            index below is the shape this takes the day audio ships. */}
+        {MEDITATIONS_READY ? (
+          <>
+            <Text style={styles.sectionLabel}>{es ? 'MEDITACIONES' : 'MEDITATIONS'}</Text>
+            {/* A numbered index, not a fourth card of chevron rows. Same
+                magazine form Mama's Corner uses for "for you" — it gives the
+                screen a third distinct shape and lets the mood names carry at
+                display size. */}
+            <View style={styles.index}>
+              {DOORS.map((d, i) => (
+                <TouchableOpacity
+                  key={d.id}
+                  style={[styles.indexRow, i === 0 && { borderTopWidth: 0 }]}
+                  activeOpacity={0.7}
+                  onPress={() => { select(); }}
+                  accessibilityRole="button"
+                  accessibilityLabel={es ? d.es : d.en}
+                >
+                  <Text style={styles.indexNum}>{String(i + 1).padStart(2, '0')}</Text>
+                  <Text style={styles.indexText}>{es ? d.es : d.en}</Text>
+                  <Text style={styles.indexGlyph}>{d.emoji}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </>
+        ) : (
+          <View style={styles.soonLine}>
+            <Text style={styles.soonLineText}>
+              {es ? 'Meditaciones guiadas' : 'Guided meditations'}
+            </Text>
+            <View style={styles.soonPill}>
+              <Text style={styles.soonPillText}>{es ? 'pronto' : 'soon'}</Text>
+            </View>
+          </View>
         )}
 
         {/* The bridge. Quiet on purpose — it must be findable without being
@@ -466,6 +473,12 @@ const styles = StyleSheet.create({
   // Not-yet-built controls: legible, clearly not live, never disabled-grey —
   // this screen is read in the dark and grey-on-cream disappears.
   notReady: { opacity: 0.55 },
+  soonLine: {
+    flexDirection: 'row', alignItems: 'center', gap: 10,
+    marginTop: 26, paddingVertical: 12,
+    borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: 'rgba(122,74,40,0.18)',
+  },
+  soonLineText: { flex: 1, fontFamily: FONTS.v2_body, fontSize: 13.5, color: MUTED },
   soonPill: {
     backgroundColor: COLORS.v2_parchment, borderRadius: 999,
     paddingHorizontal: 9, paddingVertical: 3,
