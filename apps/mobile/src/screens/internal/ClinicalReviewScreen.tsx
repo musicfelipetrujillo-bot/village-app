@@ -194,6 +194,19 @@ export default function ClinicalReviewScreen() {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
       >
+        {/* FIRST, deliberately. The weekly-journey queue below is ~500 rows in
+            a plain (non-virtualized) ScrollView, so anything appended after it
+            is ~500 cards down the page and effectively invisible — which is
+            exactly what happened when this section shipped at the bottom.
+            Mom tips also has the stronger claim on the top slot: it is the one
+            queue gating a feature that is dark in production. */}
+        <MomTipsReview
+          onReject={(tip, onDone) => {
+            setRejectTarget({ table: 'mom_tips', id: tip.id, title: tip.title, onDone });
+            setRejectNotes('');
+          }}
+        />
+
         {loading ? (
           <View style={s.loadingBlock}>
             <ActivityIndicator color={COLORS.coco} />
@@ -272,13 +285,6 @@ export default function ClinicalReviewScreen() {
             ))}
           </View>
         ) : null}
-
-        <MomTipsReview
-          onReject={(tip, onDone) => {
-            setRejectTarget({ table: 'mom_tips', id: tip.id, title: tip.title, onDone });
-            setRejectNotes('');
-          }}
-        />
       </ScrollView>
 
       {/* Reject modal */}
