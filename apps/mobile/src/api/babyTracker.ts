@@ -7,6 +7,10 @@
 // returns null/[]) so the UI degrades gracefully if migration 093 hasn't been
 // pushed to this environment yet.
 import { supabase } from '@/lib/supabase';
+import {
+  validateInterval, validateFeedShape, dayKeyLocal, clampOz,
+  type LogKind,
+} from '@utils/logEntry';
 
 export type FeedMethod = 'breast' | 'bottle';
 export type BreastSide = 'left' | 'right';
@@ -57,7 +61,43 @@ export interface ParseResult {
   events: unknown[];
 }
 
-const dayKey = (iso: string): string => iso.slice(0, 10);
+export type { LogKind };
+
+export type LogEntry =
+  | { kind: 'sleep';  row: SleepLog }
+  | { kind: 'feed';   row: FeedLog }
+  | { kind: 'diaper'; row: DiaperLog }
+  | { kind: 'note';   row: NoteLog };
+
+/**
+ * Edit and delete report failure, unlike logging.
+ *
+ * Logging fails soft on purpose so the UI degrades if a migration hasn't
+ * landed. Edit and delete must not inherit that: a delete that silently
+ * no-ops is worse than no delete button at all.
+ */
+export interface MutationResult { ok: boolean; reason?: string }
+
+const TABLE: Record<LogKind, string> = {
+  sleep: 'baby_sleep_logs',
+  feed: 'baby_feed_logs',
+  diaper: 'baby_diaper_logs',
+  note: 'baby_log_notes',
+};
+
+// Postgres unique-violation. Our two partial indexes (uniq_baby_sleep_active,
+// uniq_baby_feed_active) permit exactly one open session per user, so an edit
+// that reopens a closed session collides with a running one.
+const PG_UNIQUE_VIOLATION = '23505';
+
+function mutationError(op: string, error: { message: string; code?: string }): MutationResult {
+  console.warn(`[tracker] ${op}`, error.message);
+  if (error.code === PG_UNIQUE_VIOLATION) {
+    return { ok: false, reason: 'Another session is already running. Stop that one first.' };
+  }
+  return { ok: false, reason: "That didn't save. Check your connection and try again." };
+}
+
 function mean(xs: number[]): number | null { return xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : null; }
 function round(n: number | null): number | null { return n == null ? null : Math.round(n); }
 
@@ -69,10 +109,10 @@ async function userId(): Promise<string | null> {
   return _userId;
 }
 
-function startOfTodayISO(): string {
+function startOfToday(): Date {
   const d = new Date();
   d.setHours(0, 0, 0, 0);
-  return d.toISOString();
+  return d;
 }
 
 export const babyTrackerApi = {
@@ -110,6 +150,87 @@ export const babyTrackerApi = {
     return true;
   },
 
+  async updateSleep(
+    id: string, patch: { started_at?: string; ended_at?: string | null },
+  ): Promise<MutationResult> {
+    const current = await supabase
+      .from('baby_sleep_logs').select('started_at, ended_at').eq('id', id).maybeSingle();
+    if (current.error || !current.data) return { ok: false, reason: "Couldn't find that nap." };
+    const started = patch.started_at ?? (current.data.started_at as string);
+    const ended = 'ended_at' in patch ? patch.ended_at! : (current.data.ended_at as string | null);
+    const v = validateInterval(started, ended, Date.now());
+    if (!v.ok) return v;
+    const { error } = await supabase.from('baby_sleep_logs').update(patch).eq('id', id);
+    return error ? mutationError('updateSleep', error) : { ok: true };
+  },
+
+  async updateFeed(
+    id: string,
+    patch: {
+      method?: FeedMethod; side?: BreastSide | null;
+      started_at?: string; ended_at?: string | null; amount_oz?: number | null;
+    },
+  ): Promise<MutationResult> {
+    const current = await supabase
+      .from('baby_feed_logs')
+      .select('method, side, started_at, ended_at, amount_oz').eq('id', id).maybeSingle();
+    if (current.error || !current.data) return { ok: false, reason: "Couldn't find that feed." };
+    const c = current.data as FeedLog;
+    const method = patch.method ?? c.method;
+    // `in` rather than `!= null` — this is what lets an edit CLEAR a value.
+    const side = 'side' in patch ? patch.side! : c.side;
+    const started = patch.started_at ?? c.started_at;
+    const ended = 'ended_at' in patch ? patch.ended_at! : c.ended_at;
+    const oz = 'amount_oz' in patch
+      ? (patch.amount_oz == null ? null : clampOz(patch.amount_oz))
+      : c.amount_oz;
+
+    const shape = validateFeedShape(method, method === 'bottle' ? null : side, method === 'breast' ? null : oz);
+    if (!shape.ok) return shape;
+    const interval = validateInterval(started, ended, Date.now());
+    if (!interval.ok) return interval;
+
+    // Normalise so a method switch can never leave an orphan side or oz behind.
+    const normalised = {
+      ...patch,
+      method,
+      side: method === 'bottle' ? null : side,
+      amount_oz: method === 'breast' ? null : oz,
+    };
+    const { error } = await supabase.from('baby_feed_logs').update(normalised).eq('id', id);
+    return error ? mutationError('updateFeed', error) : { ok: true };
+  },
+
+  async updateDiaper(
+    id: string, patch: { kind?: DiaperKind; occurred_at?: string },
+  ): Promise<MutationResult> {
+    if (patch.occurred_at) {
+      const v = validateInterval(patch.occurred_at, null, Date.now());
+      if (!v.ok) return v;
+    }
+    const { error } = await supabase.from('baby_diaper_logs').update(patch).eq('id', id);
+    return error ? mutationError('updateDiaper', error) : { ok: true };
+  },
+
+  async updateNote(
+    id: string, patch: { raw_text?: string; occurred_at?: string },
+  ): Promise<MutationResult> {
+    if (patch.raw_text != null && !patch.raw_text.trim()) {
+      return { ok: false, reason: "A note can't be empty. Delete it instead." };
+    }
+    if (patch.occurred_at) {
+      const v = validateInterval(patch.occurred_at, null, Date.now());
+      if (!v.ok) return v;
+    }
+    const { error } = await supabase.from('baby_log_notes').update(patch).eq('id', id);
+    return error ? mutationError('updateNote', error) : { ok: true };
+  },
+
+  async deleteEntry(kind: LogKind, id: string): Promise<MutationResult> {
+    const { error } = await supabase.from(TABLE[kind]).delete().eq('id', id);
+    return error ? mutationError('deleteEntry', error) : { ok: true };
+  },
+
   // ── Feeds ─────────────────────────────────────────────────────────────────
   async getActiveFeed(): Promise<FeedLog | null> {
     const { data, error } = await supabase
@@ -141,9 +262,10 @@ export const babyTrackerApi = {
     return data as FeedLog;
   },
 
+  // `amountOz === undefined` leaves ounces untouched; `null` clears them.
   async stopFeed(id: string, endedAt?: string, amountOz?: number | null): Promise<boolean> {
     const patch: Record<string, unknown> = { ended_at: endedAt ?? new Date().toISOString() };
-    if (amountOz != null) patch.amount_oz = amountOz;
+    if (amountOz !== undefined) patch.amount_oz = amountOz == null ? null : clampOz(amountOz);
     const { error } = await supabase.from('baby_feed_logs').update(patch).eq('id', id);
     if (error) { console.warn('[tracker] stopFeed', error.message); return false; }
     return true;
@@ -204,23 +326,31 @@ export const babyTrackerApi = {
     }
   },
 
-  // ── Today's rollup ────────────────────────────────────────────────────────
-  async getToday(): Promise<TodayLogs> {
-    const since = startOfTodayISO();
+  // ── Day / range rollups ────────────────────────────────────────────────────
+  // Open sessions older than this stop counting as "today" — a nap nobody
+  // stopped three days ago is a data-quality problem for the rescue prompt to
+  // handle, not a row that should sit at the top of today's timeline forever.
+  async getDay(dayStart: Date = startOfToday()): Promise<TodayLogs> {
+    const from = dayStart.toISOString();
+    const to = new Date(dayStart.getTime() + 86400000).toISOString();
+    const openSince = new Date(Date.now() - 86400000).toISOString();
     const empty: TodayLogs = { sleep: [], feeds: [], diapers: [], notes: [] };
+
+    const openClause = `and(ended_at.is.null,started_at.gte.${openSince})`;
     const [sleep, feeds, diapers, notes] = await Promise.all([
-      // include in-progress sessions even if started before midnight
       supabase.from('baby_sleep_logs').select('id, started_at, ended_at, source')
-        .or(`started_at.gte.${since},ended_at.is.null`).order('started_at', { ascending: false }),
+        .or(`and(started_at.gte.${from},started_at.lt.${to}),${openClause}`)
+        .order('started_at', { ascending: false }),
       supabase.from('baby_feed_logs').select('id, method, side, started_at, ended_at, amount_oz, source')
-        .or(`started_at.gte.${since},ended_at.is.null`).order('started_at', { ascending: false }),
+        .or(`and(started_at.gte.${from},started_at.lt.${to}),${openClause}`)
+        .order('started_at', { ascending: false }),
       supabase.from('baby_diaper_logs').select('id, kind, occurred_at, source')
-        .gte('occurred_at', since).order('occurred_at', { ascending: false }),
+        .gte('occurred_at', from).lt('occurred_at', to).order('occurred_at', { ascending: false }),
       supabase.from('baby_log_notes').select('id, raw_text, occurred_at')
-        .gte('occurred_at', since).order('occurred_at', { ascending: false }),
+        .gte('occurred_at', from).lt('occurred_at', to).order('occurred_at', { ascending: false }),
     ]);
     if (sleep.error || feeds.error || diapers.error || notes.error) {
-      console.warn('[tracker] getToday', sleep.error?.message || feeds.error?.message || diapers.error?.message || notes.error?.message);
+      console.warn('[tracker] getDay', sleep.error?.message || feeds.error?.message || diapers.error?.message || notes.error?.message);
     }
     return {
       sleep: (sleep.data as SleepLog[]) ?? empty.sleep,
@@ -228,6 +358,43 @@ export const babyTrackerApi = {
       diapers: (diapers.data as DiaperLog[]) ?? empty.diapers,
       notes: (notes.data as NoteLog[]) ?? empty.notes,
     };
+  },
+
+  async getToday(): Promise<TodayLogs> {
+    return babyTrackerApi.getDay();
+  },
+
+  // History paging — a window of whole days, newest first.
+  async getRange(fromISO: string, toISO: string): Promise<TodayLogs> {
+    const empty: TodayLogs = { sleep: [], feeds: [], diapers: [], notes: [] };
+    const [sleep, feeds, diapers, notes] = await Promise.all([
+      supabase.from('baby_sleep_logs').select('id, started_at, ended_at, source')
+        .gte('started_at', fromISO).lt('started_at', toISO).order('started_at', { ascending: false }),
+      supabase.from('baby_feed_logs').select('id, method, side, started_at, ended_at, amount_oz, source')
+        .gte('started_at', fromISO).lt('started_at', toISO).order('started_at', { ascending: false }),
+      supabase.from('baby_diaper_logs').select('id, kind, occurred_at, source')
+        .gte('occurred_at', fromISO).lt('occurred_at', toISO).order('occurred_at', { ascending: false }),
+      supabase.from('baby_log_notes').select('id, raw_text, occurred_at')
+        .gte('occurred_at', fromISO).lt('occurred_at', toISO).order('occurred_at', { ascending: false }),
+    ]);
+    if (sleep.error || feeds.error || diapers.error || notes.error) {
+      console.warn('[tracker] getRange', sleep.error?.message || feeds.error?.message);
+    }
+    return {
+      sleep: (sleep.data as SleepLog[]) ?? empty.sleep,
+      feeds: (feeds.data as FeedLog[]) ?? empty.feeds,
+      diapers: (diapers.data as DiaperLog[]) ?? empty.diapers,
+      notes: (notes.data as NoteLog[]) ?? empty.notes,
+    };
+  },
+
+  // Every open session regardless of age — the rescue prompt's input.
+  async getOpenSessions(): Promise<{ sleep: SleepLog | null; feed: FeedLog | null }> {
+    const [s, f] = await Promise.all([
+      babyTrackerApi.getActiveSleep(),
+      babyTrackerApi.getActiveFeed(),
+    ]);
+    return { sleep: s, feed: f };
   },
 
   // ── Recent stats (Phase 3 curation) ───────────────────────────────────────
@@ -269,10 +436,10 @@ export const babyTrackerApi = {
       const gap = (new Date(feeds[i].started_at).getTime() - new Date(feeds[i - 1].started_at).getTime()) / 60000;
       if (gap >= 20 && gap <= 420) feedGaps.push(gap);
     }
-    const feedDays = new Set(feeds.map((f) => dayKey(f.started_at))).size || 1;
+    const feedDays = new Set(feeds.map((f) => dayKeyLocal(f.started_at))).size || 1;
 
     const diapers = ((diaperR.data as { kind: DiaperKind; occurred_at: string }[]) ?? []);
-    const diaperDays = new Set(diapers.map((d) => dayKey(d.occurred_at))).size || 1;
+    const diaperDays = new Set(diapers.map((d) => dayKeyLocal(d.occurred_at))).size || 1;
     const wet = diapers.filter((d) => d.kind === 'wet' || d.kind === 'both').length;
     const dirty = diapers.filter((d) => d.kind === 'dirty' || d.kind === 'both').length;
 
