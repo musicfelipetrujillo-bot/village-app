@@ -85,6 +85,9 @@ interface EventRow {
   starts_at: string;
   is_partner: boolean;
   source_feed_id: string | null;
+  // Set by the harvester: true ONLY on an explicit free signal. Both a stated
+  // price and an unstated one write false — see the promotion gate below.
+  is_free: boolean;
 }
 
 interface FeedRow {
@@ -120,7 +123,7 @@ Deno.serve(async (req) => {
       if (!body.event_id) return json({ error: 'event_id required' }, 400);
       const { data, error } = await supabase
         .from('events')
-        .select('id, title, description, type, host_name, city, venue_name, starts_at, is_partner, source_feed_id, review_status')
+        .select('id, title, description, type, host_name, city, venue_name, starts_at, is_partner, source_feed_id, is_free, review_status')
         .eq('id', body.event_id)
         .maybeSingle();
       if (error) throw error;
@@ -135,7 +138,7 @@ Deno.serve(async (req) => {
       const limit = Math.min(Math.max(body.limit ?? 50, 1), 200);
       const { data, error } = await supabase
         .from('events')
-        .select('id, title, description, type, host_name, city, venue_name, starts_at, is_partner, source_feed_id')
+        .select('id, title, description, type, host_name, city, venue_name, starts_at, is_partner, source_feed_id, is_free')
         .eq('review_status', 'pending')
         .order('created_at', { ascending: true })
         .limit(limit);
@@ -231,6 +234,31 @@ async function screenOne(ev: EventRow, feedMap: Map<string, FeedRow>): Promise<S
     nextStatus = 'approved';
     outcome = 'approved';
   } else {
+    nextStatus = 'pending';
+    outcome = 'pending';
+  }
+
+  // Commercial gate — a price claim never auto-publishes, at any confidence.
+  //
+  // events.is_free is true ONLY when the harvester saw an explicit free signal;
+  // the extractor writes false for BOTH a stated price and a page that is
+  // simply silent. So this single condition withholds promotion for a known
+  // price AND for an unstated one — we never tell a postpartum mother an event
+  // is free when we don't actually know. The two stay distinguishable
+  // downstream via price_cents and the ingestion note.
+  //
+  // This belongs here rather than in events-harvest: upsert_ingested_event
+  // inserts every row 'pending' regardless, so only the screener can withhold
+  // the promotion. It reads a boolean already on the row instead of asking the
+  // model to reason about money — relevance stays the screener's job, and
+  // commercial policy stays a deterministic check layered on top. Paid events
+  // are still scored, so they reach the queue with a confidence and rationale
+  // attached rather than as unreviewed unknowns.
+  //
+  // `!== true` (not `=== false`) is deliberate: if is_free ever goes missing
+  // from the select, this errs toward human review rather than silently
+  // disabling the gate and letting paid events auto-publish.
+  if (nextStatus === 'approved' && ev.is_free !== true) {
     nextStatus = 'pending';
     outcome = 'pending';
   }
