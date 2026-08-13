@@ -88,8 +88,18 @@ export interface NotificationFeedItem {
 
 export const homeApi = {
   async getMyBabyProfile(): Promise<BabyProfile | null> {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return null;
+    // getSession() reads the stored session locally (refreshing only when
+    // expired). getUser() would add a network round-trip to /auth/v1/user on
+    // the one path that must survive a cold start with a half-awake radio.
+    const { data: { session } } = await supabase.auth.getSession();
+    const user = session?.user ?? null;
+    // "No session" is NOT "no baby". Returning null here meant a transient gap —
+    // a token refresh, a cold resume from background — reported the mother as
+    // having no baby profile, and the store wrote that null straight over a real
+    // one. Home then rendered PLACEHOLDER_BABY_NAME at week 1, so the mother of a
+    // 43-week-old saw someone else's baby name and a reset week. Throw instead,
+    // so the caller can tell "she has none" from "we couldn't find out".
+    if (!user) throw new Error('no_session');
     // Read from the view so `current_week_number` is computed at read time.
     const { data, error } = await supabase
       .from('baby_profiles_with_week')

@@ -13,6 +13,7 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useHomeStore } from '@store/home';
+import { useAuthStore } from '@store/auth';
 import { Feather } from '@expo/vector-icons';
 import { COLORS, FONTS } from '@utils/constants';
 import { ExpertsNavigator } from './ExpertsNavigator';
@@ -52,6 +53,23 @@ const hiddenButton = () => null;
 
 export function AppNavigator() {
   const unreadNotifCount = useHomeStore((s) => s.unreadNotifCount);
+
+  // Belt-and-braces hydration for the authenticated shell.
+  //
+  // `store/home.ts` already self-starts off Supabase's auth state, which is the
+  // load-bearing path — this effect is the second layer, for the case where the
+  // shell mounts from a session the auth listener has already announced. Both
+  // funnel into `hydrateForUser`, which is idempotent per user and collapses
+  // concurrent callers onto one request, so the double call costs nothing.
+  //
+  // It lives here rather than on Home because tabs are lazy — a Billy `manual`
+  // pill can focus the Manual without Home ever mounting.
+  const authUserId = useAuthStore((s) => s.user?.id ?? null);
+  const hydrateHome = useHomeStore((s) => s.hydrateForUser);
+  React.useEffect(() => {
+    if (authUserId) void hydrateHome(authUserId);
+  }, [authUserId, hydrateHome]);
+
   const { tabs: middleTabs } = useCustomMiddleTabs();
 
   // Visible set = LOCKED_LEFT + user's middle pair + LOCKED_RIGHT.

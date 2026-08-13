@@ -28,6 +28,50 @@ import { readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+/**
+ * Refuse to publish a working tree that is missing commits from `main`.
+ *
+ * WHY (2026-08-13): `eas update` bundles the WORKING TREE, not `main`. On
+ * 2026-08-12 the baby-profile hydration fix landed on `main` and was published;
+ * about an hour later a routine OTA went out from a feature branch that had been
+ * cut before that fix. The branch was 34 commits behind, so publishing it
+ * silently REVERTED the fix in production, and the founder's baby profile went
+ * back to "resetting" on every force-quit — a bug she had already reported
+ * twice. Nothing in the pipeline noticed, because every publish looks the same
+ * from the outside.
+ *
+ * Publishing a feature branch is fine when it is deliberate. Doing it by
+ * accident, on top of a fix, is what this catches. Override with
+ * `OTA_ALLOW_BEHIND_MAIN=1` when it really is intended.
+ */
+function assertNotBehindMain(cwd) {
+  const git = (args) => spawnSync('git', args, { cwd, encoding: 'utf8' });
+  if (git(['rev-parse', '--git-dir']).status !== 0) return;   // not a repo — nothing to check
+
+  // Prefer origin/main when it exists; fall back to the local ref.
+  const base = git(['rev-parse', '--verify', '-q', 'origin/main']).status === 0
+    ? 'origin/main'
+    : (git(['rev-parse', '--verify', '-q', 'main']).status === 0 ? 'main' : null);
+  if (!base) return;
+
+  const missing = git(['rev-list', '--count', 'HEAD..' + base]).stdout?.trim();
+  const count = Number.parseInt(missing ?? '', 10);
+  if (!Number.isFinite(count) || count === 0) return;
+
+  const branch = git(['rev-parse', '--abbrev-ref', 'HEAD']).stdout?.trim() || 'HEAD';
+  const subjects = git(['log', '--oneline', '-8', 'HEAD..' + base]).stdout?.trimEnd();
+
+  console.error(`\n✗ Refusing to publish: "${branch}" is missing ${count} commit(s) from ${base}.`);
+  console.error('  eas update bundles the WORKING TREE, so publishing now would revert');
+  console.error(`  everything on ${base} that this branch does not have, including any fix`);
+  console.error('  already shipped to users. Most recent missing commits:\n');
+  if (subjects) console.error(subjects.split('\n').map((l) => `    ${l}`).join('\n'));
+  if (count > 8) console.error(`    … and ${count - 8} more`);
+  console.error(`\n  Fix:      git merge ${base}      (then re-run)`);
+  console.error('  Override: OTA_ALLOW_BEHIND_MAIN=1 pnpm ota:prod "…"   (only if deliberate)\n');
+  process.exit(1);
+}
+
 const mobileDir = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const easJsonPath = resolve(mobileDir, 'eas.json');
 
@@ -61,6 +105,11 @@ if (appEnv !== 'production') {
 if (internalAgents === '1') {
   console.error('✗ EXPO_PUBLIC_INTERNAL_AGENTS_ENABLED is "1" — would expose internal tooling. Aborting.');
   process.exit(1);
+}
+
+// Code invariant: never ship a bundle that silently rolls production back.
+if (process.env.OTA_ALLOW_BEHIND_MAIN !== '1') {
+  assertNotBehindMain(mobileDir);
 }
 
 // Build the child env: start clean of dotenv, layer ONLY the production

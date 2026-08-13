@@ -240,7 +240,7 @@ export const NAV_HEIGHT = 72;
 // TEMP demo placeholder shown wherever a baby name is missing (Home hero,
 // Manual masthead). Real fix is setting baby_profiles.baby_name; revert to a
 // neutral value (e.g. 'Baby') before broad launch.
-export const PLACEHOLDER_BABY_NAME = 'Jackson';
+export const PLACEHOLDER_BABY_NAME = 'Feli';
 
 // 10 miles, not 25 (founder call 2026-08-12). A postpartum mother with a
 // newborn in the car is not driving 25 miles to a stroller walk, so a wide
