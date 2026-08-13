@@ -23,6 +23,7 @@ import { wakeWindowMinutes, scheduleWakeAlarm, cancelWakeAlarm } from '@utils/sl
 import { babyTrackerApi } from '@api/babyTracker';
 import type { RecentStats, LogEntry } from '@api/babyTracker';
 import LogTimeline, { buildTimeline, clockLabel, feedShort } from '@components/tracker/LogTimeline';
+import LogEditSheet from '@components/tracker/LogEditSheet';
 
 const C = {
   paper: COLORS.v2_paper, cream: COLORS.v2_cream, parchment: COLORS.v2_parchment, cocoa: COLORS.v2_cocoa,
@@ -371,6 +372,8 @@ export default function PlaybookTracker({ babyProfileId, babyName, week, lang, i
       {/* "What your logs say" read-back removed from the Log zone (2026-08-10):
           it duplicated the Insights section below and cluttered the logger.
           Insights now lives only in the screen's "Insights" zone. */}
+
+      <LogEditSheet entry={editing} lang={lang} onClose={() => setEditing(null)} />
     </View>
   );
 }
