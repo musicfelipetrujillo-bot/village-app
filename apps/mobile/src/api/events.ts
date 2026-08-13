@@ -233,6 +233,35 @@ export function formatDistance(km: number | null): string {
   return `${km.toFixed(1)} km away`;
 }
 
+/**
+ * What the cost row on EventDetailScreen should say.
+ *
+ * `is_free` is true ONLY when the harvester saw an explicit free signal — the
+ * extractor writes false for BOTH a stated price AND a page that never
+ * mentions cost at all. So `is_free: false` with `price_cents: null` genuinely
+ * means "we don't know", and must never render as "Free" or "$0.00". Telling a
+ * postpartum mother something is free when it isn't is the specific defect
+ * this whole change exists to prevent.
+ *
+ * A non-positive price_cents on a not-free event is contradictory (a price of
+ * zero would have been a free signal), so it degrades to 'unknown' rather than
+ * rendering "$0.00".
+ */
+export type EventCost =
+  | { kind: 'free' }
+  | { kind: 'amount'; amount: string }
+  | { kind: 'unknown' };
+
+export function eventCost(is_free: boolean, price_cents: number | null): EventCost {
+  if (is_free) return { kind: 'free' };
+  if (price_cents != null && Number.isFinite(price_cents) && price_cents > 0) {
+    const dollars = price_cents / 100;
+    // Whole dollars read cleaner on a card ($30, not $30.00); keep cents when real.
+    return { kind: 'amount', amount: `$${dollars % 1 === 0 ? dollars.toFixed(0) : dollars.toFixed(2)}` };
+  }
+  return { kind: 'unknown' };
+}
+
 /** Human-readable countdown label. Used on webinar screens. */
 export function timeUntilLabel(starts_at: string): string {
   const diffMs = new Date(starts_at).getTime() - Date.now();
