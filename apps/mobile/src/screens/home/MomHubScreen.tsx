@@ -15,7 +15,7 @@ import { COLORS, FONTS } from '@utils/constants';
 import { WarmGlowBackdrop } from '@components/shared/WarmGlowBackdrop';
 import { BackButton } from '@components/shared/BackButton';
 import { useUserStore } from '@store/user';
-import { tap, select } from '@utils/haptics';
+import { tap } from '@utils/haptics';
 
 const VILLIE_BEE = require('../../../assets/brand/villie-bee.png');
 
@@ -31,13 +31,15 @@ export default function MomHubScreen() {
   const goDaySheet = () => { tap(); navigation.navigate('DaySheetList'); };
   const goReset = () => { tap(); navigation.navigate('ResetRecharge'); };
   const goTips = () => { tap(); navigation.navigate('MomTips'); };
+  // No week param — the screen resolves it from the baby profile itself, so
+  // the hub doesn't need to subscribe to the home store just to pass a number.
+  const goWeek = () => { tap(); navigation.navigate('WeeklyJourney'); };
   const askVillie = (seed: string) => {
     tap();
     navigation.getParent()?.getParent()?.navigate('AIHelpChat', { seed, autosend: true });
   };
   const openChat = () => { tap(); navigation.getParent()?.getParent()?.navigate('AIHelpChat', {}); };
   const goBody = () => { tap(); navigation.getParent()?.navigate('Experts'); };
-  const comingSoon = () => { select(); };
 
   return (
     <View style={styles.container}>
@@ -99,6 +101,15 @@ export default function MomHubScreen() {
 
         {/* everything else — one quiet list */}
         <View style={styles.momCard}>
+          {/* First in the list because it is the only row that CHANGES every
+              week — the rest are static tools. It also had no way in at all
+              until now: WeeklyJourneyScreen's only tap-path lived on the
+              legacy v9 Home, which stopped being mounted when Home V3 landed,
+              so ~900 rows of her weekly content were reachable only through
+              Billy. */}
+          <MomRow emoji="📖" title={es ? 'Esta semana, para ti' : 'This week, for you'}
+            sub={es ? 'una lectura, una lista, en quién apoyarte' : 'a read, a checklist, who to lean on'}
+            onPress={goWeek} />
           <MomRow emoji="📋" title={es ? 'Hoja del día' : 'Day sheet'}
             sub={es ? 'pásasela a la abuela' : 'hand off to grandma'} onPress={goDaySheet} />
           <MomRow emoji="✦" title={es ? 'Planea algo para ti' : 'Plan something for you'}
@@ -108,10 +119,12 @@ export default function MomHubScreen() {
               : 'Help me plan something for me this week — a class, an appointment, or just a break that fits my schedule.')} />
           <MomRow emoji="🌿" title={es ? 'Tu cuerpo, tu ritmo' : 'Your body, your pace'}
             sub={es ? 'piso pélvico y recuperación' : 'pelvic floor + recovery'} onPress={goBody} />
+          {/* "Reads for your stage" is gone rather than demoted: it was a
+              `soon` chip with nothing behind it, and the row above is the real
+              version of what it promised. The corner now has no dead ends. */}
           <MomRow emoji="💡" title={es ? 'Tips de mamá' : 'Mom tips'}
             sub={es ? 'Una idea al día, para su semana' : "One idea a day, for her week"}
-            onPress={goTips} />
-          <MomRow emoji="📖" title={es ? 'Lecturas para tu etapa' : 'Reads for your stage'} soon onPress={comingSoon} last />
+            onPress={goTips} last />
         </View>
 
         {/* one clean ask bar */}
