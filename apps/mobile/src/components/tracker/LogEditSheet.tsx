@@ -39,11 +39,16 @@ export default function LogEditSheet({ entry, lang, onClose }: {
   if (!entry) return null;
   const set = (k: string, v: unknown) => setDraft((d) => ({ ...d, [k]: v }));
 
+  // Clearing seededId is what makes the ✕ behave like cancel: without it,
+  // reopening the same row re-shows the abandoned draft instead of the row's
+  // real values, because the reseed guard still matches.
+  const close = () => { setSeededId(null); setError(null); onClose(); };
+
   const onSave = async () => {
     tap(); setBusy(true); setError(null);
     const res = await store.updateEntry(entry, draft);
     setBusy(false);
-    if (res.ok) onClose();
+    if (res.ok) close();
     else setError(res.reason ?? (es ? 'No se pudo guardar.' : "That didn't save."));
   };
 
@@ -59,7 +64,7 @@ export default function LogEditSheet({ entry, lang, onClose }: {
             setBusy(true);
             const res = await store.deleteEntry(entry);
             setBusy(false);
-            if (res.ok) onClose();
+            if (res.ok) close();
             else setError(res.reason ?? (es ? 'No se pudo borrar.' : "That didn't delete."));
           },
         },
@@ -85,12 +90,12 @@ export default function LogEditSheet({ entry, lang, onClose }: {
   );
 
   return (
-    <Modal visible transparent animationType="slide" onRequestClose={onClose}>
+    <Modal visible transparent animationType="slide" onRequestClose={close}>
       <View style={s.backdrop}>
         <View style={s.sheet}>
           <View style={s.head}>
             <Text style={s.title}>{title}</Text>
-            <TouchableOpacity onPress={onClose} accessibilityRole="button" accessibilityLabel={es ? 'Cerrar' : 'Close'}>
+            <TouchableOpacity onPress={close} accessibilityRole="button" accessibilityLabel={es ? 'Cerrar' : 'Close'}>
               <Text style={s.close}>✕</Text>
             </TouchableOpacity>
           </View>
