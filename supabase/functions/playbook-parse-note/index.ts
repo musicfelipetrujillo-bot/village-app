@@ -116,13 +116,13 @@ Deno.serve(async (req) => {
     const inserts: Promise<unknown>[] = [];
     for (const e of events) {
       if (e.type === 'sleep') {
-        inserts.push(supabase.from('baby_sleep_logs').insert({ user_id: uid, baby_profile_id, started_at: e.started_at, ended_at: e.ended_at, source: 'note' }));
+        inserts.push(supabase.from('baby_sleep_logs').insert({ user_id: uid, baby_profile_id, started_at: e.started_at, ended_at: e.ended_at, source: 'note', note_id: noteId }));
         counts.sleep++;
       } else if (e.type === 'feed') {
-        inserts.push(supabase.from('baby_feed_logs').insert({ user_id: uid, baby_profile_id, method: e.method, side: e.side, started_at: e.started_at, ended_at: e.ended_at, amount_oz: e.amount_oz, source: 'note' }));
+        inserts.push(supabase.from('baby_feed_logs').insert({ user_id: uid, baby_profile_id, method: e.method, side: e.side, started_at: e.started_at, ended_at: e.ended_at, amount_oz: e.amount_oz, source: 'note', note_id: noteId }));
         counts.feed++;
       } else if (e.type === 'diaper') {
-        inserts.push(supabase.from('baby_diaper_logs').insert({ user_id: uid, baby_profile_id, kind: e.kind, occurred_at: e.occurred_at, source: 'note' }));
+        inserts.push(supabase.from('baby_diaper_logs').insert({ user_id: uid, baby_profile_id, kind: e.kind, occurred_at: e.occurred_at, source: 'note', note_id: noteId }));
         counts.diaper++;
       }
     }
