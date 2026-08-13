@@ -21,7 +21,8 @@ import { select, tap } from '@utils/haptics';
 import { useTrackerStore } from '@store/babyTracker';
 import { wakeWindowMinutes, scheduleWakeAlarm, cancelWakeAlarm } from '@utils/sleepAlarm';
 import { babyTrackerApi } from '@api/babyTracker';
-import type { SleepLog, FeedLog, DiaperLog, NoteLog, RecentStats } from '@api/babyTracker';
+import type { RecentStats, LogEntry } from '@api/babyTracker';
+import LogTimeline, { buildTimeline, clockLabel, feedShort } from '@components/tracker/LogTimeline';
 
 const C = {
   paper: COLORS.v2_paper, cream: COLORS.v2_cream, parchment: COLORS.v2_parchment, cocoa: COLORS.v2_cocoa,
@@ -49,14 +50,6 @@ function Glyph({ d, color, size = 18, sw = 1.9, fill }: { d: string; color: stri
   );
 }
 
-function clockLabel(iso: string, lang: 'en' | 'es'): string {
-  const d = new Date(iso);
-  const h = d.getHours(); const m = d.getMinutes();
-  const mm = m < 10 ? `0${m}` : `${m}`;
-  if (lang === 'es') return `${h}:${mm}`;
-  const ap = h < 12 ? 'a' : 'p'; let h12 = h % 12; if (h12 === 0) h12 = 12;
-  return `${h12}:${mm}${ap}`;
-}
 function elapsedLabel(sec: number): string {
   if (sec < 0) sec = 0;
   const h = Math.floor(sec / 3600); const m = Math.floor((sec % 3600) / 60); const s = sec % 60;
@@ -80,9 +73,9 @@ function loggedLabel(counts: { sleep: number; feed: number; diaper: number }, es
 
 type Pane = 'sleep' | 'feed' | 'diaper' | null;
 
-export default function PlaybookTracker({ babyProfileId, babyName, week, lang, initialPane, onNeedBaby }: {
+export default function PlaybookTracker({ babyProfileId, babyName, week, lang, initialPane, onNeedBaby, onSeeAll }: {
   babyProfileId: string | null; babyName: string; week: number; lang: 'en' | 'es';
-  initialPane?: Pane; onNeedBaby?: () => void;
+  initialPane?: Pane; onNeedBaby?: () => void; onSeeAll?: () => void;
 }) {
   const es = lang === 'es';
   const store = useTrackerStore();
@@ -103,6 +96,7 @@ export default function PlaybookTracker({ babyProfileId, babyName, week, lang, i
   const [note, setNote] = useState('');
   const [parsing, setParsing] = useState(false);
   const [parseMsg, setParseMsg] = useState<string | null>(null);
+  const [editing, setEditing] = useState<LogEntry | null>(null);
 
   const wakeMin = wakeWindowMinutes(week);
 
@@ -358,15 +352,18 @@ export default function PlaybookTracker({ babyProfileId, babyName, week, lang, i
       {/* Today timeline */}
       {timeline.length > 0 && (
         <View style={{ marginTop: 16 }}>
-          <Text style={styles.todayEyebrow}>{es ? 'HOY' : 'TODAY'}</Text>
+          <View style={styles.rowBetween}>
+            <Text style={styles.todayEyebrow}>{es ? 'HOY' : 'TODAY'}</Text>
+            <TouchableOpacity
+              onPress={() => onSeeAll?.()}
+              accessibilityRole="button"
+              accessibilityLabel={es ? 'Ver todos los registros' : 'See all logs'}
+            >
+              <Text style={styles.seeAll}>{es ? 'ver todo ›' : 'see all ›'}</Text>
+            </TouchableOpacity>
+          </View>
           <View style={{ marginTop: 6 }}>
-            {timeline.slice(0, 8).map((e, i) => (
-              <View key={e.id} style={[styles.tlRow, i < Math.min(timeline.length, 8) - 1 && styles.tlDivider]}>
-                <Text style={styles.tlTime}>{clockLabel(e.iso, lang)}</Text>
-                <View style={[styles.tlIcon, { backgroundColor: e.tint }]}><Glyph d={e.icon} color={e.ink} size={12} sw={1.7} /></View>
-                <Text style={styles.tlLabel} numberOfLines={1}>{e.label}</Text>
-              </View>
-            ))}
+            <LogTimeline items={timeline.slice(0, 8)} lang={lang} onPressItem={setEditing} />
           </View>
         </View>
       )}
@@ -376,42 +373,6 @@ export default function PlaybookTracker({ babyProfileId, babyName, week, lang, i
           Insights now lives only in the screen's "Insights" zone. */}
     </View>
   );
-}
-
-// ── Timeline builder ────────────────────────────────────────────────────────
-type Entry = { id: string; iso: string; label: string; tint: string; ink: string; icon: string };
-
-function feedShort(f: FeedLog, es: boolean): string {
-  if (f.method === 'bottle') return `${es ? 'biberón' : 'bottle'}${f.amount_oz ? ` ${f.amount_oz}oz` : ''}`;
-  return f.side === 'left' ? (es ? 'izq.' : 'left') : (es ? 'der.' : 'right');
-}
-
-function buildTimeline(today: { sleep: SleepLog[]; feeds: FeedLog[]; diapers: DiaperLog[]; notes: NoteLog[] }, es: boolean): Entry[] {
-  const out: Entry[] = [];
-  for (const s of today.sleep) {
-    const mins = s.ended_at ? Math.round((new Date(s.ended_at).getTime() - new Date(s.started_at).getTime()) / 60000) : null;
-    out.push({
-      id: `s${s.id}`, iso: s.started_at, tint: '#F0D7C3', ink: '#9A4E28', icon: ICON.moon,
-      label: mins != null ? `${es ? 'Siesta' : 'Nap'} · ${mins} min` : `${es ? 'Siesta — en curso' : 'Nap — in progress'}`,
-    });
-  }
-  for (const f of today.feeds) {
-    const mins = f.ended_at ? Math.round((new Date(f.ended_at).getTime() - new Date(f.started_at).getTime()) / 60000) : null;
-    const base = f.method === 'bottle'
-      ? `${es ? 'Biberón' : 'Bottle'}${f.amount_oz ? ` · ${f.amount_oz} oz` : ''}`
-      : `${f.side === 'left' ? (es ? 'Pecho izq.' : 'Left breast') : (es ? 'Pecho der.' : 'Right breast')}${mins != null ? ` · ${mins} min` : (es ? ' — en curso' : ' — in progress')}`;
-    out.push({ id: `f${f.id}`, iso: f.started_at, tint: C.honeyBg, ink: C.honeyInk, icon: ICON.bottle, label: base });
-  }
-  for (const d of today.diapers) {
-    out.push({
-      id: `d${d.id}`, iso: d.occurred_at, tint: C.oliveBg, ink: C.oliveInk, icon: ICON.droplet,
-      label: es ? { wet: 'Pañal mojado', dirty: 'Pañal sucio', both: 'Pañal ambos' }[d.kind] : { wet: 'Wet diaper', dirty: 'Dirty diaper', both: 'Wet + dirty' }[d.kind],
-    });
-  }
-  for (const n of today.notes) {
-    out.push({ id: `n${n.id}`, iso: n.occurred_at, tint: '#FBEFD9', ink: C.rose, icon: ICON.note, label: n.raw_text });
-  }
-  return out.sort((a, b) => new Date(b.iso).getTime() - new Date(a.iso).getTime());
 }
 
 const styles = StyleSheet.create({
@@ -492,11 +453,7 @@ const styles = StyleSheet.create({
 
   // Today timeline
   todayEyebrow: { fontFamily: FONTS.v2_mono, fontSize: 9, letterSpacing: 1.8, color: C.walnut },
-  tlRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 7 },
-  tlDivider: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(61,31,14,0.1)' },
-  tlTime: { fontFamily: FONTS.v2_mono, fontSize: 9.5, color: C.walnut, width: 44 },
-  tlIcon: { width: 22, height: 22, borderRadius: 7, alignItems: 'center', justifyContent: 'center' },
-  tlLabel: { flex: 1, fontFamily: FONTS.v2_body, fontSize: 12, color: C.cocoa },
+  seeAll: { fontFamily: FONTS.v2_link, fontSize: 11.5, color: C.rose },
 
   // Phase 3 — insights card
   insightCard: { backgroundColor: C.oliveBg, borderRadius: 16, padding: 13, marginTop: 16, borderWidth: 1, borderColor: 'rgba(111,122,67,0.28)' },
