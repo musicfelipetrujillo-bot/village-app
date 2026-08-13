@@ -17,6 +17,10 @@
 //   · CANCELLATION (auto-renew off, still entitled until period end) and
 //     BILLING_ISSUE (grace window) change nothing — EXPIRATION is the single
 //     source of truth for access loss, mirroring RevenueCat's own guidance.
+//   · TRANSFER (a purchase moving between app_user_ids when one Apple ID is
+//     shared across accounts) carries `transferred_from` / `transferred_to`
+//     and NO entitlement_ids — so it is handled separately below. Without it
+//     the losing account keeps is_pro = TRUE forever.
 //   · Gear Boost purchases (gear_boost_7d) also arrive here as
 //     NON_RENEWING_PURCHASE without the 'pro' entitlement — ledgered, no flag
 //     change (activation is handled by gear-boost-activate, client-initiated).
@@ -27,10 +31,12 @@
 // would put RevenueCat into a retry loop it can never win.
 
 import { createClient } from 'jsr:@supabase/supabase-js@2';
+import { fetchProEntitlement } from '../_shared/revenuecat.ts';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const WEBHOOK_AUTH = Deno.env.get('REVENUECAT_WEBHOOK_AUTH') ?? '';
+const RC_SECRET_KEY = Deno.env.get('REVENUECAT_SECRET_KEY');
 
 const PRO_ENTITLEMENT = 'pro';
 const GRANT_EVENTS = new Set([
@@ -107,7 +113,42 @@ Deno.serve(async (req) => {
     return json(500, { error: 'ledger_insert_failed' });
   }
 
-  // 2. Entitlement flip. Only 'pro' events touch users.is_pro.
+  // 2a. TRANSFER — no app_user_id, no entitlement_ids. The losing accounts
+  //     must be revoked immediately (they no longer own the purchase); the
+  //     gaining accounts are resolved against the RevenueCat REST API, since
+  //     the payload doesn't say what moved. Without a secret key we revoke
+  //     the losers anyway and leave the winners to the nightly reconcile —
+  //     the client still unlocks its own UI from live CustomerInfo.
+  if (eventType === 'TRANSFER') {
+    const uuids = (v: unknown) =>
+      (Array.isArray(v) ? v : [])
+        .filter((x): x is string => typeof x === 'string' && UUID_RE.test(x))
+        .map((x) => x.toLowerCase());
+    const from = uuids(event.transferred_from);
+    const to = uuids(event.transferred_to);
+
+    if (from.length) {
+      const { error } = await supabase
+        .from('users').update({ is_pro: false }).in('id', from);
+      if (error) console.error('[revenuecat-webhook] transfer revoke failed:', error.message);
+    }
+
+    const granted: string[] = [];
+    for (const id of to) {
+      const entitled = await fetchProEntitlement(id, RC_SECRET_KEY);
+      if (entitled === null) {
+        console.warn(`[revenuecat-webhook] transfer to ${id} unresolved — leaving to reconcile`);
+        continue;
+      }
+      const { error } = await supabase
+        .from('users').update({ is_pro: entitled }).eq('id', id);
+      if (error) console.error(`[revenuecat-webhook] transfer grant failed for ${id}:`, error.message);
+      else if (entitled) granted.push(id);
+    }
+    return json(200, { ok: true, action: 'transfer', revoked: from.length, granted: granted.length });
+  }
+
+  // 2b. Entitlement flip. Only 'pro' events touch users.is_pro.
   const touchesPro = entitlements.includes(PRO_ENTITLEMENT);
   let action = 'none';
   if (userId && touchesPro) {

@@ -28,6 +28,7 @@ on:
     - cron: '10 5 * * *'     # ai-milestone-explainer-nightly (00:10 ET) — drips 5 stale rows/night to fit under 60s edge-fn wall
     - cron: '10 9 * * *'     # home-feed-curator-daily  (05:10 ET)
     - cron: '0 6 * * *'      # gear-cpsc-recall-sync    (02:00 ET)
+    - cron: '40 6 * * *'     # pro-entitlement-reconcile (02:40 ET) — repairs users.is_pro drift against the RevenueCat API. No-ops until REVENUECAT_SECRET_KEY is set (Build 14).
     - cron: '0 4 * * *'      # ai-weekly-journey-fill-nightly (00:00 ET)
     - cron: '0 9 * * *'      # events-ingest-ics-daily  (05:00 ET) — pull partner ICS feeds
     - cron: '50 8 * * *'     # events-harvest-daily     (04:50 ET) — AI-harvest venue event PAGES (harvest: registry rows) ahead of the ICS chain
@@ -50,6 +51,7 @@ on:
           - ai-milestone-explainer
           - home-feed-curator
           - gear-cpsc-recall-sync
+          - pro-entitlement-reconcile
           - ai-weekly-journey-fill
           - events-ingest-ics
           - events-harvest
@@ -93,6 +95,7 @@ jobs:
               '10 5 * * *')    FN='ai-milestone-explainer';   BODY='{"mode":"stale","limit":5}' ;;
               '10 9 * * *')    FN='home-feed-curator';        BODY='{"mode":"batch"}' ;;
               '0 6 * * *')     FN='gear-cpsc-recall-sync';    BODY='{}' ;;
+              '40 6 * * *')    FN='pro-entitlement-reconcile'; BODY='{"limit":200}' ;;
               '0 4 * * *')     FN='ai-weekly-journey-fill';   BODY='{"mode":"missing","limit":5}' ;;
               '0 9 * * *')     FN='events-ingest-ics';        BODY='{"mode":"all"}' ;;
               '50 8 * * *')    FN='events-harvest';           BODY='{}' ;;
@@ -120,6 +123,7 @@ jobs:
               'ai-event-screen')          BODY='{"mode":"all","limit":50}' ;;
               'events-geocode')           BODY='{"mode":"all","limit":50}' ;;
               'week-nudge-notify')        BODY='{"mode":"both","local_hour":10}' ;;
+              'pro-entitlement-reconcile') BODY='{"limit":200}' ;;
               'ai-week-nudge-generate')   BODY='{"mode":"missing","limit":20}' ;;
               *)                          BODY='{}' ;;
             esac

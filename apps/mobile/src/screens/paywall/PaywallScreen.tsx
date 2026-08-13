@@ -19,8 +19,8 @@ import { COLORS, FONTS } from '@utils/constants';
 import { useT } from '@/i18n';
 import { useAnalytics } from '@hooks/useAnalytics';
 import {
-  PRO, purchasePro, restorePro, isProEnabled,
-  ProCancelledError, ProUnavailableError, type ProPlan,
+  purchasePro, restorePro, isProEnabled, fetchProPricing,
+  ProCancelledError, ProUnavailableError, type ProPlan, type ProPricing,
 } from '@/lib/pro';
 
 const T = {
@@ -49,11 +49,32 @@ export default function PaywallScreen() {
 
   const [plan, setPlan] = useState<ProPlan>('annual');
   const [busy, setBusy] = useState<'purchase' | 'restore' | null>(null);
+  const [pricing, setPricing] = useState<ProPricing | null>(null);
 
   useEffect(() => {
     trackEvent('paywall_shown', { source });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Live storefront pricing + intro-offer eligibility. Never blocks render:
+  // the US constants below stand in until (or unless) StoreKit answers.
+  useEffect(() => {
+    let cancelled = false;
+    fetchProPricing().then((p) => {
+      if (!cancelled && p) setPricing(p);
+    });
+    return () => { cancelled = true; };
+  }, []);
+
+  // Display values. Fallbacks are the US list prices — the same numbers this
+  // screen hardcoded before, so a store hiccup degrades to today's behaviour.
+  const annualPrice  = pricing?.annual.price ?? '$49.99';
+  const monthlyPrice = pricing?.monthly.price ?? '$6.99';
+  const perMonth     = pricing?.annual.perMonth ?? '$4.17';
+  const savings      = pricing?.savingsPercent ?? 40;
+  // A returning subscriber gets charged immediately — promising them a free
+  // week would be false, so the CTA and fine print both swap.
+  const trial        = pricing?.trialEligible ?? true;
 
   const close = () => {
     trackEvent('paywall_dismissed', { source });
@@ -114,8 +135,9 @@ export default function PaywallScreen() {
   };
 
   const finePrint = plan === 'annual'
-    ? t('paywall.finePrintAnnual')
-    : t('paywall.finePrintMonthly');
+    ? t(trial ? 'paywall.finePrintAnnual' : 'paywall.finePrintAnnualNoTrial', { price: annualPrice })
+    : t(trial ? 'paywall.finePrintMonthly' : 'paywall.finePrintMonthlyNoTrial', { price: monthlyPrice });
+  const ctaLabel = t(trial ? 'paywall.cta' : 'paywall.ctaNoTrial');
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
@@ -154,15 +176,20 @@ export default function PaywallScreen() {
           activeOpacity={0.85}
           accessibilityRole="radio"
           accessibilityState={{ selected: plan === 'annual' }}
-          accessibilityLabel={t('paywall.annualA11y')}
+          accessibilityLabel={t(
+            trial ? 'paywall.annualA11y' : 'paywall.annualA11yNoTrial',
+            { price: annualPrice },
+          )}
         >
           <View style={styles.planBadge}>
-            <Text style={styles.planBadgeText}>{t('paywall.bestValue')}</Text>
+            <Text style={styles.planBadgeText}>
+              {t('paywall.bestValue', { percent: savings })}
+            </Text>
           </View>
           <Text style={styles.planName}>{t('paywall.annual')}</Text>
           <Text style={styles.planPrice}>
-            <Text style={styles.planPriceBig}>$49.99</Text>
-            {t('paywall.annualSuffix')}
+            <Text style={styles.planPriceBig}>{annualPrice}</Text>
+            {t('paywall.annualSuffix', { perMonth })}
           </Text>
         </TouchableOpacity>
 
@@ -172,11 +199,14 @@ export default function PaywallScreen() {
           activeOpacity={0.85}
           accessibilityRole="radio"
           accessibilityState={{ selected: plan === 'monthly' }}
-          accessibilityLabel={t('paywall.monthlyA11y')}
+          accessibilityLabel={t(
+            trial ? 'paywall.monthlyA11y' : 'paywall.monthlyA11yNoTrial',
+            { price: monthlyPrice },
+          )}
         >
           <Text style={styles.planName}>{t('paywall.monthly')}</Text>
           <Text style={styles.planPrice}>
-            <Text style={styles.planPriceBig}>$6.99</Text>
+            <Text style={styles.planPriceBig}>{monthlyPrice}</Text>
             {t('paywall.monthlySuffix')}
           </Text>
         </TouchableOpacity>
@@ -187,11 +217,11 @@ export default function PaywallScreen() {
           disabled={busy !== null}
           accessibilityRole="button"
           accessibilityState={{ busy: busy === 'purchase' }}
-          accessibilityLabel={t('paywall.cta')}
+          accessibilityLabel={ctaLabel}
         >
           {busy === 'purchase'
             ? <ActivityIndicator color={T.bone} />
-            : <Text style={styles.ctaText}>{t('paywall.cta')}</Text>}
+            : <Text style={styles.ctaText}>{ctaLabel}</Text>}
         </TouchableOpacity>
 
         {!isProEnabled() && (
