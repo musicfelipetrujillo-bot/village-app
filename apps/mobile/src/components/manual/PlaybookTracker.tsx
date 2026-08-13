@@ -102,7 +102,14 @@ export default function PlaybookTracker({ babyProfileId, babyName, week, lang, i
   const [editing, setEditing] = useState<LogEntry | null>(null);
   const [logAt, setLogAt] = useState<string | null>(null);   // null === now
   const resetTime = () => setLogAt(null);
-  const [rescueDismissed, setRescueDismissed] = useState(false);
+  // Independent per-session — dismissing sleep's rescue prompt must not
+  // silently suppress an unacknowledged feed prompt, and vice versa.
+  const [sleepRescueDismissed, setSleepRescueDismissed] = useState(false);
+  const [feedRescueDismissed, setFeedRescueDismissed] = useState(false);
+  // A dismissal belongs to the session it was made on. Once that session
+  // ends, the NEXT nap/feed must be able to prompt again from a clean slate.
+  useEffect(() => { if (!activeSleep) setSleepRescueDismissed(false); }, [activeSleep?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (!activeFeed) setFeedRescueDismissed(false); }, [activeFeed?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const wakeMin = wakeWindowMinutes(week);
 
@@ -185,7 +192,13 @@ export default function PlaybookTracker({ babyProfileId, babyName, week, lang, i
     );
   };
 
-  const togglePane = (p: Exclude<Pane, null>) => { select(); setOpen((o) => (o === p ? null : p)); };
+  const togglePane = (p: Exclude<Pane, null>) => {
+    select();
+    // A time selection belongs to the pane it was made in. Carrying it across
+    // would silently back-date an entry she never chose to back-date.
+    resetTime();
+    setOpen((o) => (o === p ? null : p));
+  };
 
   const sleepElapsed = activeSleep ? Math.floor((nowMs - new Date(activeSleep.started_at).getTime()) / 1000) : 0;
   const wakeRemaining = wakeMin * 60 - sleepElapsed;
@@ -193,8 +206,8 @@ export default function PlaybookTracker({ babyProfileId, babyName, week, lang, i
   // Deliberately generous ceilings (isRunaway) — a real overnight sleep can
   // legitimately run 8h+, so only escalate to the three-way rescue prompt
   // once a session is unambiguously a forgotten timer.
-  const sleepRunaway = !!activeSleep && !rescueDismissed && isRunaway('sleep', activeSleep.started_at, nowMs);
-  const feedRunaway = !!activeFeed && !rescueDismissed && isRunaway('feed', activeFeed.started_at, nowMs);
+  const sleepRunaway = !!activeSleep && !sleepRescueDismissed && isRunaway('sleep', activeSleep.started_at, nowMs);
+  const feedRunaway = !!activeFeed && !feedRescueDismissed && isRunaway('feed', activeFeed.started_at, nowMs);
 
   const lastFeed = today.feeds.find((f) => f.ended_at) ?? null;
   const lastFeedAgoMin = lastFeed ? Math.round((nowMs - new Date(lastFeed.ended_at!).getTime()) / 60000) : null;
@@ -265,7 +278,7 @@ export default function PlaybookTracker({ babyProfileId, babyName, week, lang, i
                 {es ? '¿Sigue durmiendo, o el cronómetro quedó corriendo?' : 'Still asleep, or did the timer keep running?'}
               </Text>
               <View style={{ flexDirection: 'row', gap: 7 }}>
-                <TouchableOpacity onPress={() => { select(); setRescueDismissed(true); }} style={styles.rescueBtn} accessibilityRole="button">
+                <TouchableOpacity onPress={() => { select(); setSleepRescueDismissed(true); }} style={styles.rescueBtn} accessibilityRole="button">
                   <Text style={styles.rescueBtnTxt}>{es ? 'sigue durmiendo' : 'still asleep'}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => { select(); setEditing({ kind: 'sleep', row: activeSleep! }); }} style={styles.rescueBtn} accessibilityRole="button">
@@ -292,7 +305,7 @@ export default function PlaybookTracker({ babyProfileId, babyName, week, lang, i
             {!feedRunaway && (
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                 <TouchableOpacity onPress={() => { select(); setEditing({ kind: 'feed', row: activeFeed }); }} style={styles.endedAtBtn} accessibilityRole="button" accessibilityLabel={es ? 'Corregir la hora de fin' : 'Correct the end time'}>
-                  <Text style={styles.endedAtTxt}>{es ? 'terminó a las…' : 'ended at…'}</Text>
+                  <Text style={styles.endedAtTxtFeed}>{es ? 'terminó a las…' : 'ended at…'}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity onPress={onStopFeed} activeOpacity={0.9} style={styles.feedStopBtn}>
                   <Glyph d={ICON.stop} color="#fff" size={12} fill="#fff" sw={0} />
@@ -303,18 +316,18 @@ export default function PlaybookTracker({ babyProfileId, babyName, week, lang, i
           </View>
           {feedRunaway ? (
             <View style={{ gap: 9, marginTop: 10 }}>
-              <Text style={styles.rescueAsk}>
+              <Text style={styles.rescueAskFeed}>
                 {es ? '¿Sigue comiendo, o el cronómetro quedó corriendo?' : 'Still feeding, or did the timer keep running?'}
               </Text>
               <View style={{ flexDirection: 'row', gap: 7 }}>
-                <TouchableOpacity onPress={() => { select(); setRescueDismissed(true); }} style={styles.rescueBtn} accessibilityRole="button">
-                  <Text style={styles.rescueBtnTxt}>{es ? 'sigue comiendo' : 'still feeding'}</Text>
+                <TouchableOpacity onPress={() => { select(); setFeedRescueDismissed(true); }} style={styles.rescueBtnFeed} accessibilityRole="button">
+                  <Text style={styles.rescueBtnTxtFeed}>{es ? 'sigue comiendo' : 'still feeding'}</Text>
                 </TouchableOpacity>
-                <TouchableOpacity onPress={() => { select(); setEditing({ kind: 'feed', row: activeFeed! }); }} style={styles.rescueBtn} accessibilityRole="button">
-                  <Text style={styles.rescueBtnTxt}>{es ? 'terminó a las…' : 'ended at…'}</Text>
+                <TouchableOpacity onPress={() => { select(); setEditing({ kind: 'feed', row: activeFeed! }); }} style={styles.rescueBtnFeed} accessibilityRole="button">
+                  <Text style={styles.rescueBtnTxtFeed}>{es ? 'terminó a las…' : 'ended at…'}</Text>
                 </TouchableOpacity>
-                <TouchableOpacity onPress={onDiscardFeed} style={[styles.rescueBtn, styles.rescueDanger]} accessibilityRole="button">
-                  <Text style={[styles.rescueBtnTxt, { color: '#fff' }]}>{es ? 'descartar' : 'discard'}</Text>
+                <TouchableOpacity onPress={onDiscardFeed} style={[styles.rescueBtnFeed, styles.rescueDangerFeed]} accessibilityRole="button">
+                  <Text style={[styles.rescueBtnTxtFeed, styles.rescueDangerTxtFeed]}>{es ? 'descartar' : 'discard'}</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -525,6 +538,17 @@ const styles = StyleSheet.create({
   rescueBtnTxt: { fontFamily: FONTS.v2_bold, fontSize: 11, color: C.clayInk },
   endedAtBtn: { paddingHorizontal: 10, paddingVertical: 8 },
   endedAtTxt: { fontFamily: FONTS.v2_link, fontSize: 11.5, color: C.claySub },
+
+  // Feed-card variant of the rescue prompt — the sleep-card styles above are
+  // near-white text tuned for the dark C.clay background; the feed card sits
+  // on light C.honeyBg, so it needs its own dark-ink set (mirrors how
+  // feedActiveLabel already uses a dark color on this same card).
+  rescueAskFeed: { fontFamily: FONTS.v2_body, fontSize: 12, color: C.honeyInk, lineHeight: 17 },
+  rescueBtnFeed: { flex: 1, backgroundColor: 'rgba(90,64,18,0.10)', borderRadius: 10, paddingVertical: 9, alignItems: 'center' },
+  rescueBtnTxtFeed: { fontFamily: FONTS.v2_bold, fontSize: 11, color: C.honeyInk },
+  rescueDangerFeed: { backgroundColor: C.honey },
+  rescueDangerTxtFeed: { color: '#fff' },
+  endedAtTxtFeed: { fontFamily: FONTS.v2_link, fontSize: 11.5, color: C.honeyInk },
 
   // Live feed widget
   feedActiveCard: { backgroundColor: C.honeyBg, borderRadius: 16, padding: 13, marginBottom: 11 },
