@@ -35,7 +35,10 @@
         "NSCalendarsUsageDescription": "villie adds your specialist booking to your calendar when you tap Add to Calendar.",
         "NSCalendarsFullAccessUsageDescription": "villie adds your specialist booking to your calendar when you tap Add to Calendar.",
         "NSUserNotificationsUsageDescription": "Notifications for appointments, new donors, and community messages.",
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "UIBackgroundModes": [
+          "audio"
+        ]
       }
     },
     "android": {
@@ -144,7 +147,8 @@
           "mode": "production"
         }
       ],
-      "./plugins/withModularHeaders.js"
+      "./plugins/withModularHeaders.js",
+      "expo-audio"
     ],
     "extra": {
       "eas": {

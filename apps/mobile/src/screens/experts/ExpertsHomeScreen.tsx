@@ -300,6 +300,12 @@ export default function ExpertsHomeScreen({ navigation, route }: Props) {
         getItemType={(row) => row.kind}
         contentContainerStyle={styles.list}
         ListHeaderComponent={ListHeader}
+        // Same FlashList v2 default that made Gear browse open on the item
+        // photos: maintainVisibleContentPosition is ON unless disabled, and this
+        // header is a magazine-cover hero + chips that grows once its art loads.
+        // Care is also where several of Billy's pills land, so it must open at
+        // the top or the mom lands mid-directory with the filters scrolled past.
+        maintainVisibleContentPosition={{ disabled: true }}
         ItemSeparatorComponent={() => <View style={styles.careRowGap} />}
         renderItem={({ item: row }) =>
           row.kind === 'header' ? (

@@ -43,6 +43,8 @@ export default function MomHubScreen() {
 
   const goDayPlan = () => { tap(); navigation.navigate('DayPlan'); };
   const goDaySheet = () => { tap(); navigation.navigate('DaySheetList'); };
+  const goReset = () => { tap(); navigation.navigate('ResetRecharge'); };
+  const goTips = () => { tap(); navigation.navigate('MomTips'); };
   const askVillie = (seed: string) => {
     tap();
     navigation.getParent()?.getParent()?.navigate('AIHelpChat', { seed, autosend: true });
@@ -83,6 +85,32 @@ export default function MomHubScreen() {
           </LinearGradient>
         </TouchableOpacity>
 
+        {/* Reset & Recharge — the nervous-system half of the corner.
+            Sage-on-cream made it read as the first row of the quiet list below
+            rather than a peer of plan-my-day. It's now the DUSK counterpart:
+            same footprint, different time of day. Plan-my-day is warm daylight
+            and logistics; this is dusk and breathing. Differentiated by tone,
+            not by shouting louder — so it has presence without two rose
+            gradients fighting each other. */}
+        <TouchableOpacity style={styles.resetCard} activeOpacity={0.92} onPress={goReset}
+          accessibilityRole="button" accessibilityLabel={es ? 'Necesito un momento' : 'I need a sec'}>
+          <LinearGradient colors={['#3F2C4D', '#6A4463']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.resetInner}>
+            {/* Breathing rings, bled off the right — previews what's inside. */}
+            <View style={styles.resetRings} pointerEvents="none">
+              <View style={[styles.resetRing, { width: 132, height: 132, borderWidth: 1 }]} />
+              <View style={[styles.resetRing, { width: 92, height: 92, borderWidth: 1.5 }]} />
+              <View style={[styles.resetRing, { width: 54, height: 54, borderWidth: 2, backgroundColor: 'rgba(255,253,248,0.10)' }]} />
+            </View>
+            <Text style={styles.resetTitle}>{es ? 'Necesito un momento' : 'I need a sec'}</Text>
+            <Text style={styles.resetSub}>
+              {es ? 'respira, sonidos, un reinicio' : 'breathe, sounds, a reset'}
+            </Text>
+            <View style={styles.resetPill}>
+              <Text style={styles.resetPillText}>{es ? 'abrir ›' : 'open ›'}</Text>
+            </View>
+          </LinearGradient>
+        </TouchableOpacity>
+
         {/* everything else — one quiet list */}
         <View style={styles.momCard}>
           <MomRow emoji="📋" title={es ? 'Hoja del día' : 'Day sheet'}
@@ -94,7 +122,9 @@ export default function MomHubScreen() {
               : 'Help me plan something for me this week — a class, an appointment, or just a break that fits my schedule.')} />
           <MomRow emoji="🌿" title={es ? 'Tu cuerpo, tu ritmo' : 'Your body, your pace'}
             sub={es ? 'piso pélvico y recuperación' : 'pelvic floor + recovery'} onPress={goBody} />
-          <MomRow emoji="💡" title={es ? 'Trucos de mamá' : 'Mom hacks'} soon onPress={comingSoon} />
+          <MomRow emoji="💡" title={es ? 'Tips de mamá' : 'Mom tips'}
+            sub={es ? 'Una idea al día, para su semana' : "One idea a day, for her week"}
+            onPress={goTips} />
           <MomRow emoji="📖" title={es ? 'Lecturas para tu etapa' : 'Reads for your stage'} soon onPress={comingSoon} last />
         </View>
 
@@ -159,6 +189,19 @@ const styles = StyleSheet.create({
   planPillText: { fontFamily: FONTS.v2_bold, fontSize: 12, color: '#fff', letterSpacing: 0.3 },
 
   // Quiet list — everything else, one calm group
+  // Sage, not rose: the corner already has one gradient spark (plan my day).
+  // This is the exhale — it should read calm, not compete.
+  resetCard: {
+    marginHorizontal: 22, marginTop: 12, borderRadius: 20,
+    shadowColor: '#2E1F3A', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.24, shadowRadius: 18, elevation: 4,
+  },
+  resetInner: { borderRadius: 20, paddingVertical: 18, paddingHorizontal: 18, minHeight: 128, overflow: 'hidden' },
+  resetRings: { position: 'absolute', top: -26, right: -30, width: 132, height: 132, alignItems: 'center', justifyContent: 'center' },
+  resetRing: { position: 'absolute', borderRadius: 999, borderColor: 'rgba(255,253,248,0.28)' },
+  resetTitle: { fontFamily: FONTS.v3_display, fontSize: 22, color: '#FFFDF8', letterSpacing: -0.4 },
+  resetSub: { fontFamily: FONTS.v2_body, fontSize: 13, color: 'rgba(255,253,248,0.88)', marginTop: 4, maxWidth: '78%' },
+  resetPill: { marginTop: 14, alignSelf: 'flex-start', backgroundColor: 'rgba(255,255,255,0.22)', borderRadius: 999, paddingHorizontal: 14, paddingVertical: 7 },
+  resetPillText: { fontFamily: FONTS.v2_bold, fontSize: 12, color: '#fff', letterSpacing: 0.3 },
   momCard: {
     marginHorizontal: 22, marginTop: 20, backgroundColor: COLORS.v2_paper, borderRadius: 18, overflow: 'hidden',
     borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(122,74,40,0.14)',

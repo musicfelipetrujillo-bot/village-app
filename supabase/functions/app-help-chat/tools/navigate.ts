@@ -10,6 +10,11 @@ export const NAV_TARGETS = [
   'write_review', 'message_specialist', 'create_milk_listing', 'milk_messages',
   'vault_create_listing', 'gear_status', 'gear_messages', 'report_gear',
   'day_sheet', 'milk_vault',
+  // Wave 3 — the read tranche needed somewhere to SEND her. Without these,
+  // "what's in the Manual this week" produced a pill labelled "Open the Manual"
+  // pointing at 'playbook', which is the Insights tracker. Wrong screen behind a
+  // confident label is the exact failure the 2026-08-02 eval run was full of.
+  'manual', 'saved_manual',
 ] as const;
 
 export const navigate: ToolDef = {
@@ -44,7 +49,10 @@ export const navigate: ToolDef = {
       "· 'booking' / 'appointment_book' / 'message_specialist' / 'write_review' open the CARE DIRECTORY. " +
       "Say: \"opens Care — pick your provider and you'll book/message/review from their profile.\"\n" +
       "· 'create_milk_listing' opens her DONOR LISTING MANAGER — she taps + there to post.\n" +
-      "· 'milk_messages' / 'gear_messages' open the THREAD LIST, not a composer.",
+      "· 'milk_messages' / 'gear_messages' open the THREAD LIST, not a composer.\n" +
+      "Content destinations: 'manual' opens the MANUAL (villie's library — use it after any read_manual " +
+      "answer), 'saved_manual' opens her saved Manual videos, 'playbook' opens INSIGHTS, the sleep/feed/" +
+      "diaper tracker. Never label 'playbook' as the Manual or vice versa — they are different screens.",
     input_schema: {
       type: 'object',
       properties: {

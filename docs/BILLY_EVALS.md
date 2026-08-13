@@ -40,6 +40,30 @@ have no reachable route.
 **Wave 3 — the read tranche.** 44 capabilities in 12 tools, zero migrations. Plan and open
 decisions in `docs/BILLY_WAVE3_PLAN.md`.
 
+**Wave 3 Tranche A — DEPLOYED 2026-08-12, awaiting eval** (`app-help-chat` v38; map `code` →
+`yes` on green). 5 tools, 17 rows: `get_my_day` (`E-read-today-logs`, `E-read-active-timer`),
+`get_my_week` (`E-read-current-milestone`, `E-read-week-milestones`, `E-read-weekly-journey`),
+`read_manual` (`E-read-this-week-manual`, `E-list-manual-videos`, `E-list-manual-pieces`,
+`E-get-manual-video`, `E-list-saved-manual`), `get_my_home` (`E-read-home-feed`,
+`E-read-notifications`, `E-read-picks`), `get_saved` (`E-read-saved-dashboard`,
+`E-read-saved-specialists`, `E-read-saved-donors`, `E-read-saved-gear`).
+
+These are READS, so the "pill must be tapped" rule mostly doesn't bite — but two things do
+need a tap: the **Manual** pill and the **Playbook** pill, because Tranche A added the
+`manual` + `saved_manual` nav targets. Reason worth remembering: an unauthenticated probe of
+`read_manual` returned a pill labelled **"Open the Manual" pointing at `playbook`** — which is
+the Insights *tracker*, not the library. There was no `manual` target, so Haiku picked the
+nearest allowed key and mislabelled it. Same defect family as the 2026-08-02 run, found by
+probing the deployed function instead of waiting for the founder. Both targets now exist on
+the server allowlist AND in the client `NAV_ROUTES`, and `navigate`'s description states
+plainly that `playbook` ≠ `manual`.
+
+Verification note: all five tools were probed live against the deployed function before
+hand-off (HTTP 200 each). `get_saved` correctly **fails soft** for an unauthenticated caller
+because `get_saved_dashboard` is revoked from `anon` (migration 054) — Billy degrades to a
+warm "can't pull that up right now" instead of crashing. That path only exercises fully when
+signed in.
+
 ## Read (shipped)
 
 - [x] E-find-specialists — "Find me a lactation consultant near me." → calls specialists_near and lists nearby specialists with distance.
@@ -48,25 +72,25 @@ decisions in `docs/BILLY_WAVE3_PLAN.md`.
 - [x] E-find-events — "What mom events are happening near me this week?" → calls list_events_near and returns upcoming nearby events.
 - [x] E-find-daycares — "Show me daycares within a few miles." → calls daycares-nearby and lists nearby daycares.
 - [x] E-read-tracking-stats — "How much has my baby slept and eaten lately?" → aggregates baby_sleep/feed/diaper_logs and reports the totals.
-- [ ] E-read-today-logs — "What have I logged for the baby today?" → reads today's baby_sleep/feed/diaper_logs and summarizes feeds, naps, and diapers.
-- [ ] E-read-active-timer — "Is a nap or feed timer running right now?" → reads active baby_sleep/feed_logs and reports which timer (if any) is open and for how long.
-- [ ] E-read-current-milestone — "What milestone is my baby at this week?" → calls get_my_current_milestone and states the current week's milestone.
-- [ ] E-read-week-milestones — "What should I expect at week 12?" → calls get_milestones_for_week for week 12 and lists those milestones.
-- [ ] E-read-notifications — "What notifications do I have?" → reads user_notifications_feed and lists recent notifications.
+- [x] E-read-today-logs — "What have I logged for the baby today?" → reads today's baby_sleep/feed/diaper_logs and summarizes feeds, naps, and diapers.
+- [x] E-read-active-timer — "Is a nap or feed timer running right now?" → reads active baby_sleep/feed_logs and reports which timer (if any) is open and for how long.
+- [x] E-read-current-milestone — "What milestone is my baby at this week?" → calls get_my_current_milestone and states the current week's milestone.
+- [x] E-read-week-milestones — "What should I expect at week 12?" → calls get_milestones_for_week for week 12 and lists those milestones.
+- [x] E-read-notifications — "What notifications do I have?" → reads user_notifications_feed and lists recent notifications.
 - [ ] E-read-today-checkin — "Did I do my check-in today?" → calls get_today_checkin and reports whether one exists plus its mood/energy.
 - [ ] E-read-recent-checkins — "How has my mood been the past week?" → reads daily_checkins and summarizes recent mood/energy check-ins.
-- [ ] E-read-home-feed — "What's on my home feed?" → calls get_home_feed and describes the current cards.
-- [ ] E-read-this-week-manual — "What's in the Manual this week?" → calls list_this_week_manual and lists this week's videos/pieces.
-- [ ] E-list-manual-videos — "Show me the Manual video library." → calls list_manual_videos and returns available videos.
-- [ ] E-list-manual-pieces — "Any Manual checklists or stories to read?" → calls list_manual_pieces and returns stories/checklists/infographics.
-- [ ] E-get-manual-video — "Play me the intro video for this week." → calls get_week_intro_video / list_manual_videos and returns the single video plus week intro.
-- [ ] E-list-saved-manual — "What Manual videos have I saved?" → calls list_my_saved_manual and lists saved videos.
-- [ ] E-read-weekly-journey — "What's on my journey for this week?" → calls get_weekly_journey and returns the week's journey content and checklist.
-- [ ] E-read-picks — "What products does Villie recommend right now?" → reads villie_picks and lists the curated picks.
-- [ ] E-read-saved-dashboard — "Show me everything I've saved across the app." → calls get_saved_dashboard and returns the unified saved sections.
+- [x] E-read-home-feed — "What's on my home feed?" → calls get_home_feed and describes the current cards.
+- [x] E-read-this-week-manual — "What's in the Manual this week?" → calls list_this_week_manual and lists this week's videos/pieces.
+- [x] E-list-manual-videos — "Show me the Manual video library." → calls list_manual_videos and returns available videos.
+- [x] E-list-manual-pieces — "Any Manual checklists or stories to read?" → calls list_manual_pieces and returns stories/checklists/infographics.
+- [x] E-get-manual-video — "Play me the intro video for this week." → calls get_week_intro_video / list_manual_videos and returns the single video plus week intro.
+- [x] E-list-saved-manual — "What Manual videos have I saved?" → calls list_my_saved_manual and lists saved videos.
+- [x] E-read-weekly-journey — "What's on my journey for this week?" → calls get_weekly_journey and returns the week's journey content and checklist.
+- [x] E-read-picks — "What products does Villie recommend right now?" → reads villie_picks and lists the curated picks.
+- [x] E-read-saved-dashboard — "Show me everything I've saved across the app." → calls get_saved_dashboard and returns the unified saved sections.
 - [ ] E-read-specialist — "Tell me about Dr. Ramirez's profile." → reads the specialists row and summarizes that specialist's profile.
 - [ ] E-read-specialist-reviews — "What are people saying about this lactation consultant?" → reads reviews and summarizes that specialist's reviews.
-- [ ] E-read-saved-specialists — "Which specialists have I favorited?" → reads favorites and lists saved specialists.
+- [x] E-read-saved-specialists — "Which specialists have I favorited?" → reads favorites and lists saved specialists.
 - [ ] E-ai-match-specialists — "Which specialist is the best fit for my situation?" → calls ai-match and returns ranked best-fit specialists with reasons.
 - [ ] E-ai-profile-qa — "Does this pediatrician take my insurance?" → calls ai-profile-qa and answers the question about that specialist.
 - [ ] E-ai-followup-questions — "What should I ask at my OB appointment?" → calls ai-followup-questions and returns suggested questions.
@@ -74,7 +98,7 @@ decisions in `docs/BILLY_WAVE3_PLAN.md`.
 - [ ] E-read-specialist-thread — "Show me my messages with the doula." → reads messages and returns that specialist thread.
 - [ ] E-read-donor-profile — "Tell me about this milk donor." → reads milk_donor_profiles and summarizes the donor's profile.
 - [ ] E-read-donor-listing — "What is this donor currently offering?" → reads milk_listings and describes the donor's active listing.
-- [ ] E-read-saved-donors — "Which milk donors have I saved?" → reads milk_saved_donors and lists saved donors.
+- [x] E-read-saved-donors — "Which milk donors have I saved?" → reads milk_saved_donors and lists saved donors.
 - [ ] E-milk-match-donors — "Which milk donor is the best match for me?" → calls milk-match-donors and returns ranked donors with reasons.
 - [ ] E-milk-donor-qa — "Is this donor's milk dairy-free?" → calls milk-donor-qa and answers the question about that donor.
 - [ ] E-read-milk-threads — "Show me my milk hub inbox." → calls list_my_milk_threads and returns milk message threads.
@@ -84,7 +108,7 @@ decisions in `docs/BILLY_WAVE3_PLAN.md`.
 - [ ] E-read-vault-listings — "What Milk Vault listings do I have up?" → reads milk_vault_listings and lists sell/donate listings.
 - [ ] E-read-gear-listing — "Tell me more about this stroller listing." → calls get_gear_listing and returns the listing detail including CPSC status.
 - [ ] E-read-my-gear-listings — "What gear am I selling right now?" → calls list_my_gear_listings and lists the mom's own listings.
-- [ ] E-read-saved-gear — "What gear have I saved?" → calls list_my_saved_gear and lists saved gear.
+- [x] E-read-saved-gear — "What gear have I saved?" → calls list_my_saved_gear and lists saved gear.
 - [ ] E-read-gear-threads — "Show me my gear marketplace messages." → calls list_my_gear_threads and returns gear threads.
 - [ ] E-read-my-rsvps — "What events have I RSVP'd to?" → calls list_my_rsvps and lists the mom's RSVPs.
 - [ ] E-read-saved-events — "Which events have I saved?" → calls list_my_saved_events and lists saved events.

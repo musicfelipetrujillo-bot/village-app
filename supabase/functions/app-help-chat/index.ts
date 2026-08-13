@@ -111,7 +111,18 @@ When she tells you a small durable practical fact about her routines or preferen
 "reply" is rendered VERBATIM — plain text only, no markdown (**bold**, bullets, headers). 1–2 short paragraphs max.
 
 ## Tappable open-button (cta)
-You MAY add an optional "cta" key to the response JSON: {"label": "short label ≤24 chars", "screen": "one of: playbook | booking | appointment_book | gear_create | box_checkout | gear_boost | become_donor | donor_profile_edit | account_settings | baby_profile_setup | write_review | message_specialist | create_milk_listing | milk_messages | vault_create_listing | gear_status | gear_messages | report_gear | day_sheet | milk_vault"}. Use it whenever a screen lets her SEE or FINISH what you just did. NOT optional after logging: EVERY successful log_baby_event reply MUST carry {"label":"Open Playbook","screen":"playbook"} (label "See the timer" when a timer is running). At most one cta; omit when irrelevant.
+You MAY add an optional "cta" key to the response JSON: {"label": "short label ≤24 chars", "screen": "one of: playbook | booking | appointment_book | gear_create | box_checkout | gear_boost | become_donor | donor_profile_edit | account_settings | baby_profile_setup | write_review | message_specialist | create_milk_listing | milk_messages | vault_create_listing | gear_status | gear_messages | report_gear | day_sheet | milk_vault | manual | saved_manual"}. Use it whenever a screen lets her SEE or FINISH what you just did. NOT optional after logging: EVERY successful log_baby_event reply MUST carry {"label":"Open Playbook","screen":"playbook"} (label "See the timer" when a timer is running). At most one cta; omit when irrelevant.
+The cta label must name the screen it ACTUALLY opens. 'manual' = the Manual library; 'playbook' = Insights, the sleep/feed/diaper tracker. They are different screens — never label one as the other. After a read_manual answer the cta is 'manual' (or 'saved_manual' for her saved videos), never 'playbook'.
+
+## Knowing her account (Wave 3 reads) — check before you ask
+You can read what is already in her account. Prefer looking it up over asking her:
+- **get_my_day** — TODAY's feeds / naps / diapers, and whether a nap or feed timer is RUNNING. "what have I logged today", "when did he last eat", "is the timer still going".
+- **get_baby_tracking_stats** — PATTERNS across days (wake windows, averages). Today → get_my_day; trends → this one. Don't call both for one question.
+- **get_my_week** — the baby's milestones AND her own weekly journey + checklist. "what's happening this week", "what should I expect at week 12".
+- **read_manual** — the content library (this week / videos / written pieces / week intro / her saved).
+- **get_my_home** — her Home feed, notifications, or Villie Picks.
+- **get_saved** — everything she has saved: videos, specialists, donors, gear.
+Rules: ONE tool per question — pick the closest match rather than fanning out. Never read a payload back as a list; answer in 1–2 short paragraphs the way a friend who just looked would. These are all HER OWN data, so never caveat with "I can't see your info". If a tool returns nothing yet, say so warmly and invite the first step — don't apologize. Numbers from her logs are supportive patterns, NEVER medical assessment, and never framed as behind/ahead of schedule.
 
 ## "That one" / "the first one" — you must re-search, not ask
 Your chat history arrives as plain text. Tool results — and every id in them — are DROPPED at the end of each request. So the moment she refers back to something you listed a second ago ("save it", "the first one", "the UPPAbaby", "message that donor"), you no longer hold its id. Do NOT tell her that. Do NOT ask her for an id, and do NOT send her off to tap it herself — she asked you precisely so she wouldn't have to. Silently call the SAME search tool again with the SAME query (so the ordering she saw still holds), then act on the row she meant. You have room for several tool calls in one turn; use them. The words "id" and "ID" must never appear in your reply.
@@ -178,7 +189,11 @@ Deno.serve(async (req) => {
     // Baby profile + learned memories, fetched fresh each request (both RLS-scoped,
     // both fail-soft so chat keeps working if either is missing or the memories
     // table hasn't been migrated yet).
-    const [babyR, memR] = await Promise.all([
+    // Wave 3 adds two more one-shot lookups to the same round-trip: the caller's
+    // id (previously re-fetched by every tool that needed it) and her locale +
+    // timezone, which the read tools need because the content RPCs are localized
+    // and "today" has to mean HER today, not UTC's.
+    const [babyR, memR, authR, prefR] = await Promise.all([
       supabase.from('baby_profiles_with_week')
         .select('id, baby_name, feeding_method, current_week_number')
         .order('created_at', { ascending: true }).limit(1).maybeSingle()
@@ -186,7 +201,14 @@ Deno.serve(async (req) => {
       supabase.from('villie_memories')
         .select('fact').order('created_at', { ascending: false }).limit(20)
         .then((r: any) => (r?.data ?? []) as { fact: string }[]).catch(() => []),
+      supabase.auth.getUser().then((r: any) => r?.data?.user ?? null).catch(() => null),
+      supabase.from('users').select('preferred_language, notif_prefs')
+        .limit(1).maybeSingle()
+        .then((r: any) => r?.data ?? null).catch(() => null),
     ]);
+    const userId: string | null = authR?.id ?? null;
+    const locale: 'en' | 'es' = prefR?.preferred_language === 'es' ? 'es' : 'en';
+    const tz: string = prefR?.notif_prefs?.quiet_hours?.tz || 'America/New_York';
     const baby: BabyCtx = babyR?.id
       ? { id: babyR.id, name: babyR.baby_name ?? null, feeding_method: babyR.feeding_method ?? null, week: babyR.current_week_number ?? null }
       : null;
@@ -232,7 +254,7 @@ Reply with JSON only.`
       if (toolUses.length === 0) { aiResponse = resp; break; }
       convo.push({ role: 'assistant', content: resp.content });
       const toolResults: any[] = [];
-      const ctx = { supabase, loc: userLocation, baby };
+      const ctx = { supabase, loc: userLocation, baby, userId, locale, tz };
       for (const tu of toolUses as any[]) {
         const out = await dispatch(tu.name, ctx, tu.input);
         if (isNavigate(out)) {

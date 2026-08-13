@@ -1,4 +1,5 @@
 import type { ToolContext, ToolDef } from './types.ts';
+import { resolveUserId } from './_util.ts';
 
 // Mirrors the mobile Milk Vault write path (apps/mobile/src/api/milkVault.ts
 // addBag + MilkVaultAddBagScreen): plain RLS insert into milk_vault_bags with
@@ -9,8 +10,7 @@ import type { ToolContext, ToolDef } from './types.ts';
 const IN_FREEZER_STATUSES = ['stored', 'reserved', 'available'];
 
 async function run(ctx: ToolContext, input: any) {
-  const { data: auth } = await ctx.supabase.auth.getUser();
-  const user_id = auth?.user?.id;
+  const user_id = await resolveUserId(ctx);
   if (!user_id) return { error: 'not_signed_in' };
 
   // Ounces: mobile rounds to 1 decimal; DB CHECK is 0 < ounces <= 100.

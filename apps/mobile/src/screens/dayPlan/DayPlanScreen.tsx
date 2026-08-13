@@ -5,7 +5,7 @@
 // Baby rhythm comes from her Playbook week; the plan is a suggestion, editable
 // by re-picking the rhythm.
 import React, { useCallback, useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Linking, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Linking, Platform, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -13,7 +13,7 @@ import { COLORS, FONTS } from '@utils/constants';
 import { select, tap } from '@utils/haptics';
 import { BackButton } from '@components/shared/BackButton';
 import { useHomeStore } from '@store/home';
-import { getCalendarPermission, requestCalendarAccess, getTodayBusyBlocks } from '@utils/calendar';
+import { getCalendarPermission, requestCalendarAccess, getTodayBusyBlocks, syncPlanToCalendar } from '@utils/calendar';
 import { babyTrackerApi } from '@api/babyTracker';
 import {
   getPumpCadence, setPumpCadence, buildDayPlan, fmtTime,
@@ -108,6 +108,31 @@ export default function DayPlanScreen() {
     rebuild(c);
   };
 
+  // Push villie's own slots into her calendar so the plan survives leaving the
+  // app. Re-tapping replaces the day rather than stacking duplicates.
+  const [syncing, setSyncing] = useState(false);
+  const syncToCalendar = useCallback(async () => {
+    if (!plan || syncing) return;
+    setSyncing(true);
+    try {
+      const res = await syncPlanToCalendar(plan.slots);
+      if (res.ok) {
+        Alert.alert(
+          res.replaced > 0 ? 'Calendar updated' : 'Added to your calendar',
+          `${res.written} ${res.written === 1 ? 'block' : 'blocks'} in your villie calendar. Hide or delete it any time from your calendar app.`,
+        );
+      } else if (res.reason === 'nothing_to_sync') {
+        Alert.alert('Nothing to add yet', 'Your plan has no villie blocks today.');
+      } else if (res.reason === 'permission') {
+        Alert.alert('Calendar access needed', 'Turn on calendar access to add your plan.');
+      } else {
+        Alert.alert("Couldn't add it", 'Your calendar app turned that down. Try again in a moment.');
+      }
+    } finally {
+      setSyncing(false);
+    }
+  }, [plan, syncing]);
+
   const openVillie = (seed: string) => {
     tap();
     nav.getParent()?.getParent()?.navigate('AIHelpChat', { seed, autosend: true });
@@ -135,7 +160,7 @@ export default function DayPlanScreen() {
       ) : !cadence ? (
         <RhythmView babyName={babyName} onPick={pickCadence} />
       ) : (
-        <PlanView plan={plan} building={building} babyName={babyName} onChangeRhythm={() => setCadence(null)} onPlan={openVillie} onEdit={editSlot} insetsBottom={insets.bottom} />
+        <PlanView onSync={syncToCalendar} syncing={syncing} plan={plan} building={building} babyName={babyName} onChangeRhythm={() => setCadence(null)} onPlan={openVillie} onEdit={editSlot} insetsBottom={insets.bottom} />
       )}
     </View>
   );
@@ -191,8 +216,8 @@ const KIND_STYLE: Record<PlanSlot['kind'], { bg: string; border: string; mark?: 
   pump: { bg: '#FBF0D5', border: '#EFD9A0', mark: '✦ VILLIE', markColor: HONEY },
 };
 
-function PlanView({ plan, building, babyName, onChangeRhythm, onPlan, onEdit, insetsBottom }: {
-  plan: DayPlan | null; building: boolean; babyName: string; onChangeRhythm: () => void; onPlan: (seed: string) => void; onEdit: (slotId: string, patch: SlotOverride) => void; insetsBottom: number;
+function PlanView({ plan, building, babyName, onChangeRhythm, onPlan, onEdit, insetsBottom, onSync, syncing }: {
+  plan: DayPlan | null; building: boolean; babyName: string; onChangeRhythm: () => void; onPlan: (seed: string) => void; onEdit: (slotId: string, patch: SlotOverride) => void; insetsBottom: number; onSync: () => void; syncing: boolean;
 }) {
   const [editingId, setEditingId] = useState<string | null>(null);
   if (building || !plan) return <View style={s.center}><ActivityIndicator color={ROSE} /></View>;
@@ -287,6 +312,20 @@ function PlanView({ plan, building, babyName, onChangeRhythm, onPlan, onEdit, in
         ))}
       </View>
 
+      <TouchableOpacity
+        style={s.syncCal}
+        onPress={onSync}
+        disabled={syncing}
+        activeOpacity={0.85}
+        accessibilityRole="button"
+        accessibilityState={{ busy: syncing }}
+        accessibilityLabel={syncing ? 'Adding plan to calendar' : 'Add this plan to my calendar'}
+      >
+        {syncing
+          ? <ActivityIndicator color={ROSE} size="small" />
+          : <Text style={s.syncCalText}>add this plan to my calendar</Text>}
+      </TouchableOpacity>
+
       <TouchableOpacity style={s.changeRhythm} onPress={onChangeRhythm} accessibilityRole="button">
         <Text style={s.changeRhythmText}>change my pumping rhythm</Text>
       </TouchableOpacity>
@@ -296,6 +335,13 @@ function PlanView({ plan, building, babyName, onChangeRhythm, onPlan, onEdit, in
 
 const s = StyleSheet.create({
   screen: { flex: 1, backgroundColor: COLORS.v2_cream },
+  syncCal: {
+    marginHorizontal: 18, marginTop: 18, paddingVertical: 14,
+    borderRadius: 14, borderWidth: 1, borderColor: '#F0D7DD',
+    backgroundColor: '#FEFAF6', alignItems: 'center', justifyContent: 'center',
+    minHeight: 48,
+  },
+  syncCalText: { fontFamily: FONTS.v2_body, fontSize: 14, color: ROSE, letterSpacing: 0.1 },
   header: { flexDirection: 'row', alignItems: 'center', gap: 9, paddingHorizontal: 18, paddingVertical: 8 },
   dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: COLORS.genz_honey },
   hTitle: { fontFamily: FONTS.v2_bold, fontSize: 17, color: INK },
