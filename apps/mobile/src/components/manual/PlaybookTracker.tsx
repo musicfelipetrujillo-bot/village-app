@@ -108,8 +108,13 @@ export default function PlaybookTracker({ babyProfileId, babyName, week, lang, i
   const [feedRescueDismissed, setFeedRescueDismissed] = useState(false);
   // A dismissal belongs to the session it was made on. Once that session
   // ends, the NEXT nap/feed must be able to prompt again from a clean slate.
-  useEffect(() => { if (!activeSleep) setSleepRescueDismissed(false); }, [activeSleep?.id]); // eslint-disable-line react-hooks/exhaustive-deps
-  useEffect(() => { if (!activeFeed) setFeedRescueDismissed(false); }, [activeFeed?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Reading the id (not the object) keeps the dep array honest — the effect
+  // depends on *which* session is open, not on the row's identity churning
+  // every refresh. No lint suppression needed.
+  const activeSleepId = activeSleep?.id ?? null;
+  const activeFeedId = activeFeed?.id ?? null;
+  useEffect(() => { if (!activeSleepId) setSleepRescueDismissed(false); }, [activeSleepId]);
+  useEffect(() => { if (!activeFeedId) setFeedRescueDismissed(false); }, [activeFeedId]);
 
   const wakeMin = wakeWindowMinutes(week);
 
