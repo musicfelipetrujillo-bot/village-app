@@ -349,7 +349,7 @@ export function clampOz(n: number): number {
 - [ ] **Step 4: Run the tests to verify they pass**
 
 Run: `pnpm --filter mobile test`
-Expected: PASS — 23 tests across 7 describe blocks.
+Expected: PASS — 24 tests across 7 describe blocks.
 
 - [ ] **Step 5: Typecheck and commit**
 
@@ -2350,6 +2350,24 @@ git worktree remove .worktrees/log-editing
 Note: the shared checkout may be parked on another branch and used by a concurrent session — check `git branch --show-current` first and do not switch branches out from under it. If it is busy, leave the merge to the founder and say so.
 
 ---
+
+## Amendments made during execution
+
+**After Task 1 (code review).** The `logEntry.ts` and `logEntry.test.ts` blocks written above are **superseded by what was committed** — read the files, not this plan, for their current shape. Code review found three defects in the plan's own code:
+
+1. `validateFeedShape` returned `ok: true` for `NaN` ounces (`NaN < 0` and `NaN > 12` are both false), so the gate whose only job is bounding ounces approved unparseable input. Now guarded with `Number.isFinite`.
+2. `clampOz(Infinity)` returned `0` — saturating at the wrong end. Infinities now saturate in the correct direction.
+3. **The suite could not fail on the bug it exists to prevent.** With `dayKeyLocal` mutated back to UTC getters, all tests still passed under `TZ=UTC` (the CI default), because every fixture was same-day in both zones. `vitest.config.ts` now pins `TZ: 'America/New_York'`, the `dayKeyLocal` expectations are hardcoded instead of recomputed the same way the implementation computes them, and a case was added that straddles UTC midnight.
+
+Also added: `startOfDayLocal` (the inverse of `dayKeyLocal` — `new Date('2026-08-12')` parses as *UTC* midnight, so a day key was not safe to feed back into its own producer), a `ValidationCode` discriminator so validation copy can be translated at the call site like every other string in `PlaybookTracker`, and `TimedKind`.
+
+**Consequences for later tasks:**
+- **Task 10** should use `startOfDayLocal(day.dayKey)` in `dayHeading` rather than hand-rolling `new Date(y, m - 1, d)`.
+- **Tasks 2 and 7** are unaffected — `ValidationResult` remains structurally assignable to `MutationResult`, and `res.reason` still reads the same.
+
+**Declined during review:** adding a lower time bound to `validateInterval` to guard a year typo. The only input surface is a ± day/hour/5-minute stepper, not a text field, so there is no typo vector.
+
+**Noted, not actioned:** no CI workflow runs `pnpm test` — `.github/workflows/` holds only `supabase-crons.yml`. This suite is developer-discipline-only until it is wired into a workflow, which is what makes the pinned `TZ` load-bearing rather than theoretical.
 
 ## Self-review notes
 
