@@ -9,7 +9,7 @@ import { COLORS, FONTS } from '@utils/constants';
 import { V9PageBackdrop } from '@components/shared/V9PageBackdrop';
 import { LinearGradient } from 'expo-linear-gradient';
 import { confirm } from '@utils/haptics';
-import { eventsApi, formatEventWhen, formatDistance, timeUntilLabel, type EventCard, type RsvpStatus } from '@api/events';
+import { eventsApi, formatEventWhen, formatDistance, timeUntilLabel, eventCost, type EventCard, type RsvpStatus } from '@api/events';
 import { useEventsStore } from '@store/events';
 import { useT } from '@/i18n';
 
@@ -146,6 +146,27 @@ export default function EventDetailScreen() {
           <Text style={styles.sectionLabel}>{t('eventDetail.sectionWhen')}</Text>
           <Text style={styles.sectionValue}>{formatEventWhen(event.starts_at, event.ends_at, event.timezone)}</Text>
           {isWebinar && <Text style={styles.countdown}>{timeUntilLabel(event.starts_at)}</Text>}
+        </View>
+
+        {/*
+          Cost sits directly under When because it is a gating fact — whether she
+          can go at all — and she should not have to reach the bottom of the
+          screen to find it. Always rendered: an event with no cost row reads as
+          free by omission, which is the exact claim we must not make.
+          The three states are the spec's §3.5 table; `unknown` deliberately says
+          we don't know rather than guessing, and can never fall through to
+          "$0.00" or "Free" (see eventCost()).
+        */}
+        <View style={styles.section}>
+          <Text style={styles.sectionLabel}>{t('eventDetail.sectionCost')}</Text>
+          {(() => {
+            const cost = eventCost(event.is_free, event.price_cents);
+            if (cost.kind === 'free') return <Text style={styles.sectionValue}>{t('eventDetail.costFree')}</Text>;
+            if (cost.kind === 'amount') {
+              return <Text style={styles.sectionValue}>{t('eventDetail.costAmount', { amount: cost.amount })}</Text>;
+            }
+            return <Text style={styles.sectionValue}>{t('eventDetail.costSeeDetails')}</Text>;
+          })()}
         </View>
 
         {!isWebinar && event.venue_name && (

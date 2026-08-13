@@ -54,28 +54,22 @@ const hiddenButton = () => null;
 export function AppNavigator() {
   const unreadNotifCount = useHomeStore((s) => s.unreadNotifCount);
 
-  // Hydrate the home store ONCE for the whole authenticated shell.
+  // Belt-and-braces hydration for the authenticated shell.
   //
-  // When the Home tab moved from the v9 HomeScreen to HomeScreenV3, the v9
-  // mount-time `fetchAll()` was not carried over — leaving `BabyProfileSetupScreen`
-  // as the ONLY live caller. The store isn't persisted, so after every cold start
-  // `babyProfile` was null and every consumer (Home hero, Manual masthead, Manual
-  // week, Day Plan, Mama's Corner) fell back to PLACEHOLDER_BABY_NAME at week 1.
-  // That is what "the baby profile keeps resetting" was: it reset on every launch
-  // and only came back if she reopened baby setup (2026-08-12).
+  // `store/home.ts` already self-starts off Supabase's auth state, which is the
+  // load-bearing path — this effect is the second layer, for the case where the
+  // shell mounts from a session the auth listener has already announced. Both
+  // funnel into `hydrateForUser`, which is idempotent per user and collapses
+  // concurrent callers onto one request, so the double call costs nothing.
   //
   // It lives here rather than on Home because tabs are lazy — a Billy `manual`
   // pill can focus the Manual without Home ever mounting.
-  // Keyed on the signed-in user id, NOT on loadedAt. loadedAt was the wrong
-  // trigger: this shell can mount before the Supabase session has been restored
-  // from storage, so the very first fetchAll ran without a session, the profile
-  // lookup failed, `loadedAt` was stamped anyway — and the guard then blocked
-  // every retry, leaving the placeholder up for the whole session. An auth user
-  // id only exists once the session is real, and re-running on a change also
-  // covers account switches.
   const authUserId = useAuthStore((s) => s.user?.id ?? null);
-  const fetchHome = useHomeStore((s) => s.fetchAll);
-  React.useEffect(() => { if (authUserId) fetchHome(); }, [authUserId, fetchHome]);
+  const hydrateHome = useHomeStore((s) => s.hydrateForUser);
+  React.useEffect(() => {
+    if (authUserId) void hydrateHome(authUserId);
+  }, [authUserId, hydrateHome]);
+
   const { tabs: middleTabs } = useCustomMiddleTabs();
 
   // Visible set = LOCKED_LEFT + user's middle pair + LOCKED_RIGHT.

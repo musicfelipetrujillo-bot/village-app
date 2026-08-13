@@ -121,6 +121,7 @@ export function seedWebDevStores() {
     loadedAt: Date.now(),
     // Stub out all fetchers so they don't call Supabase and overwrite seed data
     fetchAll: noop,
+    hydrateForUser: noop,
   });
 
   // ── Events store — Villie Plans class placeholders (mirrors migration 085) ───

@@ -1,7 +1,7 @@
 // DaySheetListScreen — the Day Sheet hub: make a new one, or reopen a saved
 // sheet (e.g. "Grandma's weekend") to re-share or update.
 import React, { useCallback, useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS, FONTS } from '@utils/constants';
@@ -13,7 +13,13 @@ export default function DaySheetListScreen() {
   const insets = useSafeAreaInsets();
   const [sheets, setSheets] = useState<DaySheet[] | null>(null);
 
-  useFocusEffect(useCallback(() => { daySheetsApi.listMine().then(setSheets); }, []));
+  // `.catch` matters: listMine fails soft to [] on a Supabase error, but a
+  // network throw used to reject unhandled and leave `sheets` null forever —
+  // which renders as nothing at all under the lede, with no spinner and no
+  // empty state. Landing on [] shows the real empty state instead.
+  useFocusEffect(useCallback(() => {
+    daySheetsApi.listMine().then(setSheets).catch(() => setSheets([]));
+  }, []));
 
   return (
     <View style={{ flex: 1, backgroundColor: COLORS.v2_paper }}>
@@ -30,7 +36,9 @@ export default function DaySheetListScreen() {
           <Text style={st.newTxt}>＋  New day sheet</Text>
         </TouchableOpacity>
 
-        {sheets === null ? null : sheets.length === 0 ? (
+        {sheets === null ? (
+          <View style={st.empty}><ActivityIndicator color={COLORS.v2_cinnamon} /></View>
+        ) : sheets.length === 0 ? (
           <View style={st.empty}>
             <Text style={{ fontSize: 40 }}>📋</Text>
             <Text style={st.emptyTitle}>No day sheets yet</Text>

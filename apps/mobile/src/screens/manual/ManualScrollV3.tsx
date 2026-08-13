@@ -42,7 +42,6 @@ import { useT } from '@/i18n';
 import { useUserStore } from '@store/user';
 import { useHomeStore } from '@store/home';
 import { homeApi } from '@/api/home';
-import ManualVerticalStory from '@/components/manual/ManualVerticalStory';
 import ManualModules from '@/components/manual/ManualModules';
 import PlaybookTracker from '@/components/manual/PlaybookTracker';
 import { getManualContent } from '@/manual/manualWeekContent';
@@ -195,17 +194,19 @@ const CHAPTER_BG_BY_NAME: Record<string, string> = {
 // all read pink). All deep enough for white text. Care takes the garden-green
 // (its "health/soothe ailments" family) to break the pink cluster; Soothe goes
 // deep wine. Mom chapters mirror their baby pair's color.
-const CHIP_TONE: Record<string, { bg: string; fg: string }> = {
-  sleep:   { bg: '#C46A45', fg: '#FFFCF6' }, // terracotta (orange)
-  feed:    { bg: '#BE851F', fg: '#FFFCF6' }, // amber (gold)
-  grow:    { bg: '#C24A63', fg: '#FFFCF6' }, // rose (pink)
-  care:    { bg: '#6F7A43', fg: '#FFFCF6' }, // olive (green)
-  soothe:  { bg: '#A8466B', fg: '#FFFCF6' }, // wine (deep berry)
-  feel:    { bg: '#C24A63', fg: '#FFFCF6' }, // rose
-  heal:    { bg: '#C46A45', fg: '#FFFCF6' }, // terracotta
-  nourish: { bg: '#BE851F', fg: '#FFFCF6' }, // amber
-  rest:    { bg: '#6F7A43', fg: '#FFFCF6' }, // olive
-  tips:    { bg: '#A8466B', fg: '#FFFCF6' }, // wine
+// bg = the chapter's deep color (used for dots/accents); tint = a soft wash for
+// the active chip fill so selection reads calm, not a loud solid pill.
+const CHIP_TONE: Record<string, { bg: string; fg: string; tint: string }> = {
+  sleep:   { bg: '#C46A45', fg: '#FFFCF6', tint: '#F3E2D6' }, // terracotta (orange)
+  feed:    { bg: '#BE851F', fg: '#FFFCF6', tint: '#F5EACF' }, // amber (gold)
+  grow:    { bg: '#C24A63', fg: '#FFFCF6', tint: '#F7DFE6' }, // rose (pink)
+  care:    { bg: '#6F7A43', fg: '#FFFCF6', tint: '#E7EAD4' }, // olive (green)
+  soothe:  { bg: '#A8466B', fg: '#FFFCF6', tint: '#F2DEE8' }, // wine (deep berry)
+  feel:    { bg: '#C24A63', fg: '#FFFCF6', tint: '#F7DFE6' }, // rose
+  heal:    { bg: '#C46A45', fg: '#FFFCF6', tint: '#F3E2D6' }, // terracotta
+  nourish: { bg: '#BE851F', fg: '#FFFCF6', tint: '#F5EACF' }, // amber
+  rest:    { bg: '#6F7A43', fg: '#FFFCF6', tint: '#E7EAD4' }, // olive
+  tips:    { bg: '#A8466B', fg: '#FFFCF6', tint: '#F2DEE8' }, // wine
 };
 
 const PIECES_BY_CHAPTER: Record<string, Piece[]> = {
@@ -996,17 +997,17 @@ export default function ManualScrollV3() {
   const [weekIntro, setWeekIntro] = useState<WeekIntroVideo | null>(null);
   useEffect(() => {
     let cancelled = false;
-    // Early weeks get a TEMP placeholder card until real videos are uploaded; a
-    // real published row always overrides it. Other weeks stay hidden until seeded.
-    const fallback = PLACEHOLDER_WEEKS.has(week)
-      ? {
-          ...PLACEHOLDER_WEEK_INTRO,
-          week_number: week,
-          title: lang === 'es' ? 'Qué esperar esta semana' : PLACEHOLDER_WEEK_INTRO.title,
-          expert_name: lang === 'es' ? 'Dra. Priya Nair' : PLACEHOLDER_WEEK_INTRO.expert_name,
-          expert_role: lang === 'es' ? 'pediatra · villie' : PLACEHOLDER_WEEK_INTRO.expert_role,
-        }
-      : null;
+    // The Manual is video-led (2026-08-12): EVERY week shows a video hero. Until
+    // real per-week footage is uploaded, a placeholder plays; a real published
+    // row always overrides it. (Was gated to weeks 1–8 — now always present so
+    // the video is the hero on every week.)
+    const fallback = {
+      ...PLACEHOLDER_WEEK_INTRO,
+      week_number: week,
+      title: lang === 'es' ? 'Qué esperar esta semana' : PLACEHOLDER_WEEK_INTRO.title,
+      expert_name: lang === 'es' ? 'Dra. Priya Nair' : PLACEHOLDER_WEEK_INTRO.expert_name,
+      expert_role: lang === 'es' ? 'pediatra · villie' : PLACEHOLDER_WEEK_INTRO.expert_role,
+    };
     getWeekIntroVideo(who, week, lang)
       .then((v) => { if (!cancelled) setWeekIntro(v ?? fallback); })
       .catch(() => { if (!cancelled) setWeekIntro(fallback); });
@@ -1123,29 +1124,12 @@ export default function ManualScrollV3() {
               <Text style={styles.bigTitleItalic}>{isPlaybook ? 'playbook.' : 'manual.'}</Text>
             </Text>
           </View>
-          <TouchableOpacity
-            onPress={() => navigation.getParent()?.getParent()?.navigate('QuickReference' as never)}
-            style={{ paddingTop: 12, paddingRight: 4 }}
-            accessibilityRole="button"
-            accessibilityLabel="Emergency quick reference"
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          >
-            <Svg width={20} height={20} viewBox="0 0 24 24">
-              <Path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="#BBAB94" strokeWidth={1.7} fill="none" strokeLinecap="round" strokeLinejoin="round" />
-            </Svg>
-          </TouchableOpacity>
           <View ref={triggerRef} collapsable={false} style={{ paddingTop: 12 }}>
             <MenuButton onPress={openMenu} expanded={menuOpen} a11yLabel={t('manualMenu.triggerA11y')} />
           </View>
         </View>
-
-        {/* Single progress — slim bar + a quiet count (bottom banner removed). */}
-        <View style={styles.progressTrack}>
-          <View style={[styles.progressFill, { width: `${(doneCount / totalChapters) * 100}%` }]} />
-        </View>
-        <Text style={styles.progressCount}>
-          {lang === 'es' ? `${doneCount} de ${totalChapters} capítulos esta semana` : `${doneCount} of ${totalChapters} chapters this week`}
-        </Text>
+        {/* Progress bar + count removed 2026-08-12 — read-tracking chrome made the
+            top of the screen busy. Emergency quick-ref moved to the ⋯ menu. */}
 
         {/* Manual/Playbook toggle REMOVED (2026-07-15) — the Manual is now
             content-only (52 weeks + videos, dense by design). Logging lives on
@@ -1404,51 +1388,39 @@ export default function ManualScrollV3() {
             <WeekIntroCard data={weekIntro} onPress={openWeekIntro} lang={lang} />
           </View>
         )}
-        {/* Category chip row */}
-        <View style={{ marginTop: 18 }}>
-          <View style={styles.sectionHead}>
-            <Eyebrow>
-              {lang === 'es'
-                ? 'Categorías del bebé'
-                : `${ownerName === 'Your' ? 'Your' : `${ownerName}'s`} categories`}
-            </Eyebrow>
-            <TouchableOpacity onPress={goToCompleteManual} accessibilityRole="link">
-              <Text style={styles.jumpLink}>
-                {lang === 'es' ? 'salta semana' : 'tap to jump'} ›
-              </Text>
-            </TouchableOpacity>
-          </View>
+        {/* Category chips — quiet row, no section-head chrome (2026-08-12).
+            Dropped the "categories" eyebrow + inline "tap to jump" link; jumping
+            to any week lives in the ⋯ menu (featured "complete manual"). */}
+        <View style={{ marginTop: 16 }}>
           <View style={styles.chipRow}>
             {list.map((c) => {
               const on = c.ch === chapter.ch;
-              const tone = CHIP_TONE[c.cat] ?? { bg: T.cinnamon, fg: T.paper };
+              const tone = CHIP_TONE[c.cat] ?? { bg: T.cinnamon, fg: T.paper, tint: '#F7DFE6' };
               return (
                 <TouchableOpacity
                   key={c.ch}
                   onPress={() => switchChapter(c)}
                   activeOpacity={0.85}
-                  // Active chip fills with the chapter's own (deep) color; text
-                  // is white for every chapter, so selection reads consistently.
-                  style={[styles.chip, on && styles.chipOn, on && { backgroundColor: tone.bg, borderColor: tone.bg, shadowColor: tone.bg }]}
+                  // Active chip = a soft wash in the chapter's own tint + its deep
+                  // color as border/text. Calm selection, no loud solid pill.
+                  style={[styles.chip, on && { backgroundColor: tone.tint, borderColor: tone.bg }]}
                 >
-                  <Text style={[styles.chipLabel, on && styles.chipLabelOn, on && { color: tone.fg }]} numberOfLines={1}>{chLabel(c.ch, lang)}</Text>
+                  <Text style={[styles.chipLabel, on && { color: tone.bg }]} numberOfLines={1}>{chLabel(c.ch, lang)}</Text>
                 </TouchableOpacity>
               );
             })}
           </View>
         </View>
 
-        {/* Vertical story — the week's teaching read down the page as calm,
-            chapter-tinted cards (replaces the horizontal swipe deck, 2026-08-10:
-            "drop the swipe cards, less is more"). Keyed by category so it swaps
-            when the chapter chip changes. */}
-        <ManualVerticalStory key={chapter.cat} story={manualContent?.story ?? []} category={chapter.cat} lang={lang} />
-
-        {/* Below-deck modules: checklist → article/video → infographic —
-            the repeatable Manual baseline, driven by manualWeekContent. */}
+        {/* The whole week as ONE scannable briefing (2026-08-12): teaching +
+            modules fold into a single list of collapsed rows (tap to open
+            inline), so scrolling reads as rows, not a stack of hero boxes.
+            Keyed by category so it swaps when the chapter chip changes. */}
         {manualContent && (
           <ManualModules
+            key={chapter.cat}
             content={manualContent}
+            story={manualContent.story ?? []}
             lang={lang}
             week={week}
             category={chapter.cat}
@@ -1532,6 +1504,12 @@ export default function ManualScrollV3() {
         </MenuGroup>
         <MenuGroup label={t('manualMenu.groupMore')}>
           <MenuItem
+            title={lang === 'es' ? 'En una emergencia' : 'In an emergency'}
+            sub={lang === 'es' ? 'RCP + fiebre, respiración, más' : 'CPR + fever, breathing, more'}
+            icon={MENU_ICONS.shield}
+            onPress={closeAnd(() => navigation.getParent()?.getParent()?.navigate('QuickReference' as never))}
+          />
+          <MenuItem
             title={t('manualMenu.subscribe')}
             sub={t('manualMenu.subscribeSub')}
             icon={MENU_ICONS.mailHeart}
@@ -1600,14 +1578,6 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.v3_display_italic, color: T.salmon,
   },
 
-  // Progress
-  progressTrack: {
-    marginTop: 14, marginHorizontal: 22,
-    height: 3, backgroundColor: T.parchment, borderRadius: 2, overflow: 'hidden',
-  },
-  progressFill: { height: '100%', backgroundColor: T.cinnamon },
-  progressCount: { fontFamily: FONTS.v2_body, fontSize: 11, color: T.walnut, marginTop: 7, marginHorizontal: 22 },
-
   // For mom / For baby toggle
   toggleTrack: {
     marginTop: 18, marginHorizontal: 22,
@@ -1630,18 +1600,6 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.v2_bold, color: T.cocoa,
   },
 
-  // Sections
-  sectionHead: {
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    paddingBottom: 8, marginHorizontal: 22,
-    borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: T.rule,
-  },
-  jumpLink: {
-    fontFamily: FONTS.v2_mono, fontSize: 10,
-    color: T.amber, letterSpacing: 1.8,
-    textTransform: 'uppercase', fontWeight: '500',
-  },
-
   // Chip row
   chipRow: {
     marginTop: 14, marginHorizontal: 22,
@@ -1653,16 +1611,8 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(122,74,40,0.10)',
     alignItems: 'center',
   },
-  chipOn: {
-    backgroundColor: T.cinnamon, borderColor: T.cinnamon,
-    shadowColor: T.cinnamon, shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.34, shadowRadius: 12, elevation: 3,
-  },
   chipLabel: {
     fontFamily: FONTS.v2_link, fontSize: 13, color: T.cocoa,
-  },
-  chipLabelOn: {
-    fontFamily: FONTS.v2_bold, color: T.paper,
   },
 
   // Week progress banner (sage)

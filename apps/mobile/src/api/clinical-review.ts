@@ -14,7 +14,11 @@ export type ReviewableSourceTable =
   | 'maternal_insights'
   | 'village_supports'
   | 'week_checklists'
-  | 'trending_items';
+  | 'trending_items'
+  // Mom Tips (migration 123). Reviewed a WEEK at a time through its own
+  // surface rather than through `list_pending_review` — 371 rows would bury
+  // the small, time-sensitive queue that RPC exists for.
+  | 'mom_tips';
 
 export interface PendingReviewRow {
   source_table: ReviewableSourceTable;
@@ -48,6 +52,15 @@ export const clinicalReviewApi = {
     const { data, error } = await supabase.rpc('list_pending_review');
     if (error) throw error;
     return (data ?? []) as PendingReviewRow[];
+  },
+
+  // Badge-only count. `listPending` currently weighs ~460 kB across 508 rows,
+  // so anything that only needs a number (the Me-tab row) must call this
+  // instead — see migration 124.
+  async countPending(): Promise<number> {
+    const { data, error } = await supabase.rpc('count_pending_review');
+    if (error) throw error;
+    return (data as number | null) ?? 0;
   },
 
   async approve(
@@ -84,6 +97,7 @@ export function sourceTableLabel(t: ReviewableSourceTable): string {
     case 'village_supports':  return 'Support';
     case 'week_checklists':   return 'Checklist';
     case 'trending_items':    return 'The Buzz';
+    case 'mom_tips':          return 'Mom tip';
   }
 }
 

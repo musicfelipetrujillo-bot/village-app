@@ -259,9 +259,15 @@ export default function MeScreen() {
   }, [clearUnreadNotifs, beeAnim, beeRandX, beeRandY]));
 
   // Reviewer-only: fetch the pending-review queue length whenever Me regains
-  // focus. RLS + SECURITY DEFINER guard means non-reviewers get an empty list
+  // focus. RLS + SECURITY DEFINER guard means non-reviewers get nothing back
   // anyway, but we skip the call entirely to save a round-trip. Failures are
   // swallowed — the row still renders without a badge.
+  //
+  // Uses `countPending`, NOT `listPending`. This effect fires on every focus,
+  // including the one caused by dismissing the Clinical Review modal — and
+  // `listPending` pulls all ~508 pending rows (~460 kB of EN + ES body text)
+  // only to read `.length`. Fetching and parsing that on the back gesture was
+  // half of why closing the dashboard lagged.
   useFocusEffect(
     useCallback(() => {
       if (!isReviewer) {
@@ -270,9 +276,9 @@ export default function MeScreen() {
       }
       let cancelled = false;
       clinicalReviewApi
-        .listPending()
-        .then((rows) => {
-          if (!cancelled) setPendingCount(rows.length);
+        .countPending()
+        .then((n) => {
+          if (!cancelled) setPendingCount(n);
         })
         .catch(() => {
           if (!cancelled) setPendingCount(null);

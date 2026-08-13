@@ -1,43 +1,29 @@
-// MomHubScreen — "mamas corner" (reworked 2026-07-15)
+// MomHubScreen — "mamas corner"
 //
-// The all-things-mom hub. Design logic (Felipe: "no wall of hero boxes — make
-// it visually make sense"): FIVE different visual forms, one gradient moment.
-//   1. editorial opening — typography on the page (check-in as a text link)
-//   2. "your day · next up" — a slim live strip from the day plan
-//   3. ONE asymmetric bento — calendar gradient tile + two quiet mini-tiles
-//   4. "for you" — magazine-style numbered index rows (not cards)
-//   5. a single dark ask-villie ribbon to anchor the bottom
-// Plan my day + Day Sheet moved here from Home; the customized routine lives
-// here (day plan = logs + calendar), while the logs read-back lives in Insights.
-import React, { useCallback, useState } from 'react';
+// The all-things-mom hub, rebuilt calm (2026-08-09) after the founder read the
+// 5-section editorial version as "anxiety, too many words, chaotic": one line,
+// two warm cards (plan my day = daylight/logistics, i need a sec = dusk/
+// nervous system), one quiet list, one ask bar.
+//
+// Plan my day + Day Sheet live here rather than on Home; the day plan is logs +
+// calendar, while the logs read-back lives in Insights.
+import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { COLORS, FONTS } from '@utils/constants';
 import { WarmGlowBackdrop } from '@components/shared/WarmGlowBackdrop';
 import { BackButton } from '@components/shared/BackButton';
-import { useHomeStore } from '@store/home';
 import { useUserStore } from '@store/user';
-import { tap, select } from '@utils/haptics';
-import { getCalendarPermission, getTodayBusyBlocks } from '@utils/calendar';
-import { getPumpCadence, buildDayPlan, fmtTime, type PlanSlot } from '@utils/dayPlan';
+import { tap } from '@utils/haptics';
 
 const VILLIE_BEE = require('../../../assets/brand/villie-bee.png');
 
-const ROSE = '#C24A63', ROSE_DEEP = '#9E2F4C', HONEY = '#B98A1E';
-const INK = '#43260F', INKSOFT = '#7A5A3A', MUTED = '#A6957F';
-
-const SLOT_TONE: Record<PlanSlot['kind'], { bg: string; border: string; time: string }> = {
-  calendar: { bg: '#EFE7DA', border: '#E4D8C4', time: '#8A6A55' },
-  nap: { bg: '#FDECEF', border: '#F3C6D2', time: '#C2556F' },
-  feed: { bg: '#FDECEF', border: '#F3C6D2', time: '#C2556F' },
-  pump: { bg: '#FBF0D5', border: '#EFD9A0', time: HONEY },
-};
-const SLOT_EMOJI: Partial<Record<PlanSlot['kind'], string>> = { nap: '😴', feed: '🍼', pump: '🍼' };
+const ROSE = '#C24A63', ROSE_DEEP = '#9E2F4C';
+const INK = '#43260F', INKSOFT = '#7A5A3A';
 
 export default function MomHubScreen() {
   const navigation = useNavigation<any>();
-  const babyProfile = useHomeStore((s) => s.babyProfile);
   const lang = useUserStore((s) => (s.profile?.preferred_language ?? 'en')) as 'en' | 'es';
   const es = lang === 'es';
 
@@ -45,13 +31,15 @@ export default function MomHubScreen() {
   const goDaySheet = () => { tap(); navigation.navigate('DaySheetList'); };
   const goReset = () => { tap(); navigation.navigate('ResetRecharge'); };
   const goTips = () => { tap(); navigation.navigate('MomTips'); };
+  // No week param — the screen resolves it from the baby profile itself, so
+  // the hub doesn't need to subscribe to the home store just to pass a number.
+  const goWeek = () => { tap(); navigation.navigate('WeeklyJourney'); };
   const askVillie = (seed: string) => {
     tap();
     navigation.getParent()?.getParent()?.navigate('AIHelpChat', { seed, autosend: true });
   };
   const openChat = () => { tap(); navigation.getParent()?.getParent()?.navigate('AIHelpChat', {}); };
   const goBody = () => { tap(); navigation.getParent()?.navigate('Experts'); };
-  const comingSoon = () => { select(); };
 
   return (
     <View style={styles.container}>
@@ -113,6 +101,15 @@ export default function MomHubScreen() {
 
         {/* everything else — one quiet list */}
         <View style={styles.momCard}>
+          {/* First in the list because it is the only row that CHANGES every
+              week — the rest are static tools. It also had no way in at all
+              until now: WeeklyJourneyScreen's only tap-path lived on the
+              legacy v9 Home, which stopped being mounted when Home V3 landed,
+              so ~900 rows of her weekly content were reachable only through
+              Billy. */}
+          <MomRow emoji="📖" title={es ? 'Esta semana, para ti' : 'This week, for you'}
+            sub={es ? 'una lectura, una lista, en quién apoyarte' : 'a read, a checklist, who to lean on'}
+            onPress={goWeek} />
           <MomRow emoji="📋" title={es ? 'Hoja del día' : 'Day sheet'}
             sub={es ? 'pásasela a la abuela' : 'hand off to grandma'} onPress={goDaySheet} />
           <MomRow emoji="✦" title={es ? 'Planea algo para ti' : 'Plan something for you'}
@@ -122,10 +119,12 @@ export default function MomHubScreen() {
               : 'Help me plan something for me this week — a class, an appointment, or just a break that fits my schedule.')} />
           <MomRow emoji="🌿" title={es ? 'Tu cuerpo, tu ritmo' : 'Your body, your pace'}
             sub={es ? 'piso pélvico y recuperación' : 'pelvic floor + recovery'} onPress={goBody} />
+          {/* "Reads for your stage" is gone rather than demoted: it was a
+              `soon` chip with nothing behind it, and the row above is the real
+              version of what it promised. The corner now has no dead ends. */}
           <MomRow emoji="💡" title={es ? 'Tips de mamá' : 'Mom tips'}
             sub={es ? 'Una idea al día, para su semana' : "One idea a day, for her week"}
-            onPress={goTips} />
-          <MomRow emoji="📖" title={es ? 'Lecturas para tu etapa' : 'Reads for your stage'} soon onPress={comingSoon} last />
+            onPress={goTips} last />
         </View>
 
         {/* one clean ask bar */}

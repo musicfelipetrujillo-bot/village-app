@@ -237,10 +237,18 @@ export const NAV_HEIGHT = 72;
 // Once `useUserStore.profile` is hydrated we prefer `profile.search_radius_miles`
 // (A2.a — `users.search_radius_miles`, migration 031). Keep in sync with the
 // DB column default.
-// TEMP demo placeholder shown wherever a baby name is missing (Home hero,
-// Manual masthead). Real fix is setting baby_profiles.baby_name; revert to a
-// neutral value (e.g. 'Baby') before broad launch.
-export const PLACEHOLDER_BABY_NAME = 'Feli';
+// Shown wherever a baby name is missing (Home hero, Manual masthead).
+//
+// This was a real first name ('Jackson', then 'Feli') while it was demo-only.
+// That is a defect once anyone but the founder is using the app: a mother whose
+// profile hasn't loaded yet would see a STRANGER'S baby name on her own home
+// screen, which reads as "the app lost my baby" — exactly the report that
+// started this. Founder's call 2026-08-13: keep it neutral.
+//
+// It should be rare now that the profile is cached on device (see store/home.ts),
+// but "rare" is the whole point — this is what she sees when something has
+// already gone wrong, so it must never make it worse.
+export const PLACEHOLDER_BABY_NAME = 'Baby';
 
 // 10 miles, not 25 (founder call 2026-08-12). A postpartum mother with a
 // newborn in the car is not driving 25 miles to a stroller walk, so a wide
