@@ -33,7 +33,7 @@ import { useUserStore } from '@store/user';
 import { tap, select } from '@utils/haptics';
 import {
   COMFORT_SOUNDS, SLEEP_TIMERS, isComfortAudioReady, playComfortSound, stopComfortSound,
-  type ComfortSound, type ComfortSoundId,
+  playingSoundId, type ComfortSound, type ComfortSoundId,
 } from '@/lib/comfortAudio';
 
 const ROSE = '#C24A63';
@@ -101,6 +101,14 @@ function Breathing({ es, onDone }: { es: boolean; onDone: () => void }) {
   const [cycle, setCycle] = useState(0);
   const stopped = useRef(false);
 
+  // `onDone` is an inline arrow from the parent, so its identity changes on
+  // every parent render. Held in a ref and kept OUT of the effect deps: with it
+  // in deps, any parent re-render (tapping a sound tile mid-breath) tore down
+  // the timer chain and restarted her from 1/4.
+  const onDoneRef = useRef(onDone);
+  onDoneRef.current = onDone;
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   useEffect(() => {
     stopped.current = false;
     let i = 0, c = 0;
@@ -118,17 +126,20 @@ function Breathing({ es, onDone }: { es: boolean; onDone: () => void }) {
           toValue: to, duration: phase.ms, easing: Easing.inOut(Easing.ease), useNativeDriver: true,
         }).start();
       }
-      setTimeout(() => {
+      timer.current = setTimeout(() => {
         if (stopped.current) return;
         i += 1;
         if (i >= PHASES.length) { i = 0; c += 1; }
-        if (c >= CYCLES) { onDone(); return; }
+        if (c >= CYCLES) { onDoneRef.current(); return; }
         run();
       }, phase.ms);
     };
     run();
-    return () => { stopped.current = true; };
-  }, [scale, onDone]);
+    return () => {
+      stopped.current = true;
+      if (timer.current) clearTimeout(timer.current);
+    };
+  }, [scale]);
 
   const phase = PHASES[phaseIdx];
   return (
@@ -158,45 +169,44 @@ export default function ResetRechargeScreen() {
   const es = lang === 'es';
 
   const [breathing, setBreathing] = useState(false);
-  const [playing, setPlaying] = useState<ComfortSoundId | null>(null);
+  // Seeded from the audio module rather than from null: sound deliberately
+  // outlives this screen, so on re-entry the tile has to show what is actually
+  // coming out of the speaker.
+  const [playing, setPlaying] = useState<ComfortSoundId | null>(() => playingSoundId());
   const [timerMin, setTimerMin] = useState<number | null>(30);
-  const [note, setNote] = useState<string | null>(null);
   const [crisisOpen, setCrisisOpen] = useState(false);
 
-  // Sound is the one thing here that outlives the screen — that's the feature.
-  // But it must not outlive the app being killed, so release on unmount only if
-  // nothing is intentionally playing in the background.
-  useEffect(() => () => { void stopComfortSound(); }, []);
+  // Sounds are NATIVE-gated (expo-audio + UIBackgroundModes land on the next
+  // EAS build); meditations have no recordings yet. Both used to look fully
+  // live and answer a tap with a one-line note rendered ABOVE the meditations
+  // list — off-screen from where she tapped — so the rows read as dead. They
+  // now carry a `soon` mark and say so before she taps, which is the only
+  // honest version of this at 3am.
+  const soundsReady = COMFORT_SOUNDS.some(isComfortAudioReady);
+  const MEDITATIONS_READY = false;
 
-  // If iOS hands the app back after an interruption (a call), reflect reality
-  // rather than leaving a tile lit for audio that is no longer running.
+  // No stop-on-unmount: sound continuing when she puts the phone down IS the
+  // feature. Reconcile the tile with reality when iOS hands the app back — a
+  // phone call can end playback without telling us.
   useEffect(() => {
     const sub = AppState.addEventListener('change', (s) => {
-      if (s === 'active' && playing) setPlaying((p) => p);
+      if (s === 'active') setPlaying(playingSoundId());
     });
     return () => sub.remove();
-  }, [playing]);
+  }, []);
 
   const toggleSound = useCallback(async (sound: ComfortSound) => {
+    if (!isComfortAudioReady(sound)) { select(); return; }
     tap();
     if (playing === sound.id) { await stopComfortSound(); setPlaying(null); return; }
-    if (!isComfortAudioReady(sound)) {
-      // Honest, one line, no "coming soon" badge shouting at her.
-      setNote(es
-        ? 'Los sonidos llegan con la próxima actualización de la app.'
-        : 'Sounds arrive with the next app update.');
-      return;
-    }
     try {
       await playComfortSound(sound, timerMin);
       setPlaying(sound.id);
-      setNote(null);
     } catch {
-      setNote(es
-        ? 'Los sonidos llegan con la próxima actualización de la app.'
-        : 'Sounds arrive with the next app update.');
+      // Whatever the module ended up doing is the truth, not our optimism.
+      setPlaying(playingSoundId());
     }
-  }, [playing, timerMin, es]);
+  }, [playing, timerMin]);
 
   return (
     <View style={styles.screen}>
@@ -255,17 +265,19 @@ export default function ResetRechargeScreen() {
         <View style={styles.soundRow}>
           {COMFORT_SOUNDS.map((s) => {
             const active = playing === s.id;
+            const ready = isComfortAudioReady(s);
             const tone = SOUND_TONE[s.id] ?? SOUND_TONE.shush;
             return (
               <TouchableOpacity
                 key={s.id}
                 style={[styles.soundTile, { backgroundColor: tone.tint, borderColor: active ? 'transparent' : `${tone.ink}22` },
+                  !ready && styles.notReady,
                   active && { shadowColor: tone.ink, shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.3, shadowRadius: 14, elevation: 5 }]}
-                activeOpacity={0.9}
+                activeOpacity={ready ? 0.9 : 1}
                 onPress={() => { void toggleSound(s); }}
                 accessibilityRole="button"
-                accessibilityState={{ selected: active }}
-                accessibilityLabel={es ? s.labelEs : s.labelEn}
+                accessibilityState={{ selected: active, disabled: !ready }}
+                accessibilityLabel={`${es ? s.labelEs : s.labelEn}${ready ? '' : es ? ', pronto' : ', coming soon'}`}
               >
                 {/* Playing = the tile fills with its own colour. The state
                     change is the whole tile, not a small badge, so she can see
@@ -281,30 +293,40 @@ export default function ResetRechargeScreen() {
                   {es ? s.labelEs : s.labelEn}
                 </Text>
                 <Text style={[styles.soundState, { color: active ? 'rgba(255,253,248,0.85)' : `${tone.ink}88` }]}>
-                  {active ? (es ? 'sonando' : 'playing') : (es ? 'tocar' : 'tap')}
+                  {!ready ? (es ? 'pronto' : 'soon')
+                    : active ? (es ? 'sonando' : 'playing') : (es ? 'tocar' : 'tap')}
                 </Text>
               </TouchableOpacity>
             );
           })}
         </View>
 
-        <View style={styles.timerRow}>
-          <Text style={styles.timerLabel}>{es ? 'apagar en' : 'stop after'}</Text>
-          {SLEEP_TIMERS.map((m) => (
-            <TouchableOpacity
-              key={String(m)}
-              style={[styles.timerChip, timerMin === m && styles.timerChipOn]}
-              onPress={() => { select(); setTimerMin(m); }}
-              accessibilityRole="button"
-              accessibilityState={{ selected: timerMin === m }}
-            >
-              <Text style={[styles.timerChipText, timerMin === m && styles.timerChipTextOn]}>
-                {m == null ? (es ? 'sin límite' : 'no limit') : `${m}m`}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-        {note && <Text style={styles.note}>{note}</Text>}
+        {/* The sleep timer only means something once there is audio to stop —
+            it used to sit here as a live-looking control over nothing. */}
+        {soundsReady ? (
+          <View style={styles.timerRow}>
+            <Text style={styles.timerLabel}>{es ? 'apagar en' : 'stop after'}</Text>
+            {SLEEP_TIMERS.map((m) => (
+              <TouchableOpacity
+                key={String(m)}
+                style={[styles.timerChip, timerMin === m && styles.timerChipOn]}
+                onPress={() => { select(); setTimerMin(m); }}
+                accessibilityRole="button"
+                accessibilityState={{ selected: timerMin === m }}
+              >
+                <Text style={[styles.timerChipText, timerMin === m && styles.timerChipTextOn]}>
+                  {m == null ? (es ? 'sin límite' : 'no limit') : `${m}m`}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        ) : (
+          <Text style={styles.note}>
+            {es
+              ? 'Los sonidos llegan con la próxima actualización de la app.'
+              : 'Sounds arrive with the next app update.'}
+          </Text>
+        )}
 
         {/* Meditations — doors named for how she feels, never logged. */}
         <Text style={styles.sectionLabel}>{es ? 'MEDITACIONES' : 'MEDITATIONS'}</Text>
@@ -315,23 +337,31 @@ export default function ResetRechargeScreen() {
           {DOORS.map((d, i) => (
             <TouchableOpacity
               key={d.id}
-              style={[styles.indexRow, i === 0 && { borderTopWidth: 0 }]}
-              activeOpacity={0.7}
-              onPress={() => {
-                tap();
-                setNote(es
-                  ? 'Las meditaciones llegan con la próxima actualización.'
-                  : 'Meditations arrive with the next app update.');
-              }}
+              style={[styles.indexRow, i === 0 && { borderTopWidth: 0 }, !MEDITATIONS_READY && styles.notReady]}
+              activeOpacity={MEDITATIONS_READY ? 0.7 : 1}
+              onPress={() => { select(); }}
               accessibilityRole="button"
-              accessibilityLabel={es ? d.es : d.en}
+              accessibilityState={{ disabled: !MEDITATIONS_READY }}
+              accessibilityLabel={`${es ? d.es : d.en}${MEDITATIONS_READY ? '' : es ? ', pronto' : ', coming soon'}`}
             >
               <Text style={styles.indexNum}>{String(i + 1).padStart(2, '0')}</Text>
               <Text style={styles.indexText}>{es ? d.es : d.en}</Text>
+              {!MEDITATIONS_READY && (
+                <View style={styles.soonPill}>
+                  <Text style={styles.soonPillText}>{es ? 'pronto' : 'soon'}</Text>
+                </View>
+              )}
               <Text style={styles.indexGlyph}>{d.emoji}</Text>
             </TouchableOpacity>
           ))}
         </View>
+        {!MEDITATIONS_READY && (
+          <Text style={styles.note}>
+            {es
+              ? 'Las meditaciones llegan con la próxima actualización.'
+              : 'Meditations arrive with the next app update.'}
+          </Text>
+        )}
 
         {/* The bridge. Quiet on purpose — it must be findable without being
             alarming, because most people reading it are just tired. */}
@@ -432,6 +462,19 @@ const styles = StyleSheet.create({
   timerChipText: { fontFamily: FONTS.v2_body, fontSize: 12, color: INKSOFT },
   timerChipTextOn: { color: ROSE },
   note: { fontFamily: FONTS.v2_body, fontSize: 13, color: MUTED, marginTop: 10 },
+
+  // Not-yet-built controls: legible, clearly not live, never disabled-grey —
+  // this screen is read in the dark and grey-on-cream disappears.
+  notReady: { opacity: 0.55 },
+  soonPill: {
+    backgroundColor: COLORS.v2_parchment, borderRadius: 999,
+    paddingHorizontal: 9, paddingVertical: 3,
+    borderWidth: 1, borderColor: 'rgba(192,120,64,0.3)',
+  },
+  soonPillText: {
+    fontFamily: FONTS.v2_mono, fontSize: 9, letterSpacing: 1.2,
+    textTransform: 'uppercase', color: INKSOFT, fontWeight: '600',
+  },
 
   // ── Meditations: magazine index, no card ────────────────────────────────
   index: { marginTop: 2 },

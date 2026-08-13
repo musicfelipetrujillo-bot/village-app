@@ -5,7 +5,7 @@
 // Baby rhythm comes from her Playbook week; the plan is a suggestion, editable
 // by re-picking the rhythm.
 import React, { useCallback, useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Linking, Platform, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Linking, Platform, Alert, AppState } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -61,34 +61,60 @@ export default function DayPlanScreen() {
   const [cadence, setCadence] = useState<PumpCadence | null>(null);
   const [plan, setPlan] = useState<DayPlan | null>(null);
   const [building, setBuilding] = useState(false);
+  // The calendar is an ENHANCEMENT, not a prerequisite: the plan is her baby's
+  // rhythm plus her pumps, and the calendar only adds the meetings to weave
+  // around. Declining used to leave her on an "Open Settings" wall with no way
+  // through — the whole feature was unreachable for anyone who said no once.
+  const [skipCal, setSkipCal] = useState(false);
+  const connected = perm === 'granted';
 
   const rebuild = useCallback(async (c: PumpCadence) => {
     setBuilding(true);
-    const [busy, stats, overrides] = await Promise.all([
-      getTodayBusyBlocks(),
-      babyTrackerApi.getRecentStats(14).catch(() => null),
-      getOverrides(),
-    ]);
-    // Personalize nap length + wake window from the baby's real logged sleep
-    // (needs a few sessions to be stable); otherwise fall back to age defaults.
-    const rhythm = stats && stats.sleepSessions >= 3
-      ? { wakeMin: stats.avgWakeWindowMin, napMin: stats.avgNapMin }
-      : undefined;
-    setPlan(buildDayPlan({ busy, weekNumber: week, cadence: c, babyName, rhythm, overrides }));
-    setBuilding(false);
+    try {
+      const [busy, stats, overrides] = await Promise.all([
+        getTodayBusyBlocks(),
+        babyTrackerApi.getRecentStats(14).catch(() => null),
+        getOverrides().catch(() => ({})),
+      ]);
+      // Personalize nap length + wake window from the baby's real logged sleep
+      // (needs a few sessions to be stable); otherwise fall back to age defaults.
+      const rhythm = stats && stats.sleepSessions >= 3
+        ? { wakeMin: stats.avgWakeWindowMin, napMin: stats.avgNapMin }
+        : undefined;
+      setPlan(buildDayPlan({ busy, weekNumber: week, cadence: c, babyName, rhythm, overrides }));
+    } catch {
+      // Never leave her on a spinner. An empty-calendar plan is still her
+      // baby's day, which is most of the value.
+      setPlan(buildDayPlan({ busy: [], weekNumber: week, cadence: c, babyName }));
+    } finally {
+      // In `finally` on purpose: a throw between setBuilding(true) and the end
+      // used to strand PlanView on its ActivityIndicator forever.
+      setBuilding(false);
+    }
   }, [week, babyName]);
 
   const load = useCallback(async () => {
-    const p = await getCalendarPermission();
-    setPerm(p);
-    if (p === 'granted') {
+    try {
+      const p = await getCalendarPermission();
+      setPerm(p);
       const c = await getPumpCadence();
       setCadence(c);
-      if (c) rebuild(c);
+      if (c && p === 'granted') rebuild(c);
+    } catch {
+      setPerm('undetermined');
     }
   }, [rebuild]);
 
   useEffect(() => { load(); }, [load]);
+
+  // She may grant access in Settings and come back. Without this the screen
+  // still shows the denied wall until she leaves and re-enters.
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (s) => {
+      if (s === 'active' && perm !== 'granted') load();
+    });
+    return () => sub.remove();
+  }, [perm, load]);
 
   const connect = async () => {
     tap();
@@ -99,6 +125,12 @@ export default function DayPlanScreen() {
       setCadence(c);
       if (c) rebuild(c);
     }
+  };
+
+  const skipCalendar = () => {
+    tap();
+    setSkipCal(true);
+    if (cadence) rebuild(cadence);
   };
 
   const pickCadence = async (c: PumpCadence) => {
@@ -155,18 +187,18 @@ export default function DayPlanScreen() {
 
       {perm === 'loading' ? (
         <View style={s.center}><ActivityIndicator color={ROSE} /></View>
-      ) : perm !== 'granted' ? (
-        <ConnectView denied={perm === 'denied'} onConnect={connect} />
+      ) : !connected && !skipCal ? (
+        <ConnectView denied={perm === 'denied'} onConnect={connect} onSkip={skipCalendar} />
       ) : !cadence ? (
         <RhythmView babyName={babyName} onPick={pickCadence} />
       ) : (
-        <PlanView onSync={syncToCalendar} syncing={syncing} plan={plan} building={building} babyName={babyName} onChangeRhythm={() => setCadence(null)} onPlan={openVillie} onEdit={editSlot} insetsBottom={insets.bottom} />
+        <PlanView onSync={syncToCalendar} syncing={syncing} plan={plan} building={building} babyName={babyName} onChangeRhythm={() => setCadence(null)} onPlan={openVillie} onEdit={editSlot} insetsBottom={insets.bottom} connected={connected} onConnect={connect} />
       )}
     </View>
   );
 }
 
-function ConnectView({ denied, onConnect }: { denied: boolean; onConnect: () => void }) {
+function ConnectView({ denied, onConnect, onSkip }: { denied: boolean; onConnect: () => void; onSkip: () => void }) {
   return (
     <ScrollView contentContainerStyle={s.connectWrap}>
       <View style={s.connectIcon}><Text style={{ fontSize: 34 }}>🗓️</Text></View>
@@ -189,6 +221,12 @@ function ConnectView({ denied, onConnect }: { denied: boolean; onConnect: () => 
           <Text style={s.ctaText}>Connect calendar</Text>
         </TouchableOpacity>
       )}
+
+      {/* The way through for anyone who doesn't want to hand over a calendar —
+          she still gets the naps, feeds, and pumps. */}
+      <TouchableOpacity style={s.skip} onPress={onSkip} accessibilityRole="button" accessibilityLabel="Plan without my calendar">
+        <Text style={s.skipText}>plan without my calendar</Text>
+      </TouchableOpacity>
     </ScrollView>
   );
 }
@@ -216,8 +254,8 @@ const KIND_STYLE: Record<PlanSlot['kind'], { bg: string; border: string; mark?: 
   pump: { bg: '#FBF0D5', border: '#EFD9A0', mark: '✦ VILLIE', markColor: HONEY },
 };
 
-function PlanView({ plan, building, babyName, onChangeRhythm, onPlan, onEdit, insetsBottom, onSync, syncing }: {
-  plan: DayPlan | null; building: boolean; babyName: string; onChangeRhythm: () => void; onPlan: (seed: string) => void; onEdit: (slotId: string, patch: SlotOverride) => void; insetsBottom: number; onSync: () => void; syncing: boolean;
+function PlanView({ plan, building, babyName, onChangeRhythm, onPlan, onEdit, insetsBottom, onSync, syncing, connected, onConnect }: {
+  plan: DayPlan | null; building: boolean; babyName: string; onChangeRhythm: () => void; onPlan: (seed: string) => void; onEdit: (slotId: string, patch: SlotOverride) => void; insetsBottom: number; onSync: () => void; syncing: boolean; connected: boolean; onConnect: () => void;
 }) {
   const [editingId, setEditingId] = useState<string | null>(null);
   if (building || !plan) return <View style={s.center}><ActivityIndicator color={ROSE} /></View>;
@@ -272,10 +310,16 @@ function PlanView({ plan, building, babyName, onChangeRhythm, onPlan, onEdit, in
         {!plan.slots.length && <Text style={s.emptyNote}>No calendar events today — here's {babyName}'s rhythm. Add events and villie will weave around them.</Text>}
       </View>
 
-      <View style={s.legend}>
-        <View style={s.legendItem}><View style={[s.legendSw, { backgroundColor: '#EFE7DA', borderColor: '#E4D8C4' }]} /><Text style={s.legendText}>your calendar</Text></View>
-        <View style={s.legendItem}><View style={[s.legendSw, { backgroundColor: '#FDECEF', borderColor: '#F3C6D2' }]} /><Text style={s.legendText}>villie suggests</Text></View>
-      </View>
+      {connected ? (
+        <View style={s.legend}>
+          <View style={s.legendItem}><View style={[s.legendSw, { backgroundColor: '#EFE7DA', borderColor: '#E4D8C4' }]} /><Text style={s.legendText}>your calendar</Text></View>
+          <View style={s.legendItem}><View style={[s.legendSw, { backgroundColor: '#FDECEF', borderColor: '#F3C6D2' }]} /><Text style={s.legendText}>villie suggests</Text></View>
+        </View>
+      ) : (
+        <TouchableOpacity style={s.connectNudge} onPress={onConnect} accessibilityRole="button" accessibilityLabel="Connect calendar">
+          <Text style={s.connectNudgeText}>this is {babyName}'s rhythm only — connect your calendar to weave it around your day ›</Text>
+        </TouchableOpacity>
+      )}
 
       <View style={s.planSection}>
         <LinearGradient
@@ -362,6 +406,13 @@ const s = StyleSheet.create({
   cta: { backgroundColor: ROSE, borderRadius: 14, paddingVertical: 14, alignItems: 'center', width: '100%', marginTop: 22 },
   ctaText: { fontFamily: FONTS.bodyBold, fontSize: 14.5, color: '#fff' },
   deniedNote: { fontFamily: FONTS.v2_body, fontSize: 12, color: INKSOFT, textAlign: 'center', marginTop: 12, lineHeight: 17 },
+  skip: { marginTop: 14, paddingVertical: 10, paddingHorizontal: 16, alignSelf: 'center' },
+  skipText: { fontFamily: FONTS.bodySemiBold, fontSize: 13, color: ROSE },
+  connectNudge: {
+    marginHorizontal: 16, marginTop: 10, paddingVertical: 12, paddingHorizontal: 14,
+    borderRadius: 14, borderWidth: 1, borderColor: '#F0D7DD', backgroundColor: '#FEFAF6',
+  },
+  connectNudgeText: { fontFamily: FONTS.v2_body, fontSize: 12.5, color: INKSOFT, lineHeight: 18 },
 
   // rhythm
   rhythmWrap: { paddingHorizontal: 20, paddingTop: 14 },
