@@ -14,7 +14,11 @@ export type ReviewableSourceTable =
   | 'maternal_insights'
   | 'village_supports'
   | 'week_checklists'
-  | 'trending_items';
+  | 'trending_items'
+  // Mom Tips (migration 123). Reviewed a WEEK at a time through its own
+  // surface rather than through `list_pending_review` — 371 rows would bury
+  // the small, time-sensitive queue that RPC exists for.
+  | 'mom_tips';
 
 export interface PendingReviewRow {
   source_table: ReviewableSourceTable;
@@ -84,6 +88,7 @@ export function sourceTableLabel(t: ReviewableSourceTable): string {
     case 'village_supports':  return 'Support';
     case 'week_checklists':   return 'Checklist';
     case 'trending_items':    return 'The Buzz';
+    case 'mom_tips':          return 'Mom tip';
   }
 }
 

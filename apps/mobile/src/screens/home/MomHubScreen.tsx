@@ -1,43 +1,29 @@
-// MomHubScreen — "mamas corner" (reworked 2026-07-15)
+// MomHubScreen — "mamas corner"
 //
-// The all-things-mom hub. Design logic (Felipe: "no wall of hero boxes — make
-// it visually make sense"): FIVE different visual forms, one gradient moment.
-//   1. editorial opening — typography on the page (check-in as a text link)
-//   2. "your day · next up" — a slim live strip from the day plan
-//   3. ONE asymmetric bento — calendar gradient tile + two quiet mini-tiles
-//   4. "for you" — magazine-style numbered index rows (not cards)
-//   5. a single dark ask-villie ribbon to anchor the bottom
-// Plan my day + Day Sheet moved here from Home; the customized routine lives
-// here (day plan = logs + calendar), while the logs read-back lives in Insights.
-import React, { useCallback, useState } from 'react';
+// The all-things-mom hub, rebuilt calm (2026-08-09) after the founder read the
+// 5-section editorial version as "anxiety, too many words, chaotic": one line,
+// two warm cards (plan my day = daylight/logistics, i need a sec = dusk/
+// nervous system), one quiet list, one ask bar.
+//
+// Plan my day + Day Sheet live here rather than on Home; the day plan is logs +
+// calendar, while the logs read-back lives in Insights.
+import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { COLORS, FONTS } from '@utils/constants';
 import { WarmGlowBackdrop } from '@components/shared/WarmGlowBackdrop';
 import { BackButton } from '@components/shared/BackButton';
-import { useHomeStore } from '@store/home';
 import { useUserStore } from '@store/user';
 import { tap, select } from '@utils/haptics';
-import { getCalendarPermission, getTodayBusyBlocks } from '@utils/calendar';
-import { getPumpCadence, buildDayPlan, fmtTime, type PlanSlot } from '@utils/dayPlan';
 
 const VILLIE_BEE = require('../../../assets/brand/villie-bee.png');
 
-const ROSE = '#C24A63', ROSE_DEEP = '#9E2F4C', HONEY = '#B98A1E';
-const INK = '#43260F', INKSOFT = '#7A5A3A', MUTED = '#A6957F';
-
-const SLOT_TONE: Record<PlanSlot['kind'], { bg: string; border: string; time: string }> = {
-  calendar: { bg: '#EFE7DA', border: '#E4D8C4', time: '#8A6A55' },
-  nap: { bg: '#FDECEF', border: '#F3C6D2', time: '#C2556F' },
-  feed: { bg: '#FDECEF', border: '#F3C6D2', time: '#C2556F' },
-  pump: { bg: '#FBF0D5', border: '#EFD9A0', time: HONEY },
-};
-const SLOT_EMOJI: Partial<Record<PlanSlot['kind'], string>> = { nap: '😴', feed: '🍼', pump: '🍼' };
+const ROSE = '#C24A63', ROSE_DEEP = '#9E2F4C';
+const INK = '#43260F', INKSOFT = '#7A5A3A';
 
 export default function MomHubScreen() {
   const navigation = useNavigation<any>();
-  const babyProfile = useHomeStore((s) => s.babyProfile);
   const lang = useUserStore((s) => (s.profile?.preferred_language ?? 'en')) as 'en' | 'es';
   const es = lang === 'es';
 
