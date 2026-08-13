@@ -52,3 +52,8 @@ yarn-error.*
 
 # Git worktrees (superpowers subagent-driven-development isolation)
 .worktrees/
+
+# Session working files — seed undo manifests, generator scripts, scratch data.
+# Never deliverables, and seeded-log-ids.json is the only way to clean up a
+# seeded account, so it must not be shared or overwritten via git.
+scratchpad/
