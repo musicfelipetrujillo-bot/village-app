@@ -72,7 +72,10 @@ Return ONLY a JSON array (no prose, no fences). Each element:
   "ends_at": string | null,              // ISO 8601 or null if the page gives no end
   "venue_name": string | null,
   "address": string | null,              // street address if shown, else null
-  "event_url": string | null             // the event's own detail/ticket link from [link: ...] markers, absolute URL
+  "event_url": string | null,            // the event's own detail/ticket link from [link: ...] markers, absolute URL
+  "cost": "free" | "paid" | "unknown",
+  "price_cents": number | null,          // only when cost is "paid" AND a figure is stated. 30 dollars -> 3000
+  "format": "in_person" | "virtual" | "unknown"
 }
 
 HARD RULES:
@@ -81,11 +84,44 @@ HARD RULES:
 - A recurring pattern stated on the page (e.g. "third Saturday of every month, 9am-12pm") COUNTS: emit the next 2 occurrences with computed dates.
 - If a time is missing use 10:00 local. If the year is missing, infer the next future occurrence.
 - Do NOT invent venues, addresses, or URLs — null when the page doesn't say.
+- Attribute "cost" and "format" ONLY to text describing THIS event. Ignore
+  unrelated amenities ("free parking", "free gift for attendees", "free wifi")
+  and any other event's pricing on the same page. An address in a site header,
+  footer, or "contact us" block is the ORGANIZATION's address, not this event's
+  venue — it does not make an event "in_person". When you cannot tell which
+  event a cost or location phrase belongs to, use "unknown".
+- "cost": say "free" when the page says attendance costs nothing — free, no
+  cost, complimentary, an unconditional "donation based" / "pay what you can"
+  with NO amount named — OR when the event is peer-led / volunteer-run mutual
+  support (leaders described as "volunteers", "mother-to-mother",
+  "parent-to-parent", etc.) AND the page mentions NO price, fee, ticket,
+  registration charge, or "buy/purchase" flow anywhere for it — that
+  combination (mutual-aid framing + zero commerce machinery) IS the page
+  saying so. Say "paid" when any figure is stated, INCLUDING a suggested or
+  requested donation ("suggested donation $40" is paid, price_cents 4000 — a
+  named amount is a price even when framed as optional), or when the page
+  has a real ticket-purchase/checkout flow for the event even if no figure
+  is shown (Eventbrite-style "Get Tickets", a cart, a paid-registration
+  link). With a range, use the LOWEST stated figure ("$30 a class, 4 for
+  $90" -> 3000). Sliding scale or "determined by insurance" is "paid" with
+  price_cents null. Conditional free ("first class free", "free for
+  members") is "paid" when any other figure is stated, otherwise "unknown"
+  — never "free". Otherwise, when the page is simply silent about cost —
+  no price language AND no mutual-aid/volunteer framing to lean on — say
+  "unknown". Do NOT guess free on silence alone.
+  If ONLY a multi-session package price is stated with no per-session figure,
+  use "paid" with price_cents null — the event costs money but the per-visit
+  amount is unknown.
+- "format": "virtual" for Zoom/online/webinar/virtual signals, "in_person" when
+  a physical venue or street address is given, "unknown" when neither is clear.
 - Max 20 events. If the page has none, return [].`;
 
 interface HarvestedEvent {
   title: string; description: string; starts_at: string; ends_at: string | null;
   venue_name: string | null; address: string | null; event_url: string | null;
+  cost: 'free' | 'paid' | 'unknown';
+  price_cents: number | null;
+  format: 'in_person' | 'virtual' | 'unknown';
 }
 
 // ── Page fetch, with a JS-rendering fallback ────────────────────────────
@@ -167,7 +203,31 @@ async function extractEvents(pageText: string, tz: string, sourceName: string): 
     }
   }
   if (!Array.isArray(parsed)) return [];
-  return parsed.filter((e: any) => e && typeof e.title === 'string' && typeof e.starts_at === 'string');
+
+  const COSTS = ['free', 'paid', 'unknown'] as const;
+  const FORMATS = ['in_person', 'virtual', 'unknown'] as const;
+
+  return parsed
+    .filter((e: any) => e && typeof e.title === 'string' && typeof e.starts_at === 'string')
+    .map((e: any): HarvestedEvent => {
+      // The model's output is untrusted text. `cost` decides whether a card
+      // says "Free" to a mother, so anything we don't recognise — a missing
+      // field, "Free" capitalised, a novel string — degrades to 'unknown',
+      // which forces human review rather than making a price claim.
+      const cost = COSTS.includes(e.cost) ? e.cost : 'unknown';
+      const format = FORMATS.includes(e.format) ? e.format : 'unknown';
+      const rawPrice = typeof e.price_cents === 'number' && Number.isFinite(e.price_cents) && e.price_cents >= 0
+        ? Math.round(e.price_cents)
+        : null;
+      return {
+        ...e,
+        cost,
+        format,
+        // A price only means anything on a paid event; drop a stray figure
+        // the model may have attached to a free or unknown one.
+        price_cents: cost === 'paid' ? rawPrice : null,
+      };
+    });
 }
 
 const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60);
@@ -238,11 +298,21 @@ async function harvestFeed(feed: any): Promise<{ found: number; upserted: number
     });
     if (dup) continue;
 
+    // Per-event format overrides the feed default. This is what makes a page
+    // mixing virtual and in-person registerable: an in-person event elsewhere
+    // becomes a 'local' row with a real address, gets geocoded by the existing
+    // sweep, and then falls outside a Miami mother's radius on its own. Correct
+    // typing IS the geographic filter — no extra filtering logic exists or is
+    // needed. 'unknown' keeps today's behavior for single-format feeds.
+    const eventIsWebinar = ev.format === 'virtual' ? true
+      : ev.format === 'in_person' ? false
+      : isWebinar;
+
     // For a webinar the link IS the event, so it belongs in stream_url where
     // EventDetailScreen's "Join stream" CTA reads it — not buried in prose.
     const description = [
       (ev.description ?? '').slice(0, 3800),
-      ev.event_url && !isWebinar ? `\n\nDetails & tickets: ${ev.event_url}` : '',
+      ev.event_url && !eventIsWebinar ? `\n\nDetails & tickets: ${ev.event_url}` : '',
     ].join('');
 
     // ends_at is NOT NULL. Prefer the page's own end time; fall back to a
@@ -263,14 +333,14 @@ async function harvestFeed(feed: any): Promise<{ found: number; upserted: number
     // instruction. Dropping those would discard some of the best free
     // postpartum sources we have, so fall back to the source page — it always
     // tells her how to actually get in.
-    const streamUrl = isWebinar ? (ev.event_url ?? url) : null;
+    const streamUrl = eventIsWebinar ? (ev.event_url ?? url) : null;
     // The hosting org is a truthful venue when the page names no other.
-    const venueName = ev.venue_name ?? (isWebinar ? null : feed.partner_name);
+    const venueName = ev.venue_name ?? (eventIsWebinar ? null : feed.partner_name);
 
     const { data: idData, error } = await supabase.rpc('upsert_ingested_event', {
       p_source_feed_id: feed.id,
       p_source_uid: uid,
-      p_type: feed.default_event_type ?? 'local',
+      p_type: eventIsWebinar ? 'webinar' : 'local',
       p_title: ev.title.slice(0, 200),
       p_description: description,
       p_host_name: feed.partner_name,
@@ -286,7 +356,11 @@ async function harvestFeed(feed: any): Promise<{ found: number; upserted: number
       p_lat: null,
       p_lng: null,
       p_stream_url: streamUrl,
-      p_platform: isWebinar ? 'other' : null,
+      p_platform: eventIsWebinar ? 'other' : null,
+      // is_free true ONLY for an explicit free signal. Both 'paid' and
+      // 'unknown' write false, which is what the screener gate keys on.
+      p_is_free: ev.cost === 'free',
+      p_price_cents: ev.cost === 'paid' ? (ev.price_cents ?? null) : null,
     });
     if (error || !idData) {
       console.error(`[events-harvest] upsert failed ${feed.partner_name}/${uid}:`, error?.message);
