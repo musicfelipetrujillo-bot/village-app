@@ -997,17 +997,17 @@ export default function ManualScrollV3() {
   const [weekIntro, setWeekIntro] = useState<WeekIntroVideo | null>(null);
   useEffect(() => {
     let cancelled = false;
-    // Early weeks get a TEMP placeholder card until real videos are uploaded; a
-    // real published row always overrides it. Other weeks stay hidden until seeded.
-    const fallback = PLACEHOLDER_WEEKS.has(week)
-      ? {
-          ...PLACEHOLDER_WEEK_INTRO,
-          week_number: week,
-          title: lang === 'es' ? 'Qué esperar esta semana' : PLACEHOLDER_WEEK_INTRO.title,
-          expert_name: lang === 'es' ? 'Dra. Priya Nair' : PLACEHOLDER_WEEK_INTRO.expert_name,
-          expert_role: lang === 'es' ? 'pediatra · villie' : PLACEHOLDER_WEEK_INTRO.expert_role,
-        }
-      : null;
+    // The Manual is video-led (2026-08-12): EVERY week shows a video hero. Until
+    // real per-week footage is uploaded, a placeholder plays; a real published
+    // row always overrides it. (Was gated to weeks 1–8 — now always present so
+    // the video is the hero on every week.)
+    const fallback = {
+      ...PLACEHOLDER_WEEK_INTRO,
+      week_number: week,
+      title: lang === 'es' ? 'Qué esperar esta semana' : PLACEHOLDER_WEEK_INTRO.title,
+      expert_name: lang === 'es' ? 'Dra. Priya Nair' : PLACEHOLDER_WEEK_INTRO.expert_name,
+      expert_role: lang === 'es' ? 'pediatra · villie' : PLACEHOLDER_WEEK_INTRO.expert_role,
+    };
     getWeekIntroVideo(who, week, lang)
       .then((v) => { if (!cancelled) setWeekIntro(v ?? fallback); })
       .catch(() => { if (!cancelled) setWeekIntro(fallback); });
