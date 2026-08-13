@@ -13,6 +13,7 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useHomeStore } from '@store/home';
+import { useAuthStore } from '@store/auth';
 import { Feather } from '@expo/vector-icons';
 import { COLORS, FONTS } from '@utils/constants';
 import { ExpertsNavigator } from './ExpertsNavigator';
@@ -65,9 +66,16 @@ export function AppNavigator() {
   //
   // It lives here rather than on Home because tabs are lazy — a Billy `manual`
   // pill can focus the Manual without Home ever mounting.
+  // Keyed on the signed-in user id, NOT on loadedAt. loadedAt was the wrong
+  // trigger: this shell can mount before the Supabase session has been restored
+  // from storage, so the very first fetchAll ran without a session, the profile
+  // lookup failed, `loadedAt` was stamped anyway — and the guard then blocked
+  // every retry, leaving the placeholder up for the whole session. An auth user
+  // id only exists once the session is real, and re-running on a change also
+  // covers account switches.
+  const authUserId = useAuthStore((s) => s.user?.id ?? null);
   const fetchHome = useHomeStore((s) => s.fetchAll);
-  const homeLoadedAt = useHomeStore((s) => s.loadedAt);
-  React.useEffect(() => { if (!homeLoadedAt) fetchHome(); }, [homeLoadedAt, fetchHome]);
+  React.useEffect(() => { if (authUserId) fetchHome(); }, [authUserId, fetchHome]);
   const { tabs: middleTabs } = useCustomMiddleTabs();
 
   // Visible set = LOCKED_LEFT + user's middle pair + LOCKED_RIGHT.

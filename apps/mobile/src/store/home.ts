@@ -74,7 +74,10 @@ export const useHomeStore = create<HomeState>((set) => ({
         ...(profileResult.known ? { babyProfile: profile, currentMilestone: milestone } : {}),
         feed,
         todayCheckin: checkin,
-        loadedAt: Date.now(),
+        // Only claim "loaded" when the baby lookup actually answered. Stamping it
+        // on a failed run told every staleness check the load had succeeded, so
+        // nothing retried and the placeholder stayed up for the session.
+        ...(profileResult.known ? { loadedAt: Date.now() } : {}),
         unreadNotifCount: (notifResult as any)?.count ?? 0,
       });
 
