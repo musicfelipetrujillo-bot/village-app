@@ -143,6 +143,7 @@ export default function InsightsScreen() {
               lang={lang}
               initialPane={route.params?.pane}
               onNeedBaby={() => nav.navigate('BabyProfileSetup')}
+              onSeeAll={() => nav.navigate('LogHistory')}
             />
 
             <Text style={[styles.sectionLabel, { marginTop: 26 }]}>{lang === 'es' ? 'Análisis' : 'Insights'}</Text>
