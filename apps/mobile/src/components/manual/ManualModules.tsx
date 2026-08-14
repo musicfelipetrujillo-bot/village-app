@@ -494,19 +494,19 @@ function QuickAnswer({ data, first, lang }: { data: Article; first?: boolean; la
   );
 }
 
-// "Your tools" — a link that activates the week into one of Vili's own tools.
-function ToolLink({ glyph, title, onPress }: { glyph: string; title: string; onPress: () => void }) {
+// "Your tools" — one compact button in a single row (hybrid: everything stays
+// visible, but the tools collapse to one row instead of three stacked pills).
+function ToolBtn({ glyph, label, onPress }: { glyph: string; label: string; onPress: () => void }) {
   return (
     <TouchableOpacity
-      style={s.tool}
-      activeOpacity={0.9}
+      style={s.toolBtn}
+      activeOpacity={0.85}
       onPress={() => { tap(); onPress(); }}
       accessibilityRole="button"
-      accessibilityLabel={title}
+      accessibilityLabel={label}
     >
-      <View style={s.toolIcon}><Text style={s.toolGl}>{glyph}</Text></View>
-      <Text style={s.toolT}>{title}</Text>
-      <Text style={s.toolChev}>›</Text>
+      <Text style={s.toolBtnGl}>{glyph}</Text>
+      <Text style={s.toolBtnT} numberOfLines={1}>{label}</Text>
     </TouchableOpacity>
   );
 }
@@ -575,7 +575,7 @@ export default function ManualModules({ content, story, onAskVillie, lang = 'en'
       {hasKnow ? <SectionHead label={L('good to know', 'bueno saber')} accent="#BE851F" style={{ marginTop: 26 }} /> : null}
       {content.articles.length ? (
         <View style={s.qaList}>
-          {content.articles.map((a, i) => (
+          {content.articles.slice(0, 2).map((a, i) => (
             <QuickAnswer key={i} data={a} first={i === 0} lang={lang} />
           ))}
         </View>
@@ -588,10 +588,10 @@ export default function ManualModules({ content, story, onAskVillie, lang = 'en'
 
       {/* WHICH TOOL HELPS ME DO IT? — links into Vili's own tools */}
       <SectionHead label={L('your tools', 'tus herramientas')} accent="#6F7A43" style={{ marginTop: 26 }} />
-      <View style={s.tools}>
-        <ToolLink glyph="◷" title={L('Log this week', 'Registra esta semana')} onPress={() => goHome('Insights')} />
-        <ToolLink glyph="✦" title={L('Plan my day', 'Planea mi día')} onPress={() => goHome('DayPlan')} />
-        {onAskVillie ? <ToolLink glyph="✎" title={L('Ask Vili', 'Pregúntale a Vili')} onPress={onAskVillie} /> : null}
+      <View style={s.toolRow}>
+        <ToolBtn glyph="◷" label={L('Log', 'Registra')} onPress={() => goHome('Insights')} />
+        <ToolBtn glyph="✦" label={L('Plan', 'Planea')} onPress={() => goHome('DayPlan')} />
+        {onAskVillie ? <ToolBtn glyph="✎" label={L('Ask Vili', 'Vili')} onPress={onAskVillie} /> : null}
       </View>
     </View>
   );
@@ -630,13 +630,11 @@ const s = StyleSheet.create({
   qaA: { fontFamily: FONTS.v2_body, fontSize: 14, lineHeight: 21, color: '#5C462F' },
   qaBy: { fontFamily: FONTS.v2_body, fontSize: 11.5, color: '#9A8672', marginTop: 8, fontStyle: 'italic' },
 
-  // your tools — Vili tool links (pills, distinct from the flat lists)
-  tools: { gap: 9 },
-  tool: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 15, paddingVertical: 13, borderRadius: 14, backgroundColor: '#FBEAEF', borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(158,47,76,0.14)' },
-  toolIcon: { width: 30, height: 30, borderRadius: 9, backgroundColor: ROSE, alignItems: 'center', justifyContent: 'center' },
-  toolGl: { color: '#FFF9F2', fontSize: 15 },
-  toolT: { flex: 1, fontFamily: FONTS.bodySemiBold, fontSize: 14, color: INK },
-  toolChev: { fontFamily: FONTS.v2_body, fontSize: 18, color: '#9E2F4C' },
+  // your tools — one compact row of Vili tool buttons (distinct from the lists)
+  toolRow: { flexDirection: 'row', gap: 8 },
+  toolBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, paddingVertical: 12, borderRadius: 13, backgroundColor: '#FBEAEF', borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(158,47,76,0.15)' },
+  toolBtnGl: { color: '#9E2F4C', fontSize: 15 },
+  toolBtnT: { fontFamily: FONTS.bodySemiBold, fontSize: 13, color: INK },
   brDiv: { height: StyleSheet.hairlineWidth, backgroundColor: 'rgba(67,38,15,0.09)', marginLeft: 55 },
   brHead: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 11, paddingHorizontal: 15 },
   brGl: { width: 26, height: 26, borderRadius: 8, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
