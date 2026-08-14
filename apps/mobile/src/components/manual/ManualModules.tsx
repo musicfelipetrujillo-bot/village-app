@@ -101,19 +101,14 @@ function ModuleLabel({ type, icon, divider }: { type: string; icon?: React.React
   );
 }
 
-const CHECKLIST_CAP = 4;
 function ChecklistModule({ data, lang, embedded, flat }: { data: Checklist; lang: Lang; embedded?: boolean; flat?: boolean }) {
   const [done, setDone] = useState<Record<number, boolean>>({});
-  const [showAll, setShowAll] = useState(false);
-  const capped = flat && !showAll && data.items.length > CHECKLIST_CAP;
-  const items = capped ? data.items.slice(0, CHECKLIST_CAP) : data.items;
-  const hidden = data.items.length - items.length;
   return (
     <View>
       {!embedded && <ModuleLabel type={CH.checklist[lang]} icon={<CheckGlyph />} />}
       {!embedded && <Text style={s.panelTitle}>{data.title}</Text>}
       <View style={flat ? s.flatList : s.panel}>
-        {items.map((it, i) => {
+        {data.items.map((it, i) => {
           const on = !!done[i];
           return (
             <TouchableOpacity
@@ -132,11 +127,6 @@ function ChecklistModule({ data, lang, embedded, flat }: { data: Checklist; lang
             </TouchableOpacity>
           );
         })}
-        {hidden > 0 ? (
-          <TouchableOpacity style={[s.ci, s.ciBorder]} activeOpacity={0.7} onPress={() => { select(); setShowAll(true); }} accessibilityRole="button">
-            <Text style={s.ciMore}>{lang === 'es' ? `+ ${hidden} más` : `+ ${hidden} more`}</Text>
-          </TouchableOpacity>
-        ) : null}
       </View>
     </View>
   );
@@ -504,19 +494,19 @@ function QuickAnswer({ data, first, lang }: { data: Article; first?: boolean; la
   );
 }
 
-// "Your tools" — one compact button in a single row (hybrid: everything stays
-// visible, but the tools collapse to one row instead of three stacked pills).
-function ToolBtn({ glyph, label, onPress }: { glyph: string; label: string; onPress: () => void }) {
+// "Tools" tab — a Vili tool as a full-width row (icon + label + chevron).
+function ToolRow({ glyph, label, onPress }: { glyph: string; label: string; onPress: () => void }) {
   return (
     <TouchableOpacity
-      style={s.toolBtn}
-      activeOpacity={0.85}
+      style={s.toolRowItem}
+      activeOpacity={0.9}
       onPress={() => { tap(); onPress(); }}
       accessibilityRole="button"
       accessibilityLabel={label}
     >
-      <Text style={s.toolBtnGl}>{glyph}</Text>
-      <Text style={s.toolBtnT} numberOfLines={1}>{label}</Text>
+      <View style={s.toolIcon}><Text style={s.toolGl}>{glyph}</Text></View>
+      <Text style={s.toolRowT}>{label}</Text>
+      <Text style={s.toolRowChev}>›</Text>
     </TouchableOpacity>
   );
 }
@@ -573,36 +563,71 @@ export default function ManualModules({ content, story, onAskVillie, lang = 'en'
   const L = (en: string, es: string) => (lang === 'es' ? es : en);
   const goHome = (screen: string, params?: any) =>
     navigation.getParent()?.navigate('Home' as never, { screen, params } as never);
-  const hasKnow = content.articles.length > 0 || !!content.info;
+
+  // Tabs under the video (2026-08-12): the video answers know+how; the three
+  // things it doesn't — do this week / know / tools — swap in place below it,
+  // one panel at a time, so the page never becomes a long scroll.
+  const [tab, setTab] = useState<'do' | 'know' | 'tools'>('do');
+  const TABS: { k: 'do' | 'know' | 'tools'; label: string }[] = [
+    { k: 'do', label: L('Do this week', 'Esta semana') },
+    { k: 'know', label: L('Know', 'Saber') },
+    { k: 'tools', label: L('Tools', 'Tools') },
+  ];
 
   return (
     <View style={s.wrap}>
-      {/* WHAT SHOULD I DO THIS WEEK? — the checklist, flat */}
-      <SectionHead label={L('do this week', 'para esta semana')} accent="#C24A63" />
-      <ChecklistModule data={content.checklist} lang={lang} embedded flat />
-
-      {/* WHAT DO I NEED TO KNOW? — a couple quick answers + the one visual */}
-      {hasKnow ? <SectionHead label={L('good to know', 'bueno saber')} accent="#BE851F" style={{ marginTop: 26 }} /> : null}
-      {content.articles.length ? (
-        <View style={s.qaList}>
-          {content.articles.slice(0, 2).map((a, i) => (
-            <QuickAnswer key={i} data={a} first={i === 0} lang={lang} />
-          ))}
-        </View>
-      ) : null}
-      {content.info ? (
-        <View style={{ marginTop: content.articles.length ? 14 : 0 }}>
-          <InfographicModule data={content.info} lang={lang} embedded />
-        </View>
-      ) : null}
-
-      {/* WHICH TOOL HELPS ME DO IT? — links into Vili's own tools */}
-      <SectionHead label={L('your tools', 'tus herramientas')} accent="#6F7A43" style={{ marginTop: 26 }} />
-      <View style={s.toolRow}>
-        <ToolBtn glyph="◷" label={L('Log', 'Registra')} onPress={() => goHome('Insights')} />
-        <ToolBtn glyph="✦" label={L('Plan', 'Planea')} onPress={() => goHome('DayPlan')} />
-        {onAskVillie ? <ToolBtn glyph="✎" label={L('Ask Vili', 'Vili')} onPress={onAskVillie} /> : null}
+      <View style={s.tabBar}>
+        {TABS.map((t) => (
+          <TouchableOpacity
+            key={t.k}
+            style={[s.tab, tab === t.k && s.tabOn]}
+            activeOpacity={0.85}
+            onPress={() => { select(); setTab(t.k); }}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: tab === t.k }}
+            accessibilityLabel={t.label}
+          >
+            <Text style={[s.tabText, tab === t.k && s.tabTextOn]} numberOfLines={1}>{t.label}</Text>
+          </TouchableOpacity>
+        ))}
       </View>
+
+      {tab === 'do' ? (
+        <View style={s.tabPanel}>
+          <Text style={s.panelCount}>
+            {content.checklist.items.length} {content.checklist.items.length === 1 ? L('thing this week', 'cosa esta semana') : L('things this week', 'cosas esta semana')}
+          </Text>
+          <ChecklistModule data={content.checklist} lang={lang} embedded flat />
+        </View>
+      ) : null}
+
+      {tab === 'know' ? (
+        <View style={s.tabPanel}>
+          {content.articles.length ? (
+            <View style={s.qaList}>
+              {content.articles.map((a, i) => (
+                <QuickAnswer key={i} data={a} first={i === 0} lang={lang} />
+              ))}
+            </View>
+          ) : null}
+          {content.info ? (
+            <View style={{ marginTop: content.articles.length ? 16 : 0 }}>
+              <InfographicModule data={content.info} lang={lang} embedded />
+            </View>
+          ) : null}
+          {!content.articles.length && !content.info ? (
+            <Text style={s.panelEmpty}>{L('The video covers what to know this week.', 'El video cubre lo que necesitas saber esta semana.')}</Text>
+          ) : null}
+        </View>
+      ) : null}
+
+      {tab === 'tools' ? (
+        <View style={[s.tabPanel, { gap: 9 }]}>
+          <ToolRow glyph="◷" label={L('Log this week', 'Registra esta semana')} onPress={() => goHome('Insights')} />
+          <ToolRow glyph="✦" label={L('Plan my day', 'Planea mi día')} onPress={() => goHome('DayPlan')} />
+          {onAskVillie ? <ToolRow glyph="✎" label={L('Ask Vili', 'Pregúntale a Vili')} onPress={onAskVillie} /> : null}
+        </View>
+      ) : null}
     </View>
   );
 }
@@ -640,11 +665,22 @@ const s = StyleSheet.create({
   qaA: { fontFamily: FONTS.v2_body, fontSize: 14, lineHeight: 21, color: '#5C462F' },
   qaBy: { fontFamily: FONTS.v2_body, fontSize: 11.5, color: '#9A8672', marginTop: 8, fontStyle: 'italic' },
 
-  // your tools — one compact row of Vili tool buttons (distinct from the lists)
-  toolRow: { flexDirection: 'row', gap: 8 },
-  toolBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, paddingVertical: 12, borderRadius: 13, backgroundColor: '#FBEAEF', borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(158,47,76,0.15)' },
-  toolBtnGl: { color: '#9E2F4C', fontSize: 15 },
-  toolBtnT: { fontFamily: FONTS.bodySemiBold, fontSize: 13, color: INK },
+  // Tabs under the video — Do this week / Know / Tools swap one panel at a time
+  tabBar: { flexDirection: 'row', gap: 5, backgroundColor: '#FDF9EF', borderRadius: 13, borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(67,38,15,0.12)', padding: 4 },
+  tab: { flex: 1, paddingVertical: 9, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  tabOn: { backgroundColor: ROSE },
+  tabText: { fontFamily: FONTS.bodySemiBold, fontSize: 13, color: '#7A5A3A' },
+  tabTextOn: { color: '#FFF9F2' },
+  tabPanel: { marginTop: 16 },
+  panelCount: { fontFamily: FONTS.v2_body, fontSize: 12, color: '#A6957F', marginBottom: 10, letterSpacing: 0.2, marginLeft: 2 },
+  panelEmpty: { fontFamily: FONTS.v2_body, fontSize: 14, lineHeight: 20, color: '#7A5A3A' },
+
+  // Tools tab — full-width tool rows
+  toolRowItem: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 15, paddingVertical: 13, borderRadius: 14, backgroundColor: '#FBEAEF', borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(158,47,76,0.14)' },
+  toolIcon: { width: 30, height: 30, borderRadius: 9, backgroundColor: ROSE, alignItems: 'center', justifyContent: 'center' },
+  toolGl: { color: '#FFF9F2', fontSize: 15 },
+  toolRowT: { flex: 1, fontFamily: FONTS.bodySemiBold, fontSize: 14, color: INK },
+  toolRowChev: { fontFamily: FONTS.v2_body, fontSize: 18, color: '#9E2F4C' },
   brDiv: { height: StyleSheet.hairlineWidth, backgroundColor: 'rgba(67,38,15,0.09)', marginLeft: 55 },
   brHead: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 11, paddingHorizontal: 15 },
   brGl: { width: 26, height: 26, borderRadius: 8, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
