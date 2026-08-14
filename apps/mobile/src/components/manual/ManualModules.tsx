@@ -110,11 +110,19 @@ function ModuleLabel({ type, icon, divider }: { type: string; icon?: React.React
 
 function ChecklistModule({ data, lang, embedded, flat }: { data: Checklist; lang: Lang; embedded?: boolean; flat?: boolean }) {
   const [done, setDone] = useState<Record<number, boolean>>({});
+  const doneCount = data.items.filter((_, i) => done[i]).length;
   return (
     <View>
       {!embedded && <ModuleLabel type={CH.checklist[lang]} icon={<CheckGlyph />} />}
       {!embedded && <Text style={s.panelTitle}>{data.title}</Text>}
-      <View style={flat ? s.flatList : s.panel}>
+      {flat ? (
+        <Text style={s.panelLead}>
+          {doneCount > 0
+            ? `${doneCount} ${lang === 'es' ? 'de' : 'of'} ${data.items.length} ${lang === 'es' ? 'hechas' : 'done'}`
+            : (lang === 'es' ? 'Marca cada una a tu ritmo.' : 'Check each off as the week goes.')}
+        </Text>
+      ) : null}
+      <View style={flat ? s.checkCard : s.panel}>
         {data.items.map((it, i) => {
           const on = !!done[i];
           return (
@@ -518,30 +526,18 @@ function ToolRow({ glyph, label, onPress }: { glyph: string; label: string; onPr
   );
 }
 
-// The week's primary action — a full-width hero tile.
-function HeroTile({ icon, title, sub, onPress }: { icon: React.ReactNode; title: string; sub: string; onPress: () => void }) {
+// The week's menu — a full-width row with a coloured icon chip. Full-width rows
+// fill the page cleanly at any count (1–3), and the chip colour keeps them from
+// reading as bland beige boxes.
+function EntryRow({ icon, chip, tint, title, sub, onPress }: { icon: React.ReactNode; chip: string; tint: string; title: string; sub: string; onPress: () => void }) {
   return (
-    <TouchableOpacity style={s.hero} activeOpacity={0.9} onPress={() => { tap(); onPress(); }} accessibilityRole="button" accessibilityLabel={`${title}. ${sub}`}>
-      <View style={[s.tileChip, { backgroundColor: ROSE }]}>{icon}</View>
+    <TouchableOpacity style={[s.hero, { backgroundColor: tint }]} activeOpacity={0.9} onPress={() => { tap(); onPress(); }} accessibilityRole="button" accessibilityLabel={`${title}. ${sub}`}>
+      <View style={[s.tileChip, { backgroundColor: chip }]}>{icon}</View>
       <View style={{ flex: 1, minWidth: 0 }}>
         <Text style={s.heroTitle}>{title}</Text>
         <Text style={s.heroSub}>{sub}</Text>
       </View>
-      <Text style={s.heroChev}>›</Text>
-    </TouchableOpacity>
-  );
-}
-
-// A secondary tile — a coloured icon chip + label, so the grid reads designed,
-// not four bland beige boxes.
-function Tile({ icon, chip, tint, title, sub, onPress }: { icon: React.ReactNode; chip: string; tint: string; title: string; sub: string; onPress: () => void }) {
-  return (
-    <TouchableOpacity style={[s.tile, { backgroundColor: tint }]} activeOpacity={0.9} onPress={() => { tap(); onPress(); }} accessibilityRole="button" accessibilityLabel={`${title}. ${sub}`}>
-      <View style={[s.tileChip, { backgroundColor: chip }]}>{icon}</View>
-      <View>
-        <Text style={s.tileTitle}>{title}</Text>
-        <Text style={s.tileSub}>{sub}</Text>
-      </View>
+      <Text style={[s.heroChev, { color: chip }]}>›</Text>
     </TouchableOpacity>
   );
 }
@@ -656,29 +652,26 @@ export default function ManualModules({ content, story, onAskVillie, lang = 'en'
 
   return (
     <View style={s.wrap}>
-      <HeroTile
-        icon={<CheckGlyph color="#FFF9F2" />}
-        title={L('Do this week', 'Esta semana')}
-        sub={`${items} ${items === 1 ? L('to-do', 'tarea') : L('to-dos', 'tareas')}`}
-        onPress={() => setPanel('do')}
-      />
-
-      {hasKnow || hasRead ? (
-        <View style={s.grid}>
-          {hasKnow ? (
-            <Tile icon={<AskGlyph color="#FFF9F2" />} chip="#BE851F" tint="#F8EFD5"
-              title={L('Good to know', 'Bueno saber')}
-              sub={content.articles.length ? `${content.articles.length} ${L('answers', 'respuestas')}` : L('at a glance', 'de un vistazo')}
-              onPress={() => setPanel('know')} />
-          ) : null}
-          {hasRead ? (
-            <Tile icon={<ReadGlyph color="#FFF9F2" />} chip="#A8466B" tint="#F5E4EC"
-              title={L('Read this week', 'Para leer')}
-              sub={L('the deeper story', 'la historia')}
-              onPress={() => setPanel('read')} />
-          ) : null}
-        </View>
-      ) : null}
+      <View style={s.rows}>
+        <EntryRow
+          icon={<CheckGlyph color="#FFF9F2" />} chip={ROSE} tint="#FBEAEF"
+          title={L('Do this week', 'Esta semana')}
+          sub={`${items} ${items === 1 ? L('to-do', 'tarea') : L('to-dos', 'tareas')}`}
+          onPress={() => setPanel('do')}
+        />
+        {hasKnow ? (
+          <EntryRow icon={<AskGlyph color="#FFF9F2" />} chip="#BE851F" tint="#FAF3E0"
+            title={L('Good to know', 'Bueno saber')}
+            sub={content.articles.length ? `${content.articles.length} ${L('quick answers', 'respuestas')}` : L('at a glance', 'de un vistazo')}
+            onPress={() => setPanel('know')} />
+        ) : null}
+        {hasRead ? (
+          <EntryRow icon={<ReadGlyph color="#FFF9F2" />} chip="#A8466B" tint="#F6E7EE"
+            title={L('Read this week', 'Para leer')}
+            sub={L('the deeper story', 'la historia')}
+            onPress={() => setPanel('read')} />
+        ) : null}
+      </View>
 
       <View style={s.strip}>
         <TouchableOpacity style={s.stripBtn} activeOpacity={0.85} onPress={() => { tap(); goHome('Insights'); }} accessibilityRole="button" accessibilityLabel={L('Log this week', 'Registra esta semana')}>
@@ -699,8 +692,9 @@ export default function ManualModules({ content, story, onAskVillie, lang = 'en'
       </TilePanel>
 
       <TilePanel visible={panel === 'know'} onClose={close} title={L('Good to know', 'Bueno saber')} lang={lang}>
+        <Text style={s.panelLead}>{L('Tap a question to see the answer.', 'Toca una pregunta para ver la respuesta.')}</Text>
         {content.articles.length ? (
-          <View style={s.qaList}>
+          <View style={s.checkCard}>
             {content.articles.map((a, i) => (
               <QuickAnswer key={i} data={a} first={i === 0} lang={lang} />
             ))}
@@ -724,20 +718,16 @@ const s = StyleSheet.create({
   wrap: { marginTop: 20, paddingHorizontal: 20 },
 
   // Dashboard — a hero action + a coloured-chip grid (not bland beige boxes)
-  tileChip: { width: 34, height: 34, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
-  hero: { flexDirection: 'row', alignItems: 'center', gap: 13, padding: 15, borderRadius: 16, backgroundColor: '#FBEAEF', borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(158,47,76,0.16)' },
+  tileChip: { width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  rows: { gap: 11 },
+  hero: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 17, paddingVertical: 18, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(67,38,15,0.08)' },
   heroTitle: { fontFamily: FONTS.bodySemiBold, fontSize: 16, letterSpacing: -0.3, color: INK },
   heroSub: { fontFamily: FONTS.v2_body, fontSize: 12.5, color: '#A07E70', marginTop: 2 },
-  heroChev: { fontFamily: FONTS.v2_body, fontSize: 20, color: '#B0466A' },
-
-  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginTop: 10 },
-  tile: { flexBasis: '47%', flexGrow: 1, minHeight: 96, borderRadius: 16, padding: 14, borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(67,38,15,0.09)', justifyContent: 'space-between' },
-  tileTitle: { fontFamily: FONTS.bodySemiBold, fontSize: 14.5, letterSpacing: -0.2, color: INK },
-  tileSub: { fontFamily: FONTS.v2_body, fontSize: 11.5, color: '#A6957F', marginTop: 2 },
+  heroChev: { fontFamily: FONTS.v2_body, fontSize: 22 },
 
   // small tools strip under the grid
-  strip: { flexDirection: 'row', gap: 9, marginTop: 10 },
-  stripBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, paddingVertical: 11, borderRadius: 13, backgroundColor: '#FDF9EF', borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(67,38,15,0.12)' },
+  strip: { flexDirection: 'row', gap: 9, marginTop: 11 },
+  stripBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, paddingVertical: 13, borderRadius: 14, backgroundColor: '#FDF9EF', borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(67,38,15,0.12)' },
   stripGl: { fontSize: 15, color: '#9E2F4C' },
   stripT: { fontFamily: FONTS.bodySemiBold, fontSize: 13, color: INK },
 
@@ -907,13 +897,17 @@ const s = StyleSheet.create({
   // checklist
   panelTitle: { fontFamily: FONTS.headerBold, fontSize: 18, lineHeight: 23, letterSpacing: -0.3, color: INK, marginBottom: 12 },
   panel: { backgroundColor: CREAM, borderRadius: 20, borderWidth: 1, borderColor: HAIR, overflow: 'hidden' },
-  ci: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 10, paddingHorizontal: 2 },
+  ci: { flexDirection: 'row', alignItems: 'center', gap: 13, paddingVertical: 13, paddingHorizontal: 3 },
   ciBorder: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: 'rgba(67,38,15,0.09)' },
-  bx: { width: 20, height: 20, borderRadius: 6, borderWidth: 1.6, borderColor: 'rgba(67,38,15,0.22)', alignItems: 'center', justifyContent: 'center' },
+  bx: { width: 22, height: 22, borderRadius: 11, borderWidth: 1.6, borderColor: 'rgba(158,47,76,0.40)', alignItems: 'center', justifyContent: 'center' },
   bxOn: { backgroundColor: ACCENT, borderColor: ACCENT },
   bxCheck: { color: '#fff', fontSize: 11, fontWeight: '800' },
-  ciText: { flex: 1, lineHeight: 19 },
-  ciLabel: { fontFamily: FONTS.bodySemiBold, fontSize: 14.5, color: INK },
+  ciText: { flex: 1, lineHeight: 20 },
+  ciLabel: { fontFamily: FONTS.bodySemiBold, fontSize: 15, color: INK },
+
+  // consistent panel content — a soft card + a lead line, shared across panels
+  panelLead: { fontFamily: FONTS.v2_body, fontSize: 13.5, lineHeight: 19, color: '#8A7357', marginBottom: 12, marginTop: 2 },
+  checkCard: { backgroundColor: '#FDF9EF', borderRadius: 16, borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(67,38,15,0.10)', paddingHorizontal: 15 },
   ciLabelOn: { textDecorationLine: 'line-through', color: ACCENT },
   ciMore: { fontFamily: FONTS.bodySemiBold, fontSize: 13, color: '#9E2F4C', letterSpacing: 0.2 },
 
