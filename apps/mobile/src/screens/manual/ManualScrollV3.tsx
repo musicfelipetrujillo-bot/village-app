@@ -1106,7 +1106,7 @@ export default function ManualScrollV3() {
       />
       <Animated.ScrollView
         style={{ flex: 1 }}
-        contentContainerStyle={[styles.scroll, { paddingTop: insets.top + 10 }]}
+        contentContainerStyle={[styles.scroll, { paddingTop: insets.top + 30 }]}
         showsVerticalScrollIndicator={false}
         onScroll={Animated.event(
           [{ nativeEvent: { contentOffset: { y: scrollY } } }],

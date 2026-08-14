@@ -88,6 +88,13 @@ function LookGlyph({ color = LABEL }: { color?: string }) {
     </Svg>
   );
 }
+function ReadGlyph({ color = LABEL }: { color?: string }) {
+  return (
+    <Svg width={15} height={15} viewBox="0 0 24 24">
+      <Path d="M4 5.5h16M4 10h16M4 14.5h11" fill="none" stroke={color} strokeWidth={1.9} strokeLinecap="round" />
+    </Svg>
+  );
+}
 
 function ModuleLabel({ type, icon, divider }: { type: string; icon?: React.ReactNode; divider?: boolean }) {
   return (
@@ -511,21 +518,29 @@ function ToolRow({ glyph, label, onPress }: { glyph: string; label: string; onPr
   );
 }
 
-// Dashboard tile — the week's menu. Tap to open its panel (or navigate).
-function Tile({ glyph, title, sub, variant = 'default', onPress }: { glyph: string; title: string; sub: string; variant?: 'default' | 'do' | 'ask'; onPress: () => void }) {
-  const dark = variant === 'ask';
+// The week's primary action — a full-width hero tile.
+function HeroTile({ icon, title, sub, onPress }: { icon: React.ReactNode; title: string; sub: string; onPress: () => void }) {
   return (
-    <TouchableOpacity
-      style={[s.tile, variant === 'do' && s.tileDo, variant === 'ask' && s.tileAsk]}
-      activeOpacity={0.88}
-      onPress={() => { tap(); onPress(); }}
-      accessibilityRole="button"
-      accessibilityLabel={`${title}. ${sub}`}
-    >
-      <Text style={[s.tileGlyph, dark && { color: '#FFF9F2' }]}>{glyph}</Text>
+    <TouchableOpacity style={s.hero} activeOpacity={0.9} onPress={() => { tap(); onPress(); }} accessibilityRole="button" accessibilityLabel={`${title}. ${sub}`}>
+      <View style={[s.tileChip, { backgroundColor: ROSE }]}>{icon}</View>
+      <View style={{ flex: 1, minWidth: 0 }}>
+        <Text style={s.heroTitle}>{title}</Text>
+        <Text style={s.heroSub}>{sub}</Text>
+      </View>
+      <Text style={s.heroChev}>›</Text>
+    </TouchableOpacity>
+  );
+}
+
+// A secondary tile — a coloured icon chip + label, so the grid reads designed,
+// not four bland beige boxes.
+function Tile({ icon, chip, tint, title, sub, onPress }: { icon: React.ReactNode; chip: string; tint: string; title: string; sub: string; onPress: () => void }) {
+  return (
+    <TouchableOpacity style={[s.tile, { backgroundColor: tint }]} activeOpacity={0.9} onPress={() => { tap(); onPress(); }} accessibilityRole="button" accessibilityLabel={`${title}. ${sub}`}>
+      <View style={[s.tileChip, { backgroundColor: chip }]}>{icon}</View>
       <View>
-        <Text style={[s.tileTitle, dark && { color: '#FFF9F2' }]}>{title}</Text>
-        <Text style={[s.tileSub, dark && { color: 'rgba(255,249,242,0.82)' }]}>{sub}</Text>
+        <Text style={s.tileTitle}>{title}</Text>
+        <Text style={s.tileSub}>{sub}</Text>
       </View>
     </TouchableOpacity>
   );
@@ -536,9 +551,10 @@ function TilePanel({ visible, onClose, title, lang, children }: { visible: boole
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onClose} presentationStyle="pageSheet">
       <View style={s.sheetWrap}>
+        <View style={s.sheetHandle} />
         <View style={s.sheetBar}>
-          <Text style={s.sheetTitle}>{title}</Text>
-          <TouchableOpacity onPress={onClose} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }} accessibilityRole="button" accessibilityLabel={lang === 'es' ? 'Cerrar' : 'Close'}>
+          <Text style={s.sheetTitle} numberOfLines={1}>{title}</Text>
+          <TouchableOpacity onPress={onClose} style={s.sheetCloseBtn} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }} accessibilityRole="button" accessibilityLabel={lang === 'es' ? 'Cerrar' : 'Close'}>
             <Text style={s.sheetClose}>✕</Text>
           </TouchableOpacity>
         </View>
@@ -640,37 +656,42 @@ export default function ManualModules({ content, story, onAskVillie, lang = 'en'
 
   return (
     <View style={s.wrap}>
-      <View style={s.grid}>
-        <Tile
-          variant="do" glyph="✓"
-          title={L('Do this week', 'Esta semana')}
-          sub={`${items} ${items === 1 ? L('to-do', 'tarea') : L('to-dos', 'tareas')}`}
-          onPress={() => setPanel('do')}
-        />
-        {hasKnow ? (
-          <Tile glyph="?" title={L('Good to know', 'Bueno saber')}
-            sub={content.articles.length ? `${content.articles.length} ${L('quick answers', 'respuestas')}` : L('at a glance', 'de un vistazo')}
-            onPress={() => setPanel('know')} />
-        ) : null}
-        {hasRead ? (
-          <Tile glyph="▤" title={L('Read this week', 'Para leer')}
-            sub={L('the deeper story', 'la historia completa')}
-            onPress={() => setPanel('read')} />
-        ) : null}
-        {onAskVillie ? (
-          <Tile variant="ask" glyph="✦" title={L('Ask Vili', 'Pregúntale a Vili')}
-            sub={L('anything, 24/7', 'lo que sea, 24/7')}
-            onPress={onAskVillie} />
-        ) : null}
-      </View>
+      <HeroTile
+        icon={<CheckGlyph color="#FFF9F2" />}
+        title={L('Do this week', 'Esta semana')}
+        sub={`${items} ${items === 1 ? L('to-do', 'tarea') : L('to-dos', 'tareas')}`}
+        onPress={() => setPanel('do')}
+      />
+
+      {hasKnow || hasRead ? (
+        <View style={s.grid}>
+          {hasKnow ? (
+            <Tile icon={<AskGlyph color="#FFF9F2" />} chip="#BE851F" tint="#F8EFD5"
+              title={L('Good to know', 'Bueno saber')}
+              sub={content.articles.length ? `${content.articles.length} ${L('answers', 'respuestas')}` : L('at a glance', 'de un vistazo')}
+              onPress={() => setPanel('know')} />
+          ) : null}
+          {hasRead ? (
+            <Tile icon={<ReadGlyph color="#FFF9F2" />} chip="#A8466B" tint="#F5E4EC"
+              title={L('Read this week', 'Para leer')}
+              sub={L('the deeper story', 'la historia')}
+              onPress={() => setPanel('read')} />
+          ) : null}
+        </View>
+      ) : null}
 
       <View style={s.strip}>
         <TouchableOpacity style={s.stripBtn} activeOpacity={0.85} onPress={() => { tap(); goHome('Insights'); }} accessibilityRole="button" accessibilityLabel={L('Log this week', 'Registra esta semana')}>
           <Text style={s.stripGl}>◷</Text><Text style={s.stripT}>{L('Log', 'Registra')}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={s.stripBtn} activeOpacity={0.85} onPress={() => { tap(); goHome('DayPlan'); }} accessibilityRole="button" accessibilityLabel={L('Plan my day', 'Planea mi día')}>
-          <Text style={s.stripGl}>✦</Text><Text style={s.stripT}>{L('Plan my day', 'Planea mi día')}</Text>
+          <Text style={s.stripGl}>✦</Text><Text style={s.stripT}>{L('Plan', 'Planea')}</Text>
         </TouchableOpacity>
+        {onAskVillie ? (
+          <TouchableOpacity style={s.stripBtn} activeOpacity={0.85} onPress={() => { tap(); onAskVillie(); }} accessibilityRole="button" accessibilityLabel={L('Ask Vili', 'Pregúntale a Vili')}>
+            <Text style={s.stripGl}>✎</Text><Text style={s.stripT}>{L('Ask Vili', 'Vili')}</Text>
+          </TouchableOpacity>
+        ) : null}
       </View>
 
       <TilePanel visible={panel === 'do'} onClose={close} title={L('Do this week', 'Esta semana')} lang={lang}>
@@ -702,26 +723,31 @@ export default function ManualModules({ content, story, onAskVillie, lang = 'en'
 const s = StyleSheet.create({
   wrap: { marginTop: 20, paddingHorizontal: 20 },
 
-  // Dashboard tiles — the week's menu
-  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
-  tile: { flexBasis: '47%', flexGrow: 1, minHeight: 96, borderRadius: 16, padding: 14, borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(67,38,15,0.13)', backgroundColor: '#FDF9EF', justifyContent: 'space-between' },
-  tileDo: { backgroundColor: '#FBEAEF', borderColor: 'rgba(158,47,76,0.18)' },
-  tileAsk: { backgroundColor: '#B0466A', borderColor: '#B0466A' },
-  tileGlyph: { fontSize: 18, color: '#9E2F4C' },
+  // Dashboard — a hero action + a coloured-chip grid (not bland beige boxes)
+  tileChip: { width: 34, height: 34, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  hero: { flexDirection: 'row', alignItems: 'center', gap: 13, padding: 15, borderRadius: 16, backgroundColor: '#FBEAEF', borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(158,47,76,0.16)' },
+  heroTitle: { fontFamily: FONTS.bodySemiBold, fontSize: 16, letterSpacing: -0.3, color: INK },
+  heroSub: { fontFamily: FONTS.v2_body, fontSize: 12.5, color: '#A07E70', marginTop: 2 },
+  heroChev: { fontFamily: FONTS.v2_body, fontSize: 20, color: '#B0466A' },
+
+  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginTop: 10 },
+  tile: { flexBasis: '47%', flexGrow: 1, minHeight: 96, borderRadius: 16, padding: 14, borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(67,38,15,0.09)', justifyContent: 'space-between' },
   tileTitle: { fontFamily: FONTS.bodySemiBold, fontSize: 14.5, letterSpacing: -0.2, color: INK },
   tileSub: { fontFamily: FONTS.v2_body, fontSize: 11.5, color: '#A6957F', marginTop: 2 },
 
   // small tools strip under the grid
-  strip: { flexDirection: 'row', gap: 10, marginTop: 10 },
-  stripBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 11, borderRadius: 13, backgroundColor: '#FDF9EF', borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(67,38,15,0.12)' },
+  strip: { flexDirection: 'row', gap: 9, marginTop: 10 },
+  stripBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, paddingVertical: 11, borderRadius: 13, backgroundColor: '#FDF9EF', borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(67,38,15,0.12)' },
   stripGl: { fontSize: 15, color: '#9E2F4C' },
   stripT: { fontFamily: FONTS.bodySemiBold, fontSize: 13, color: INK },
 
-  // tile panel (slide-up sheet)
+  // tile panel (slide-up sheet) — branded to match the app
   sheetWrap: { flex: 1, backgroundColor: '#FBF4E6' },
-  sheetBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingTop: 16, paddingBottom: 12, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(67,38,15,0.10)' },
-  sheetTitle: { fontFamily: FONTS.headerBold, fontSize: 18, letterSpacing: -0.3, color: INK },
-  sheetClose: { fontFamily: FONTS.v2_body, fontSize: 18, color: '#9E8B72' },
+  sheetHandle: { alignSelf: 'center', width: 38, height: 4, borderRadius: 2, backgroundColor: 'rgba(67,38,15,0.16)', marginTop: 9, marginBottom: 4 },
+  sheetBar: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 20, paddingTop: 12, paddingBottom: 14, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(67,38,15,0.10)' },
+  sheetTitle: { flex: 1, fontFamily: FONTS.v3_display, fontSize: 22, letterSpacing: -0.4, color: INK },
+  sheetCloseBtn: { width: 30, height: 30, borderRadius: 15, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(67,38,15,0.06)' },
+  sheetClose: { fontFamily: FONTS.v2_body, fontSize: 15, color: '#7A5A3A', marginTop: -1 },
   sheetScroll: { paddingHorizontal: 20, paddingTop: 18 },
 
   // "Read this week" article
