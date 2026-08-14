@@ -511,6 +511,71 @@ function ToolRow({ glyph, label, onPress }: { glyph: string; label: string; onPr
   );
 }
 
+// Dashboard tile — the week's menu. Tap to open its panel (or navigate).
+function Tile({ glyph, title, sub, variant = 'default', onPress }: { glyph: string; title: string; sub: string; variant?: 'default' | 'do' | 'ask'; onPress: () => void }) {
+  const dark = variant === 'ask';
+  return (
+    <TouchableOpacity
+      style={[s.tile, variant === 'do' && s.tileDo, variant === 'ask' && s.tileAsk]}
+      activeOpacity={0.88}
+      onPress={() => { tap(); onPress(); }}
+      accessibilityRole="button"
+      accessibilityLabel={`${title}. ${sub}`}
+    >
+      <Text style={[s.tileGlyph, dark && { color: '#FFF9F2' }]}>{glyph}</Text>
+      <View>
+        <Text style={[s.tileTitle, dark && { color: '#FFF9F2' }]}>{title}</Text>
+        <Text style={[s.tileSub, dark && { color: 'rgba(255,249,242,0.82)' }]}>{sub}</Text>
+      </View>
+    </TouchableOpacity>
+  );
+}
+
+// A tile's panel — a slide-up sheet with a header + the content it holds.
+function TilePanel({ visible, onClose, title, lang, children }: { visible: boolean; onClose: () => void; title: string; lang: Lang; children: React.ReactNode }) {
+  return (
+    <Modal visible={visible} animationType="slide" onRequestClose={onClose} presentationStyle="pageSheet">
+      <View style={s.sheetWrap}>
+        <View style={s.sheetBar}>
+          <Text style={s.sheetTitle}>{title}</Text>
+          <TouchableOpacity onPress={onClose} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }} accessibilityRole="button" accessibilityLabel={lang === 'es' ? 'Cerrar' : 'Close'}>
+            <Text style={s.sheetClose}>✕</Text>
+          </TouchableOpacity>
+        </View>
+        <ScrollView contentContainerStyle={s.sheetScroll} showsVerticalScrollIndicator={false}>
+          {children}
+          <View style={{ height: 40 }} />
+        </ScrollView>
+      </View>
+    </Modal>
+  );
+}
+
+// "Read this week" — surfaces the teaching that's ALREADY written for a week as
+// a flowing article. Shows only where content exists (no 208-article burden).
+function StoryArticle({ story, lang }: { story: StoryCard[]; lang: Lang }) {
+  const hasClose = story.length > 1 && story[story.length - 1].color === 'blush';
+  const chapters = hasClose ? story.slice(0, -1) : story;
+  return (
+    <View>
+      {chapters.map((card, i) => (
+        <View key={i}>
+          {i > 0 ? <View style={s.artDiv} /> : null}
+          {card.eyebrow ? <Text style={s.artEyebrow}>{card.eyebrow.toUpperCase()}</Text> : null}
+          <Text style={i === 0 ? s.artLead : s.artTitle}>{(card.title ?? '').replace(/\n/g, ' ')}</Text>
+          {card.body ? <Text style={s.artBody}>{card.body}</Text> : null}
+          {card.link ? (
+            <TouchableOpacity style={s.artLink} activeOpacity={0.85} onPress={() => Linking.openURL(card.link!.url).catch(() => {})} accessibilityRole="link" accessibilityLabel={card.link.label}>
+              <Text style={s.artLinkGl}>{card.link.kind === 'shop' ? '🛍' : '↗'}</Text>
+              <Text style={s.artLinkT} numberOfLines={1}>{card.link.label}</Text>
+            </TouchableOpacity>
+          ) : null}
+        </View>
+      ))}
+    </View>
+  );
+}
+
 export default function ManualModules({ content, story, onAskVillie, lang = 'en', week, category, audience = 'baby' }: { content: CategoryContent; story?: StoryCard[]; onAskVillie?: () => void; lang?: Lang; week?: number; category?: string; audience?: 'mom' | 'baby' }) {
   const navigation = useNavigation<any>();
 
@@ -564,76 +629,110 @@ export default function ManualModules({ content, story, onAskVillie, lang = 'en'
   const goHome = (screen: string, params?: any) =>
     navigation.getParent()?.navigate('Home' as never, { screen, params } as never);
 
-  // Tabs under the video (2026-08-12): the video answers know+how; the three
-  // things it doesn't — do this week / know / tools — swap in place below it,
-  // one panel at a time, so the page never becomes a long scroll.
-  const [tab, setTab] = useState<'do' | 'know' | 'tools'>('do');
-  const TABS: { k: 'do' | 'know' | 'tools'; label: string }[] = [
-    { k: 'do', label: L('Do this week', 'Esta semana') },
-    { k: 'know', label: L('Know', 'Saber') },
-    { k: 'tools', label: L('Tools', 'Tools') },
-  ];
+  // Dashboard tiles (2026-08-12): the video (above) answers know+how; below it,
+  // the week is a small menu of tap-tiles. Each opens its panel. "Read" only
+  // appears where the teaching is already written (no per-week article burden).
+  const [panel, setPanel] = useState<null | 'do' | 'know' | 'read'>(null);
+  const close = () => setPanel(null);
+  const hasKnow = content.articles.length > 0 || !!content.info;
+  const hasRead = !!story && story.length > 0;
+  const items = content.checklist.items.length;
 
   return (
     <View style={s.wrap}>
-      <View style={s.tabBar}>
-        {TABS.map((t) => (
-          <TouchableOpacity
-            key={t.k}
-            style={[s.tab, tab === t.k && s.tabOn]}
-            activeOpacity={0.85}
-            onPress={() => { select(); setTab(t.k); }}
-            accessibilityRole="tab"
-            accessibilityState={{ selected: tab === t.k }}
-            accessibilityLabel={t.label}
-          >
-            <Text style={[s.tabText, tab === t.k && s.tabTextOn]} numberOfLines={1}>{t.label}</Text>
-          </TouchableOpacity>
-        ))}
+      <View style={s.grid}>
+        <Tile
+          variant="do" glyph="✓"
+          title={L('Do this week', 'Esta semana')}
+          sub={`${items} ${items === 1 ? L('to-do', 'tarea') : L('to-dos', 'tareas')}`}
+          onPress={() => setPanel('do')}
+        />
+        {hasKnow ? (
+          <Tile glyph="?" title={L('Good to know', 'Bueno saber')}
+            sub={content.articles.length ? `${content.articles.length} ${L('quick answers', 'respuestas')}` : L('at a glance', 'de un vistazo')}
+            onPress={() => setPanel('know')} />
+        ) : null}
+        {hasRead ? (
+          <Tile glyph="▤" title={L('Read this week', 'Para leer')}
+            sub={L('the deeper story', 'la historia completa')}
+            onPress={() => setPanel('read')} />
+        ) : null}
+        {onAskVillie ? (
+          <Tile variant="ask" glyph="✦" title={L('Ask Vili', 'Pregúntale a Vili')}
+            sub={L('anything, 24/7', 'lo que sea, 24/7')}
+            onPress={onAskVillie} />
+        ) : null}
       </View>
 
-      {tab === 'do' ? (
-        <View style={s.tabPanel}>
-          <Text style={s.panelCount}>
-            {content.checklist.items.length} {content.checklist.items.length === 1 ? L('thing this week', 'cosa esta semana') : L('things this week', 'cosas esta semana')}
-          </Text>
-          <ChecklistModule data={content.checklist} lang={lang} embedded flat />
-        </View>
-      ) : null}
+      <View style={s.strip}>
+        <TouchableOpacity style={s.stripBtn} activeOpacity={0.85} onPress={() => { tap(); goHome('Insights'); }} accessibilityRole="button" accessibilityLabel={L('Log this week', 'Registra esta semana')}>
+          <Text style={s.stripGl}>◷</Text><Text style={s.stripT}>{L('Log', 'Registra')}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={s.stripBtn} activeOpacity={0.85} onPress={() => { tap(); goHome('DayPlan'); }} accessibilityRole="button" accessibilityLabel={L('Plan my day', 'Planea mi día')}>
+          <Text style={s.stripGl}>✦</Text><Text style={s.stripT}>{L('Plan my day', 'Planea mi día')}</Text>
+        </TouchableOpacity>
+      </View>
 
-      {tab === 'know' ? (
-        <View style={s.tabPanel}>
-          {content.articles.length ? (
-            <View style={s.qaList}>
-              {content.articles.map((a, i) => (
-                <QuickAnswer key={i} data={a} first={i === 0} lang={lang} />
-              ))}
-            </View>
-          ) : null}
-          {content.info ? (
-            <View style={{ marginTop: content.articles.length ? 16 : 0 }}>
-              <InfographicModule data={content.info} lang={lang} embedded />
-            </View>
-          ) : null}
-          {!content.articles.length && !content.info ? (
-            <Text style={s.panelEmpty}>{L('The video covers what to know this week.', 'El video cubre lo que necesitas saber esta semana.')}</Text>
-          ) : null}
-        </View>
-      ) : null}
+      <TilePanel visible={panel === 'do'} onClose={close} title={L('Do this week', 'Esta semana')} lang={lang}>
+        <ChecklistModule data={content.checklist} lang={lang} embedded flat />
+      </TilePanel>
 
-      {tab === 'tools' ? (
-        <View style={[s.tabPanel, { gap: 9 }]}>
-          <ToolRow glyph="◷" label={L('Log this week', 'Registra esta semana')} onPress={() => goHome('Insights')} />
-          <ToolRow glyph="✦" label={L('Plan my day', 'Planea mi día')} onPress={() => goHome('DayPlan')} />
-          {onAskVillie ? <ToolRow glyph="✎" label={L('Ask Vili', 'Pregúntale a Vili')} onPress={onAskVillie} /> : null}
-        </View>
-      ) : null}
+      <TilePanel visible={panel === 'know'} onClose={close} title={L('Good to know', 'Bueno saber')} lang={lang}>
+        {content.articles.length ? (
+          <View style={s.qaList}>
+            {content.articles.map((a, i) => (
+              <QuickAnswer key={i} data={a} first={i === 0} lang={lang} />
+            ))}
+          </View>
+        ) : null}
+        {content.info ? (
+          <View style={{ marginTop: content.articles.length ? 16 : 0 }}>
+            <InfographicModule data={content.info} lang={lang} embedded />
+          </View>
+        ) : null}
+      </TilePanel>
+
+      <TilePanel visible={panel === 'read'} onClose={close} title={L('Read this week', 'Para leer')} lang={lang}>
+        {hasRead ? <StoryArticle story={story!} lang={lang} /> : null}
+      </TilePanel>
     </View>
   );
 }
 
 const s = StyleSheet.create({
-  wrap: { marginTop: 22, paddingHorizontal: 20 },
+  wrap: { marginTop: 20, paddingHorizontal: 20 },
+
+  // Dashboard tiles — the week's menu
+  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+  tile: { flexBasis: '47%', flexGrow: 1, minHeight: 96, borderRadius: 16, padding: 14, borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(67,38,15,0.13)', backgroundColor: '#FDF9EF', justifyContent: 'space-between' },
+  tileDo: { backgroundColor: '#FBEAEF', borderColor: 'rgba(158,47,76,0.18)' },
+  tileAsk: { backgroundColor: '#B0466A', borderColor: '#B0466A' },
+  tileGlyph: { fontSize: 18, color: '#9E2F4C' },
+  tileTitle: { fontFamily: FONTS.bodySemiBold, fontSize: 14.5, letterSpacing: -0.2, color: INK },
+  tileSub: { fontFamily: FONTS.v2_body, fontSize: 11.5, color: '#A6957F', marginTop: 2 },
+
+  // small tools strip under the grid
+  strip: { flexDirection: 'row', gap: 10, marginTop: 10 },
+  stripBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 11, borderRadius: 13, backgroundColor: '#FDF9EF', borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(67,38,15,0.12)' },
+  stripGl: { fontSize: 15, color: '#9E2F4C' },
+  stripT: { fontFamily: FONTS.bodySemiBold, fontSize: 13, color: INK },
+
+  // tile panel (slide-up sheet)
+  sheetWrap: { flex: 1, backgroundColor: '#FBF4E6' },
+  sheetBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingTop: 16, paddingBottom: 12, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(67,38,15,0.10)' },
+  sheetTitle: { fontFamily: FONTS.headerBold, fontSize: 18, letterSpacing: -0.3, color: INK },
+  sheetClose: { fontFamily: FONTS.v2_body, fontSize: 18, color: '#9E8B72' },
+  sheetScroll: { paddingHorizontal: 20, paddingTop: 18 },
+
+  // "Read this week" article
+  artDiv: { height: StyleSheet.hairlineWidth, backgroundColor: 'rgba(67,38,15,0.10)', marginVertical: 20 },
+  artEyebrow: { fontFamily: FONTS.bodyBold, fontSize: 10.5, letterSpacing: 1.6, color: '#9E2F4C', marginBottom: 6 },
+  artLead: { fontFamily: FONTS.v3_display, fontSize: 25, lineHeight: 29, letterSpacing: -0.5, color: INK },
+  artTitle: { fontFamily: FONTS.v3_display, fontSize: 20, lineHeight: 24, letterSpacing: -0.4, color: INK },
+  artBody: { fontFamily: FONTS.v2_body, fontSize: 15.5, lineHeight: 24, color: '#5C462F', marginTop: 9 },
+  artLink: { flexDirection: 'row', alignItems: 'center', gap: 7, alignSelf: 'flex-start', marginTop: 13, backgroundColor: '#FDF9EF', borderRadius: 999, paddingHorizontal: 14, paddingVertical: 8, borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(122,74,40,0.16)' },
+  artLinkGl: { fontSize: 13 },
+  artLinkT: { fontFamily: FONTS.bodySemiBold, fontSize: 13, color: '#9E2F4C' },
 
   // ── Briefing: the week as one scannable list, not a stack of boxes ──────
   secHead: { flexDirection: 'row', alignItems: 'center', gap: 9, marginBottom: 11, marginLeft: 2 },
