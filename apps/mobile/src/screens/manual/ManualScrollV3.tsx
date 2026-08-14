@@ -1118,7 +1118,6 @@ export default function ManualScrollV3() {
         {/* Header — eyebrow + title + hamburger */}
         <View style={styles.headerRow}>
           <View style={{ flex: 1, minWidth: 0 }}>
-            <Eyebrow>{lang === 'es' ? `Semana ${week} de 52` : `Week ${week} of 52`}</Eyebrow>
             <Text style={styles.bigTitle} numberOfLines={1}>
               {isPlaybook ? 'Your ' : (who === 'baby' ? `${ownerName}'s ` : 'Your ')}
               <Text style={styles.bigTitleItalic}>{isPlaybook ? 'playbook.' : 'manual.'}</Text>

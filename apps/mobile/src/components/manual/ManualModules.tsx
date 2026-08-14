@@ -123,7 +123,6 @@ function ChecklistModule({ data, lang, embedded, flat }: { data: Checklist; lang
               <View style={[s.bx, on && s.bxOn]}>{on && <Text style={s.bxCheck}>✓</Text>}</View>
               <Text style={s.ciText}>
                 <Text style={[s.ciLabel, on && s.ciLabelOn]}>{it.label}</Text>
-                {it.note ? <Text style={s.ciNote}>  — {it.note}</Text> : null}
               </Text>
             </TouchableOpacity>
           );
@@ -207,7 +206,7 @@ function InfographicModule({ data, lang, embedded }: { data: Info; lang: Lang; e
     <View>
       {!embedded && <ModuleLabel type={CH.info[lang]} icon={<GlanceGlyph />} divider />}
       <LinearGradient colors={['#FDF0DC', '#FDECEF']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={[s.info, embedded && s.infoEmb]}>
-        {!embedded && <Text style={s.infoTitle}>{data.title}</Text>}
+        <Text style={s.infoTitle}>{data.title}</Text>
 
         {data.kind === 'wakewindows' && (() => {
           // A rising CURVE (not bars) — "awake time ramps up fast" as one shape.
@@ -488,7 +487,7 @@ function QuickAnswer({ data, first, lang }: { data: Article; first?: boolean; la
       {open ? (
         <View style={s.qaBody}>
           <Text style={s.qaA}>{data.answer}</Text>
-          <Text style={s.qaBy}>— {data.name}{data.role ? `, ${data.role}` : ''}</Text>
+          <Text style={s.qaBy}>— {data.name}</Text>
         </View>
       ) : null}
     </View>
@@ -496,7 +495,7 @@ function QuickAnswer({ data, first, lang }: { data: Article; first?: boolean; la
 }
 
 // "Your tools" — a link that activates the week into one of Vili's own tools.
-function ToolLink({ glyph, title, sub, onPress }: { glyph: string; title: string; sub: string; onPress: () => void }) {
+function ToolLink({ glyph, title, onPress }: { glyph: string; title: string; onPress: () => void }) {
   return (
     <TouchableOpacity
       style={s.tool}
@@ -506,10 +505,7 @@ function ToolLink({ glyph, title, sub, onPress }: { glyph: string; title: string
       accessibilityLabel={title}
     >
       <View style={s.toolIcon}><Text style={s.toolGl}>{glyph}</Text></View>
-      <View style={{ flex: 1, minWidth: 0 }}>
-        <Text style={s.toolT}>{title}</Text>
-        <Text style={s.toolS} numberOfLines={1}>{sub}</Text>
-      </View>
+      <Text style={s.toolT}>{title}</Text>
       <Text style={s.toolChev}>›</Text>
     </TouchableOpacity>
   );
@@ -593,17 +589,9 @@ export default function ManualModules({ content, story, onAskVillie, lang = 'en'
       {/* WHICH TOOL HELPS ME DO IT? — links into Vili's own tools */}
       <SectionHead label={L('your tools', 'tus herramientas')} accent="#6F7A43" style={{ marginTop: 26 }} />
       <View style={s.tools}>
-        <ToolLink glyph="◷" title={L('Log this week', 'Registra esta semana')}
-          sub={L('feeds, naps & diapers → Insights', 'tomas, siestas y pañales → Insights')}
-          onPress={() => goHome('Insights')} />
-        <ToolLink glyph="✦" title={L('Plan my day', 'Planea mi día')}
-          sub={L('naps + pumps around your day', 'siestas y extracciones en tu día')}
-          onPress={() => goHome('DayPlan')} />
-        {onAskVillie ? (
-          <ToolLink glyph="✎" title={L('Ask Vili', 'Pregúntale a Vili')}
-            sub={L('anything about this week, 24/7', 'lo que sea de esta semana, 24/7')}
-            onPress={onAskVillie} />
-        ) : null}
+        <ToolLink glyph="◷" title={L('Log this week', 'Registra esta semana')} onPress={() => goHome('Insights')} />
+        <ToolLink glyph="✦" title={L('Plan my day', 'Planea mi día')} onPress={() => goHome('DayPlan')} />
+        {onAskVillie ? <ToolLink glyph="✎" title={L('Ask Vili', 'Pregúntale a Vili')} onPress={onAskVillie} /> : null}
       </View>
     </View>
   );
@@ -647,8 +635,7 @@ const s = StyleSheet.create({
   tool: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 15, paddingVertical: 13, borderRadius: 14, backgroundColor: '#FBEAEF', borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(158,47,76,0.14)' },
   toolIcon: { width: 30, height: 30, borderRadius: 9, backgroundColor: ROSE, alignItems: 'center', justifyContent: 'center' },
   toolGl: { color: '#FFF9F2', fontSize: 15 },
-  toolT: { fontFamily: FONTS.bodySemiBold, fontSize: 14, color: INK },
-  toolS: { fontFamily: FONTS.v2_body, fontSize: 12, color: '#A6957F', marginTop: 1 },
+  toolT: { flex: 1, fontFamily: FONTS.bodySemiBold, fontSize: 14, color: INK },
   toolChev: { fontFamily: FONTS.v2_body, fontSize: 18, color: '#9E2F4C' },
   brDiv: { height: StyleSheet.hairlineWidth, backgroundColor: 'rgba(67,38,15,0.09)', marginLeft: 55 },
   brHead: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 11, paddingHorizontal: 15 },
