@@ -101,14 +101,19 @@ function ModuleLabel({ type, icon, divider }: { type: string; icon?: React.React
   );
 }
 
+const CHECKLIST_CAP = 4;
 function ChecklistModule({ data, lang, embedded, flat }: { data: Checklist; lang: Lang; embedded?: boolean; flat?: boolean }) {
   const [done, setDone] = useState<Record<number, boolean>>({});
+  const [showAll, setShowAll] = useState(false);
+  const capped = flat && !showAll && data.items.length > CHECKLIST_CAP;
+  const items = capped ? data.items.slice(0, CHECKLIST_CAP) : data.items;
+  const hidden = data.items.length - items.length;
   return (
     <View>
       {!embedded && <ModuleLabel type={CH.checklist[lang]} icon={<CheckGlyph />} />}
       {!embedded && <Text style={s.panelTitle}>{data.title}</Text>}
       <View style={flat ? s.flatList : s.panel}>
-        {data.items.map((it, i) => {
+        {items.map((it, i) => {
           const on = !!done[i];
           return (
             <TouchableOpacity
@@ -127,6 +132,11 @@ function ChecklistModule({ data, lang, embedded, flat }: { data: Checklist; lang
             </TouchableOpacity>
           );
         })}
+        {hidden > 0 ? (
+          <TouchableOpacity style={[s.ci, s.ciBorder]} activeOpacity={0.7} onPress={() => { select(); setShowAll(true); }} accessibilityRole="button">
+            <Text style={s.ciMore}>{lang === 'es' ? `+ ${hidden} más` : `+ ${hidden} more`}</Text>
+          </TouchableOpacity>
+        ) : null}
       </View>
     </View>
   );
@@ -736,15 +746,15 @@ const s = StyleSheet.create({
   // checklist
   panelTitle: { fontFamily: FONTS.headerBold, fontSize: 18, lineHeight: 23, letterSpacing: -0.3, color: INK, marginBottom: 12 },
   panel: { backgroundColor: CREAM, borderRadius: 20, borderWidth: 1, borderColor: HAIR, overflow: 'hidden' },
-  ci: { flexDirection: 'row', alignItems: 'center', gap: 13, paddingVertical: 14, paddingHorizontal: 18 },
-  ciBorder: { borderTopWidth: 1, borderTopColor: HAIR },
-  bx: { width: 25, height: 25, borderRadius: 8, borderWidth: 2, borderColor: 'rgba(67,38,15,0.22)', alignItems: 'center', justifyContent: 'center' },
+  ci: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 10, paddingHorizontal: 2 },
+  ciBorder: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: 'rgba(67,38,15,0.09)' },
+  bx: { width: 20, height: 20, borderRadius: 6, borderWidth: 1.6, borderColor: 'rgba(67,38,15,0.22)', alignItems: 'center', justifyContent: 'center' },
   bxOn: { backgroundColor: ACCENT, borderColor: ACCENT },
-  bxCheck: { color: '#fff', fontSize: 13, fontWeight: '800' },
-  ciText: { flex: 1, lineHeight: 21 },
-  ciLabel: { fontFamily: FONTS.bodySemiBold, fontSize: 15.5, color: INK },
+  bxCheck: { color: '#fff', fontSize: 11, fontWeight: '800' },
+  ciText: { flex: 1, lineHeight: 19 },
+  ciLabel: { fontFamily: FONTS.bodySemiBold, fontSize: 14.5, color: INK },
   ciLabelOn: { textDecorationLine: 'line-through', color: ACCENT },
-  ciNote: { fontFamily: FONTS.body, fontSize: 13, color: INKSOFT },
+  ciMore: { fontFamily: FONTS.bodySemiBold, fontSize: 13, color: '#9E2F4C', letterSpacing: 0.2 },
 
   // article / expert (editorial pull-quote card)
   tip: {
