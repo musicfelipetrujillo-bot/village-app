@@ -84,9 +84,9 @@ export default function TheBuzzScreen() {
 
           <View style={s.list}>
             {newsItems.map((item, i) => (
-              <BuzzItem key={item.id} item={item} kind="news" num={i + 1} lang={lang} t={t} first={i === 0} />
+              <BuzzItem key={item.id} item={item} kind="news" num={i + 1} lang={lang} t={t} />
             ))}
-            {mythItem ? <BuzzItem item={mythItem} kind="myth" num={newsItems.length + 1} lang={lang} t={t} first={newsItems.length === 0} /> : null}
+            {mythItem ? <BuzzItem item={mythItem} kind="myth" num={newsItems.length + 1} lang={lang} t={t} /> : null}
           </View>
 
           <Text style={s.disclaimer}>{t('theBuzz.disclaimer')}</Text>
@@ -96,36 +96,45 @@ export default function TheBuzzScreen() {
   );
 }
 
-// One editorial topic — a numbered headline you can scan; tap to open the short
-// read (fact/summary + optional "ask" + source). Collapsed by default so the
-// screen reads as a clean list of headlines, not a wall of text.
-function BuzzItem({ item, kind, num, lang, t, first }: {
+// Each topic cycles through the app's vibrant palette so items pop + stay
+// distinct (not brown-on-cream that blends). Myth is always the wine hue.
+const HUES = [
+  { chip: '#C24A63', tint: '#FBE6EC', edge: 'rgba(194,74,99,0.24)', ink: '#9E2F4C' },  // rose
+  { chip: '#C46A45', tint: '#F8E6D9', edge: 'rgba(196,106,69,0.24)', ink: '#A8552B' }, // terracotta
+  { chip: '#BE851F', tint: '#F8EECC', edge: 'rgba(190,133,31,0.26)', ink: '#8A6012' }, // gold
+  { chip: '#6F7A43', tint: '#EBEED4', edge: 'rgba(111,122,67,0.26)', ink: '#525C2C' }, // olive
+];
+const MYTH_HUE = { chip: '#A8466B', tint: '#F5E0EA', edge: 'rgba(168,70,107,0.24)', ink: '#8A3556' };
+
+// A vibrant topic card — collapsed shows a coloured number chip + headline you
+// can scan; tap opens the short read (fact/summary + optional "ask" + source).
+function BuzzItem({ item, kind, num, lang, t }: {
   item: TheBuzzItem; kind: 'news' | 'myth'; num: number; lang: 'en' | 'es';
-  t: (k: string, p?: any) => string; first: boolean;
+  t: (k: string, p?: any) => string;
 }) {
   const [open, setOpen] = React.useState(false);
   const isMyth = kind === 'myth';
+  const hue = isMyth ? MYTH_HUE : HUES[(num - 1) % HUES.length];
   const headline = isMyth ? localized(item, 'myth_claim', lang) : localized(item, 'title', lang);
   const body = isMyth ? localized(item, 'fact', lang) : localized(item, 'summary', lang);
   const ask = localized(item, 'ask_provider', lang);
   const tag = isMyth ? t('theBuzz.mythEyebrow') : t('theBuzz.trendingEyebrow');
   return (
-    <View>
-      {!first ? <View style={s.rule} /> : null}
+    <View style={[s.card, { backgroundColor: hue.tint, borderColor: hue.edge }]}>
       <TouchableOpacity
         style={s.itemHead}
-        activeOpacity={0.7}
+        activeOpacity={0.8}
         onPress={() => setOpen((o) => !o)}
         accessibilityRole="button"
         accessibilityState={{ expanded: open }}
         accessibilityLabel={headline}
       >
-        <Text style={s.num}>{String(num).padStart(2, '0')}</Text>
+        <View style={[s.numChip, { backgroundColor: hue.chip }]}><Text style={s.numChipT}>{String(num).padStart(2, '0')}</Text></View>
         <View style={{ flex: 1, minWidth: 0 }}>
-          <Text style={[s.itemTag, isMyth && s.itemTagMyth]}>{tag}</Text>
+          <Text style={[s.itemTag, { color: hue.ink }]}>{tag}</Text>
           <Text style={s.itemTitle}>{headline}</Text>
         </View>
-        <Text style={[s.itemToggle, open && s.itemToggleOpen]}>›</Text>
+        <Text style={[s.itemToggle, { color: hue.chip }, open && s.itemToggleOpen]}>›</Text>
       </TouchableOpacity>
 
       {open && (
@@ -133,7 +142,7 @@ function BuzzItem({ item, kind, num, lang, t, first }: {
           <Text style={s.bodyText}>{body}</Text>
           {ask ? <Text style={s.askLine}>{ask}</Text> : null}
           <TouchableOpacity onPress={() => Linking.openURL(item.evidence_source_url)} accessibilityRole="link" accessibilityLabel={t('theBuzz.evidenceLinkA11y', { source: item.evidence_source_name })}>
-            <Text style={s.sourceLink}>{t('theBuzz.groundedIn', { source: item.evidence_source_name })} ›</Text>
+            <Text style={[s.sourceLink, { color: hue.ink }]}>{t('theBuzz.groundedIn', { source: item.evidence_source_name })} ›</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -162,20 +171,20 @@ const s = StyleSheet.create({
   issueTitle: { fontFamily: FONTS.v2_display, fontSize: 27, lineHeight: 31, color: COLORS.v2_cocoa, letterSpacing: -0.5 },
   issueIntro: { fontFamily: FONTS.v2_body, fontSize: 14, color: COLORS.v2_walnut, lineHeight: 20, marginTop: 7 },
 
-  // Editorial list — numbered headlines, hairline-divided, collapsed by default
-  list: { marginTop: 22 },
-  rule: { height: StyleSheet.hairlineWidth, backgroundColor: 'rgba(61,31,14,0.11)' },
-  itemHead: { flexDirection: 'row', alignItems: 'flex-start', gap: 14, paddingVertical: 16 },
-  num: { fontFamily: FONTS.v2_display, fontSize: 15, color: '#C6A98E', marginTop: 2, width: 20 },
-  itemTag: { fontFamily: FONTS.v2_mono, fontSize: 9.5, letterSpacing: 1.5, color: '#C24A63', textTransform: 'uppercase', marginBottom: 4 },
-  itemTagMyth: { color: '#A8466B' },
-  itemTitle: { fontFamily: FONTS.v2_display, fontSize: 18, color: COLORS.v2_cocoa, letterSpacing: -0.3, lineHeight: 23 },
-  itemToggle: { fontFamily: FONTS.v2_body, fontSize: 22, color: '#C6B29A', lineHeight: 24, marginTop: 4, width: 14, textAlign: 'center' },
-  itemToggleOpen: { color: '#9E8B72', transform: [{ rotate: '90deg' }] },
-  itemBody: { paddingLeft: 34, paddingRight: 2, paddingBottom: 18, marginTop: -4, gap: 10 },
-  bodyText: { fontFamily: FONTS.v2_body, fontSize: 15, color: '#5C462F', lineHeight: 23 },
-  askLine: { fontFamily: FONTS.v2_body, fontSize: 13, color: '#8A5A66', lineHeight: 19, fontStyle: 'italic' },
-  sourceLink: { fontFamily: FONTS.v2_link, fontSize: 12.5, color: '#C24A63' },
+  // Vibrant colour-cycled cards — each topic pops in its own hue, none blend
+  list: { marginTop: 22, gap: 12 },
+  card: { borderRadius: 18, borderWidth: 1, overflow: 'hidden' },
+  itemHead: { flexDirection: 'row', alignItems: 'flex-start', gap: 13, paddingVertical: 15, paddingHorizontal: 15 },
+  numChip: { width: 32, height: 32, borderRadius: 10, alignItems: 'center', justifyContent: 'center', marginTop: 1 },
+  numChipT: { fontFamily: FONTS.v2_display, fontSize: 14, color: '#FFF9F2' },
+  itemTag: { fontFamily: FONTS.v2_mono, fontSize: 9.5, letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 4 },
+  itemTitle: { fontFamily: FONTS.v2_display, fontSize: 17.5, color: COLORS.v2_cocoa, letterSpacing: -0.3, lineHeight: 22 },
+  itemToggle: { fontFamily: FONTS.v2_body, fontSize: 22, lineHeight: 24, marginTop: 3, width: 14, textAlign: 'center' },
+  itemToggleOpen: { transform: [{ rotate: '90deg' }] },
+  itemBody: { paddingLeft: 60, paddingRight: 15, paddingBottom: 16, marginTop: -4, gap: 10 },
+  bodyText: { fontFamily: FONTS.v2_body, fontSize: 14.5, color: '#4A3420', lineHeight: 22 },
+  askLine: { fontFamily: FONTS.v2_body, fontSize: 13, color: '#6B4A38', lineHeight: 19, fontStyle: 'italic' },
+  sourceLink: { fontFamily: FONTS.v2_link, fontSize: 12.5 },
   disclaimer: {
     fontFamily: FONTS.v2_body, fontSize: 11, lineHeight: 16, color: '#A6957F',
     textAlign: 'center', marginTop: 26, paddingTop: 14,
