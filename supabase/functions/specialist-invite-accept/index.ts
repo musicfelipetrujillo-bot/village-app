@@ -110,33 +110,68 @@ Deno.serve(async (req) => {
     return json({ error: 'bio max 2000 chars' }, 400);
   }
 
-  // ─── Verify invite is alive ─────────────────────────────────────────
-  // We hit the table directly (service-role) instead of the public RPC
-  // because we also need the row's id to mark it used at the end.
-  const { data: invite, error: inviteErr } = await supabase
+  // ─── Claim the invite ATOMICALLY ────────────────────────────────────
+  // SECURITY (appsec H-3 / M-1): this used to SELECT the row, check
+  // `used_at IS NULL` in JS, then do all the work, and only mark the invite
+  // used at the very END — with the mark-used being non-fatal on failure. Two
+  // concurrent requests carrying the same token both passed the SELECT, so one
+  // invite could onboard two accounts; and any failure of the final UPDATE left
+  // a live, replayable invite behind.
+  //
+  // Now the claim IS the check: a single conditional UPDATE. Postgres locks the
+  // row for the duration, so exactly one concurrent caller can flip used_at from
+  // NULL — everyone else gets zero rows back and is rejected. Nothing downstream
+  // runs until we hold the claim.
+  const nowIso = new Date().toISOString();
+  const { data: invite, error: claimErr } = await supabase
     .from('specialist_invites')
-    .select('id, email, used_at, revoked_at, expires_at')
+    .update({ used_at: nowIso })
     .eq('token', token)
+    .is('used_at', null)
+    .is('revoked_at', null)
+    .gt('expires_at', nowIso)
+    .select('id, email')
     .maybeSingle();
 
-  if (inviteErr) {
-    console.error('specialist-invite-accept invite lookup error', inviteErr);
+  if (claimErr) {
+    console.error('specialist-invite-accept invite claim error', claimErr);
     return json({ error: 'Lookup failed' }, 500);
   }
+
   if (!invite) {
-    return json({ error: 'Invite not found' }, 404);
-  }
-  if (invite.used_at) {
-    return json({ error: 'Invite has already been used' }, 404);
-  }
-  if (invite.revoked_at) {
-    return json({ error: 'Invite has been revoked' }, 404);
-  }
-  if (new Date(invite.expires_at) <= new Date()) {
-    return json({ error: 'Invite has expired' }, 404);
+    // The claim matched nothing. Re-read (without the liveness filters) purely
+    // to return the accurate reason — this read is diagnostic only and never
+    // grants access.
+    const { data: diag } = await supabase
+      .from('specialist_invites')
+      .select('used_at, revoked_at, expires_at')
+      .eq('token', token)
+      .maybeSingle();
+
+    if (!diag) return json({ error: 'Invite not found' }, 404);
+    if (diag.revoked_at) return json({ error: 'Invite has been revoked' }, 404);
+    if (diag.used_at) return json({ error: 'Invite has already been used' }, 409);
+    if (new Date(diag.expires_at) <= new Date()) {
+      return json({ error: 'Invite has expired' }, 404);
+    }
+    return json({ error: 'Invite is no longer available' }, 409);
   }
 
   const email = invite.email.toLowerCase();
+
+  // We now hold the claim. If onboarding fails below, hand the invite back so a
+  // transient error (email collision, DB hiccup) doesn't permanently burn the
+  // recipient's only link. Best-effort: a failed release is logged, and the
+  // worst case is an invite the admin has to reissue — never a reusable one.
+  const releaseClaim = async (reason: string) => {
+    const { error } = await supabase
+      .from('specialist_invites')
+      .update({ used_at: null })
+      .eq('id', invite.id);
+    if (error) {
+      console.error(`specialist-invite-accept release-claim failed (${reason})`, error);
+    }
+  };
 
   // ─── Create auth.users (and via trigger, public.users) ──────────────
   // email_confirm=true: the invite link IS the email verification — the
@@ -159,6 +194,7 @@ Deno.serve(async (req) => {
     // route them to sign-in instead.
     const msg = createErr?.message ?? 'Failed to create account';
     const status = /already (registered|exists)/i.test(msg) ? 409 : 500;
+    await releaseClaim('createUser failed');
     return json({ error: msg }, status);
   }
 
@@ -193,6 +229,7 @@ Deno.serve(async (req) => {
     await supabase.auth.admin.deleteUser(userId).catch((e) =>
       console.error('rollback deleteUser failed', e)
     );
+    await releaseClaim('specialists insert failed');
     return json({
       error: specialistErr?.message ?? 'Failed to create specialist profile',
     }, 500);
@@ -217,20 +254,18 @@ Deno.serve(async (req) => {
     }
   }
 
-  // ─── Mark the invite used ──────────────────────────────────────────
-  const { error: usedErr } = await supabase
+  // ─── Link the invite to the specialist it created ───────────────────
+  // `used_at` was already set by the atomic claim above, so the invite is
+  // ALREADY unusable at this point — this write only records which specialist
+  // consumed it. A failure here is therefore cosmetic (an unlinked audit
+  // trail), not a security problem the way the old end-of-flow mark-used was.
+  const { error: linkErr } = await supabase
     .from('specialist_invites')
-    .update({
-      used_at:            new Date().toISOString(),
-      used_specialist_id: specialist.id,
-    })
+    .update({ used_specialist_id: specialist.id })
     .eq('id', invite.id);
 
-  if (usedErr) {
-    // Account is already created and live. We log this but don't fail
-    // the request — the specialist is in good shape; the invite row is
-    // just stale. A nightly sweep can patch any orphaned alive invites.
-    console.error('specialist-invite-accept mark-used error', usedErr);
+  if (linkErr) {
+    console.error('specialist-invite-accept link-specialist error', linkErr);
   }
 
   return json({
