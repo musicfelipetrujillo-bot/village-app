@@ -19,8 +19,10 @@
 | **M-1** invite claimed non-atomically | ✅ Single conditional `UPDATE`, released on failure |
 | **M-2** client-supplied charge amount | ✅ Priced from `specialist_services` server-side |
 | **M-3** undocumented RLS-no-policy tables | ⬜ Doc-only, open |
-| **P-1** donor precise location | ⬜ Open — needs a migration |
-| **P-2** retention policy | ⬜ Open — gated on counsel |
+| **P-1** donor precise location | ✅ Fixed — migration **127**, applied + verified on prod (PR #7) |
+| **P-2** retention policy | ⬜ Open — gated on counsel (`home_feed_cache` purge needs no sign-off) |
+
+**P-1 detail:** `lat`/`lng` narrowed from `DECIMAL(10,7)` (~1 cm) to `NUMERIC(5,2)` (~1.1 km) at the **type** level, so finer precision is unrepresentable going forward — no trigger to forget, no app code to keep in step. The three real pins moved 165 / 239 / 419 m; `search_donors_near` still returns all three donors at 0.16 / 2.70 / 5.66 mi. No precise copy retained (nothing reads one; the pickup-address flow died with migration 096). This also closes an indirect leak: `distance_miles` from a caller-supplied origin allowed trilateration of a donor's home even without reading the columns. No client change or OTA was required.
 
 ### ⚠️ What the fix taught us: there is more than one valid service-role key
 
