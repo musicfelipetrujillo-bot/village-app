@@ -603,16 +603,21 @@ const styles = StyleSheet.create({
   ringWeekLabel: {
     position: 'absolute', bottom: '100%', left: -140, right: -140, textAlign: 'center',
     fontFamily: FONTS.v3_display, fontSize: 13, lineHeight: 15, letterSpacing: 2,
-    textTransform: 'uppercase', color: 'rgba(253,244,224,0.74)', marginBottom: 2,
+    textTransform: 'uppercase', color: 'rgba(253,244,224,0.78)', marginBottom: 2,
+    textShadowColor: 'rgba(58,24,10,0.40)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 2,
   },
+  // Cream type + a soft dark drop shadow so it lifts off the orange wax and
+  // reads without going harsh (founder pick, 2026-08-15).
   ringNumber: {
     fontFamily: FONTS.v3_display, fontSize: 76, lineHeight: 80, color: '#FBF4E4',
     letterSpacing: -1.5, textAlign: 'center',
+    textShadowColor: 'rgba(58,24,10,0.55)', textShadowOffset: { width: 0, height: 3 }, textShadowRadius: 5,
   },
   ringBabyName: {
     position: 'absolute', top: '100%', left: -140, right: -140, textAlign: 'center',
     fontFamily: FONTS.v3_display, fontSize: 19, lineHeight: 22, letterSpacing: -0.3,
     textTransform: 'lowercase', color: '#F2E4C8', marginTop: 2,
+    textShadowColor: 'rgba(58,24,10,0.45)', textShadowOffset: { width: 0, height: 2 }, textShadowRadius: 3,
   },
   // The hero's single bold spark — solid scarlet against the pink field.
   heroTapHint: {
