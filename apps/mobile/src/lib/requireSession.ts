@@ -54,3 +54,22 @@ export async function requireSession() {
   if (!session?.user) throw new Error(NO_SESSION);
   return session;
 }
+
+/**
+ * Non-throwing form, for callers that already have a sensible empty/no-op
+ * result and aren't prepared to handle a rejection (the tracker's fire-and-
+ * forget effects, for instance, where a throw would surface as an unhandled
+ * promise rejection).
+ *
+ * The point is the AWAIT, not the boolean: it forces supabase-js to finish
+ * restoring/refreshing before the next request is built, which is what
+ * actually attaches the JWT. `false` means genuinely signed out.
+ */
+export async function sessionReady(): Promise<boolean> {
+  try {
+    await requireSession();
+    return true;
+  } catch {
+    return false;
+  }
+}

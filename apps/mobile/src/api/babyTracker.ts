@@ -7,6 +7,7 @@
 // returns null/[]) so the UI degrades gracefully if migration 093 hasn't been
 // pushed to this environment yet.
 import { supabase } from '@/lib/supabase';
+import { requireSession, sessionReady } from '@/lib/requireSession';
 
 export type FeedMethod = 'breast' | 'bottle';
 export type BreastSide = 'left' | 'right';
@@ -61,12 +62,34 @@ const dayKey = (iso: string): string => iso.slice(0, 10);
 function mean(xs: number[]): number | null { return xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : null; }
 function round(n: number | null): number | null { return n == null ? null : Math.round(n); }
 
-let _userId: string | null = null;
+// Every query in this file is gated purely by RLS (`auth.uid() = user_id`), so
+// it MUST NOT be issued until the JWT is attached. supabase-js does not queue —
+// an un-tokened call is evaluated as `anon`, which for these tables means a
+// SELECT returns 200 + `[]` and an UPDATE matches zero rows and reports no
+// error. Production edge_logs for 2026-08-14→15 showed ~90% of tracker reads
+// arriving with no JWT at all (baby_feed_logs 38/42, baby_sleep_logs 38/42,
+// baby_diaper_logs 28/31), every one answering 200. See lib/requireSession.ts.
+//
+// `sessionReady()` (shared) returns false only when there is genuinely no
+// session — signed out. Callers keep their existing empty / no-op behaviour in
+// that case, so this can never turn a transient gap into a thrown error the
+// tracker's fire-and-forget effects aren't ready to catch.
+
+/**
+ * The signed-in user id — and the session guard for every write below.
+ *
+ * Was `supabase.auth.getUser()` behind a module-scope cache: that added a
+ * /auth/v1/user round-trip on the cold-start path, and the cache was never
+ * cleared on sign-out, so an account switch could stamp the previous user's id
+ * onto a new row. getSession() reads locally and always reflects the current user.
+ */
 async function userId(): Promise<string | null> {
-  if (_userId) return _userId;
-  const { data } = await supabase.auth.getUser();
-  _userId = data.user?.id ?? null;
-  return _userId;
+  try {
+    const session = await requireSession();
+    return session.user.id;
+  } catch {
+    return null;
+  }
 }
 
 function startOfTodayISO(): string {
@@ -78,6 +101,7 @@ function startOfTodayISO(): string {
 export const babyTrackerApi = {
   // ── Sleep ───────────────────────────────────────────────────────────────
   async getActiveSleep(): Promise<SleepLog | null> {
+    if (!(await sessionReady())) return null;
     const { data, error } = await supabase
       .from('baby_sleep_logs')
       .select('id, started_at, ended_at, source')
@@ -102,16 +126,25 @@ export const babyTrackerApi = {
   },
 
   async stopSleep(id: string, endedAt?: string): Promise<boolean> {
-    const { error } = await supabase
+    if (!(await sessionReady())) return false;
+    // `.select('id')` is load-bearing, not decoration. Scoping is RLS-only here
+    // (`.eq('id')` alone), so an un-tokened UPDATE matches zero rows and still
+    // returns error=null — this used to report success while the nap row stayed
+    // open, which is what "the sleep toggle does nothing" looked like from the
+    // outside. Returning rows lets us tell "stopped it" from "matched nothing".
+    const { data, error } = await supabase
       .from('baby_sleep_logs')
       .update({ ended_at: endedAt ?? new Date().toISOString() })
-      .eq('id', id);
+      .eq('id', id)
+      .select('id');
     if (error) { console.warn('[tracker] stopSleep', error.message); return false; }
+    if (!data?.length) { console.warn('[tracker] stopSleep matched no row', id); return false; }
     return true;
   },
 
   // ── Feeds ─────────────────────────────────────────────────────────────────
   async getActiveFeed(): Promise<FeedLog | null> {
+    if (!(await sessionReady())) return null;
     const { data, error } = await supabase
       .from('baby_feed_logs')
       .select('id, method, side, started_at, ended_at, amount_oz, source')
@@ -142,10 +175,13 @@ export const babyTrackerApi = {
   },
 
   async stopFeed(id: string, endedAt?: string, amountOz?: number | null): Promise<boolean> {
+    if (!(await sessionReady())) return false;
     const patch: Record<string, unknown> = { ended_at: endedAt ?? new Date().toISOString() };
     if (amountOz != null) patch.amount_oz = amountOz;
-    const { error } = await supabase.from('baby_feed_logs').update(patch).eq('id', id);
+    // See stopSleep — RLS-only scoping means a zero-row UPDATE looks like success.
+    const { data, error } = await supabase.from('baby_feed_logs').update(patch).eq('id', id).select('id');
     if (error) { console.warn('[tracker] stopFeed', error.message); return false; }
+    if (!data?.length) { console.warn('[tracker] stopFeed matched no row', id); return false; }
     return true;
   },
 
@@ -208,6 +244,9 @@ export const babyTrackerApi = {
   async getToday(): Promise<TodayLogs> {
     const since = startOfTodayISO();
     const empty: TodayLogs = { sleep: [], feeds: [], diapers: [], notes: [] };
+    // Four RLS-gated reads in parallel — the guard has to come first, or all
+    // four come back 200 + [] and the day reads as "nothing logged".
+    if (!(await sessionReady())) return empty;
     const [sleep, feeds, diapers, notes] = await Promise.all([
       // include in-progress sessions even if started before midnight
       supabase.from('baby_sleep_logs').select('id, started_at, ended_at, source')
@@ -236,6 +275,7 @@ export const babyTrackerApi = {
   // weekOffset shifts the window back by whole weeks: 0 = the last `days`,
   // 1 = the 7 days before that, etc. — so Insights can show past weeks.
   async getRecentStats(days = 3, weekOffset = 0): Promise<RecentStats | null> {
+    if (!(await sessionReady())) return null;
     const end = Date.now() - weekOffset * 7 * 86400000;
     const endISO = new Date(end).toISOString();
     const since = new Date(end - days * 86400000).toISOString();

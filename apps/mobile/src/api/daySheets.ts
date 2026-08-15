@@ -6,6 +6,7 @@
 // and then edited before sharing. Handoff = PDF (client) + a live web page
 // reached by QR (edge fn `day-sheet-page`). Every call fails soft.
 import { supabase } from '@/lib/supabase';
+import { sessionReady } from '@/lib/requireSession';
 
 // ── Types ────────────────────────────────────────────────────────────────
 export type SheetRowKind = 'wake' | 'bottle' | 'nap' | 'meal' | 'bath' | 'bed' | 'note';
@@ -138,34 +139,49 @@ export async function draftScheduleFromLogs(days = 7): Promise<{ schedule: Sheet
 }
 
 // ── CRUD ─────────────────────────────────────────────────────────────────
+// Every call below is RLS-gated and must not be issued before the JWT is
+// attached — see lib/requireSession.ts. Production edge_logs for
+// 2026-08-14→15 showed 5 of 5 `day_sheets` requests arriving with no JWT at
+// all, all answering 200, i.e. the feature was reading as "no sheets" every
+// time. Same defect as api/babyTracker.ts, which this screen's data comes from.
 export const daySheetsApi = {
   async listMine(): Promise<DaySheet[]> {
+    if (!(await sessionReady())) return [];
     const { data, error } = await supabase.from('day_sheets').select('*').order('updated_at', { ascending: false });
     if (error) { console.warn('[daySheets] list', error.message); return []; }
     return (data ?? []) as DaySheet[];
   },
 
   async get(id: string): Promise<DaySheet | null> {
+    if (!(await sessionReady())) return null;
     const { data, error } = await supabase.from('day_sheets').select('*').eq('id', id).maybeSingle();
     if (error) { console.warn('[daySheets] get', error.message); return null; }
     return (data as DaySheet) ?? null;
   },
 
   async create(input: DaySheetInput): Promise<DaySheet | null> {
+    if (!(await sessionReady())) return null;
     const { data, error } = await supabase.from('day_sheets').insert(input).select('*').single();
     if (error) { console.warn('[daySheets] create', error.message); return null; }
     return data as DaySheet;
   },
 
   async update(id: string, patch: DaySheetInput): Promise<boolean> {
-    const { error } = await supabase.from('day_sheets').update({ ...patch, updated_at: new Date().toISOString() }).eq('id', id);
+    if (!(await sessionReady())) return false;
+    // `.select('id')` so an un-tokened UPDATE (zero rows matched, error=null)
+    // can't report success — same trap as babyTracker.stopSleep.
+    const { data, error } = await supabase.from('day_sheets')
+      .update({ ...patch, updated_at: new Date().toISOString() }).eq('id', id).select('id');
     if (error) { console.warn('[daySheets] update', error.message); return false; }
+    if (!data?.length) { console.warn('[daySheets] update matched no row', id); return false; }
     return true;
   },
 
   async remove(id: string): Promise<boolean> {
-    const { error } = await supabase.from('day_sheets').delete().eq('id', id);
+    if (!(await sessionReady())) return false;
+    const { data, error } = await supabase.from('day_sheets').delete().eq('id', id).select('id');
     if (error) { console.warn('[daySheets] remove', error.message); return false; }
+    if (!data?.length) { console.warn('[daySheets] remove matched no row', id); return false; }
     return true;
   },
 
