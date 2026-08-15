@@ -357,6 +357,24 @@ function NavGroup({ items }: { items: NavItem[] }) {
   );
 }
 
+// The Buzz on Home — a vibrant honey card that stands out from the cream nav
+// rows (founder 2026-08-12: "the buzz hero blends in, make it pop").
+function BuzzCard({ t, lang, onPress }: { t: (k: string, p?: any) => string; lang: 'en' | 'es'; onPress: () => void }) {
+  const sub = t('home.buzzCardSub').replace(/[\s→›»]+$/, '');
+  return (
+    <TouchableOpacity activeOpacity={0.92} onPress={onPress} accessibilityRole="button" accessibilityLabel={t('home.buzzCardTitle')}>
+      <LinearGradient colors={['#F4C64A', '#E89020']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.buzzCard}>
+        <View style={styles.buzzBee}><Text style={{ fontSize: 22 }}>🐝</Text></View>
+        <View style={{ flex: 1, minWidth: 0 }}>
+          <Text style={styles.buzzEyebrow}>{lang === 'es' ? 'el buzz' : 'the buzz'}</Text>
+          <Text style={styles.buzzTitle} numberOfLines={2}>{sub}</Text>
+        </View>
+        <Text style={styles.buzzChevron}>›</Text>
+      </LinearGradient>
+    </TouchableOpacity>
+  );
+}
+
 // Founder asked for Villie Boxes back on Home (2026-08-09). Hub/detail/cart
 // are built + navigable; only the Stripe checkout step is still pending.
 const VILLIE_BOXES_ENABLED = true;
@@ -416,9 +434,6 @@ export default function HomeScreenV3() {
     { key: 'care',  tint: '#FBEAD6', icon: <Glyph d={ICON.stethoscope} color="#8A5040" size={19} sw={1.9} />, label: lang === 'es' ? 'Cuidado' : 'Care', onPress: () => navigation.getParent()?.navigate('Experts') },
     { key: 'gear',  tint: '#F6EBC4', icon: <Glyph d={ICON.bag} color="#8A5040" size={19} sw={1.9} />, label: lang === 'es' ? 'Artículos de bebé' : 'Baby gear', onPress: () => navigation.getParent()?.navigate('Gear') },
     { key: 'plans', tint: '#F7DED2', icon: <Glyph d={ICON.calendar} color="#8A5040" size={19} sw={1.9} />, label: lang === 'es' ? 'Planes' : 'Plans', onPress: () => navigation.getParent()?.navigate('Village') },
-  ];
-  const discoverItems: NavItem[] = [
-    ...(buzzIssue ? [{ key: 'buzz', tint: '#F6EBC4', icon: <Glyph d={ICON.star} color="#8A5040" size={19} sw={1.9} />, label: t('home.buzzCardTitle'), onPress: () => navigation.navigate('TheBuzz' as never, { issueId: buzzIssue.id } as never) } as NavItem] : []),
   ];
   const emergencyItems: NavItem[] = [
     { key: 'emergency', tint: '#FBE4E0', danger: true,
@@ -522,9 +537,9 @@ export default function HomeScreenV3() {
               onBoxes={() => navigation.navigate('BoxesHub' as never)}
               onPicks={() => navigation.navigate('PerksList' as never)}
             />
-            {discoverItems.length > 0 ? (
+            {buzzIssue ? (
               <View style={{ marginTop: 12 }}>
-                <NavGroup items={discoverItems} />
+                <BuzzCard t={t} lang={lang} onPress={() => navigation.navigate('TheBuzz' as never, { issueId: buzzIssue.id } as never)} />
               </View>
             ) : null}
           </View>
@@ -672,6 +687,13 @@ const styles = StyleSheet.create({
   navLabel: { fontFamily: FONTS.v3_display, fontSize: 16, color: T.cocoa, letterSpacing: -0.3 },
   navSub: { fontFamily: FONTS.v2_body, fontSize: 11, color: T.walnut, marginTop: 1 },
   navChevron: { fontFamily: FONTS.v2_link, fontSize: 20, color: '#C9B79F', marginTop: -1 },
+
+  // The Buzz — vibrant honey card that stands out from the cream nav rows
+  buzzCard: { flexDirection: 'row', alignItems: 'center', gap: 14, borderRadius: 18, paddingHorizontal: 16, paddingVertical: 15 },
+  buzzBee: { width: 46, height: 46, borderRadius: 14, backgroundColor: 'rgba(255,255,255,0.32)', alignItems: 'center', justifyContent: 'center' },
+  buzzEyebrow: { fontFamily: FONTS.v2_mono, fontSize: 10, letterSpacing: 1.6, textTransform: 'uppercase', color: '#7A3B0E' },
+  buzzTitle: { fontFamily: FONTS.v3_display, fontSize: 17, lineHeight: 21, color: '#4A2408', letterSpacing: -0.2, marginTop: 3 },
+  buzzChevron: { fontFamily: FONTS.v2_body, fontSize: 24, color: '#5A2A08' },
 
   // ── Getting ready ────────────────────────────────────────────────────
   gettingReadyCard: { flexDirection: 'row', alignItems: 'center', gap: 13, borderRadius: 18, paddingVertical: 14, paddingHorizontal: 16 },

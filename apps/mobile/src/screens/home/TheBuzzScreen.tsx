@@ -80,7 +80,6 @@ export default function TheBuzzScreen() {
       ) : (
         <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
           <Text style={s.issueTitle}>{issue.title}</Text>
-          {issue.intro ? <Text style={s.issueIntro} numberOfLines={2}>{issue.intro}</Text> : null}
 
           <View style={s.list}>
             {newsItems.map((item, i) => (
@@ -128,7 +127,7 @@ function BuzzItem({ item, kind, num, lang, t }: {
       >
         <View style={[s.numChip, { backgroundColor: hue.chip }]}><Text style={s.numChipT}>{String(num).padStart(2, '0')}</Text></View>
         <View style={{ flex: 1, minWidth: 0 }}>
-          <Text style={[s.itemTag, { color: hue.ink }]}>{tag}</Text>
+          {isMyth ? <Text style={[s.itemTag, { color: hue.ink }]}>{tag}</Text> : null}
           <Text style={s.itemTitle}>{headline}</Text>
         </View>
         <Text style={[s.itemToggle, { color: hue.chip }, open && s.itemToggleOpen]}>›</Text>
@@ -165,8 +164,8 @@ const s = StyleSheet.create({
   emptyBody: { fontFamily: FONTS.v2_body, fontSize: 14, color: COLORS.v2_walnut, textAlign: 'center', lineHeight: 20, marginTop: 4 },
 
   scroll: { padding: 22, paddingTop: 20, paddingBottom: 48 },
-  issueTitle: { fontFamily: FONTS.v2_display, fontSize: 27, lineHeight: 31, color: COLORS.v2_cocoa, letterSpacing: -0.5 },
-  issueIntro: { fontFamily: FONTS.v2_body, fontSize: 14, color: COLORS.v2_walnut, lineHeight: 20, marginTop: 7 },
+  issueTitle: { fontFamily: FONTS.v2_display, fontSize: 22, lineHeight: 27, color: COLORS.v2_cocoa, letterSpacing: -0.3 },
+  issueIntro: { fontFamily: FONTS.v2_body, fontSize: 13.5, color: COLORS.v2_walnut, lineHeight: 20, marginTop: 7 },
 
   // Vibrant colour-cycled cards — each topic pops in its own hue, none blend
   list: { marginTop: 22, gap: 12 },
@@ -175,7 +174,7 @@ const s = StyleSheet.create({
   numChip: { width: 32, height: 32, borderRadius: 10, alignItems: 'center', justifyContent: 'center', marginTop: 1 },
   numChipT: { fontFamily: FONTS.v2_display, fontSize: 14, color: '#FFF9F2' },
   itemTag: { fontFamily: FONTS.v2_mono, fontSize: 9.5, letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 4 },
-  itemTitle: { fontFamily: FONTS.v2_display, fontSize: 17.5, color: COLORS.v2_cocoa, letterSpacing: -0.3, lineHeight: 22 },
+  itemTitle: { fontFamily: FONTS.v2_display, fontSize: 16, color: COLORS.v2_cocoa, letterSpacing: -0.2, lineHeight: 21 },
   itemToggle: { fontFamily: FONTS.v2_body, fontSize: 22, lineHeight: 24, marginTop: 3, width: 14, textAlign: 'center' },
   itemToggleOpen: { transform: [{ rotate: '90deg' }] },
   itemBody: { paddingLeft: 60, paddingRight: 15, paddingBottom: 16, marginTop: -4, gap: 10 },
