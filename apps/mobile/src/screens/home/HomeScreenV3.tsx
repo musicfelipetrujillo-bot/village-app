@@ -394,13 +394,21 @@ export default function HomeScreenV3() {
   const scrollY = useRef(new Animated.Value(0)).current;
 
   // The Buzz — this week's published trending-topics issue, if any.
+  //
+  // The row is absent unless we positively know there is an issue, so a failed
+  // lookup must NOT write null: that turns "we couldn't ask" into "there is no
+  // Buzz this week" and the entry point silently disappears. `getCurrentIssue`
+  // now throws instead of returning null when the session isn't ready (see
+  // lib/requireSession.ts), so swallowing the error here keeps the last known
+  // good value and the next focus retries.
   const [buzzIssue, setBuzzIssue] = React.useState<TheBuzzArchiveRow | null>(null);
   useFocusEffect(
     React.useCallback(() => {
+      let cancelled = false;
       theBuzzApi.getCurrentIssue()
-        .then((issue) => setBuzzIssue(issue))
-        .catch(() => setBuzzIssue(null));
-      return () => {};
+        .then((issue) => { if (!cancelled) setBuzzIssue(issue); })
+        .catch(() => { /* transient — keep what we had rather than blanking the row */ });
+      return () => { cancelled = true; };
     }, []),
   );
 

@@ -11,6 +11,7 @@ import { COLORS, FONTS } from '@utils/constants';
 import { useT } from '@/i18n';
 import { useUserStore } from '@store/user';
 import { theBuzzApi, type TheBuzzIssue, type TheBuzzItem } from '@api/theBuzz';
+import { isNoSession } from '@/lib/requireSession';
 import type { HomeStackParamList } from '@/navigation/HomeNavigator';
 
 type Route = RouteProp<HomeStackParamList, 'TheBuzz'>;
@@ -42,7 +43,9 @@ export default function TheBuzzScreen() {
           : await theBuzzApi.getCurrentIssue();
         if (!cancelled) setIssue(data);
       } catch (e: any) {
-        if (!cancelled) setError(e?.message ?? t('theBuzz.loadError'));
+        // `no_session` is an internal signal (the read ran before the auth
+        // token was attached), never something to show a mother.
+        if (!cancelled) setError(isNoSession(e) ? t('theBuzz.loadError') : (e?.message ?? t('theBuzz.loadError')));
       } finally {
         if (!cancelled) setLoading(false);
       }
