@@ -71,7 +71,7 @@ export default function TheBuzzScreen() {
       </View>
 
       {loading ? (
-        <View style={s.center}><ActivityIndicator color="#C24A63" /></View>
+        <View style={s.center}><ActivityIndicator color="#D96C88" /></View>
       ) : error ? (
         <View style={s.center}><Text style={s.errorText}>{error}</Text></View>
       ) : !issue ? (
@@ -102,7 +102,7 @@ export default function TheBuzzScreen() {
 // shares the rose hue; "myth vs fact" gets its own gold hue. So the colour
 // tells you the type at a glance — the number chip + headline keep each card
 // distinct within a category.
-const TRENDING_HUE = { chip: '#C24A63', tint: '#FBE6EC', edge: 'rgba(194,74,99,0.24)', ink: '#9E2F4C' };
+const TRENDING_HUE = { chip: '#D96C88', tint: '#FCEDEF', edge: 'rgba(217,108,136,0.16)', ink: '#A2455C' };
 const MYTH_HUE = { chip: '#BE851F', tint: '#F8EECC', edge: 'rgba(190,133,31,0.28)', ink: '#8A6012' };
 
 // A vibrant topic card — collapsed shows a coloured number chip + headline you
@@ -158,7 +158,7 @@ const s = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(61,31,14,0.10)',
   },
   backBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
-  backChevron: { fontSize: 30, color: '#C24A63', marginTop: -4 },
+  backChevron: { fontSize: 30, color: '#D96C88', marginTop: -4 },
   headerTitle: { fontFamily: FONTS.headerBold, fontSize: 24, color: COLORS.v2_cocoa, letterSpacing: -0.5 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 8 },
   errorText: { fontFamily: FONTS.v2_body, fontSize: 14, color: COLORS.v2_cocoa, textAlign: 'center' },
@@ -180,7 +180,10 @@ const s = StyleSheet.create({
   // made every card read as shouting and nothing scanned.
   numChipT: { fontFamily: FONTS.v2_mono_light, fontSize: 13, color: '#FFF9F2', letterSpacing: 0.3 },
   itemTag: { fontFamily: FONTS.v2_mono_light, fontSize: 9.5, letterSpacing: 1.3, textTransform: 'uppercase', marginBottom: 4 },
-  itemTitle: { fontFamily: FONTS.v2_display, fontSize: 16, color: COLORS.v2_cocoa, letterSpacing: -0.1, lineHeight: 22 },
+  // Article headlines sit in the LIGHT display weight (Bricolage 400), not the
+  // 700 bold — a wall of bold headlines was the "too much bold" complaint. The
+  // colour chip + size carry the hierarchy now; the headline just reads calmly.
+  itemTitle: { fontFamily: FONTS.v2_display_regular, fontSize: 16.5, color: COLORS.v2_cocoa, letterSpacing: -0.1, lineHeight: 23 },
   itemToggle: { fontFamily: FONTS.v2_body, fontSize: 22, lineHeight: 24, marginTop: 3, width: 14, textAlign: 'center' },
   itemToggleOpen: { transform: [{ rotate: '90deg' }] },
   itemBody: { paddingLeft: 60, paddingRight: 15, paddingBottom: 16, marginTop: -4, gap: 10 },

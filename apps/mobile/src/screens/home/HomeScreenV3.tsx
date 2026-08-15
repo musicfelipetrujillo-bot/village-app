@@ -216,9 +216,11 @@ function WeekRingHero({ firstName, babyName, weekNumber, expecting, onOpenManual
       >
         <Image source={WEEK_SEAL} style={styles.weekSeal} resizeMode="contain" />
         <View style={styles.ringCenter} pointerEvents="none">
-          <Text style={styles.ringWeekLabel}>{(lang === 'es' ? 'semana' : 'week')}</Text>
-          <Text style={styles.ringNumber} numberOfLines={1} allowFontScaling={false}>{weekNumber}</Text>
-          <Text style={styles.ringBabyName} numberOfLines={1}>{babyName.toLowerCase()}</Text>
+          <View style={styles.ringNumWrap}>
+            <Text style={styles.ringWeekLabel} numberOfLines={1}>{(lang === 'es' ? 'semana' : 'week')}</Text>
+            <Text style={styles.ringNumber} numberOfLines={1} allowFontScaling={false}>{weekNumber}</Text>
+            <Text style={styles.ringBabyName} numberOfLines={1}>{babyName.toLowerCase()}</Text>
+          </View>
         </View>
       </TouchableOpacity>
 
@@ -231,7 +233,9 @@ function WeekRingHero({ firstName, babyName, weekNumber, expecting, onOpenManual
           ? (lang === 'es' ? 'Prepárate para la llegada del bebé' : 'Get ready for baby')
           : (lang === 'es' ? "Abre el manual de esta semana" : "Open this week's manual")}
       >
-        <Text style={styles.heroTapHintText}>{tapHint}</Text>
+        <LinearGradient colors={['#E14A32', '#EE9A38']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.heroTapPill}>
+          <Text style={styles.heroTapHintText}>{tapHint}</Text>
+        </LinearGradient>
       </TouchableOpacity>
     </LinearGradient>
   );
@@ -585,36 +589,56 @@ const styles = StyleSheet.create({
   topBellDot: { position: 'absolute', top: 9, right: 10, width: 9, height: 9, borderRadius: 5, backgroundColor: '#C24A63', borderWidth: 1.5, borderColor: '#FBF4E6' },
   heroGreet: { fontFamily: FONTS.v2_body, fontSize: 15, color: '#A85A63' },
   heroGreetName: { fontFamily: FONTS.v3_display_italic, fontSize: 23, color: '#C24A63' },
-  ringWrap: { marginTop: 14, width: 252, height: 252, alignItems: 'center', justifyContent: 'center' },
-  weekSeal: { width: 252, height: 252 },
-  ringCenter: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center' },
+  ringWrap: { marginTop: 16, width: 214, height: 214, alignItems: 'center', justifyContent: 'center' },
+  weekSeal: { width: 214, height: 214 },
+  ringCenter: {
+    position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  // The NUMBER is the centered anchor: this wrap sizes to the number alone, so
+  // ringCenter centers IT on the wax face. The eyebrow + name are absolutely
+  // positioned above/below and can't pull the number off-centre.
+  ringNumWrap: { alignItems: 'center', justifyContent: 'center' },
   // Her baby's name, not a label. At 12px mono against a 76px week number it
   // read as chrome — the eye went straight past it to the digits (founder,
   // 2026-08-12). Sized up to sit as the ring's subject: Playfair display so it
   // reads as a NAME, deeper raspberry for contrast on the cream disc, and the
   // wide mono tracking dropped since it fought legibility at this size. Still
   // well under the 76px number, so the week stays the anchor.
-  // The week number lives INSIDE the wax seal now (founder-supplied blank seal,
-  // 2026-08-15). The old raspberry read low-contrast on the orange wax, so the
-  // number + name are cocoa ink — the same dark tone you'd stamp into wax.
-  // Stack: a small "week" eyebrow, the big number, then her baby's name.
+  // The week number lives INSIDE the wax seal (founder-supplied blank seal,
+  // 2026-08-15). Dark cocoa read too harsh on the orange, so the type is soft
+  // cream — like light catching the wax. Whole emblem is ONE font (Playfair /
+  // v3_display) to respect the app's 3-font ceiling. Eyebrow + name are
+  // absolutely positioned around the number so the number stays optically centred.
   ringWeekLabel: {
-    fontFamily: FONTS.bodySemiBold, fontSize: 12.5, letterSpacing: 1.4, textTransform: 'uppercase',
-    color: 'rgba(67,38,15,0.62)', marginBottom: -2,
+    position: 'absolute', bottom: '100%', left: -140, right: -140, textAlign: 'center',
+    fontFamily: FONTS.v3_display, fontSize: 13, lineHeight: 15, letterSpacing: 2,
+    textTransform: 'uppercase', color: 'rgba(253,244,224,0.78)', marginBottom: 2,
+    textShadowColor: 'rgba(58,24,10,0.40)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 2,
   },
+  // Cream type + a soft dark drop shadow so it lifts off the orange wax and
+  // reads without going harsh (founder pick, 2026-08-15).
   ringNumber: {
-    fontFamily: FONTS.v3_display, fontSize: 82, lineHeight: 84, color: '#43260F',
-    letterSpacing: -2, textAlign: 'center',
+    fontFamily: FONTS.v3_display, fontSize: 76, lineHeight: 80, color: '#FBF4E4',
+    letterSpacing: -1.5, textAlign: 'center',
+    textShadowColor: 'rgba(58,24,10,0.55)', textShadowOffset: { width: 0, height: 3 }, textShadowRadius: 5,
   },
   ringBabyName: {
-    fontFamily: FONTS.v3_display, fontSize: 21, lineHeight: 24, letterSpacing: -0.3,
-    textTransform: 'lowercase', color: '#6C4628', marginTop: 2,
+    position: 'absolute', top: '100%', left: -140, right: -140, textAlign: 'center',
+    fontFamily: FONTS.v3_display, fontSize: 19, lineHeight: 22, letterSpacing: -0.3,
+    textTransform: 'lowercase', color: '#F2E4C8', marginTop: 2,
+    textShadowColor: 'rgba(58,24,10,0.45)', textShadowOffset: { width: 0, height: 2 }, textShadowRadius: 3,
   },
-  // The hero's single bold spark — solid scarlet against the pink field.
+  // The hero's single warm spark — scarlet→amber gradient so it harmonises
+  // with the orange seal instead of reading as a flat red block on the pink
+  // field (the flat red felt "discombobulated" — founder, 2026-08-15).
   heroTapHint: {
-    marginTop: 20, backgroundColor: '#E14A32', borderRadius: 999,
-    paddingHorizontal: 18, paddingVertical: 9,
-    shadowColor: '#E14A32', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.28, shadowRadius: 10, elevation: 3,
+    marginTop: 20, borderRadius: 999,
+    shadowColor: '#E1732F', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.26, shadowRadius: 10, elevation: 3,
+  },
+  heroTapPill: {
+    borderRadius: 999, paddingHorizontal: 18, paddingVertical: 9,
+    alignItems: 'center', justifyContent: 'center',
   },
   heroTapHintText: { fontFamily: FONTS.bodyBold, fontSize: 11.5, color: '#FFF3E4', letterSpacing: 0.6, textTransform: 'uppercase' },
 
