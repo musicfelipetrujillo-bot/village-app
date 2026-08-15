@@ -96,15 +96,12 @@ export default function TheBuzzScreen() {
   );
 }
 
-// Each topic cycles through the app's vibrant palette so items pop + stay
-// distinct (not brown-on-cream that blends). Myth is always the wine hue.
-const HUES = [
-  { chip: '#C24A63', tint: '#FBE6EC', edge: 'rgba(194,74,99,0.24)', ink: '#9E2F4C' },  // rose
-  { chip: '#C46A45', tint: '#F8E6D9', edge: 'rgba(196,106,69,0.24)', ink: '#A8552B' }, // terracotta
-  { chip: '#BE851F', tint: '#F8EECC', edge: 'rgba(190,133,31,0.26)', ink: '#8A6012' }, // gold
-  { chip: '#6F7A43', tint: '#EBEED4', edge: 'rgba(111,122,67,0.26)', ink: '#525C2C' }, // olive
-];
-const MYTH_HUE = { chip: '#A8466B', tint: '#F5E0EA', edge: 'rgba(168,70,107,0.24)', ink: '#8A3556' };
+// Colour encodes the CATEGORY, not the item: every "trending this week" topic
+// shares the rose hue; "myth vs fact" gets its own gold hue. So the colour
+// tells you the type at a glance — the number chip + headline keep each card
+// distinct within a category.
+const TRENDING_HUE = { chip: '#C24A63', tint: '#FBE6EC', edge: 'rgba(194,74,99,0.24)', ink: '#9E2F4C' };
+const MYTH_HUE = { chip: '#BE851F', tint: '#F8EECC', edge: 'rgba(190,133,31,0.28)', ink: '#8A6012' };
 
 // A vibrant topic card — collapsed shows a coloured number chip + headline you
 // can scan; tap opens the short read (fact/summary + optional "ask" + source).
@@ -114,7 +111,7 @@ function BuzzItem({ item, kind, num, lang, t }: {
 }) {
   const [open, setOpen] = React.useState(false);
   const isMyth = kind === 'myth';
-  const hue = isMyth ? MYTH_HUE : HUES[(num - 1) % HUES.length];
+  const hue = isMyth ? MYTH_HUE : TRENDING_HUE;
   const headline = isMyth ? localized(item, 'myth_claim', lang) : localized(item, 'title', lang);
   const body = isMyth ? localized(item, 'fact', lang) : localized(item, 'summary', lang);
   const ask = localized(item, 'ask_provider', lang);
