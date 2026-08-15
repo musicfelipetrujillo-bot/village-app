@@ -685,7 +685,7 @@ function pbDayDeck(period: PbPeriod, night: PbNight | null, lang: 'en' | 'es'): 
 // ─── Week-level "this week" specialist video ───────────────────────────
 // Sits above the chapter chips — one overview clip per week, same spot every
 // week. Hidden entirely when there's no published video for the week.
-function WeekIntroCard({ data, onPress, lang = 'en' }: { data: WeekIntroVideo; onPress: () => void; lang?: 'en' | 'es' }) {
+function WeekIntroCard({ data, onPress, lang = 'en', posterSource }: { data: WeekIntroVideo; onPress: () => void; lang?: 'en' | 'es'; posterSource?: any }) {
   const dur = data.duration_seconds ? formatDuration(data.duration_seconds) : null;
   const byline = [data.expert_name, data.expert_role].filter(Boolean).join(' · ');
   // villie pro gate (migration 110): a locked row carries teaser metadata but
@@ -703,6 +703,8 @@ function WeekIntroCard({ data, onPress, lang = 'en' }: { data: WeekIntroVideo; o
         : data.title}
     >
       <LinearGradient colors={['#F0B68C', '#E98A6A', '#E14A32']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.wiHero}>
+        {posterSource ? <Image source={posterSource} style={styles.wiPoster} resizeMode="cover" /> : null}
+        {posterSource ? <View style={styles.wiPosterScrim} /> : null}
         <View style={locked ? styles.wiBadgePro : styles.wiBadge}>
           <Text style={styles.wiBadgeText}>{locked ? 'PRO' : (lang === 'es' ? 'ESTA SEMANA' : 'THIS WEEK')}</Text>
         </View>
@@ -745,6 +747,12 @@ const PLACEHOLDER_WEEK_INTRO: WeekIntroVideo = {
   poster_url: null,
   duration_seconds: 96,
 };
+
+// TEMP grow demo placeholder (2026-08-12) — a real filmed clip's poster (from a
+// Grow "spinning objects" reel) so we can see how a filmed demo reads in the
+// hero. Shown only on the Grow category; playback still uses the sample Mux
+// clip until the real video is uploaded to Mux.
+const GROW_DEMO_POSTER = require('../../../assets/manual/grow-spinning.jpg');
 
 // ─── Screen ────────────────────────────────────────────────────────────
 export default function ManualScrollV3() {
@@ -1384,7 +1392,14 @@ export default function ManualScrollV3() {
             every week. Hidden until a published video exists for this week. */}
         {weekIntro && (
           <View style={{ paddingHorizontal: 20 }}>
-            <WeekIntroCard data={weekIntro} onPress={openWeekIntro} lang={lang} />
+            <WeekIntroCard
+              data={chapter.cat === 'grow'
+                ? { ...weekIntro, title: 'Capturing Spinning Objects', expert_name: 'Grow demo', expert_role: 'watch how' }
+                : weekIntro}
+              onPress={openWeekIntro}
+              lang={lang}
+              posterSource={chapter.cat === 'grow' ? GROW_DEMO_POSTER : undefined}
+            />
           </View>
         )}
         {/* Category chips — quiet row, no section-head chrome (2026-08-12).
@@ -1536,7 +1551,9 @@ const styles = StyleSheet.create({
 
   // ── Week-level "this week" video card ──────────────────────────────────
   wiCard: { marginTop: 18, borderRadius: 18, overflow: 'hidden', borderWidth: 2, borderColor: T.cinnamon },
-  wiHero: { height: 120, alignItems: 'center', justifyContent: 'center', position: 'relative' },
+  wiHero: { height: 176, alignItems: 'center', justifyContent: 'center', position: 'relative' },
+  wiPoster: { ...StyleSheet.absoluteFillObject, width: undefined, height: undefined },
+  wiPosterScrim: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(41,20,8,0.22)' },
 
   // before-baby pinned card
   bbCard: { flexDirection: 'row', alignItems: 'center', gap: 13, borderRadius: 18, paddingVertical: 14, paddingHorizontal: 16 },
