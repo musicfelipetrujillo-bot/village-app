@@ -28,23 +28,27 @@ const GRAD: [string, string] = ['#E14A32', '#F2C75E'];
 // has free/busy + find_specialists + find_events, so it reconciles the ask with
 // her open windows. Each carries its own accent (rose / honey / caramel) so the
 // chips read as distinct, premium objects rather than a flat stacked list.
+// Display text is deliberately two or three words per row. The section had an
+// eyebrow, a title, a sentence of explanation AND a subtitle per chip — four
+// layers of copy to say "tap this and villie finds you a slot". The seeds below
+// are the long version, and they're the part the assistant actually reads.
 type PlanPrompt = {
-  emoji: string; label: string; sub: string; seed: string;
+  emoji: string; label: string; seed: string;
   tile: [string, string]; arrow: string; border: string;
 };
 const PLAN_PROMPTS: PlanPrompt[] = [
   {
-    emoji: '🩺', label: 'see a specialist this week', sub: 'a free window near you',
+    emoji: '🩺', label: 'a specialist',
     seed: 'Help me find time this week to see a specialist near me that fits my schedule — suggest a day and time I\'m free.',
     tile: ['#FBD9E1', '#F7C0CE'], arrow: '#C24A63', border: '#F4DBDF',
   },
   {
-    emoji: '🧘‍♀️', label: 'a class that fits my week', sub: 'postpartum-friendly, nearby',
+    emoji: '🧘‍♀️', label: 'a class',
     seed: 'Find me a postpartum-friendly class near me that fits into my schedule this week.',
     tile: ['#FCEBBE', '#F6D876'], arrow: '#CE9A16', border: '#F0E3BF',
   },
   {
-    emoji: '💪', label: 'fit in a workout', sub: 'a short slot that\'s open',
+    emoji: '💪', label: 'a workout',
     seed: 'When this week could I fit a short postpartum-friendly workout near me?',
     tile: ['#FBDCCB', '#F2B79E'], arrow: '#DA7A56', border: '#F1DDCF',
   },
@@ -333,22 +337,15 @@ function PlanView({ plan, building, babyName, onChangeRhythm, onPlan, onEdit, in
           <LinearGradient colors={GRAD} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.planBee}>
             <Text style={s.planBeeEmoji}>🐝</Text>
           </LinearGradient>
-          <View style={s.planHeadText}>
-            <Text style={s.planEyebrow}>PLAN SOMETHING</Text>
-            <Text style={s.planSectionTitle}>villie finds the time</Text>
-          </View>
+          <Text style={s.planSectionTitle}>villie finds the time</Text>
         </View>
-        <Text style={s.planSectionSub}>tell her what you need — she fits it around care, classes, and your calendar.</Text>
 
         {PLAN_PROMPTS.map((p) => (
-          <TouchableOpacity key={p.label} style={[s.planChip, { borderColor: p.border, shadowColor: p.arrow }]} activeOpacity={0.85} onPress={() => onPlan(p.seed)} accessibilityRole="button" accessibilityLabel={`${p.label}, ${p.sub}`}>
+          <TouchableOpacity key={p.label} style={[s.planChip, { borderColor: p.border, shadowColor: p.arrow }]} activeOpacity={0.85} onPress={() => onPlan(p.seed)} accessibilityRole="button" accessibilityLabel={`Find time for ${p.label}`}>
             <LinearGradient colors={p.tile} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.planChipTile}>
               <Text style={s.planChipEmoji}>{p.emoji}</Text>
             </LinearGradient>
-            <View style={s.planChipBody}>
-              <Text style={s.planChipText}>{p.label}</Text>
-              <Text style={s.planChipSub}>{p.sub}</Text>
-            </View>
+            <Text style={s.planChipText}>{p.label}</Text>
             <View style={[s.planChipArrow, { backgroundColor: p.arrow, shadowColor: p.arrow }]}>
               <Text style={s.planChipArrowGlyph}>→</Text>
             </View>
@@ -455,13 +452,10 @@ const s = StyleSheet.create({
     shadowColor: HONEY, shadowOpacity: 0.12, shadowRadius: 14, shadowOffset: { width: 0, height: 8 }, elevation: 3,
   },
   planAccentBar: { position: 'absolute', top: 0, left: 22, right: 22, height: 3, borderBottomLeftRadius: 3, borderBottomRightRadius: 3 },
-  planHead: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 3 },
+  planHead: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 13 },
   planBee: { width: 34, height: 34, borderRadius: 12, alignItems: 'center', justifyContent: 'center', shadowColor: ROSE, shadowOpacity: 0.3, shadowRadius: 8, shadowOffset: { width: 0, height: 4 }, elevation: 2 },
   planBeeEmoji: { fontSize: 17 },
-  planHeadText: { flex: 1 },
-  planEyebrow: { fontFamily: FONTS.v2_mono, fontSize: 8.5, letterSpacing: 1.6, color: HONEY, marginBottom: 1 },
-  planSectionTitle: { fontFamily: FONTS.v2_display, fontSize: 19, color: INK },
-  planSectionSub: { fontFamily: FONTS.v2_body, fontSize: 11.5, color: INKSOFT, lineHeight: 16, marginTop: 4, marginBottom: 13 },
+  planSectionTitle: { flex: 1, fontFamily: FONTS.v2_display, fontSize: 19, color: INK },
   planChip: {
     flexDirection: 'row', alignItems: 'center', gap: 11, backgroundColor: '#FFFDF9',
     borderWidth: 1, borderRadius: 15, paddingVertical: 10, paddingHorizontal: 11, marginBottom: 8,
@@ -469,9 +463,9 @@ const s = StyleSheet.create({
   },
   planChipTile: { width: 38, height: 38, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   planChipEmoji: { fontSize: 18 },
-  planChipBody: { flex: 1 },
-  planChipText: { fontFamily: FONTS.bodyBold, fontSize: 13.5, color: INK },
-  planChipSub: { fontFamily: FONTS.bodyMedium, fontSize: 10.5, color: '#A7876A', marginTop: 1 },
+  // flex:1 moved onto the label itself — it used to sit on the wrapper View
+  // that held the label + its subtitle, and without it the arrow slides left.
+  planChipText: { flex: 1, fontFamily: FONTS.bodyBold, fontSize: 14, color: INK },
   planChipArrow: { width: 26, height: 26, borderRadius: 13, alignItems: 'center', justifyContent: 'center', shadowOpacity: 0.35, shadowRadius: 6, shadowOffset: { width: 0, height: 3 }, elevation: 2 },
   planChipArrowGlyph: { fontFamily: FONTS.v2_bold, fontSize: 14, color: '#fff', marginTop: -1 },
   changeRhythm: { alignSelf: 'center', paddingVertical: 10, paddingHorizontal: 16 },
