@@ -21,6 +21,33 @@ Design + decisions: `docs/superpowers/specs/2026-07-29-villie-pro-video-paywall-
 - ✅ `revenuecat-webhook` edge function deployed (`--no-verify-jwt`).
 - ✅ Client: `lib/pro.ts`, `PaywallScreen` + root modal route, locked teaser cards (week-intro, category list, deep-dive, ClipPlayer backstop), EN+ES copy, `react-native-purchases` dep, `configureProPurchases` in `App.tsx`. `tsc` clean.
 
+## Also done (2026-08-13)
+
+- ✅ **Live storefront pricing.** `fetchProPricing()` reads the `current`
+  offering and the paywall renders `priceString` / a derived per-month / a
+  computed savings % instead of hardcoded `$49.99` + `$6.99` + "save 40%".
+  The US constants remain as fallbacks if StoreKit doesn't answer.
+- ✅ **Intro-offer eligibility.** A returning subscriber is not eligible for
+  the 7-day trial and would be charged immediately, so the CTA and fine print
+  swap to `ctaNoTrial` / `finePrint*NoTrial` when StoreKit says ineligible.
+  Unknown answers keep the trial copy.
+- ✅ **Me → Subscription section.** Status row (with an "Active" pill),
+  Manage subscription → `apps.apple.com/account/subscriptions`, and Restore
+  purchases for a non-subscriber. Rendered only when `EXPO_PUBLIC_PRO_ENABLED`
+  is set, so OTA-only bundles don't dead-end. This is also the only upgrade
+  entry point outside the Manual's locked video cards.
+- ✅ **Gear Boost is localized** — `BoostListingScreen` moved to `boost.*`
+  i18n keys, EN + ES. (Its footer note also stopped saying "cancel anytime,
+  it just won't renew" — Boost is a one-time consumable, nothing renews.)
+- ✅ **Entitlement durability.** `revenuecat-webhook` now handles `TRANSFER`
+  (revokes the losing app_user_ids, resolves the gaining ones against the RC
+  REST API) — previously a transfer left the old account `is_pro = TRUE`
+  forever. New `pro-entitlement-reconcile` edge function + nightly cron
+  (`40 6 * * *`, 02:40 ET) repairs drift in both directions for anyone
+  flagged Pro or carrying a subscription event. **Both need
+  `REVENUECAT_SECRET_KEY`**; without it the reconcile returns a healthy
+  no-op rather than treating "unknown" as "not entitled".
+
 Nothing is user-visible yet: the DB flag is off and `EXPO_PUBLIC_PRO_ENABLED` is unset.
 
 ## Steps to go live
@@ -49,13 +76,23 @@ Nothing is user-visible yet: the DB flag is off and `EXPO_PUBLIC_PRO_ENABLED` is
 | Where | Key | Value |
 |---|---|---|
 | Supabase secrets | `REVENUECAT_WEBHOOK_AUTH` | same token as the RC webhook header |
-| Supabase secrets | `REVENUECAT_SECRET_KEY` | RC secret key (Gear Boost receipt verification) |
+| Supabase secrets | `REVENUECAT_SECRET_KEY` | RC secret key — Gear Boost receipt verification, TRANSFER resolution, nightly reconcile |
 | EAS build env | `EXPO_PUBLIC_REVENUECAT_IOS_KEY` | RC **public** SDK key |
 | EAS build env | `EXPO_PUBLIC_PRO_ENABLED` | `1` |
 | EAS build env | `EXPO_PUBLIC_GEAR_BOOST_ENABLED` | `1` |
 | EAS build env | `SENTRY_AUTH_TOKEN` / `SENTRY_ORG` / `SENTRY_PROJECT` | for source-map upload |
 
 Dev-only: `EXPO_PUBLIC_PRO_SIMULATE=1` forces `isProUser()` true in `__DEV__` so gated UI can be exercised without a purchase.
+
+Then redeploy the two entitlement functions so they pick the secret up:
+
+```bash
+supabase functions deploy revenuecat-webhook --no-verify-jwt
+supabase functions deploy pro-entitlement-reconcile
+```
+
+⚠️ `functions deploy` bundles the **working tree**, not HEAD — commit or stash
+unrelated edits first.
 
 ### 4. Native build (iOS 26 fixes — memory `project_ios26_build_fixes.md`)
 
@@ -101,7 +138,13 @@ Old bundles degrade quietly rather than showing a broken player, because both re
 
 ## Open items before flipping
 
-- [ ] Privacy Policy: disclose the RevenueCat processor + subscription data (`https://villieapp.com/privacy` is linked from the paywall).
+- [ ] **Privacy Policy** (`village-website/privacy.html`): no mention of
+      RevenueCat or of subscription data anywhere in §5 Service providers —
+      and the paywall links straight to it. Needs a processor row before a
+      single purchase happens.
+- [ ] **Terms** (`village-website/terms.html:105`) still says *"The Service is
+      currently free for families"* and only contemplates Stripe. Counsel
+      territory, but it cannot say "free" while a subscription is live.
 - [ ] Terms of Use: paywall currently links Apple's standard EULA — swap for the villie ToS when counsel publishes it (update here **and** in App Store Connect metadata).
-- [ ] Gear Boost i18n: `BoostListingScreen.tsx` copy is English-only (flagged in the Gear Boost runbook).
+- [x] ~~Gear Boost i18n~~ — done 2026-08-13, `boost.*` keys in EN + ES.
 - [ ] Decide whether Playbook / mom hacks join the `pro` entitlement when V5 5.3 content ships (paywall copy promises videos only today).

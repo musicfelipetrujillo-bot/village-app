@@ -88,6 +88,13 @@ function LookGlyph({ color = LABEL }: { color?: string }) {
     </Svg>
   );
 }
+function ReadGlyph({ color = LABEL }: { color?: string }) {
+  return (
+    <Svg width={15} height={15} viewBox="0 0 24 24">
+      <Path d="M4 5.5h16M4 10h16M4 14.5h11" fill="none" stroke={color} strokeWidth={1.9} strokeLinecap="round" />
+    </Svg>
+  );
+}
 
 function ModuleLabel({ type, icon, divider }: { type: string; icon?: React.ReactNode; divider?: boolean }) {
   return (
@@ -103,11 +110,19 @@ function ModuleLabel({ type, icon, divider }: { type: string; icon?: React.React
 
 function ChecklistModule({ data, lang, embedded, flat }: { data: Checklist; lang: Lang; embedded?: boolean; flat?: boolean }) {
   const [done, setDone] = useState<Record<number, boolean>>({});
+  const doneCount = data.items.filter((_, i) => done[i]).length;
   return (
     <View>
       {!embedded && <ModuleLabel type={CH.checklist[lang]} icon={<CheckGlyph />} />}
       {!embedded && <Text style={s.panelTitle}>{data.title}</Text>}
-      <View style={flat ? s.flatList : s.panel}>
+      {flat ? (
+        <Text style={s.panelLead}>
+          {doneCount > 0
+            ? `${doneCount} ${lang === 'es' ? 'de' : 'of'} ${data.items.length} ${lang === 'es' ? 'hechas' : 'done'}`
+            : (lang === 'es' ? 'Marca cada una a tu ritmo.' : 'Check each off as the week goes.')}
+        </Text>
+      ) : null}
+      <View style={flat ? s.checkCard : s.panel}>
         {data.items.map((it, i) => {
           const on = !!done[i];
           return (
@@ -123,7 +138,6 @@ function ChecklistModule({ data, lang, embedded, flat }: { data: Checklist; lang
               <View style={[s.bx, on && s.bxOn]}>{on && <Text style={s.bxCheck}>✓</Text>}</View>
               <Text style={s.ciText}>
                 <Text style={[s.ciLabel, on && s.ciLabelOn]}>{it.label}</Text>
-                {it.note ? <Text style={s.ciNote}>  — {it.note}</Text> : null}
               </Text>
             </TouchableOpacity>
           );
@@ -207,7 +221,7 @@ function InfographicModule({ data, lang, embedded }: { data: Info; lang: Lang; e
     <View>
       {!embedded && <ModuleLabel type={CH.info[lang]} icon={<GlanceGlyph />} divider />}
       <LinearGradient colors={['#FDF0DC', '#FDECEF']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={[s.info, embedded && s.infoEmb]}>
-        {!embedded && <Text style={s.infoTitle}>{data.title}</Text>}
+        <Text style={s.infoTitle}>{data.title}</Text>
 
         {data.kind === 'wakewindows' && (() => {
           // A rising CURVE (not bars) — "awake time ramps up fast" as one shape.
@@ -488,30 +502,89 @@ function QuickAnswer({ data, first, lang }: { data: Article; first?: boolean; la
       {open ? (
         <View style={s.qaBody}>
           <Text style={s.qaA}>{data.answer}</Text>
-          <Text style={s.qaBy}>— {data.name}{data.role ? `, ${data.role}` : ''}</Text>
+          <Text style={s.qaBy}>— {data.name}</Text>
         </View>
       ) : null}
     </View>
   );
 }
 
-// "Your tools" — a link that activates the week into one of Vili's own tools.
-function ToolLink({ glyph, title, sub, onPress }: { glyph: string; title: string; sub: string; onPress: () => void }) {
+// "Tools" tab — a Vili tool as a full-width row (icon + label + chevron).
+function ToolRow({ glyph, label, onPress }: { glyph: string; label: string; onPress: () => void }) {
   return (
     <TouchableOpacity
-      style={s.tool}
+      style={s.toolRowItem}
       activeOpacity={0.9}
       onPress={() => { tap(); onPress(); }}
       accessibilityRole="button"
-      accessibilityLabel={title}
+      accessibilityLabel={label}
     >
       <View style={s.toolIcon}><Text style={s.toolGl}>{glyph}</Text></View>
-      <View style={{ flex: 1, minWidth: 0 }}>
-        <Text style={s.toolT}>{title}</Text>
-        <Text style={s.toolS} numberOfLines={1}>{sub}</Text>
-      </View>
-      <Text style={s.toolChev}>›</Text>
+      <Text style={s.toolRowT}>{label}</Text>
+      <Text style={s.toolRowChev}>›</Text>
     </TouchableOpacity>
+  );
+}
+
+// The week's menu — a full-width row with a coloured icon chip. Full-width rows
+// fill the page cleanly at any count (1–3), and the chip colour keeps them from
+// reading as bland beige boxes.
+function EntryRow({ icon, chip, tint, title, sub, onPress }: { icon: React.ReactNode; chip: string; tint: string; title: string; sub: string; onPress: () => void }) {
+  return (
+    <TouchableOpacity style={[s.hero, { backgroundColor: tint }]} activeOpacity={0.9} onPress={() => { tap(); onPress(); }} accessibilityRole="button" accessibilityLabel={`${title}. ${sub}`}>
+      <View style={[s.tileChip, { backgroundColor: chip }]}>{icon}</View>
+      <View style={{ flex: 1, minWidth: 0 }}>
+        <Text style={s.heroTitle}>{title}</Text>
+        <Text style={s.heroSub}>{sub}</Text>
+      </View>
+      <Text style={[s.heroChev, { color: chip }]}>›</Text>
+    </TouchableOpacity>
+  );
+}
+
+// A tile's panel — a slide-up sheet with a header + the content it holds.
+function TilePanel({ visible, onClose, title, lang, children }: { visible: boolean; onClose: () => void; title: string; lang: Lang; children: React.ReactNode }) {
+  return (
+    <Modal visible={visible} animationType="slide" onRequestClose={onClose} presentationStyle="pageSheet">
+      <View style={s.sheetWrap}>
+        <View style={s.sheetHandle} />
+        <View style={s.sheetBar}>
+          <Text style={s.sheetTitle} numberOfLines={1}>{title}</Text>
+          <TouchableOpacity onPress={onClose} style={s.sheetCloseBtn} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }} accessibilityRole="button" accessibilityLabel={lang === 'es' ? 'Cerrar' : 'Close'}>
+            <Text style={s.sheetClose}>✕</Text>
+          </TouchableOpacity>
+        </View>
+        <ScrollView contentContainerStyle={s.sheetScroll} showsVerticalScrollIndicator={false}>
+          {children}
+          <View style={{ height: 40 }} />
+        </ScrollView>
+      </View>
+    </Modal>
+  );
+}
+
+// "Read this week" — surfaces the teaching that's ALREADY written for a week as
+// a flowing article. Shows only where content exists (no 208-article burden).
+function StoryArticle({ story, lang }: { story: StoryCard[]; lang: Lang }) {
+  const hasClose = story.length > 1 && story[story.length - 1].color === 'blush';
+  const chapters = hasClose ? story.slice(0, -1) : story;
+  return (
+    <View>
+      {chapters.map((card, i) => (
+        <View key={i}>
+          {i > 0 ? <View style={s.artDiv} /> : null}
+          {card.eyebrow ? <Text style={s.artEyebrow}>{card.eyebrow.toUpperCase()}</Text> : null}
+          <Text style={i === 0 ? s.artLead : s.artTitle}>{(card.title ?? '').replace(/\n/g, ' ')}</Text>
+          {card.body ? <Text style={s.artBody}>{card.body}</Text> : null}
+          {card.link ? (
+            <TouchableOpacity style={s.artLink} activeOpacity={0.85} onPress={() => Linking.openURL(card.link!.url).catch(() => {})} accessibilityRole="link" accessibilityLabel={card.link.label}>
+              <Text style={s.artLinkGl}>{card.link.kind === 'shop' ? '🛍' : '↗'}</Text>
+              <Text style={s.artLinkT} numberOfLines={1}>{card.link.label}</Text>
+            </TouchableOpacity>
+          ) : null}
+        </View>
+      ))}
+    </View>
   );
 }
 
@@ -567,50 +640,115 @@ export default function ManualModules({ content, story, onAskVillie, lang = 'en'
   const L = (en: string, es: string) => (lang === 'es' ? es : en);
   const goHome = (screen: string, params?: any) =>
     navigation.getParent()?.navigate('Home' as never, { screen, params } as never);
+
+  // Dashboard tiles (2026-08-12): the video (above) answers know+how; below it,
+  // the week is a small menu of tap-tiles. Each opens its panel. "Read" only
+  // appears where the teaching is already written (no per-week article burden).
+  const [panel, setPanel] = useState<null | 'do' | 'know' | 'read'>(null);
+  const close = () => setPanel(null);
   const hasKnow = content.articles.length > 0 || !!content.info;
+  const hasRead = !!story && story.length > 0;
+  const items = content.checklist.items.length;
 
   return (
     <View style={s.wrap}>
-      {/* WHAT SHOULD I DO THIS WEEK? — the checklist, flat */}
-      <SectionHead label={L('do this week', 'para esta semana')} accent="#C24A63" />
-      <ChecklistModule data={content.checklist} lang={lang} embedded flat />
-
-      {/* WHAT DO I NEED TO KNOW? — a couple quick answers + the one visual */}
-      {hasKnow ? <SectionHead label={L('good to know', 'bueno saber')} accent="#BE851F" style={{ marginTop: 26 }} /> : null}
-      {content.articles.length ? (
-        <View style={s.qaList}>
-          {content.articles.map((a, i) => (
-            <QuickAnswer key={i} data={a} first={i === 0} lang={lang} />
-          ))}
-        </View>
-      ) : null}
-      {content.info ? (
-        <View style={{ marginTop: content.articles.length ? 14 : 0 }}>
-          <InfographicModule data={content.info} lang={lang} embedded />
-        </View>
-      ) : null}
-
-      {/* WHICH TOOL HELPS ME DO IT? — links into Vili's own tools */}
-      <SectionHead label={L('your tools', 'tus herramientas')} accent="#6F7A43" style={{ marginTop: 26 }} />
-      <View style={s.tools}>
-        <ToolLink glyph="◷" title={L('Log this week', 'Registra esta semana')}
-          sub={L('feeds, naps & diapers → Insights', 'tomas, siestas y pañales → Insights')}
-          onPress={() => goHome('Insights')} />
-        <ToolLink glyph="✦" title={L('Plan my day', 'Planea mi día')}
-          sub={L('naps + pumps around your day', 'siestas y extracciones en tu día')}
-          onPress={() => goHome('DayPlan')} />
-        {onAskVillie ? (
-          <ToolLink glyph="✎" title={L('Ask Vili', 'Pregúntale a Vili')}
-            sub={L('anything about this week, 24/7', 'lo que sea de esta semana, 24/7')}
-            onPress={onAskVillie} />
+      <View style={s.rows}>
+        <EntryRow
+          icon={<CheckGlyph color="#FFF9F2" />} chip={ROSE} tint="#FBEAEF"
+          title={L('Do this week', 'Esta semana')}
+          sub={`${items} ${items === 1 ? L('to-do', 'tarea') : L('to-dos', 'tareas')}`}
+          onPress={() => setPanel('do')}
+        />
+        {hasKnow ? (
+          <EntryRow icon={<AskGlyph color="#FFF9F2" />} chip="#BE851F" tint="#FAF3E0"
+            title={L('Good to know', 'Bueno saber')}
+            sub={content.articles.length ? `${content.articles.length} ${L('quick answers', 'respuestas')}` : L('at a glance', 'de un vistazo')}
+            onPress={() => setPanel('know')} />
+        ) : null}
+        {hasRead ? (
+          <EntryRow icon={<ReadGlyph color="#FFF9F2" />} chip="#A8466B" tint="#F6E7EE"
+            title={L('Read this week', 'Para leer')}
+            sub={L('the deeper story', 'la historia')}
+            onPress={() => setPanel('read')} />
         ) : null}
       </View>
+
+      <View style={s.strip}>
+        <TouchableOpacity style={s.stripBtn} activeOpacity={0.85} onPress={() => { tap(); goHome('Insights'); }} accessibilityRole="button" accessibilityLabel={L('Log this week', 'Registra esta semana')}>
+          <Text style={s.stripGl}>◷</Text><Text style={s.stripT}>{L('Log', 'Registra')}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={s.stripBtn} activeOpacity={0.85} onPress={() => { tap(); goHome('DayPlan'); }} accessibilityRole="button" accessibilityLabel={L('Plan my day', 'Planea mi día')}>
+          <Text style={s.stripGl}>✦</Text><Text style={s.stripT}>{L('Plan', 'Planea')}</Text>
+        </TouchableOpacity>
+        {onAskVillie ? (
+          <TouchableOpacity style={s.stripBtn} activeOpacity={0.85} onPress={() => { tap(); onAskVillie(); }} accessibilityRole="button" accessibilityLabel={L('Ask Vili', 'Pregúntale a Vili')}>
+            <Text style={s.stripGl}>✎</Text><Text style={s.stripT}>{L('Ask Vili', 'Vili')}</Text>
+          </TouchableOpacity>
+        ) : null}
+      </View>
+
+      <TilePanel visible={panel === 'do'} onClose={close} title={L('Do this week', 'Esta semana')} lang={lang}>
+        <ChecklistModule data={content.checklist} lang={lang} embedded flat />
+      </TilePanel>
+
+      <TilePanel visible={panel === 'know'} onClose={close} title={L('Good to know', 'Bueno saber')} lang={lang}>
+        <Text style={s.panelLead}>{L('Tap a question to see the answer.', 'Toca una pregunta para ver la respuesta.')}</Text>
+        {content.articles.length ? (
+          <View style={s.checkCard}>
+            {content.articles.map((a, i) => (
+              <QuickAnswer key={i} data={a} first={i === 0} lang={lang} />
+            ))}
+          </View>
+        ) : null}
+        {content.info ? (
+          <View style={{ marginTop: content.articles.length ? 16 : 0 }}>
+            <InfographicModule data={content.info} lang={lang} embedded />
+          </View>
+        ) : null}
+      </TilePanel>
+
+      <TilePanel visible={panel === 'read'} onClose={close} title={L('Read this week', 'Para leer')} lang={lang}>
+        {hasRead ? <StoryArticle story={story!} lang={lang} /> : null}
+      </TilePanel>
     </View>
   );
 }
 
 const s = StyleSheet.create({
-  wrap: { marginTop: 22, paddingHorizontal: 20 },
+  wrap: { marginTop: 20, paddingHorizontal: 20 },
+
+  // Dashboard — a hero action + a coloured-chip grid (not bland beige boxes)
+  tileChip: { width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  rows: { gap: 11 },
+  hero: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 17, paddingVertical: 18, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(67,38,15,0.08)' },
+  heroTitle: { fontFamily: FONTS.bodySemiBold, fontSize: 16, letterSpacing: -0.3, color: INK },
+  heroSub: { fontFamily: FONTS.v2_body, fontSize: 12.5, color: '#A07E70', marginTop: 2 },
+  heroChev: { fontFamily: FONTS.v2_body, fontSize: 22 },
+
+  // small tools strip under the grid
+  strip: { flexDirection: 'row', gap: 9, marginTop: 11 },
+  stripBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, paddingVertical: 13, borderRadius: 14, backgroundColor: '#FDF9EF', borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(67,38,15,0.12)' },
+  stripGl: { fontSize: 15, color: '#9E2F4C' },
+  stripT: { fontFamily: FONTS.bodySemiBold, fontSize: 13, color: INK },
+
+  // tile panel (slide-up sheet) — branded to match the app
+  sheetWrap: { flex: 1, backgroundColor: '#FBF4E6' },
+  sheetHandle: { alignSelf: 'center', width: 38, height: 4, borderRadius: 2, backgroundColor: 'rgba(67,38,15,0.16)', marginTop: 9, marginBottom: 4 },
+  sheetBar: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 20, paddingTop: 12, paddingBottom: 14, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(67,38,15,0.10)' },
+  sheetTitle: { flex: 1, fontFamily: FONTS.v3_display, fontSize: 22, letterSpacing: -0.4, color: INK },
+  sheetCloseBtn: { width: 30, height: 30, borderRadius: 15, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(67,38,15,0.06)' },
+  sheetClose: { fontFamily: FONTS.v2_body, fontSize: 15, color: '#7A5A3A', marginTop: -1 },
+  sheetScroll: { paddingHorizontal: 20, paddingTop: 18 },
+
+  // "Read this week" article
+  artDiv: { height: StyleSheet.hairlineWidth, backgroundColor: 'rgba(67,38,15,0.10)', marginVertical: 20 },
+  artEyebrow: { fontFamily: FONTS.bodyBold, fontSize: 10.5, letterSpacing: 1.6, color: '#9E2F4C', marginBottom: 6 },
+  artLead: { fontFamily: FONTS.v3_display, fontSize: 25, lineHeight: 29, letterSpacing: -0.5, color: INK },
+  artTitle: { fontFamily: FONTS.v3_display, fontSize: 20, lineHeight: 24, letterSpacing: -0.4, color: INK },
+  artBody: { fontFamily: FONTS.v2_body, fontSize: 15.5, lineHeight: 24, color: '#5C462F', marginTop: 9 },
+  artLink: { flexDirection: 'row', alignItems: 'center', gap: 7, alignSelf: 'flex-start', marginTop: 13, backgroundColor: '#FDF9EF', borderRadius: 999, paddingHorizontal: 14, paddingVertical: 8, borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(122,74,40,0.16)' },
+  artLinkGl: { fontSize: 13 },
+  artLinkT: { fontFamily: FONTS.bodySemiBold, fontSize: 13, color: '#9E2F4C' },
 
   // ── Briefing: the week as one scannable list, not a stack of boxes ──────
   secHead: { flexDirection: 'row', alignItems: 'center', gap: 9, marginBottom: 11, marginLeft: 2 },
@@ -642,14 +780,22 @@ const s = StyleSheet.create({
   qaA: { fontFamily: FONTS.v2_body, fontSize: 14, lineHeight: 21, color: '#5C462F' },
   qaBy: { fontFamily: FONTS.v2_body, fontSize: 11.5, color: '#9A8672', marginTop: 8, fontStyle: 'italic' },
 
-  // your tools — Vili tool links (pills, distinct from the flat lists)
-  tools: { gap: 9 },
-  tool: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 15, paddingVertical: 13, borderRadius: 14, backgroundColor: '#FBEAEF', borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(158,47,76,0.14)' },
+  // Tabs under the video — Do this week / Know / Tools swap one panel at a time
+  tabBar: { flexDirection: 'row', gap: 5, backgroundColor: '#FDF9EF', borderRadius: 13, borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(67,38,15,0.12)', padding: 4 },
+  tab: { flex: 1, paddingVertical: 9, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  tabOn: { backgroundColor: ROSE },
+  tabText: { fontFamily: FONTS.bodySemiBold, fontSize: 13, color: '#7A5A3A' },
+  tabTextOn: { color: '#FFF9F2' },
+  tabPanel: { marginTop: 16 },
+  panelCount: { fontFamily: FONTS.v2_body, fontSize: 12, color: '#A6957F', marginBottom: 10, letterSpacing: 0.2, marginLeft: 2 },
+  panelEmpty: { fontFamily: FONTS.v2_body, fontSize: 14, lineHeight: 20, color: '#7A5A3A' },
+
+  // Tools tab — full-width tool rows
+  toolRowItem: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 15, paddingVertical: 13, borderRadius: 14, backgroundColor: '#FBEAEF', borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(158,47,76,0.14)' },
   toolIcon: { width: 30, height: 30, borderRadius: 9, backgroundColor: ROSE, alignItems: 'center', justifyContent: 'center' },
   toolGl: { color: '#FFF9F2', fontSize: 15 },
-  toolT: { fontFamily: FONTS.bodySemiBold, fontSize: 14, color: INK },
-  toolS: { fontFamily: FONTS.v2_body, fontSize: 12, color: '#A6957F', marginTop: 1 },
-  toolChev: { fontFamily: FONTS.v2_body, fontSize: 18, color: '#9E2F4C' },
+  toolRowT: { flex: 1, fontFamily: FONTS.bodySemiBold, fontSize: 14, color: INK },
+  toolRowChev: { fontFamily: FONTS.v2_body, fontSize: 18, color: '#9E2F4C' },
   brDiv: { height: StyleSheet.hairlineWidth, backgroundColor: 'rgba(67,38,15,0.09)', marginLeft: 55 },
   brHead: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 11, paddingHorizontal: 15 },
   brGl: { width: 26, height: 26, borderRadius: 8, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
@@ -751,15 +897,19 @@ const s = StyleSheet.create({
   // checklist
   panelTitle: { fontFamily: FONTS.headerBold, fontSize: 18, lineHeight: 23, letterSpacing: -0.3, color: INK, marginBottom: 12 },
   panel: { backgroundColor: CREAM, borderRadius: 20, borderWidth: 1, borderColor: HAIR, overflow: 'hidden' },
-  ci: { flexDirection: 'row', alignItems: 'center', gap: 13, paddingVertical: 14, paddingHorizontal: 18 },
-  ciBorder: { borderTopWidth: 1, borderTopColor: HAIR },
-  bx: { width: 25, height: 25, borderRadius: 8, borderWidth: 2, borderColor: 'rgba(67,38,15,0.22)', alignItems: 'center', justifyContent: 'center' },
+  ci: { flexDirection: 'row', alignItems: 'center', gap: 13, paddingVertical: 13, paddingHorizontal: 3 },
+  ciBorder: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: 'rgba(67,38,15,0.09)' },
+  bx: { width: 22, height: 22, borderRadius: 11, borderWidth: 1.6, borderColor: 'rgba(158,47,76,0.40)', alignItems: 'center', justifyContent: 'center' },
   bxOn: { backgroundColor: ACCENT, borderColor: ACCENT },
-  bxCheck: { color: '#fff', fontSize: 13, fontWeight: '800' },
-  ciText: { flex: 1, lineHeight: 21 },
-  ciLabel: { fontFamily: FONTS.bodySemiBold, fontSize: 15.5, color: INK },
+  bxCheck: { color: '#fff', fontSize: 11, fontWeight: '800' },
+  ciText: { flex: 1, lineHeight: 20 },
+  ciLabel: { fontFamily: FONTS.bodySemiBold, fontSize: 15, color: INK },
+
+  // consistent panel content — a soft card + a lead line, shared across panels
+  panelLead: { fontFamily: FONTS.v2_body, fontSize: 13.5, lineHeight: 19, color: '#8A7357', marginBottom: 12, marginTop: 2 },
+  checkCard: { backgroundColor: '#FDF9EF', borderRadius: 16, borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(67,38,15,0.10)', paddingHorizontal: 15 },
   ciLabelOn: { textDecorationLine: 'line-through', color: ACCENT },
-  ciNote: { fontFamily: FONTS.body, fontSize: 13, color: INKSOFT },
+  ciMore: { fontFamily: FONTS.bodySemiBold, fontSize: 13, color: '#9E2F4C', letterSpacing: 0.2 },
 
   // article / expert (editorial pull-quote card)
   tip: {

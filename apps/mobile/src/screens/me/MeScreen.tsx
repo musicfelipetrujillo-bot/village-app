@@ -37,6 +37,9 @@ import { formatAge } from '@api/home';
 import { clinicalReviewApi } from '@api/clinical-review';
 import { eventReviewApi } from '@api/event-review';
 import {
+  isProEnabled, isProUser, restorePro, MANAGE_SUBSCRIPTION_URL, ProUnavailableError,
+} from '@/lib/pro';
+import {
   COLORS, FONTS, CRISIS_RESOURCES, SUPPORTED_LANGUAGES,
   DEFAULT_SEARCH_RADIUS_MILES,
 } from '@utils/constants';
@@ -210,6 +213,13 @@ export default function MeScreen() {
   const [pendingCount, setPendingCount] = useState<number | null>(null);
   const [pendingEventCount, setPendingEventCount] = useState<number | null>(null);
   const [devOpen, setDevOpen] = useState(false);
+  const [restoringPro, setRestoringPro] = useState(false);
+  // Subscribed purely for reactivity: when the RevenueCat webhook flips
+  // users.is_pro, the next fetchProfile must re-render this section. The value
+  // actually displayed comes from isProUser(), which prefers live StoreKit
+  // state over the column (see lib/pro.ts precedence notes).
+  useUserStore((s) => s.profile?.is_pro);
+  const isPro = isProUser();
   const showClinicalReview = INTERNAL_AGENTS_ENABLED || isReviewer;
   const showEventReview = INTERNAL_AGENTS_ENABLED || isEventReviewer;
   const showDevTools = INTERNAL_AGENTS_ENABLED || showClinicalReview || showEventReview;
@@ -339,6 +349,47 @@ export default function MeScreen() {
   const goNotifPrefs = useCallback(() => {
     navigation.navigate('NotificationPreferences');
   }, [navigation]);
+
+  // The Paywall is a root-level modal, so walk past the tab navigator to the
+  // root stack (same pattern as the Manual's locked-video cards).
+  const goPaywall = useCallback(() => {
+    let root: any = navigation;
+    while (root?.getParent?.()) root = root.getParent();
+    root?.navigate('Paywall', { source: 'me' });
+  }, [navigation]);
+
+  // Cancelling an auto-renewable is Apple's sheet, never ours — we can only
+  // hand the user there.
+  const goManageSubscription = useCallback(() => {
+    Linking.openURL(MANAGE_SUBSCRIPTION_URL).catch(() => {
+      // Deep link unavailable (simulator / no App Store) — nothing useful to
+      // say beyond the row's own subtitle, so stay quiet.
+    });
+  }, []);
+
+  // Apple requires a reachable restore path; the paywall has one, but a user
+  // who reinstalls arrives here first and never sees a locked video.
+  const onRestorePro = useCallback(async () => {
+    if (restoringPro) return;
+    setRestoringPro(true);
+    try {
+      const entitled = await restorePro();
+      if (entitled) {
+        fetchProfile().catch(() => {});
+        Alert.alert(t('paywall.restoredTitle'), t('paywall.restoredBody'));
+      } else {
+        Alert.alert(t('paywall.noRestoreTitle'), t('paywall.noRestoreBody'));
+      }
+    } catch (e) {
+      if (e instanceof ProUnavailableError) {
+        Alert.alert(t('paywall.soonTitle'), t('paywall.soonBody'));
+      } else {
+        Alert.alert(t('paywall.errorTitle'), t('paywall.errorBody'));
+      }
+    } finally {
+      setRestoringPro(false);
+    }
+  }, [restoringPro, fetchProfile, t]);
 
   const goChangePassword = useCallback(() => {
     navigation.navigate('ChangePassword');
@@ -633,6 +684,48 @@ export default function MeScreen() {
             a11yLabel={t('me.notificationsA11y')}
           />
         </Group>
+
+        {/* Subscription — only in builds that carry the StoreKit SDK. On an
+            OTA-only bundle there is nothing to restore or manage, so the whole
+            section stays out rather than dead-ending. */}
+        {isProEnabled() ? (
+          <>
+            <GroupLabel>{t('me.subscription')}</GroupLabel>
+            <Group>
+              <MeRow
+                icon="✦"
+                title={t('me.proRow')}
+                sub={isPro ? t('me.proActiveDetail') : t('me.proInactiveDetail')}
+                onPress={isPro ? goManageSubscription : goPaywall}
+                a11yLabel={isPro ? t('me.proManageA11y') : t('me.proOpenA11y')}
+                right={isPro ? (
+                  <View style={s.proBadge}>
+                    <Text style={s.proBadgeText}>{t('me.proActive')}</Text>
+                  </View>
+                ) : undefined}
+              />
+              {isPro ? (
+                <MeRow
+                  icon="⚙️"
+                  title={t('me.proManage')}
+                  sub={t('me.proManageDetail')}
+                  onPress={goManageSubscription}
+                  last
+                  a11yLabel={t('me.proManageA11y')}
+                />
+              ) : (
+                <MeRow
+                  icon="↺"
+                  title={restoringPro ? t('paywall.restoring') : t('me.proRestore')}
+                  sub={t('me.proRestoreDetail')}
+                  onPress={onRestorePro}
+                  last
+                  a11yLabel={t('me.proRestoreA11y')}
+                />
+              )}
+            </Group>
+          </>
+        ) : null}
 
         {/* Account & security */}
         <GroupLabel>{t('me.accountSecurity')}</GroupLabel>
@@ -1245,6 +1338,22 @@ const s = StyleSheet.create({
   langChipTextActive: { color: '#FFFCF6' },
 
   // Reviewer count badge (rose, replaces the old olive pill).
+  // Subscription status pill — replaces the chevron on the villie pro row.
+  proBadge: {
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    backgroundColor: ICON_BG,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: ROSE,
+    marginRight: 8,
+  },
+  proBadgeText: {
+    fontFamily: FONTS.v2_bold,
+    fontSize: 11,
+    letterSpacing: 0.3,
+    color: ROSE,
+  },
   reviewBadge: {
     minWidth: 22,
     height: 22,

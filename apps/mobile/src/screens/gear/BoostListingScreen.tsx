@@ -12,6 +12,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { COLORS, FONTS } from '@utils/constants';
 import { useGearStore } from '@store/gear';
 import { boostRemainingLabel, isListingBoosted } from '@api/gear';
+import { useT } from '@/i18n';
 import {
   GEAR_BOOST, purchaseGearBoost, BoostUnavailableError, BoostCancelledError,
 } from '@/lib/boost';
@@ -29,6 +30,7 @@ const T = {
 };
 
 export default function BoostListingScreen() {
+  const t = useT();
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const { listingId, listingTitle, boostedUntil } = (route.params ?? {}) as {
@@ -39,6 +41,8 @@ export default function BoostListingScreen() {
 
   const alreadyBoosted = isListingBoosted(boostedUntil);
   const remaining = boostRemainingLabel(boostedUntil);
+  const title = listingTitle ?? t('boost.listingFallback');
+  const titleLower = listingTitle ?? t('boost.listingFallbackLower');
 
   const onBoost = async () => {
     setBusy(true);
@@ -47,22 +51,22 @@ export default function BoostListingScreen() {
       if (res.ok) {
         try { await fetchMyListings?.(); } catch {}
         Alert.alert(
-          alreadyBoosted ? 'Boost extended' : 'You’re boosted',
-          alreadyBoosted
-            ? 'Your listing keeps its top spot in Baby Gear.'
-            : 'Your listing is now at the top of Baby Gear browse.',
-          [{ text: 'Done', onPress: () => navigation.goBack() }],
+          t(alreadyBoosted ? 'boost.extendedTitle' : 'boost.doneTitle'),
+          t(alreadyBoosted ? 'boost.extendedBody' : 'boost.doneBody'),
+          [{ text: t('boost.doneCta'), onPress: () => navigation.goBack() }],
         );
       } else {
-        Alert.alert('Hmm', res.error ?? 'Could not activate the boost. Please try again.');
+        // res.error comes from the activation edge function — server strings
+        // are English-only, so fall back to the localized generic.
+        Alert.alert(t('boost.failedTitle'), res.error ?? t('boost.failedBody'));
       }
     } catch (e) {
       if (e instanceof BoostCancelledError) {
         // user backed out — no-op
       } else if (e instanceof BoostUnavailableError) {
-        Alert.alert('Launching soon', 'Boost arrives with our next app update. Hang tight.');
+        Alert.alert(t('boost.soonTitle'), t('boost.soonBody'));
       } else {
-        Alert.alert('Something went wrong', (e as Error)?.message ?? 'Please try again.');
+        Alert.alert(t('boost.errorTitle'), (e as Error)?.message ?? t('boost.errorBody'));
       }
     } finally {
       setBusy(false);
@@ -73,46 +77,48 @@ export default function BoostListingScreen() {
     <View style={styles.container}>
       <View style={styles.header}>
         <View style={{ width: 60 }} />
-        <Text style={styles.headerTitle}>Boost</Text>
+        <Text style={styles.headerTitle}>{t('boost.header')}</Text>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
           accessibilityRole="button"
-          accessibilityLabel="Close"
+          accessibilityLabel={t('boost.close')}
           style={{ width: 60, alignItems: 'flex-end' }}
         >
-          <Text style={styles.close}>Close</Text>
+          <Text style={styles.close}>{t('boost.close')}</Text>
         </TouchableOpacity>
       </View>
 
       <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
-        <Text style={styles.eyebrow}>✦  BABY GEAR</Text>
+        <Text style={styles.eyebrow}>{t('boost.eyebrow')}</Text>
         <Text style={styles.title}>
-          Get seen <Text style={styles.titleAccent}>first.</Text>
+          {t('boost.titleLead')}<Text style={styles.titleAccent}>{t('boost.titleAccent')}</Text>
         </Text>
         <Text style={styles.sub}>
           {alreadyBoosted
-            ? `“${listingTitle ?? 'Your listing'}” is boosted${remaining ? ` — ${remaining}.` : '.'}`
-            : `Put “${listingTitle ?? 'your listing'}” at the top of Baby Gear browse for ${GEAR_BOOST.durationDays} days, with a Boosted badge so parents nearby spot it first.`}
+            ? (remaining
+              ? t('boost.subBoosted', { title, remaining })
+              : t('boost.subBoostedNoRemaining', { title }))
+            : t('boost.subOffer', { title: titleLower, days: GEAR_BOOST.durationDays })}
         </Text>
 
         {/* Mini preview — what a boosted card looks like at the top of browse. */}
         <View style={styles.previewWrap}>
-          <Text style={styles.previewLabel}>TOP OF BROWSE</Text>
+          <Text style={styles.previewLabel}>{t('boost.previewLabel')}</Text>
           <View style={styles.previewCard}>
             <View style={styles.previewThumb} />
             <View style={{ flex: 1, minWidth: 0 }}>
               <View style={styles.boostBadge}>
-                <Text style={styles.boostBadgeText}>✦ Boosted</Text>
+                <Text style={styles.boostBadgeText}>{t('boost.previewBadge')}</Text>
               </View>
-              <Text style={styles.previewTitle} numberOfLines={1}>{listingTitle ?? 'Your listing'}</Text>
-              <Text style={styles.previewMeta}>Seen before everything else</Text>
+              <Text style={styles.previewTitle} numberOfLines={1}>{title}</Text>
+              <Text style={styles.previewMeta}>{t('boost.previewMeta')}</Text>
             </View>
           </View>
           <View style={[styles.previewCard, styles.previewCardMuted]}>
             <View style={[styles.previewThumb, { opacity: 0.5 }]} />
             <View style={{ flex: 1 }}>
-              <Text style={[styles.previewTitle, { opacity: 0.5 }]} numberOfLines={1}>Other listings</Text>
-              <Text style={[styles.previewMeta, { opacity: 0.5 }]}>Sorted by distance</Text>
+              <Text style={[styles.previewTitle, { opacity: 0.5 }]} numberOfLines={1}>{t('boost.previewOther')}</Text>
+              <Text style={[styles.previewMeta, { opacity: 0.5 }]}>{t('boost.previewOtherMeta')}</Text>
             </View>
           </View>
         </View>
@@ -120,9 +126,9 @@ export default function BoostListingScreen() {
         {/* What you get */}
         <View style={styles.benefits}>
           {[
-            ['⬆️', 'Top placement', `First in browse for ${GEAR_BOOST.durationDays} days`],
-            ['✦', 'Boosted badge', 'Parents see it’s featured at a glance'],
-            ['🔁', 'Stacks', 'Boost again any time to keep the spot'],
+            ['⬆️', t('boost.benefit1Head'), t('boost.benefit1Body', { days: GEAR_BOOST.durationDays })],
+            ['✦', t('boost.benefit2Head'), t('boost.benefit2Body')],
+            ['🔁', t('boost.benefit3Head'), t('boost.benefit3Body')],
           ].map(([emoji, head, body]) => (
             <View key={head} style={styles.benefitRow}>
               <Text style={styles.benefitEmoji}>{emoji}</Text>
@@ -135,9 +141,7 @@ export default function BoostListingScreen() {
         </View>
 
         {/* Compliance fine print — boost is placement only; the sale stays cash/P2P. */}
-        <Text style={styles.fine}>
-          One-time charge through the App Store. Boost promotes placement only — it doesn’t change the in-person, cash or peer-to-peer handoff, and it isn’t an endorsement of the item. Non-refundable once your listing goes live at the top.
-        </Text>
+        <Text style={styles.fine}>{t('boost.fine')}</Text>
       </ScrollView>
 
       {/* Sticky CTA */}
@@ -148,18 +152,22 @@ export default function BoostListingScreen() {
           disabled={busy}
           activeOpacity={0.9}
           accessibilityRole="button"
-          accessibilityLabel={alreadyBoosted ? 'Extend boost' : `Boost listing for ${GEAR_BOOST.priceLabel}`}
+          accessibilityLabel={alreadyBoosted
+            ? t('boost.ctaExtendA11y')
+            : t('boost.ctaA11y', { price: GEAR_BOOST.priceLabel })}
           accessibilityState={{ busy }}
         >
           {busy
             ? <ActivityIndicator color="#FFFCF6" />
             : (
               <Text style={styles.ctaText}>
-                {alreadyBoosted ? `Extend · ${GEAR_BOOST.priceLabel}` : `Boost for ${GEAR_BOOST.priceLabel}`}
+                {t(alreadyBoosted ? 'boost.ctaExtend' : 'boost.cta', { price: GEAR_BOOST.priceLabel })}
               </Text>
             )}
         </TouchableOpacity>
-        <Text style={styles.footerNote}>{GEAR_BOOST.durationDays} days · cancel anytime, it just won’t renew</Text>
+        <Text style={styles.footerNote}>
+          {t('boost.footerNote', { days: GEAR_BOOST.durationDays })}
+        </Text>
       </View>
     </View>
   );
