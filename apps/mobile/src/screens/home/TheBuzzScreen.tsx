@@ -80,14 +80,13 @@ export default function TheBuzzScreen() {
       ) : (
         <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
           <Text style={s.issueTitle}>{issue.title}</Text>
-          <Text style={s.issueIntro} numberOfLines={3}>{issue.intro}</Text>
-          <Text style={s.hint}>{lang === 'es' ? 'toca un tema para leer más' : 'tap a topic to read more'}</Text>
+          {issue.intro ? <Text style={s.issueIntro} numberOfLines={2}>{issue.intro}</Text> : null}
 
           <View style={s.list}>
             {newsItems.map((item, i) => (
-              <BuzzItem key={item.id} item={item} kind="news" lang={lang} t={t} defaultOpen={i === 0} />
+              <BuzzItem key={item.id} item={item} kind="news" num={i + 1} lang={lang} t={t} first={i === 0} />
             ))}
-            {mythItem ? <BuzzItem item={mythItem} kind="myth" lang={lang} t={t} defaultOpen={false} /> : null}
+            {mythItem ? <BuzzItem item={mythItem} kind="myth" num={newsItems.length + 1} lang={lang} t={t} first={newsItems.length === 0} /> : null}
           </View>
 
           <Text style={s.disclaimer}>{t('theBuzz.disclaimer')}</Text>
@@ -97,20 +96,22 @@ export default function TheBuzzScreen() {
   );
 }
 
-// One accordion topic — collapsed shows just a tag + headline; tapping opens
-// the detail (fact/summary + "ask your provider" + source). Scannable first.
-function BuzzItem({ item, kind, lang, t, defaultOpen }: {
-  item: TheBuzzItem; kind: 'news' | 'myth'; lang: 'en' | 'es';
-  t: (k: string, p?: any) => string; defaultOpen: boolean;
+// One editorial topic — a numbered headline you can scan; tap to open the short
+// read (fact/summary + optional "ask" + source). Collapsed by default so the
+// screen reads as a clean list of headlines, not a wall of text.
+function BuzzItem({ item, kind, num, lang, t, first }: {
+  item: TheBuzzItem; kind: 'news' | 'myth'; num: number; lang: 'en' | 'es';
+  t: (k: string, p?: any) => string; first: boolean;
 }) {
-  const [open, setOpen] = React.useState(defaultOpen);
+  const [open, setOpen] = React.useState(false);
   const isMyth = kind === 'myth';
   const headline = isMyth ? localized(item, 'myth_claim', lang) : localized(item, 'title', lang);
   const body = isMyth ? localized(item, 'fact', lang) : localized(item, 'summary', lang);
   const ask = localized(item, 'ask_provider', lang);
   const tag = isMyth ? t('theBuzz.mythEyebrow') : t('theBuzz.trendingEyebrow');
   return (
-    <View style={[s.item, isMyth && s.itemMyth]}>
+    <View>
+      {!first ? <View style={s.rule} /> : null}
       <TouchableOpacity
         style={s.itemHead}
         activeOpacity={0.7}
@@ -119,18 +120,18 @@ function BuzzItem({ item, kind, lang, t, defaultOpen }: {
         accessibilityState={{ expanded: open }}
         accessibilityLabel={headline}
       >
+        <Text style={s.num}>{String(num).padStart(2, '0')}</Text>
         <View style={{ flex: 1, minWidth: 0 }}>
           <Text style={[s.itemTag, isMyth && s.itemTagMyth]}>{tag}</Text>
           <Text style={s.itemTitle}>{headline}</Text>
         </View>
-        <Text style={s.itemToggle}>{open ? '−' : '+'}</Text>
+        <Text style={[s.itemToggle, open && s.itemToggleOpen]}>›</Text>
       </TouchableOpacity>
 
       {open && (
         <View style={s.itemBody}>
-          {isMyth ? <Text style={s.factLabel}>{t('theBuzz.factLabel')}</Text> : null}
           <Text style={s.bodyText}>{body}</Text>
-          {ask ? <Text style={s.askLine}>💬 {ask}</Text> : null}
+          {ask ? <Text style={s.askLine}>{ask}</Text> : null}
           <TouchableOpacity onPress={() => Linking.openURL(item.evidence_source_url)} accessibilityRole="link" accessibilityLabel={t('theBuzz.evidenceLinkA11y', { source: item.evidence_source_name })}>
             <Text style={s.sourceLink}>{t('theBuzz.groundedIn', { source: item.evidence_source_name })} ›</Text>
           </TouchableOpacity>
@@ -157,31 +158,27 @@ const s = StyleSheet.create({
   emptyTitle: { fontFamily: FONTS.v2_bold, fontSize: 18, color: COLORS.v2_cocoa, textAlign: 'center' },
   emptyBody: { fontFamily: FONTS.v2_body, fontSize: 14, color: COLORS.v2_walnut, textAlign: 'center', lineHeight: 20, marginTop: 4 },
 
-  scroll: { padding: 20, paddingBottom: 48 },
-  issueTitle: { fontFamily: FONTS.v2_display, fontSize: 24, color: COLORS.v2_cocoa, letterSpacing: -0.4 },
-  issueIntro: { fontFamily: FONTS.v2_body, fontSize: 14, color: COLORS.v2_walnut, lineHeight: 20, marginTop: 6 },
-  hint: { fontFamily: FONTS.v2_mono, fontSize: 10, letterSpacing: 1.3, textTransform: 'uppercase', color: '#B0637E', marginTop: 16 },
+  scroll: { padding: 22, paddingTop: 20, paddingBottom: 48 },
+  issueTitle: { fontFamily: FONTS.v2_display, fontSize: 27, lineHeight: 31, color: COLORS.v2_cocoa, letterSpacing: -0.5 },
+  issueIntro: { fontFamily: FONTS.v2_body, fontSize: 14, color: COLORS.v2_walnut, lineHeight: 20, marginTop: 7 },
 
-  // Accordion — scannable topic cards, detail hidden until opened
-  list: { marginTop: 12, gap: 10 },
-  item: {
-    backgroundColor: COLORS.v2_card, borderRadius: 16, overflow: 'hidden',
-    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(194,74,99,0.16)',
-  },
-  itemMyth: { backgroundColor: '#FDE7EC', borderColor: 'rgba(194,74,99,0.28)' },
-  itemHead: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, paddingVertical: 14, paddingHorizontal: 15 },
-  itemTag: { fontFamily: FONTS.v2_mono, fontSize: 9.5, letterSpacing: 1.4, color: '#C24A63', textTransform: 'uppercase', marginBottom: 4 },
-  itemTagMyth: { color: '#B03A5A' },
-  itemTitle: { fontFamily: FONTS.v2_display, fontSize: 16.5, color: COLORS.v2_cocoa, letterSpacing: -0.3, lineHeight: 21 },
-  itemToggle: { fontFamily: FONTS.v2_body, fontSize: 24, color: '#C24A63', lineHeight: 24, marginTop: 6 },
-  itemBody: { paddingHorizontal: 15, paddingBottom: 15, marginTop: -2, gap: 8 },
-  bodyText: { fontFamily: FONTS.v2_body, fontSize: 14, color: COLORS.v2_walnut, lineHeight: 20 },
-  factLabel: { fontFamily: FONTS.v2_bold, fontSize: 11, letterSpacing: 0.6, color: COLORS.v2_cocoa, textTransform: 'uppercase', marginTop: 2 },
-  askLine: { fontFamily: FONTS.v2_body, fontSize: 12.5, color: '#8A5A66', lineHeight: 18, fontStyle: 'italic' },
-  sourceLink: { fontFamily: FONTS.v2_link, fontSize: 12.5, color: '#C24A63', marginTop: 2 },
+  // Editorial list — numbered headlines, hairline-divided, collapsed by default
+  list: { marginTop: 22 },
+  rule: { height: StyleSheet.hairlineWidth, backgroundColor: 'rgba(61,31,14,0.11)' },
+  itemHead: { flexDirection: 'row', alignItems: 'flex-start', gap: 14, paddingVertical: 16 },
+  num: { fontFamily: FONTS.v2_display, fontSize: 15, color: '#C6A98E', marginTop: 2, width: 20 },
+  itemTag: { fontFamily: FONTS.v2_mono, fontSize: 9.5, letterSpacing: 1.5, color: '#C24A63', textTransform: 'uppercase', marginBottom: 4 },
+  itemTagMyth: { color: '#A8466B' },
+  itemTitle: { fontFamily: FONTS.v2_display, fontSize: 18, color: COLORS.v2_cocoa, letterSpacing: -0.3, lineHeight: 23 },
+  itemToggle: { fontFamily: FONTS.v2_body, fontSize: 22, color: '#C6B29A', lineHeight: 24, marginTop: 4, width: 14, textAlign: 'center' },
+  itemToggleOpen: { color: '#9E8B72', transform: [{ rotate: '90deg' }] },
+  itemBody: { paddingLeft: 34, paddingRight: 2, paddingBottom: 18, marginTop: -4, gap: 10 },
+  bodyText: { fontFamily: FONTS.v2_body, fontSize: 15, color: '#5C462F', lineHeight: 23 },
+  askLine: { fontFamily: FONTS.v2_body, fontSize: 13, color: '#8A5A66', lineHeight: 19, fontStyle: 'italic' },
+  sourceLink: { fontFamily: FONTS.v2_link, fontSize: 12.5, color: '#C24A63' },
   disclaimer: {
-    fontFamily: FONTS.v2_body, fontSize: 11.5, lineHeight: 17, color: COLORS.v2_walnut,
-    textAlign: 'center', marginTop: 6, paddingTop: 12,
+    fontFamily: FONTS.v2_body, fontSize: 11, lineHeight: 16, color: '#A6957F',
+    textAlign: 'center', marginTop: 26, paddingTop: 14,
     borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: 'rgba(61,31,14,0.10)',
   },
 });
