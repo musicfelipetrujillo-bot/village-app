@@ -233,7 +233,9 @@ function WeekRingHero({ firstName, babyName, weekNumber, expecting, onOpenManual
           ? (lang === 'es' ? 'Prepárate para la llegada del bebé' : 'Get ready for baby')
           : (lang === 'es' ? "Abre el manual de esta semana" : "Open this week's manual")}
       >
-        <Text style={styles.heroTapHintText}>{tapHint}</Text>
+        <LinearGradient colors={['#E14A32', '#EE9A38']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.heroTapPill}>
+          <Text style={styles.heroTapHintText}>{tapHint}</Text>
+        </LinearGradient>
       </TouchableOpacity>
     </LinearGradient>
   );
@@ -619,11 +621,16 @@ const styles = StyleSheet.create({
     textTransform: 'lowercase', color: '#F2E4C8', marginTop: 2,
     textShadowColor: 'rgba(58,24,10,0.45)', textShadowOffset: { width: 0, height: 2 }, textShadowRadius: 3,
   },
-  // The hero's single bold spark — solid scarlet against the pink field.
+  // The hero's single warm spark — scarlet→amber gradient so it harmonises
+  // with the orange seal instead of reading as a flat red block on the pink
+  // field (the flat red felt "discombobulated" — founder, 2026-08-15).
   heroTapHint: {
-    marginTop: 20, backgroundColor: '#E14A32', borderRadius: 999,
-    paddingHorizontal: 18, paddingVertical: 9,
-    shadowColor: '#E14A32', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.28, shadowRadius: 10, elevation: 3,
+    marginTop: 20, borderRadius: 999,
+    shadowColor: '#E1732F', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.26, shadowRadius: 10, elevation: 3,
+  },
+  heroTapPill: {
+    borderRadius: 999, paddingHorizontal: 18, paddingVertical: 9,
+    alignItems: 'center', justifyContent: 'center',
   },
   heroTapHintText: { fontFamily: FONTS.bodyBold, fontSize: 11.5, color: '#FFF3E4', letterSpacing: 0.6, textTransform: 'uppercase' },
 
