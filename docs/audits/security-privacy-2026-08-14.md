@@ -1,11 +1,52 @@
 # Villie — Security & Privacy Review
 
 **Date:** 2026-08-14
-**Type:** READ-ONLY review. No code, config, schema, or data was modified.
+**Type:** Review, then remediation. The findings below were written from a read-only review; the fixes described in **Remediation log** were applied and deployed afterwards, in the same session.
 **Scope:** Full app posture, with emphasis on the ~25 surfaces built since the last AppSec review (2026-07-07) — Milk Vault, Day Sheets, The Buzz, villie Pro / RevenueCat, Mom Tips, week nudges, Billy, events agent — plus verification that the previous audit's findings actually landed.
 **Method:** Static review of 76 edge functions + 124 migrations, cross-checked against the **live hosted project** (edge-function `verify_jwt` flags, RLS policies, column grants, row counts, Supabase security advisors).
 
 **Prior art:** `docs/audits/appsec-2026-07-07.md` · `docs/audits/privacy-minimization-2026-07-09.md`
+
+---
+
+## Remediation log (2026-08-14, commit `ef1205c`)
+
+| Finding | Status |
+|---|---|
+| **C-1** `specialist-invite-create` forgeable admin auth | ✅ Fixed + deployed + re-tested in prod |
+| **H-1** same gate in 5 more functions; `verify_jwt` unpinned | ✅ Gate centralised in `_shared/service-role.ts`; `verify_jwt` pinned per function in `supabase/config.toml` |
+| **H-1(b)** `calendly-webhook` fix never deployed | ✅ Deployed |
+| **M-1** invite claimed non-atomically | ✅ Single conditional `UPDATE`, released on failure |
+| **M-2** client-supplied charge amount | ✅ Priced from `specialist_services` server-side |
+| **M-3** undocumented RLS-no-policy tables | ⬜ Doc-only, open |
+| **P-1** donor precise location | ⬜ Open — needs a migration |
+| **P-2** retention policy | ⬜ Open — gated on counsel |
+
+### ⚠️ What the fix taught us: there is more than one valid service-role key
+
+The obvious fix — compare the bearer against `SUPABASE_SERVICE_ROLE_KEY` — **broke the gear-moderation crons**, and the way it broke is worth recording.
+
+A regression test against the real GitHub Actions key returned `401`. Investigation showed the request *passed the gateway* (so the key is correctly signed by the project's JWT secret) and then failed the byte-equality check. Three distinct, all-validly-signed service-role keys are in circulation:
+
+- the one injected into the **edge runtime** as `SUPABASE_SERVICE_ROLE_KEY`,
+- the one in **GitHub Actions secrets** (used by every cron),
+- the one in **`apps/mobile/.env`** (used by `pnpm specialist:invite`) — issued 2026-04-19.
+
+This is consistent with a Supabase API-key rotation that kept the same signing secret: old keys stay signature-valid, but only one string matches the env var. **This is precisely why the original author abandoned strict equality** ("brittle to key rotation") — and then, instead of reconciling the keys, deleted authentication altogether.
+
+So the gate is deliberately two-mode (see `_shared/service-role.ts`): exact key match always wins; a `service_role` *claim* is trusted **only** where the gateway has already verified the signature, and each caller must declare which regime it is in — checkable against `config.toml` in review.
+
+**Honest characterisation of the result:** for the five `verify_jwt: true` functions this is close to the original design, but with the unstated assumption now explicit, enforced by a committed config, and verified live. The substantive fix is that `specialist-invite-create` no longer runs with `verify_jwt: false`, which is what made it exploitable.
+
+**Follow-up for ops (not code):** reconcile the three keys — update `apps/mobile/.env` and the GitHub secret to the current key. Until then `admin-compliance-events` and `admin-approve-specialist`, which still use strict equality and were not touched, will reject the `.env` key.
+
+### Production verification
+
+| Probe | Result |
+|---|---|
+| Forged `service_role` JWT → all 6 functions | **401** (gateway) |
+| Validly-signed `role=anon` JWT | **401 / 403** (rejected in code — mode 2 is not "accept anything the gateway allows") |
+| Real GitHub Actions cron key → `gear-moderation-pager` | **200** `{"ok":true,"paged":0,"total_overdue":0}` |
 
 ---
 
