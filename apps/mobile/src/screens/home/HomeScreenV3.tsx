@@ -32,6 +32,7 @@ import { theBuzzApi, type TheBuzzArchiveRow } from '@api/theBuzz';
 import { useFocusEffect } from '@react-navigation/native';
 
 const VILLIE_BEE = require('../../../assets/brand/villie-bee.png');
+const WEEK_SUN = require('../../../assets/home/week-sun.png');
 const SCREEN_W = Dimensions.get('window').width;
 
 // ─── Tokens (raspberry rebrand) ────────────────────────────────────────
@@ -213,7 +214,7 @@ function WeekRingHero({ firstName, babyName, weekNumber, expecting, onOpenManual
         }
         style={styles.ringWrap}
       >
-        <WeekRing week={weekNumber} size={252} />
+        <Image source={WEEK_SUN} style={styles.weekSun} resizeMode="contain" />
         <View style={styles.ringCenter} pointerEvents="none">
           <Text style={styles.ringBabyName} numberOfLines={1}>{babyName.toLowerCase()}</Text>
           <Text style={styles.ringNumber} numberOfLines={1} allowFontScaling={false}>{weekNumber}</Text>
@@ -577,6 +578,7 @@ const styles = StyleSheet.create({
   heroGreet: { fontFamily: FONTS.v2_body, fontSize: 15, color: '#A85A63' },
   heroGreetName: { fontFamily: FONTS.v3_display_italic, fontSize: 23, color: '#C24A63' },
   ringWrap: { marginTop: 14, width: 252, height: 252, alignItems: 'center', justifyContent: 'center' },
+  weekSun: { width: 252, height: 252 },
   ringCenter: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center' },
   // Her baby's name, not a label. At 12px mono against a 76px week number it
   // read as chrome — the eye went straight past it to the digits (founder,
