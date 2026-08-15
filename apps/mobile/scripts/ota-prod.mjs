@@ -107,9 +107,81 @@ if (internalAgents === '1') {
   process.exit(1);
 }
 
+/**
+ * Refuse to publish a tree that is missing whatever is CURRENTLY LIVE.
+ *
+ * WHY (2026-08-15): `assertNotBehindMain` is not enough, and we have the scar
+ * to prove it — three separate publishes have now silently reverted shipped
+ * work. `main` is the wrong reference point, because production is regularly
+ * published FROM A FEATURE BRANCH. A branch can be perfectly up to date with
+ * `origin/main` and still be missing everything another branch shipped an hour
+ * ago. Comparing against main cannot see that; comparing against what is
+ * actually live can.
+ *
+ * EAS does not expose the source commit through `update:list --json`, so we
+ * record it ourselves: every successful publish force-moves the
+ * `ota-production` tag to the published commit and pushes it. That tag is the
+ * shared, cross-machine memory of "what production is running", and the check
+ * is one ancestor test against it.
+ *
+ * Fails OPEN on anything environmental (no tag yet, no network, no origin) —
+ * a guard that blocks releases when GitHub is slow gets disabled within a day,
+ * and then it protects nothing.
+ */
+const LIVE_TAG = 'ota-production';
+
+function assertNotBehindLive(cwd) {
+  const git = (args) => spawnSync('git', args, { cwd, encoding: 'utf8' });
+  if (git(['rev-parse', '--git-dir']).status !== 0) return;
+
+  // Best-effort refresh; an offline machine simply checks the local copy.
+  git(['fetch', 'origin', '--force', `refs/tags/${LIVE_TAG}:refs/tags/${LIVE_TAG}`]);
+
+  const live = git(['rev-parse', '--verify', '-q', `${LIVE_TAG}^{commit}`]).stdout?.trim();
+  if (!live) {
+    console.warn(`⚠ No ${LIVE_TAG} tag yet — skipping the live check. This publish will create it.`);
+    return;
+  }
+  if (git(['cat-file', '-e', `${live}^{commit}`]).status !== 0) {
+    console.warn(`⚠ ${LIVE_TAG} points at ${live.slice(0, 7)}, which isn't in this clone. Skipping the live check.`);
+    return;
+  }
+  if (git(['merge-base', '--is-ancestor', live, 'HEAD']).status === 0) return;   // live is contained — safe
+
+  const missing = git(['log', '--oneline', '-10', `HEAD..${live}`]).stdout?.trimEnd();
+  const count = git(['rev-list', '--count', `HEAD..${live}`]).stdout?.trim();
+  console.error(`\n✗ Refusing to publish: this tree is missing ${count} commit(s) that are LIVE right now.`);
+  console.error('  Publishing would roll production back to before them. What you would drop:\n');
+  if (missing) console.error(missing.split('\n').map((l) => `    ${l}`).join('\n'));
+  console.error(`\n  Fix:      git merge ${LIVE_TAG}      (then re-run)`);
+  console.error('  Override: OTA_ALLOW_BEHIND_LIVE=1 pnpm ota:prod "…"   (only if the rollback is the point)\n');
+  process.exit(1);
+}
+
+/** `eas update` bundles the WORKING TREE, so a dirty tree ships something no
+ *  commit describes — and the tag we then write would be a lie. Warn loudly;
+ *  don't block, because a quick copy tweak is a legitimate way to ship. */
+function warnIfDirty(cwd) {
+  const out = spawnSync('git', ['status', '--porcelain'], { cwd, encoding: 'utf8' }).stdout?.trim();
+  if (!out) return;
+  const n = out.split('\n').length;
+  console.warn(`⚠ ${n} uncommitted change(s) in the tree. eas update bundles the WORKING TREE,`);
+  console.warn(`  so what ships is not exactly ${LIVE_TAG} will claim. Commit first if it matters.\n`);
+}
+
 // Code invariant: never ship a bundle that silently rolls production back.
 if (process.env.OTA_ALLOW_BEHIND_MAIN !== '1') {
   assertNotBehindMain(mobileDir);
+}
+if (process.env.OTA_ALLOW_BEHIND_LIVE !== '1') {
+  assertNotBehindLive(mobileDir);
+}
+warnIfDirty(mobileDir);
+
+// Verify the guards without publishing: OTA_CHECK_ONLY=1 pnpm ota:prod "x"
+if (process.env.OTA_CHECK_ONLY === '1') {
+  console.log('✓ Checks passed. OTA_CHECK_ONLY=1 — not publishing.');
+  process.exit(0);
 }
 
 // Build the child env: start clean of dotenv, layer ONLY the production
@@ -130,5 +202,18 @@ const result = spawnSync(
   ['--yes', 'eas-cli@latest', 'update', '--branch', 'production', '--clear-cache', '--non-interactive', '--message', message],
   { cwd: mobileDir, env: childEnv, stdio: 'inherit' }
 );
+
+// Record what production is now running, so the next publisher — on any
+// machine, from any branch — can be stopped from reverting it. Only on
+// success, and never fatal: a failed tag push must not fail a shipped release.
+if (result.status === 0) {
+  const git = (args) => spawnSync('git', args, { cwd: mobileDir, encoding: 'utf8' });
+  const head = git(['rev-parse', 'HEAD']).stdout?.trim();
+  const tagged = git(['tag', '-f', LIVE_TAG, head]).status === 0
+    && git(['push', '--force', 'origin', `refs/tags/${LIVE_TAG}`]).status === 0;
+  console.log(tagged
+    ? `\n✓ ${LIVE_TAG} → ${head?.slice(0, 7)} (pushed). The next publish is now checked against this.`
+    : `\n⚠ Published, but could not update the ${LIVE_TAG} tag. Run:  git tag -f ${LIVE_TAG} && git push -f origin ${LIVE_TAG}`);
+}
 
 process.exit(result.status ?? 1);
