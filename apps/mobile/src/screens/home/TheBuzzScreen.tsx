@@ -172,9 +172,12 @@ const s = StyleSheet.create({
   card: { borderRadius: 18, borderWidth: 1, overflow: 'hidden' },
   itemHead: { flexDirection: 'row', alignItems: 'flex-start', gap: 13, paddingVertical: 15, paddingHorizontal: 15 },
   numChip: { width: 32, height: 32, borderRadius: 10, alignItems: 'center', justifyContent: 'center', marginTop: 1 },
-  numChipT: { fontFamily: FONTS.v2_display, fontSize: 14, color: '#FFF9F2' },
-  itemTag: { fontFamily: FONTS.v2_mono, fontSize: 9.5, letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 4 },
-  itemTitle: { fontFamily: FONTS.v2_display, fontSize: 16, color: COLORS.v2_cocoa, letterSpacing: -0.2, lineHeight: 21 },
+  // Only ONE bold per header — the headline. The numeral and the eyebrow are
+  // wayfinding, not voice, so they sit a weight below it; three bolds in a row
+  // made every card read as shouting and nothing scanned.
+  numChipT: { fontFamily: FONTS.v2_mono_light, fontSize: 13, color: '#FFF9F2', letterSpacing: 0.3 },
+  itemTag: { fontFamily: FONTS.v2_mono_light, fontSize: 9.5, letterSpacing: 1.3, textTransform: 'uppercase', marginBottom: 4 },
+  itemTitle: { fontFamily: FONTS.v2_display, fontSize: 16, color: COLORS.v2_cocoa, letterSpacing: -0.1, lineHeight: 22 },
   itemToggle: { fontFamily: FONTS.v2_body, fontSize: 22, lineHeight: 24, marginTop: 3, width: 14, textAlign: 'center' },
   itemToggleOpen: { transform: [{ rotate: '90deg' }] },
   itemBody: { paddingLeft: 60, paddingRight: 15, paddingBottom: 16, marginTop: -4, gap: 10 },

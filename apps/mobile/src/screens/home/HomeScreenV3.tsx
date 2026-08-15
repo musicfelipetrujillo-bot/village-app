@@ -32,7 +32,7 @@ import { theBuzzApi, type TheBuzzArchiveRow } from '@api/theBuzz';
 import { useFocusEffect } from '@react-navigation/native';
 
 const VILLIE_BEE = require('../../../assets/brand/villie-bee.png');
-const WEEK_SUN = require('../../../assets/home/week-sun.png');
+const WEEK_SEAL = require('../../../assets/home/week-seal.png');
 const SCREEN_W = Dimensions.get('window').width;
 
 // ─── Tokens (raspberry rebrand) ────────────────────────────────────────
@@ -214,11 +214,11 @@ function WeekRingHero({ firstName, babyName, weekNumber, expecting, onOpenManual
         }
         style={styles.ringWrap}
       >
-        <Image source={WEEK_SUN} style={styles.weekSun} resizeMode="contain" />
+        <Image source={WEEK_SEAL} style={styles.weekSeal} resizeMode="contain" />
         <View style={styles.ringCenter} pointerEvents="none">
-          <Text style={styles.ringBabyName} numberOfLines={1}>{babyName.toLowerCase()}</Text>
+          <Text style={styles.ringWeekLabel}>{(lang === 'es' ? 'semana' : 'week')}</Text>
           <Text style={styles.ringNumber} numberOfLines={1} allowFontScaling={false}>{weekNumber}</Text>
-          <Text style={styles.ringUnit}>{unit}</Text>
+          <Text style={styles.ringBabyName} numberOfLines={1}>{babyName.toLowerCase()}</Text>
         </View>
       </TouchableOpacity>
 
@@ -578,7 +578,7 @@ const styles = StyleSheet.create({
   heroGreet: { fontFamily: FONTS.v2_body, fontSize: 15, color: '#A85A63' },
   heroGreetName: { fontFamily: FONTS.v3_display_italic, fontSize: 23, color: '#C24A63' },
   ringWrap: { marginTop: 14, width: 252, height: 252, alignItems: 'center', justifyContent: 'center' },
-  weekSun: { width: 252, height: 252 },
+  weekSeal: { width: 252, height: 252 },
   ringCenter: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center' },
   // Her baby's name, not a label. At 12px mono against a 76px week number it
   // read as chrome — the eye went straight past it to the digits (founder,
@@ -586,17 +586,21 @@ const styles = StyleSheet.create({
   // reads as a NAME, deeper raspberry for contrast on the cream disc, and the
   // wide mono tracking dropped since it fought legibility at this size. Still
   // well under the 76px number, so the week stays the anchor.
-  ringBabyName: {
-    fontFamily: FONTS.v3_display, fontSize: 26, lineHeight: 29, letterSpacing: -0.3,
-    textTransform: 'lowercase', color: '#A33F5C', marginBottom: 1,
+  // The week number lives INSIDE the wax seal now (founder-supplied blank seal,
+  // 2026-08-15). The old raspberry read low-contrast on the orange wax, so the
+  // number + name are cocoa ink — the same dark tone you'd stamp into wax.
+  // Stack: a small "week" eyebrow, the big number, then her baby's name.
+  ringWeekLabel: {
+    fontFamily: FONTS.bodySemiBold, fontSize: 12.5, letterSpacing: 1.4, textTransform: 'uppercase',
+    color: 'rgba(67,38,15,0.62)', marginBottom: -2,
   },
   ringNumber: {
-    fontFamily: FONTS.v3_display, fontSize: 76, lineHeight: 80, color: '#C24A63',
+    fontFamily: FONTS.v3_display, fontSize: 82, lineHeight: 84, color: '#43260F',
     letterSpacing: -2, textAlign: 'center',
   },
-  ringUnit: {
-    fontFamily: FONTS.bodySemiBold, fontSize: 14, letterSpacing: 0.6, textTransform: 'uppercase',
-    color: '#C24A63', marginTop: 0,
+  ringBabyName: {
+    fontFamily: FONTS.v3_display, fontSize: 21, lineHeight: 24, letterSpacing: -0.3,
+    textTransform: 'lowercase', color: '#6C4628', marginTop: 2,
   },
   // The hero's single bold spark — solid scarlet against the pink field.
   heroTapHint: {
