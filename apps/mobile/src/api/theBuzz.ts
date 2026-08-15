@@ -2,7 +2,14 @@
 // list_trending_archive (both plain SELECT-shaped RPCs — RLS on
 // trending_issues/trending_items is the actual gate; the RPCs exist only
 // to hydrate the nested items array in one round trip).
+//
+// Because RLS is the gate and both policies are `TO authenticated`, every read
+// here MUST go through `requireSession()` first. Without it the call can go out
+// before the JWT is attached, and PostgREST answers 200 + null — silently
+// identical to "no issue published this week". See lib/requireSession.ts for
+// the production numbers behind this.
 import { supabase } from '@/lib/supabase';
+import { requireSession } from '@/lib/requireSession';
 
 export type TheBuzzItemKind = 'news' | 'myth_buster';
 
@@ -45,18 +52,21 @@ export interface TheBuzzArchiveRow {
 
 export const theBuzzApi = {
   async getCurrentIssue(): Promise<TheBuzzIssue | null> {
+    await requireSession();
     const { data, error } = await supabase.rpc('get_trending_issue', { p_issue_id: null });
     if (error) throw new Error(error.message);
     return (data as TheBuzzIssue | null) ?? null;
   },
 
   async getIssueById(issueId: string): Promise<TheBuzzIssue | null> {
+    await requireSession();
     const { data, error } = await supabase.rpc('get_trending_issue', { p_issue_id: issueId });
     if (error) throw new Error(error.message);
     return (data as TheBuzzIssue | null) ?? null;
   },
 
   async listArchive(): Promise<TheBuzzArchiveRow[]> {
+    await requireSession();
     const { data, error } = await supabase.rpc('list_trending_archive');
     if (error) throw new Error(error.message);
     return (data ?? []) as TheBuzzArchiveRow[];
