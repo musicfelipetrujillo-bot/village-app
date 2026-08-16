@@ -753,6 +753,7 @@ const PLACEHOLDER_WEEK_INTRO: WeekIntroVideo = {
 // hero. Shown only on the Grow category; playback still uses the sample Mux
 // clip until the real video is uploaded to Mux.
 const GROW_DEMO_POSTER = require('../../../assets/manual/grow-spinning.jpg');
+const SLEEP_DEMO_POSTER = require('../../../assets/manual/sleep-thumb.jpg');
 
 // ─── Screen ────────────────────────────────────────────────────────────
 export default function ManualScrollV3() {
@@ -1395,10 +1396,12 @@ export default function ManualScrollV3() {
             <WeekIntroCard
               data={chapter.cat === 'grow'
                 ? { ...weekIntro, title: 'Capturing Spinning Objects', expert_name: 'Grow demo', expert_role: 'watch how' }
+                : chapter.cat === 'sleep'
+                ? { ...weekIntro, title: 'Sample Newborn Sleep Schedule', expert_name: 'Sleep demo', expert_role: 'watch how' }
                 : weekIntro}
               onPress={openWeekIntro}
               lang={lang}
-              posterSource={chapter.cat === 'grow' ? GROW_DEMO_POSTER : undefined}
+              posterSource={chapter.cat === 'grow' ? GROW_DEMO_POSTER : chapter.cat === 'sleep' ? SLEEP_DEMO_POSTER : undefined}
             />
           </View>
         )}
