@@ -233,9 +233,7 @@ function WeekRingHero({ firstName, babyName, weekNumber, expecting, onOpenManual
           ? (lang === 'es' ? 'Prepárate para la llegada del bebé' : 'Get ready for baby')
           : (lang === 'es' ? "Abre el manual de esta semana" : "Open this week's manual")}
       >
-        <LinearGradient colors={['#E14A32', '#EE9A38']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.heroTapPill}>
-          <Text style={styles.heroTapHintText}>{tapHint}</Text>
-        </LinearGradient>
+        <Text style={styles.heroTapHintText}>{tapHint}</Text>
       </TouchableOpacity>
     </LinearGradient>
   );
@@ -275,8 +273,15 @@ function LogRow({ onFeed, onSleep, onMilk }: { onFeed: () => void; onSleep: () =
 }
 
 // ─── Quiet ask-villie bar ──────────────────────────────────────────────
-function AskVillie({ onAsk, onTalk }: { onAsk: (seed?: string) => void; onTalk: () => void }) {
+function AskVillie({ onAsk, onTalk, weekNumber, babyName }: { onAsk: (seed?: string) => void; onTalk: () => void; weekNumber: number; babyName: string }) {
   const lang = useUserStore((s) => s.profile?.preferred_language ?? 'en') as 'en' | 'es';
+  const hour = new Date().getHours();
+  const name = babyName.toLowerCase();
+  const evening = hour >= 17 || hour < 5;
+  // Contextual suggestions that shift with the baby's week + the time of day.
+  const prompts = lang === 'es'
+    ? [`¿qué es normal a las ${weekNumber} semanas?`, evening ? 'planear mañana' : `¿qué debe comer ${name} hoy?`, '¿por qué se despierta de noche?']
+    : [`what's normal at ${weekNumber} weeks?`, evening ? 'plan tomorrow' : `what should ${name} eat today?`, 'why the night wakings?'];
   return (
     <View style={styles.askWrap}>
       <View style={styles.askRow}>
@@ -289,6 +294,13 @@ function AskVillie({ onAsk, onTalk }: { onAsk: (seed?: string) => void; onTalk: 
             <Glyph d={ICON.mic} color="#fff" size={19} sw={1.8} />
           </LinearGradient>
         </TouchableOpacity>
+      </View>
+      <View style={styles.askPrompts}>
+        {prompts.map((p, i) => (
+          <TouchableOpacity key={i} activeOpacity={0.65} onPress={() => onAsk(p)} style={styles.askChip} accessibilityRole="button" accessibilityLabel={p}>
+            <Text style={styles.askChipText} numberOfLines={1}>{p}</Text>
+          </TouchableOpacity>
+        ))}
       </View>
     </View>
   );
@@ -509,7 +521,7 @@ export default function HomeScreenV3() {
             <Text style={styles.patternsLinkText}>{lang === 'es' ? 'ver patrones del bebé  ›' : "baby's patterns  ›"}</Text>
           </TouchableOpacity>
 
-          <AskVillie onAsk={askVillie} onTalk={talkToVillie} />
+          <AskVillie onAsk={askVillie} onTalk={talkToVillie} weekNumber={heroWeek} babyName={heroBabyName} />
 
           {expecting && (
             <TouchableOpacity
@@ -640,16 +652,11 @@ const styles = StyleSheet.create({
     textTransform: 'lowercase', color: '#F2E4C8', marginTop: 2,
     textShadowColor: 'rgba(58,24,10,0.45)', textShadowOffset: { width: 0, height: 2 }, textShadowRadius: 3,
   },
-  // The hero's single warm spark — scarlet→amber gradient so it harmonises
-  // with the orange seal instead of reading as a flat red block on the pink
-  // field (the flat red felt "discombobulated" — founder, 2026-08-15).
+  // The hero's single bold spark — solid scarlet against the pink field.
   heroTapHint: {
-    marginTop: 20, borderRadius: 999,
-    shadowColor: '#E1732F', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.26, shadowRadius: 10, elevation: 3,
-  },
-  heroTapPill: {
-    borderRadius: 999, paddingHorizontal: 18, paddingVertical: 9,
-    alignItems: 'center', justifyContent: 'center',
+    marginTop: 20, backgroundColor: '#E14A32', borderRadius: 999,
+    paddingHorizontal: 18, paddingVertical: 9,
+    shadowColor: '#E14A32', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.28, shadowRadius: 10, elevation: 3,
   },
   heroTapHintText: { fontFamily: FONTS.bodyBold, fontSize: 11.5, color: '#FFF3E4', letterSpacing: 0.6, textTransform: 'uppercase' },
 
@@ -695,6 +702,11 @@ const styles = StyleSheet.create({
   askBee: { width: 24, height: 24, borderRadius: 12, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' },
   askText: { flex: 1, fontFamily: FONTS.bodySemiBold, fontSize: 13.5, color: '#A87A54' },
   askMic: { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center', shadowColor: '#E14A32', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.4, shadowRadius: 11, elevation: 4 },
+  // Understated contextual suggestions under the ask bar — soft chips, and the
+  // added height nudges Mama's corner + the rest down so the hero peeks less.
+  askPrompts: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 12, paddingHorizontal: 2 },
+  askChip: { backgroundColor: 'rgba(194,74,99,0.07)', borderRadius: 999, paddingHorizontal: 13, paddingVertical: 8 },
+  askChipText: { fontFamily: FONTS.v2_body, fontSize: 12.5, color: '#A85278' },
 
   // ── Discover (Villie Boxes + Picks) ──────────────────────────────────
   discHead: { fontFamily: FONTS.v2_mono, fontSize: 11, letterSpacing: 2.6, textTransform: 'uppercase', fontWeight: '500', color: '#B0637E', marginBottom: 12 },
