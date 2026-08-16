@@ -57,26 +57,30 @@ const ArrowRight = ({ color }: { color: string }) => (
 );
 
 // ─── Verticals ─────────────────────────────────────────────────────────
-// `route` is the TAB name (goVertical cross-tabs via getParent().navigate).
+// Unified NEUTRAL tiles — the colourful illustrated icon badge does the talking
+// (founder 2026-08-16), not a rainbow of tile colours. Milk + Care have real
+// illustrated icons; Gear + Plans use a placeholder line glyph until their real
+// icons land. `route` is the TAB name (goVertical cross-tabs via getParent()).
+const MILK_ICON = require('../../../assets/village/milk-hub-icon.png');
+const CARE_ICON = require('../../../assets/village/care-icon.png');
+const GLYPH: Record<string, string> = {
+  bag: 'M6 8h12l-1 12H7L6 8zm3 0V6a3 3 0 016 0v2',
+  calendar: 'M4 6h16v15H4zM4 10h16M8 3v4M16 3v4',
+};
+
 type Vertical = {
   title: string;
-  sub: string;
-  stat: string;
-  bg: string;
-  ink: string;
   route: string;
+  icon?: number;              // require() asset — the illustrated badge
+  glyph?: keyof typeof GLYPH; // fallback line glyph until a real icon exists
   isNew?: boolean;
 };
 
-// Soft Cherry bento: cheery, not harsh. Each card is a SOFT candy tint (not a
-// full-saturation block); the spark lives in the deep-toned title + arrow. `ink`
-// carries every text color on the card and is a deep, readable version of the
-// card's own hue so it pops on the pale ground without glare.
 const VERTICALS: Vertical[] = [
-  { title: 'Milk Hub',     sub: 'Your stash, plus peer milk.',    stat: 'track · share · find', bg: '#F6C9D0', ink: '#C63A24', route: 'Milk',    isNew: true },
-  { title: 'Care',         sub: 'Doctors, doulas, lactation — and extra hands.', stat: '12 verified',  bg: '#F4CBA8', ink: '#B85A2E', route: 'Experts' },
-  { title: 'Baby Gear',    sub: 'Hand-me-downs from real moms.',  stat: '37 listed',            bg: '#EFD79A', ink: '#8A6A1E', route: 'Gear'    },
-  { title: 'Villie Plans', sub: 'Classes, circles, real coffee.', stat: '5 this week',          bg: '#F6C2B8', ink: '#A83420', route: 'Village' },
+  { title: 'Milk Hub',     icon: MILK_ICON,   route: 'Milk',    isNew: true },
+  { title: 'Care',         icon: CARE_ICON,   route: 'Experts' },
+  { title: 'Baby Gear',    glyph: 'bag',      route: 'Gear'    },
+  { title: 'Villie Plans', glyph: 'calendar', route: 'Village' },
 ];
 
 // Short weekday + day-of-month for the calendar chip.
@@ -156,7 +160,9 @@ export default function VillageHomeScreenV3() {
         )}
         scrollEventThrottle={16}
       >
+        {/* Quiet header — an eyebrow, not a big bold headline (founder 2026-08-16) */}
         <View style={styles.header}>
+          <Eyebrow>{lang === 'es' ? 'tu aldea' : 'your village'}</Eyebrow>
           <TouchableOpacity
             style={styles.mapBtn}
             accessibilityRole="button"
@@ -174,12 +180,7 @@ export default function VillageHomeScreenV3() {
           </TouchableOpacity>
         </View>
 
-        <Text style={styles.headline}>
-          {lang === 'es' ? 'Tu refuerzo está aquí' : 'Your backup is here'}
-        </Text>
-        <Text style={styles.locMono}>{locationLine}</Text>
-
-        {/* 2×2 vertical grid */}
+        {/* 2×2 vertical grid — unified tiles, illustrated icon badges */}
         <View style={styles.gridWrap}>
           {VERTICALS.map((v) => (
             <TouchableOpacity
@@ -188,20 +189,23 @@ export default function VillageHomeScreenV3() {
               activeOpacity={0.88}
               accessibilityRole="button"
               accessibilityLabel={v.title}
-              style={[styles.tile, { backgroundColor: v.bg }]}
+              style={styles.tile}
             >
-              <LinearGradient
-                colors={['rgba(253,251,246,0.22)', 'rgba(253,251,246,0)']}
-                start={{ x: 0, y: 0 }} end={{ x: 0, y: 0.42 }}
-                style={[StyleSheet.absoluteFillObject, { borderRadius: 14 }]}
-                pointerEvents="none"
-              />
               {v.isNew && (
                 <View style={styles.tileBadge}>
-                  <Text style={[styles.tileBadgeText, { color: v.ink }]}>new</Text>
+                  <Text style={styles.tileBadgeText}>new</Text>
                 </View>
               )}
-              <Text style={[styles.tileTitle, { color: v.ink }]}>{v.title}</Text>
+              <View style={styles.iconBadge}>
+                {v.icon ? (
+                  <Image source={v.icon} style={styles.badgeImg} resizeMode="cover" />
+                ) : (
+                  <Svg width={26} height={26} viewBox="0 0 24 24">
+                    <Path d={GLYPH[v.glyph!]} stroke="#B08A5E" strokeWidth={1.8} fill="none" strokeLinecap="round" strokeLinejoin="round" />
+                  </Svg>
+                )}
+              </View>
+              <Text style={styles.tileTitle}>{v.title}</Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -287,44 +291,41 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#FBF4E6', overflow: 'hidden' },
   scroll: { paddingTop: 56, paddingHorizontal: 22, paddingBottom: 96 },
 
-  header: { flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center' },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },
   mapBtn: {
     width: 36, height: 36, borderRadius: 12, backgroundColor: T.parchment,
     alignItems: 'center', justifyContent: 'center',
   },
 
-  headline: {
-    fontFamily: FONTS.v3_display, fontSize: 29, lineHeight: 34,
-    color: T.cocoa, letterSpacing: -0.6, marginTop: 12,
-  },
-  locMono: {
-    marginTop: 12,
-    fontFamily: FONTS.v2_mono, fontSize: 10,
-    color: T.walnut, letterSpacing: 2.0,
-    textTransform: 'uppercase', fontWeight: '500',
-  },
-
   gridWrap: {
-    marginTop: 20, paddingTop: 14,
-    borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: T.rule,
+    marginTop: 16,
     flexDirection: 'row', flexWrap: 'wrap', gap: 12,
   },
+  // One unified neutral tile — the illustrated icon badge carries the colour.
   tile: {
-    width: '48%', minHeight: 92,
-    padding: 16, paddingBottom: 14,
-    borderRadius: 14, overflow: 'hidden',
-    justifyContent: 'flex-end',
+    width: '48%', minHeight: 128,
+    padding: 16,
+    borderRadius: 18, overflow: 'hidden',
+    justifyContent: 'flex-start',
+    backgroundColor: '#FDF7EF',
+    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(122,74,40,0.12)',
     shadowColor: T.walnut, shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.12, shadowRadius: 20, elevation: 2,
+    shadowOpacity: 0.1, shadowRadius: 20, elevation: 2,
   },
+  iconBadge: {
+    width: 56, height: 56, borderRadius: 16, overflow: 'hidden',
+    backgroundColor: '#F2E7D6', alignItems: 'center', justifyContent: 'center',
+    marginBottom: 14,
+  },
+  badgeImg: { width: 56, height: 56 },
   tileBadge: {
     position: 'absolute', top: 12, right: 12,
-    backgroundColor: 'rgba(255,252,246,0.72)', borderRadius: 999,
+    backgroundColor: 'rgba(255,252,246,0.85)', borderRadius: 999,
     paddingHorizontal: 8, paddingVertical: 2,
   },
   tileBadgeText: {
     fontFamily: FONTS.v2_mono, fontSize: 8.5, letterSpacing: 1.2,
-    textTransform: 'uppercase', fontWeight: '600',
+    textTransform: 'uppercase', fontWeight: '600', color: '#C24A63',
   },
   tileTitle: {
     fontFamily: FONTS.v3_display, fontSize: 21, lineHeight: 24,
