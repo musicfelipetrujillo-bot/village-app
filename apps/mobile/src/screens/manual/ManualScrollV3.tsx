@@ -44,6 +44,7 @@ import { useHomeStore } from '@store/home';
 import { homeApi } from '@/api/home';
 import ManualModules from '@/components/manual/ManualModules';
 import PlaybookTracker from '@/components/manual/PlaybookTracker';
+import { ScreenHeader } from '@components/shared/ScreenHeader';
 import { getManualContent } from '@/manual/manualWeekContent';
 import { isExpecting } from '@/manual/beforeBaby';
 import {
@@ -1124,18 +1125,26 @@ export default function ManualScrollV3() {
         scrollEventThrottle={16}
       >
 
-        {/* Header — eyebrow + title + hamburger */}
-        <View style={styles.headerRow}>
-          <View style={{ flex: 1, minWidth: 0 }}>
-            <Text style={styles.bigTitle} numberOfLines={1}>
-              {isPlaybook ? 'Your ' : (who === 'baby' ? `${ownerName}'s ` : 'Your ')}
-              <Text style={styles.bigTitleItalic}>{isPlaybook ? 'playbook.' : 'manual.'}</Text>
-            </Text>
-          </View>
-          <View ref={triggerRef} collapsable={false} style={{ paddingTop: 12 }}>
-            <MenuButton onPress={openMenu} expanded={menuOpen} a11yLabel={t('manualMenu.triggerA11y')} />
-          </View>
-        </View>
+        {/* Shared modest-editorial header (founder 2026-08-16) — same treatment
+            as every destination screen. Replaces the old 30px bold italic-accent
+            title so Manual lines up with Village / Insights / hubs. */}
+        <ScreenHeader
+          eyebrow={
+            isPlaybook
+              ? (lang === 'es' ? 'el playbook' : 'the playbook')
+              : (lang === 'es' ? 'el manual' : 'the manual')
+          }
+          title={
+            isPlaybook
+              ? (lang === 'es' ? 'tu playbook' : 'your playbook')
+              : (who === 'baby' ? `${ownerName}'s manual` : (lang === 'es' ? 'tu manual' : 'your manual'))
+          }
+          right={
+            <View ref={triggerRef} collapsable={false}>
+              <MenuButton onPress={openMenu} expanded={menuOpen} a11yLabel={t('manualMenu.triggerA11y')} />
+            </View>
+          }
+        />
         {/* Progress bar + count removed 2026-08-12 — read-tracking chrome made the
             top of the screen busy. Emergency quick-ref moved to the ⋯ menu. */}
 

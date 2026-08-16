@@ -16,7 +16,7 @@ import { homeApi } from '@api/home';
 import { useHomeStore } from '@store/home';
 import { useMilkVaultStore } from '@store/milkVault';
 import { FONTS } from '@utils/constants';
-import { BackButton } from '@components/shared/BackButton';
+import { ScreenHeader } from '@components/shared/ScreenHeader';
 import { useUserStore } from '@store/user';
 import PlaybookTracker from '@/components/manual/PlaybookTracker';
 
@@ -105,29 +105,32 @@ export default function InsightsScreen() {
   return (
     <View style={styles.container}>
       <SafeAreaView style={{ flex: 1 }} edges={['top']}>
-        <View style={styles.header}>
-          <BackButton color={C.roseInk} />
-          <Text style={styles.title}>your day</Text>
-          <View style={styles.weekStepper}>
-            <TouchableOpacity
-              onPress={() => setWeekOffset((o) => Math.min(o + 1, week != null ? week - 1 : 12))}
-              disabled={weekOffset >= (week != null ? week - 1 : 12)}
-              hitSlop={{ top: 10, bottom: 10, left: 8, right: 6 }}
-              accessibilityRole="button" accessibilityLabel={lang === 'es' ? 'Semana anterior' : 'Previous week'}
-            >
-              <Text style={[styles.weekArrow, weekOffset >= (week != null ? week - 1 : 12) && { opacity: 0.25 }]}>‹</Text>
-            </TouchableOpacity>
-            <Text style={styles.weekStepperText}>{weekLabel}</Text>
-            <TouchableOpacity
-              onPress={() => setWeekOffset((o) => Math.max(o - 1, 0))}
-              disabled={weekOffset === 0}
-              hitSlop={{ top: 10, bottom: 10, left: 6, right: 8 }}
-              accessibilityRole="button" accessibilityLabel={lang === 'es' ? 'Semana siguiente' : 'Next week'}
-            >
-              <Text style={[styles.weekArrow, weekOffset === 0 && { opacity: 0.25 }]}>›</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
+        <ScreenHeader
+          title={lang === 'es' ? 'tu día' : 'your day'}
+          onBack={() => nav.goBack()}
+          backColor={C.roseInk}
+          right={
+            <View style={styles.weekStepper}>
+              <TouchableOpacity
+                onPress={() => setWeekOffset((o) => Math.min(o + 1, week != null ? week - 1 : 12))}
+                disabled={weekOffset >= (week != null ? week - 1 : 12)}
+                hitSlop={{ top: 10, bottom: 10, left: 8, right: 6 }}
+                accessibilityRole="button" accessibilityLabel={lang === 'es' ? 'Semana anterior' : 'Previous week'}
+              >
+                <Text style={[styles.weekArrow, weekOffset >= (week != null ? week - 1 : 12) && { opacity: 0.25 }]}>‹</Text>
+              </TouchableOpacity>
+              <Text style={styles.weekStepperText}>{weekLabel}</Text>
+              <TouchableOpacity
+                onPress={() => setWeekOffset((o) => Math.max(o - 1, 0))}
+                disabled={weekOffset === 0}
+                hitSlop={{ top: 10, bottom: 10, left: 6, right: 8 }}
+                accessibilityRole="button" accessibilityLabel={lang === 'es' ? 'Semana siguiente' : 'Next week'}
+              >
+                <Text style={[styles.weekArrow, weekOffset === 0 && { opacity: 0.25 }]}>›</Text>
+              </TouchableOpacity>
+            </View>
+          }
+        />
 
         {loading ? (
           <View style={styles.center}><ActivityIndicator color={C.rose} /></View>

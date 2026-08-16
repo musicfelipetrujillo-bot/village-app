@@ -21,6 +21,7 @@ import { useUserStore } from '@store/user';
 import { useEventsStore } from '@store/events';
 import { formatDistance, type EventCard } from '@api/events';
 import { useT } from '@/i18n';
+import { ScreenHeader } from '@components/shared/ScreenHeader';
 import { WarmGlowBackdrop } from '@components/shared/WarmGlowBackdrop';
 import { HoneycombBackdrop } from '@components/shared/HoneycombBackdrop';
 
@@ -163,25 +164,29 @@ export default function VillageHomeScreenV3() {
         )}
         scrollEventThrottle={16}
       >
-        {/* Quiet header — an eyebrow, not a big bold headline (founder 2026-08-16) */}
-        <View style={styles.header}>
-          <Eyebrow>{lang === 'es' ? 'tu aldea' : 'your village'}</Eyebrow>
-          <TouchableOpacity
-            style={styles.mapBtn}
-            accessibilityRole="button"
-            accessibilityLabel="Donor map"
-            onPress={goMap}
-          >
-            <Svg width={16} height={16} viewBox="0 0 24 24">
-              <Path
-                d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"
-                stroke={T.walnut} strokeWidth={1.8} fill="none"
-                strokeLinecap="round" strokeLinejoin="round"
-              />
-              <Circle cx={12} cy={10} r={3} stroke={T.walnut} strokeWidth={1.8} fill="none" />
-            </Svg>
-          </TouchableOpacity>
-        </View>
+        {/* Shared modest-editorial header (founder 2026-08-16) — same treatment
+            as every destination screen: small eyebrow + light Bricolage title. */}
+        <ScreenHeader
+          eyebrow={lang === 'es' ? 'tu aldea' : 'the village'}
+          title={lang === 'es' ? 'tu aldea' : 'your village'}
+          right={
+            <TouchableOpacity
+              style={styles.mapBtn}
+              accessibilityRole="button"
+              accessibilityLabel="Donor map"
+              onPress={goMap}
+            >
+              <Svg width={16} height={16} viewBox="0 0 24 24">
+                <Path
+                  d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"
+                  stroke={T.walnut} strokeWidth={1.8} fill="none"
+                  strokeLinecap="round" strokeLinejoin="round"
+                />
+                <Circle cx={12} cy={10} r={3} stroke={T.walnut} strokeWidth={1.8} fill="none" />
+              </Svg>
+            </TouchableOpacity>
+          }
+        />
 
         {/* 2×2 — the four sections ARE the hero. No card box around the icon
             (that read as a redundant double-box). The big illustrated icon is
