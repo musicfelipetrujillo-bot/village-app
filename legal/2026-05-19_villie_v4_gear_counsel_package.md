@@ -279,30 +279,79 @@ Each item below is a specific position we have taken in code. Counsel either sig
 
 **Current state, stated plainly:** nothing is ever deleted. `account-delete` sets a `deleted_at` timestamp and stops; the row becomes invisible to the app and every underlying record persists indefinitely. The delete-account UI ships behind a disabled flag for that reason.
 
-## D.1 What is held
+**What changed on 2026-08-15.** This appendix originally asked counsel an open-ended question. It now states a **proposed policy** instead. Engineering has since mapped every foreign-key relationship in the database, and it turns out the schema has already made most of these decisions — 57 relationships delete automatically when a user is removed, 17 keep the record and strip the user id. So rather than ask counsel to design a retention posture from scratch, we set out below what we propose to do, and ask counsel to **confirm or correct**. That should be a much cheaper review.
 
-| # | Surface | Data | Sensitivity | Retention today |
+## D.1 Proposed policy — please confirm or correct
+
+**Default: on account deletion, the user's data is deleted.** Three groups, with the exceptions named explicitly.
+
+### Group 1 · Delete outright (proposed: no change — the schema already does this)
+
+Personal and health data with no compliance role. All 57 of these already cascade on user deletion:
+
+`daily_checkins` · `crisis_flags` (the mother's own linkage) · `ai_conversations` · `ai_companion_mentions` · `baby_profiles` · `baby_sleep_logs` · `baby_feed_logs` · `baby_diaper_logs` · `baby_log_notes` · `day_sheets` · `villie_memories` · `home_feed_cache` · `milk_donor_profiles` · `milk_vault_*` · `favorites` · `event_rsvps` · `event_saves` · `deal_claims` · `manual_*` progress and saves · `room_members` · `room_presence` · `user_anonymous_identities` · `push_sends` · `newsletter_sends` · `gear_boosts` · `messages`
+
+> **Counsel: is there anything here we must NOT delete?** We would rather over-delete than under-delete, but we would rather be told now than discover it in a dispute.
+
+### Group 2 · Keep the record, strip the person (proposed: no change — the schema already does this)
+
+Compliance and safety evidence that must outlive the account. The row survives with `user_id` set to NULL, so the event is still provable but is no longer attributable to a named person:
+
+| Table | Why it must survive |
+|---|---|
+| `gear_analytics_events` | The CPSIA §19 chain of custody — `gear_cpsc_block_shown` is the proof we blocked a recalled listing (Part B §3, observation 1) |
+| `milk_analytics_events` | Same posture for the Milk vertical |
+| `crisis_flags.flagged_user_id` | A safety incident record. **A record of a crisis intervention should not be erasable by the person it concerns.** |
+| `room_messages` | Community content others replied to; authorship anonymised |
+| `specialists`, `specialist_invites` | Provider directory records |
+
+`admin_audit_log` has no foreign key to `users` at all, so it is already immune to any cascade and survives untouched. We believe that is correct for a chain-of-custody log.
+
+### Group 3 · Retained intact
+
+Nothing currently. Listed for completeness so the absence is deliberate rather than an oversight.
+
+## D.2 Three places our schema and our own internal policy disagree — please rule
+
+Our internal engineering notes state that certain tables should be "PII-scrubbed on delete, not row-deleted." The schema currently **deletes** them. We do not know which is right, and this is exactly the sort of thing we would rather have counsel settle than pick ourselves.
+
+| # | Table | Schema does | Our notes say | Why it matters |
 |---|---|---|---|---|
-| D-1 | `daily_checkins` | Mood 1–5, energy, **free-text narrative (≤1000 chars)**, AI reply, `crisis_flagged`, crisis resources shown | Mental health. Highest in the app. Free text is whatever a postpartum mother chose to type. | Indefinite |
-| D-2 | `crisis_flags` | Severity, AI assessment, **trigger phrases**, moderator notes, flagged user | Mental health + safety incident record | Indefinite |
-| D-3 | `ai_conversations`, `ai_companion_mentions` | Chat transcripts; per-invocation crisis-detection flags | May contain health free text | Indefinite |
-| D-4 | `baby_profiles` + tracker (`baby_sleep_logs`, `baby_feed_logs`, `baby_diaper_logs`, `baby_log_notes.raw_text`) | Infant name, DOB, birth weight, gender, premature flag, feeding method; feed/sleep/nappy logs; free-text notes | Infant health, held by the parent account-holder | Indefinite |
-| D-5 | `milk_legal_acceptances`, `gear_legal_acceptances` | **IP address + user-agent** captured as consent evidence | PII. Legitimate as proof of consent; indefinite retention is the question | Indefinite (6.1 covers only the Gear half) |
-| D-6 | `villie_box_orders` | `ship_name`, `ship_line1/2`, `ship_city/state/zip`, `ship_phone` | **The only stored physical mailing address in the app.** Necessary — Villie ships these | Indefinite |
-| D-7 | `deal_claims` | `subid` of the form `v_<user8>_<deal8>_<rand6>` — embeds a fragment of the user id and is **transmitted to third-party affiliate networks** on click, by design | Third-party data sharing | Indefinite |
-| D-8 | `home_feed_cache` | Generated feed content | Low | Has `expires_at`; **no purge job** — engineering will add one regardless, no counsel input needed |
+| D-2.1 | `gear_listings` | **Deletes** (via `seller_id`) | Retain — carries `cpsc_recall_status` | Deleting a seller destroys the recall-check evidence for every listing they posted. If a §19 question is ever raised about a listing, the proof we checked it is gone. |
+| D-2.2 | `gear_listing_reports` | **Deletes** (cascades from the listing above) | Retain — moderation record | **A seller could erase the moderation reports filed against them by deleting their account.** That is a moderation-evasion hole as much as a legal one. |
+| D-2.3 | `villie_box_orders` | **Deletes** | Retain per tax/accounting | This is a real merchant purchase record with a shipping address and a Stripe payment reference. Retail records normally carry a statutory retention period. |
 
-## D.2 What engineering needs decided
+Our instinct is that all three should move to Group 2 — keep the row, strip the buyer/seller identity — but we are not confident, and D-2.3 in particular turns on tax rules we are not qualified to read.
 
-- **D-Q1 · Retention periods.** For each group above, how long may we keep it? We would rather delete early than hold indefinitely; tell us the floor.
-- **D-Q2 · The deletion cascade (blocking).** On account deletion, for each group: **row-delete**, **PII-scrub in place**, or **retain**? This is the single answer that unblocks the feature. Our working assumption, for correction: `milk_transactions`, `gear_listings` (recall status), the `*_analytics_events` CPSIA trail and `admin_audit_log` are **retained-but-scrubbed** for compliance defence; everything in D-1 through D-4 is **row-deleted**.
-- **D-Q3 · Mental-health free text.** Villie is not a HIPAA covered entity and takes no position on that here. Does the Florida Digital Bill of Rights — or any regime you consider applicable — impose heightened handling, retention limits, or deletion-response obligations on D-1/D-2 specifically?
-- **D-Q4 · Infant data.** D-4 is data *about* an infant, supplied *by* the parent account-holder, so we read COPPA as not directly triggered. Please confirm, and flag any state-law obligation we have missed.
-- **D-Q5 · Consent evidence.** How long should IP + user-agent (D-5) be kept to remain useful as proof of consent? Life of account, statutory limitation window, or a fixed period?
-- **D-Q6 · Affiliate sharing.** D-7 shares a user-derived identifier with third-party networks. Does that require specific disclosure in the Privacy Policy beyond item 6.2, or an opt-out?
+*(Note: our internal notes also name `milk_transactions` as a retained table. It no longer exists — it was dropped in migration 098 when Milk went cash-only. We mention it so counsel is not looking for it.)*
 
-## D.3 Deliverable
+## D.3 What genuinely remains open
 
-A retention schedule engineering can implement directly: one line per group above, giving a period and a delete-vs-scrub verdict. We will wire it into both a scheduled purge and the deletion cascade so time-based expiry and account deletion share one policy.
+With Groups 1–3 confirmed, only two real questions are left.
 
-*Nothing in this appendix has been implemented. No retention or deletion behaviour will change until counsel responds — which means the sensitive data in D-1 through D-4 continues to accumulate in the meantime.*
+- **D-Q1 · Time limits (the larger one, and untouched by any deletion policy).** Deciding what happens on deletion says nothing about the people who never delete — which is almost everyone. Absent a rule, a mother's postpartum check-in free text and her infant's feed logs sit in the database forever. **How long may we keep each Group 1 category for an active account?** We can implement any period; we currently have none. `daily_checkins`, `crisis_flags` and the baby tracker are the ones we would most like a number for.
+- **D-Q2 · Consent evidence.** `milk_legal_acceptances` and `gear_legal_acceptances` store **IP address + user-agent** as proof of consent, currently forever. How long does that need to be kept to remain useful as evidence — life of the account, a statutory limitation window, or a fixed period?
+
+Two smaller questions, if counsel considers them material:
+
+- **D-Q3.** Villie is not a HIPAA covered entity and takes no position on that here. Does the Florida Digital Bill of Rights, or any regime counsel considers applicable, impose heightened handling or deletion-response duties on the mental-health free text in `daily_checkins` / `crisis_flags` specifically?
+- **D-Q4.** `deal_claims.subid` embeds a fragment of the user id and is transmitted to third-party affiliate networks on click, by design. Does that need disclosure beyond checklist item 6.2, or an opt-out?
+
+## D.4 Not a counsel question — a product decision we owe ourselves
+
+Flagged here only so counsel does not wait on it. Four foreign keys are configured to **block** a hard delete, and the interesting two are two-party conversations:
+
+| Blocking reference | The question it forces |
+|---|---|
+| `milk_messages.sender_id` | If Mom A deletes her account, what happens to the messages she sent Mom B? |
+| `milk_message_threads.recipient_user_id` | Mom B may still be relying on that thread to arrange a handoff |
+| `crisis_flags.moderator_id` | A moderator who handled a crisis cannot currently be deleted |
+| `gear_listing_reports.resolved_by` | Nor can an admin who resolved a report |
+
+A hard delete errors out today rather than choosing. Whether Mom B keeps her side of the conversation is a product call about other people's records, and Villie will decide it — we note it because counsel may have a view on whether the other party's copy is Mom A's data to erase.
+
+## D.5 Deliverable
+
+Ideally: this document returned with Group 1–3 marked confirmed or corrected, a ruling on the three conflicts in D.2, and a number for D-Q1 and D-Q2. That is directly implementable — we will wire it into both a scheduled expiry job and the deletion cascade so time-based expiry and account deletion share one policy.
+
+*Nothing in this appendix is implemented. Account deletion currently sets a flag and deletes nothing, and there is no expiry anywhere — so the data in Group 1 keeps accumulating until this comes back. The one exception, added 2026-08-15, is the generated home-feed cache, which now ages out after 7 days; it is a regenerable cache holding no record of anything, so we did not consider it to need review.*
