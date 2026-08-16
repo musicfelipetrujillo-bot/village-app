@@ -7,7 +7,6 @@ import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 // v3 brand kit preview (2026-05-24) — was '@screens/manual/ManualHomeScreen' (v9).
 // Revert by uncommenting the v9 line + commenting the v3 line.
-// import ManualHomeScreen from '@screens/manual/ManualHomeScreen';
 import ManualHomeScreen from '@screens/manual/ManualScrollV3';
 import ManualCategoryScreen from '@screens/manual/ManualCategoryScreen';
 import ManualChapterReadScreen from '@screens/manual/ManualChapterReadScreen';

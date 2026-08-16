@@ -73,8 +73,13 @@ export default function CreateListingScreen({ route, navigation }: Props) {
         const activated = await updateDonorProfile(donorProfileId, { is_active: true });
         setDonorProfile(activated);
       }
-      // Land on the donor's listings so she immediately SEES what she just posted.
-      navigation.replace('DonorListingManager');
+      // Confirmation first, then her listings (the completion screen's own CTA
+      // lands there). She just finished a health questionnaire, a trust badge
+      // and a listing; ending on a management table with no acknowledgement
+      // read as "did that work?". The screen was skipped when Stripe Connect
+      // was retired — it carried a "💳 Stripe payouts · Connected" row — and
+      // that row is now gone, so the reason for the detour is gone with it.
+      navigation.replace('OnboardingComplete');
     } catch (err) {
       console.error('CreateListing error:', err);
       Alert.alert(t('createListing.errorTitle'), t('createListing.errorBody'));

@@ -1024,13 +1024,11 @@
     "rowQuestionnaire": "Health questionnaire",
     "rowTrustBadge": "Trust badge",
     "rowListing": "Listing",
-    "rowStripe": "Stripe payouts",
     "statusComplete": "Complete",
     "statusEarned": "Earned",
     "statusActive": "Active",
-    "statusConnected": "Connected",
     "statusPrefix": "✓",
-    "doneCta": "View My Dashboard →",
+    "doneCta": "View my listing →",
     "addSocialsCta": "+ Add your socials to build trust"
   },
   "stripeOnboarding": {

@@ -42,7 +42,13 @@ export default function OnboardingCompleteScreen({ navigation }: Props) {
             { emoji: '📋', labelKey: 'donorOnboardingComplete.rowQuestionnaire', statusKey: 'donorOnboardingComplete.statusComplete' },
             { emoji: '🏅', labelKey: 'donorOnboardingComplete.rowTrustBadge', statusKey: 'donorOnboardingComplete.statusEarned' },
             { emoji: '🥛', labelKey: 'donorOnboardingComplete.rowListing', statusKey: 'donorOnboardingComplete.statusActive' },
-            { emoji: '💳', labelKey: 'donorOnboardingComplete.rowStripe', statusKey: 'donorOnboardingComplete.statusConnected' },
+            // NO payments row. This screen shipped in the Stripe Connect era and
+            // told every donor "💳 Stripe payouts · ✓ Connected". Milk went
+            // cash-only in May 2026 (migration 098 retired Stripe Connect), so
+            // that line was claiming a payout rail that does not exist — the
+            // exact money-transmitter posture the cash-only decision exists to
+            // avoid. Villie handles no milk transactions anywhere; don't add a
+            // payments row back.
           ].map((item) => (
             <View key={item.labelKey} style={styles.summaryRow}>
               <Text style={styles.summaryEmoji}>{item.emoji}</Text>
@@ -56,7 +62,7 @@ export default function OnboardingCompleteScreen({ navigation }: Props) {
 
         <TouchableOpacity
           style={styles.doneBtn}
-          onPress={() => navigation.replace('MilkHome')}
+          onPress={() => navigation.replace('DonorListingManager')}
         >
           <Text style={styles.doneBtnText}>{t('donorOnboardingComplete.doneCta')}</Text>
         </TouchableOpacity>

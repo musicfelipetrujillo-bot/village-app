@@ -1024,13 +1024,11 @@
     "rowQuestionnaire": "Cuestionario de salud",
     "rowTrustBadge": "Insignia de confianza",
     "rowListing": "Publicación",
-    "rowStripe": "Pagos por Stripe",
     "statusComplete": "Completo",
     "statusEarned": "Obtenida",
     "statusActive": "Activa",
-    "statusConnected": "Conectado",
     "statusPrefix": "✓",
-    "doneCta": "Ver mi panel →",
+    "doneCta": "Ver mi anuncio →",
     "addSocialsCta": "+ Agrega tus redes para dar más confianza"
   },
   "stripeOnboarding": {
