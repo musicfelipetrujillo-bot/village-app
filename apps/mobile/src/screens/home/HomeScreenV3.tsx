@@ -110,8 +110,8 @@ function HeroHoneycomb({ height = 520 }: { height?: number }) {
     const yOff = c % 2 ? h / 2 : 0;
     for (let r = -1; r * h + yOff <= height + h; r++) {
       const cy = r * h + yOff;
-      const o = 0.17 * (1 - (cy - 10) / (height * 0.82));
-      if (o <= 0.015) continue;
+      const o = 0.11 * (1 - (cy - 10) / (height * 0.82));
+      if (o <= 0.012) continue;
       const d =
         `M${(cx + s).toFixed(1)},${cy.toFixed(1)} ` +
         `L${(cx + s / 2).toFixed(1)},${(cy - h / 2).toFixed(1)} ` +
@@ -119,13 +119,13 @@ function HeroHoneycomb({ height = 520 }: { height?: number }) {
         `L${(cx - s).toFixed(1)},${cy.toFixed(1)} ` +
         `L${(cx - s / 2).toFixed(1)},${(cy + h / 2).toFixed(1)} ` +
         `L${(cx + s / 2).toFixed(1)},${(cy + h / 2).toFixed(1)} Z`;
-      paths.push({ d, o: Math.min(0.22, o) });
+      paths.push({ d, o: Math.min(0.14, o) });
     }
   }
   return (
     <Svg width={SCREEN_W} height={height} style={styles.heroHoneycomb} pointerEvents="none">
       {paths.map((p, i) => (
-        <Path key={i} d={p.d} stroke="#C24A63" strokeOpacity={p.o * 0.6} strokeWidth={1} fill="none" />
+        <Path key={i} d={p.d} stroke="#C24A63" strokeOpacity={p.o * 0.5} strokeWidth={1} fill="none" />
       ))}
     </Svg>
   );
@@ -173,8 +173,8 @@ function WeekRingHero({ firstName, babyName, weekNumber, expecting, onOpenManual
     ? (lang === 'es' ? 'semana' : 'week old')
     : (lang === 'es' ? 'semanas' : 'weeks old');
   const tapHint = expecting
-    ? (lang === 'es' ? 'prepárate para su llegada →' : "get ready for baby →")
-    : (lang === 'es' ? 'toca para el manual de esta semana →' : "tap for this week's manual →");
+    ? (lang === 'es' ? 'prepárate para su llegada  →' : 'get ready for baby  →')
+    : (lang === 'es' ? `tu manual de la semana ${weekNumber}  →` : `your week ${weekNumber} manual  →`);
   return (
     <LinearGradient
       colors={['#FDE2E6', '#F6C9D0', '#EFB8C4']}
@@ -225,17 +225,15 @@ function WeekRingHero({ firstName, babyName, weekNumber, expecting, onOpenManual
       </TouchableOpacity>
 
       <TouchableOpacity
-        style={styles.heroTapHint}
-        activeOpacity={0.85}
+        style={styles.heroManualLink}
+        activeOpacity={0.6}
         onPress={expecting ? onBeforeBaby : onOpenManual}
         accessibilityRole="button"
         accessibilityLabel={expecting
           ? (lang === 'es' ? 'Prepárate para la llegada del bebé' : 'Get ready for baby')
-          : (lang === 'es' ? "Abre el manual de esta semana" : "Open this week's manual")}
+          : (lang === 'es' ? 'Abre el manual de esta semana' : "Open this week's manual")}
       >
-        <LinearGradient colors={['#E14A32', '#EE9A38']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.heroTapPill}>
-          <Text style={styles.heroTapHintText}>{tapHint}</Text>
-        </LinearGradient>
+        <Text style={styles.heroManualText}>{tapHint}</Text>
       </TouchableOpacity>
     </LinearGradient>
   );
@@ -250,45 +248,55 @@ function LogRow({ onFeed, onSleep, onMilk }: { onFeed: () => void; onSleep: () =
   return (
     <View style={styles.logRow}>
       <TouchableOpacity style={styles.logItem} activeOpacity={0.85} onPress={onFeed} accessibilityRole="button" accessibilityLabel={L.feed}>
-        <View style={[styles.logCircle, { backgroundColor: '#EFD79A' }]}>
-          <Glyph d={ICON.bottle} color="#C24A63" size={26} sw={1.9} />
+        <View style={styles.logCircle}>
+          <Glyph d={ICON.bottle} color="#C24A63" size={23} sw={1.7} />
         </View>
         <Text style={styles.logLabel}>{L.feed}</Text>
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.logItem} activeOpacity={0.85} onPress={onSleep} accessibilityRole="button" accessibilityLabel={L.sleep}>
-        <View style={[styles.logCircle, { backgroundColor: '#F6C9D0' }]}>
-          <Glyph d={ICON.moon} color="#C24A63" size={26} sw={1.9} />
+        <View style={styles.logCircle}>
+          <Glyph d={ICON.moon} color="#C24A63" size={23} sw={1.7} />
         </View>
         <Text style={styles.logLabel}>{L.sleep}</Text>
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.logItem} activeOpacity={0.85} onPress={onMilk} accessibilityRole="button" accessibilityLabel={lang === 'es' ? 'Registra leche desde una foto' : 'Log milk from a photo'}>
-        <View style={[styles.logCircle, { backgroundColor: '#F4CBA8' }]}>
-          <Glyph d={ICON.camera} color="#D97B22" size={25} sw={1.9} />
+        <View style={styles.logCircle}>
+          <Glyph d={ICON.camera} color="#D97B22" size={22} sw={1.7} />
         </View>
         <View style={styles.logSnap}><Text style={styles.logSnapText}>{L.snap}</Text></View>
-        <Text style={[styles.logLabel, { fontFamily: FONTS.v2_bold }]}>{L.milk}</Text>
+        <Text style={styles.logLabel}>{L.milk}</Text>
       </TouchableOpacity>
     </View>
   );
 }
 
-// ─── Quiet ask-villie bar ──────────────────────────────────────────────
-function AskVillie({ onAsk }: { onAsk: (seed?: string) => void }) {
+// ─── Ask Villie — the home screen's primary intelligence layer. One bar
+// (bee + prompt + mic), then 2 understated contextual prompts that shift with
+// the baby's week + the time of day, so Villie reads as a second brain that
+// already knows the context (founder, 2026-08-15). ──────────────────────────
+function AskVillie({ onAsk, weekNumber, babyName }: { onAsk: (seed?: string) => void; weekNumber: number; babyName: string }) {
   const lang = useUserStore((s) => s.profile?.preferred_language ?? 'en') as 'en' | 'es';
+  const hour = new Date().getHours();
+  const name = babyName.toLowerCase();
+  const evening = hour >= 17 || hour < 5;
+  const prompts = lang === 'es'
+    ? [`¿qué es normal a las ${weekNumber} semanas?`, evening ? 'planear mañana' : `¿qué debe comer ${name} hoy?`]
+    : [`what's normal at ${weekNumber} weeks?`, evening ? 'plan tomorrow' : `what should ${name} eat today?`];
   return (
     <View style={styles.askWrap}>
-      <View style={styles.askRow}>
-        <TouchableOpacity style={styles.askBar} activeOpacity={0.85} onPress={() => onAsk()} accessibilityRole="button" accessibilityLabel={lang === 'es' ? 'Pregúntale o dile a Villie' : 'Ask or tell Villie anything'}>
-          <View style={styles.askBee}><Image source={VILLIE_BEE} style={{ width: 16, height: 16 }} resizeMode="contain" /></View>
-          <Text style={styles.askText}>{lang === 'es' ? 'pregúntale o dile lo que sea…' : 'ask or tell villie anything…'}</Text>
-        </TouchableOpacity>
-        <TouchableOpacity activeOpacity={0.85} onPress={() => onAsk()} accessibilityRole="button" accessibilityLabel={lang === 'es' ? 'Habla con Villie' : 'Talk to Villie'}>
-          <LinearGradient colors={['#E14A32', '#EE9A38']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.askMic}>
-            <Glyph d={ICON.mic} color="#fff" size={19} sw={1.8} />
-          </LinearGradient>
-        </TouchableOpacity>
+      <TouchableOpacity style={styles.askBar} activeOpacity={0.85} onPress={() => onAsk()} accessibilityRole="button" accessibilityLabel={lang === 'es' ? 'Pregúntale lo que sea a Villie' : 'Ask Villie anything'}>
+        <View style={styles.askBee}><Image source={VILLIE_BEE} style={{ width: 17, height: 17 }} resizeMode="contain" /></View>
+        <Text style={styles.askText}>{lang === 'es' ? 'pregúntale lo que sea a villie…' : 'ask villie anything…'}</Text>
+        <Glyph d={ICON.mic} color="#C24A63" size={18} sw={1.7} />
+      </TouchableOpacity>
+      <View style={styles.askPrompts}>
+        {prompts.map((p, i) => (
+          <TouchableOpacity key={i} activeOpacity={0.65} onPress={() => onAsk(p)} style={styles.askChip} accessibilityRole="button" accessibilityLabel={p}>
+            <Text style={styles.askChipText} numberOfLines={1}>{p}</Text>
+          </TouchableOpacity>
+        ))}
       </View>
     </View>
   );
@@ -431,15 +439,25 @@ export default function HomeScreenV3() {
   const miniOpacity = scrollY.interpolate({ inputRange: [150, 260], outputRange: [0, 1], extrapolate: 'clamp' });
   const weekUnit = heroWeek === 1 ? 'week' : 'weeks';
 
-  // Nav grouped by meaning: Village = the verticals, Discover = editorial +
-  // commerce, Emergency stands alone. Muted icons on soft pastel; warmth
-  // lives in the hero + Discover cards, scarlet stays an accent.
-  const villageItems: NavItem[] = [
-    { key: 'milk',  tint: '#FBE0E5', icon: <Glyph d={ICON.droplet} color="#8A5040" size={19} sw={1.9} />, label: 'Milk Hub', onPress: () => navigation.getParent()?.navigate('Milk') },
-    { key: 'care',  tint: '#FBEAD6', icon: <Glyph d={ICON.stethoscope} color="#8A5040" size={19} sw={1.9} />, label: lang === 'es' ? 'Cuidado' : 'Care', onPress: () => navigation.getParent()?.navigate('Experts') },
-    { key: 'gear',  tint: '#F6EBC4', icon: <Glyph d={ICON.bag} color="#8A5040" size={19} sw={1.9} />, label: lang === 'es' ? 'Artículos de bebé' : 'Baby gear', onPress: () => navigation.getParent()?.navigate('Gear') },
-    { key: 'plans', tint: '#F7DED2', icon: <Glyph d={ICON.calendar} color="#8A5040" size={19} sw={1.9} />, label: lang === 'es' ? 'Planes' : 'Plans', onPress: () => navigation.getParent()?.navigate('Village') },
-  ];
+  // Mama's corner — a small, emotionally-intelligent card for Mom that rotates
+  // day to day (founder 2026-08-15). Deterministic by date so it's stable within
+  // a day but feels fresh across days.
+  const mamaVariants = lang === 'es'
+    ? [
+        { line: 'tómate 60 segundos para reiniciar.', cta: 'respira conmigo  →' },
+        { line: 'haz mañana más fácil.', cta: '3 cosas para preparar esta noche  →' },
+        { line: 'un momento solo para ti.', cta: 'un respiro de 2 minutos  →' },
+      ]
+    : [
+        { line: 'take 60 seconds to reset.', cta: 'breathe with me  →' },
+        { line: 'make tomorrow easier.', cta: '3 things to prep tonight  →' },
+        { line: 'a moment just for you.', cta: 'a 2-minute breather  →' },
+      ];
+  const mama = mamaVariants[new Date().getDate() % mamaVariants.length];
+
+  // Village verticals (Milk / Care / Gear) live in the bottom tabs — the Home
+  // screen no longer duplicates them as a nav list (founder 2026-08-15: "not a
+  // feature dashboard"). Discover = editorial + commerce; Emergency stands alone.
   const emergencyItems: NavItem[] = [
     { key: 'emergency', tint: '#FBE4E0', danger: true,
       icon: <Svg width={19} height={19} viewBox="0 0 24 24"><Path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="#BE3A2E" strokeWidth={1.9} fill="none" strokeLinecap="round" strokeLinejoin="round" /></Svg>,
@@ -484,13 +502,13 @@ export default function HomeScreenV3() {
             onPress={() => navigation.navigate('Insights' as never)}
             activeOpacity={0.7}
             accessibilityRole="button"
-            accessibilityLabel={lang === 'es' ? 'Ver los patrones del bebé' : "See baby's patterns"}
+            accessibilityLabel={lang === 'es' ? `Ver los patrones de ${heroBabyName}` : `See ${heroBabyName}'s patterns`}
             style={styles.patternsLink}
           >
-            <Text style={styles.patternsLinkText}>{lang === 'es' ? 'ver patrones del bebé  ›' : "baby's patterns  ›"}</Text>
+            <Text style={styles.patternsLinkText}>{lang === 'es' ? `patrones de ${heroBabyName.toLowerCase()}  ›` : `see ${heroBabyName.toLowerCase()}'s patterns  ›`}</Text>
           </TouchableOpacity>
 
-          <AskVillie onAsk={askVillie} />
+          <AskVillie onAsk={askVillie} weekNumber={heroWeek} babyName={heroBabyName} />
 
           {expecting && (
             <TouchableOpacity
@@ -511,30 +529,24 @@ export default function HomeScreenV3() {
             </TouchableOpacity>
           )}
 
-          {/* Mama's corner — mom's own space, operational, stands alone */}
+          {/* Mama's corner — an intentional, emotionally-intelligent card for Mom */}
           <TouchableOpacity
             activeOpacity={0.9}
             onPress={() => navigation.navigate('MomHub' as never)}
             accessibilityRole="button"
-            accessibilityLabel={lang === 'es' ? 'Rincón de mamá' : "Mama's corner"}
+            accessibilityLabel={`${lang === 'es' ? 'Para ti, mamá' : 'For you, mama'}. ${mama.line}`}
             style={styles.mamaCard}
           >
-            <View style={styles.mamaIcon}><Glyph d={ICON.sparkle} color="#B24A78" size={20} sw={1.8} /></View>
-            <View style={{ flex: 1, minWidth: 0 }}>
-              <Text style={styles.mamaTitle}>{lang === 'es' ? 'Rincón de mamá' : "Mama's corner"}</Text>
-              <Text style={styles.mamaSub}>{lang === 'es' ? 'tu espacio para respirar' : 'your space to regroup'}</Text>
+            <View style={styles.mamaTop}>
+              <View style={styles.mamaIcon}><Glyph d={ICON.sparkle} color="#B24A78" size={17} sw={1.7} /></View>
+              <Text style={styles.mamaEyebrow}>{lang === 'es' ? 'para ti, mamá' : 'for you, mama'}</Text>
             </View>
-            <Text style={styles.mamaChevron}>›</Text>
+            <Text style={styles.mamaLine}>{mama.line}</Text>
+            <Text style={styles.mamaCta}>{mama.cta}</Text>
           </TouchableOpacity>
 
-          {/* Village — the verticals */}
-          <View style={{ marginTop: 24 }}>
-            <Text style={styles.discHead}>{lang === 'es' ? 'Tu aldea' : 'Village'}</Text>
-            <NavGroup items={villageItems} />
-          </View>
-
           {/* Discover — Villie Boxes, Villie Picks, The Buzz */}
-          <View style={{ marginTop: 26 }}>
+          <View style={{ marginTop: 32 }}>
             <Text style={styles.discHead}>{lang === 'es' ? 'Descubre' : 'Discover'}</Text>
             <DiscoverRow
               showBoxes={VILLIE_BOXES_ENABLED}
@@ -621,18 +633,11 @@ const styles = StyleSheet.create({
     textTransform: 'lowercase', color: '#F2E4C8', marginTop: 2,
     textShadowColor: 'rgba(58,24,10,0.45)', textShadowOffset: { width: 0, height: 2 }, textShadowRadius: 3,
   },
-  // The hero's single warm spark — scarlet→amber gradient so it harmonises
-  // with the orange seal instead of reading as a flat red block on the pink
-  // field (the flat red felt "discombobulated" — founder, 2026-08-15).
-  heroTapHint: {
-    marginTop: 20, borderRadius: 999,
-    shadowColor: '#E1732F', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.26, shadowRadius: 10, elevation: 3,
-  },
-  heroTapPill: {
-    borderRadius: 999, paddingHorizontal: 18, paddingVertical: 9,
-    alignItems: 'center', justifyContent: 'center',
-  },
-  heroTapHintText: { fontFamily: FONTS.bodyBold, fontSize: 11.5, color: '#FFF3E4', letterSpacing: 0.6, textTransform: 'uppercase' },
+  // The Manual invitation — an editorial text link, not a promotional pill
+  // (founder, 2026-08-15: "make it feel like an invitation"). Warm rose so it
+  // reads as a soft prompt beneath the seal, in the display face.
+  heroManualLink: { marginTop: 16, paddingVertical: 6, paddingHorizontal: 6 },
+  heroManualText: { fontFamily: FONTS.v3_display, fontSize: 15.5, color: '#B5416A', letterSpacing: -0.2 },
 
   // ── Lifted cream sheet ───────────────────────────────────────────────
   sheet: {
@@ -654,12 +659,16 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase', color: T.cocoa, fontWeight: '600',
   },
 
-  // ── Log row ──────────────────────────────────────────────────────────
-  logRow: { flexDirection: 'row', justifyContent: 'center', gap: 34 },
+  // ── Log row — Feed · Sleep · Milk. One soft blush tint for all three so
+  // they read as a cohesive set (founder 2026-08-15: "less reliance on three
+  // unrelated pastel colors"); the icon carries the meaning, milk's warm-orange
+  // camera + snap badge keeps the signature photo action distinct.
+  logRow: { flexDirection: 'row', justifyContent: 'center', gap: 42 },
   logItem: { alignItems: 'center' },
   logCircle: {
-    width: 66, height: 66, borderRadius: 33, alignItems: 'center', justifyContent: 'center',
-    shadowColor: T.walnut, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 10, elevation: 2,
+    width: 58, height: 58, borderRadius: 29, alignItems: 'center', justifyContent: 'center',
+    backgroundColor: '#F7E7EC',
+    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(194,74,99,0.14)',
   },
   logSnap: {
     position: 'absolute', top: -3, right: 4,
@@ -669,13 +678,19 @@ const styles = StyleSheet.create({
   logSnapText: { fontFamily: FONTS.v2_bold, fontSize: 8.5, color: '#B03A22', letterSpacing: 0.3 },
   logLabel: { fontFamily: FONTS.v2_body, fontSize: 12.5, color: T.cocoa, marginTop: 9 },
 
-  // ── Ask villie ───────────────────────────────────────────────────────
-  askWrap: { marginTop: 22 },
-  askRow: { flexDirection: 'row', alignItems: 'center', gap: 9 },
-  askBar: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 9, backgroundColor: '#F7EAD8', borderRadius: 14, paddingHorizontal: 13, paddingVertical: 14, borderWidth: 1.5, borderColor: 'rgba(194,74,99,0.32)' },
-  askBee: { width: 24, height: 24, borderRadius: 12, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' },
-  askText: { flex: 1, fontFamily: FONTS.bodySemiBold, fontSize: 13.5, color: '#A87A54' },
-  askMic: { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center', shadowColor: '#E14A32', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.4, shadowRadius: 11, elevation: 4 },
+  // ── Ask Villie (primary intelligence layer) ──────────────────────────
+  askWrap: { marginTop: 26 },
+  askBar: {
+    flexDirection: 'row', alignItems: 'center', gap: 11,
+    backgroundColor: '#FBF0E1', borderRadius: 16, paddingHorizontal: 14, paddingVertical: 15,
+    borderWidth: 1, borderColor: 'rgba(194,74,99,0.22)',
+  },
+  askBee: { width: 26, height: 26, borderRadius: 13, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' },
+  askText: { flex: 1, fontFamily: FONTS.bodySemiBold, fontSize: 14, color: '#A06A76' },
+  // Understated contextual prompts — soft chips, not another button row.
+  askPrompts: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 10, paddingHorizontal: 2 },
+  askChip: { backgroundColor: 'rgba(194,74,99,0.07)', borderRadius: 999, paddingHorizontal: 13, paddingVertical: 7 },
+  askChipText: { fontFamily: FONTS.v2_body, fontSize: 12, color: '#A85278' },
 
   // ── Discover (Villie Boxes + Picks) ──────────────────────────────────
   discHead: { fontFamily: FONTS.v2_mono, fontSize: 11, letterSpacing: 2.6, textTransform: 'uppercase', fontWeight: '500', color: '#B0637E', marginBottom: 12 },
@@ -695,16 +710,17 @@ const styles = StyleSheet.create({
   patternsLink: { alignSelf: 'center', marginTop: 14, paddingVertical: 4, paddingHorizontal: 8 },
   patternsLinkText: { fontFamily: FONTS.bodySemiBold, fontSize: 12.5, color: '#C24A63', letterSpacing: 0.2 },
 
-  // ── Mama's corner (standalone operational card) ──────────────────────
+  // ── Mama's corner (intentional content card for Mom) ─────────────────
   mamaCard: {
-    marginTop: 20, flexDirection: 'row', alignItems: 'center', gap: 13,
-    backgroundColor: '#F6E1EC', borderRadius: 18, paddingVertical: 15, paddingHorizontal: 15,
+    marginTop: 30,
+    backgroundColor: '#F6E1EC', borderRadius: 20, paddingVertical: 18, paddingHorizontal: 18,
     borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(178,74,120,0.18)',
   },
-  mamaIcon: { width: 38, height: 38, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.6)', alignItems: 'center', justifyContent: 'center' },
-  mamaTitle: { fontFamily: FONTS.v3_display, fontSize: 16.5, color: '#7A2A4E', letterSpacing: -0.3 },
-  mamaSub: { fontFamily: FONTS.v2_body, fontSize: 12, color: '#9A5578', marginTop: 2 },
-  mamaChevron: { fontFamily: FONTS.v2_link, fontSize: 22, color: '#C98BA8', marginTop: -2 },
+  mamaTop: { flexDirection: 'row', alignItems: 'center', gap: 9, marginBottom: 10 },
+  mamaIcon: { width: 30, height: 30, borderRadius: 10, backgroundColor: 'rgba(255,255,255,0.7)', alignItems: 'center', justifyContent: 'center' },
+  mamaEyebrow: { fontFamily: FONTS.v2_mono, fontSize: 10.5, letterSpacing: 1.8, textTransform: 'uppercase', color: '#B24A78' },
+  mamaLine: { fontFamily: FONTS.v3_display, fontSize: 18, lineHeight: 23, color: '#7A2A4E', letterSpacing: -0.3 },
+  mamaCta: { fontFamily: FONTS.bodySemiBold, fontSize: 13, color: '#C24A63', marginTop: 8 },
 
   // ── Quiet nav list ───────────────────────────────────────────────────
   navGroup: {

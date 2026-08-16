@@ -12,7 +12,7 @@ import {
   Animated, PanResponder, Dimensions,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useNavigationState } from '@react-navigation/native';
 import { FONTS, NAV_HEIGHT } from '@utils/constants';
 
 const VILLIE_BEE = require('../../../assets/brand/villie-bee.png');
@@ -56,6 +56,14 @@ function nearestCorner(x: number, y: number): Corner {
 
 export default function FloatingHelpButton() {
   const navigation = useNavigation<any>();
+  // Hidden on the Home screen, where Ask Villie is now a primary inline surface
+  // (founder 2026-08-15). Walk the nav state to the deepest active route name.
+  const deepRoute = useNavigationState((state) => {
+    if (!state) return undefined;
+    let route: any = state.routes[state.index];
+    while (route?.state) { route = route.state.routes[route.state.index ?? 0]; }
+    return route?.name as string | undefined;
+  });
   const [corner, setCorner] = useState<Corner>(DEFAULT_CORNER);
   const initial = cornerToXY(DEFAULT_CORNER);
   const pan = useRef(new Animated.ValueXY(initial)).current;
@@ -165,6 +173,8 @@ export default function FloatingHelpButton() {
       },
     })
   ).current;
+
+  if (deepRoute === 'HomeRoot') return null;
 
   return (
     <View pointerEvents="box-none" style={StyleSheet.absoluteFill}>
