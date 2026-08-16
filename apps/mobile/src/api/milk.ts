@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase';
+import { sessionReady } from '@/lib/requireSession';
 import { getPreferredRadiusMiles } from '@store/user';
 
 /** Optional, donor-PROVIDED social links (migration 075). Self-attested social
@@ -120,6 +121,7 @@ const DONOR_SELECT_COLUMNS =
   'rating_avg, review_count, social_links, created_at, updated_at';
 
 export async function getMyDonorProfile(userId: string): Promise<MilkDonorProfile | null> {
+  if (!(await sessionReady())) return null;
   const { data, error } = await supabase
     .from('milk_donor_profiles')
     .select(DONOR_SELECT_COLUMNS)
@@ -173,6 +175,7 @@ const TRUST_BADGE_SELECT_COLUMNS =
   'created_at, updated_at, ai_trust_narrative, ai_trust_narrative_cached_at';
 
 export async function getTrustBadge(donorProfileId: string): Promise<MilkTrustBadge | null> {
+  if (!(await sessionReady())) return null;
   const { data, error } = await supabase
     .from('milk_trust_badges')
     .select(TRUST_BADGE_SELECT_COLUMNS)
@@ -198,6 +201,7 @@ export async function upsertQuestionnaireResponses(
 export async function getQuestionnaireResponses(
   donorProfileId: string
 ): Promise<QuestionnaireResponse[]> {
+  if (!(await sessionReady())) return [];
   const { data, error } = await supabase
     .from('milk_questionnaire_responses')
     .select('question_key, question_text, answer_value')
@@ -227,6 +231,7 @@ export async function upsertDietFlags(
 }
 
 export async function getDietFlags(donorProfileId: string): Promise<DietFlagKey[]> {
+  if (!(await sessionReady())) return [];
   const { data, error } = await supabase
     .from('milk_donor_diet_flags')
     .select('flag_key')
@@ -239,6 +244,7 @@ export async function getDietFlags(donorProfileId: string): Promise<DietFlagKey[
 // ── Medications ───────────────────────────────────────────────────────
 
 export async function getMedications(donorProfileId: string): Promise<MilkMedication[]> {
+  if (!(await sessionReady())) return [];
   const { data, error } = await supabase
     .from('milk_donor_medications')
     .select('*')
@@ -290,6 +296,7 @@ export async function createListing(payload: {
 }
 
 export async function getMyListings(donorProfileId: string): Promise<MilkListing[]> {
+  if (!(await sessionReady())) return [];
   const { data, error } = await supabase
     .from('milk_listings')
     .select('*')
@@ -351,6 +358,7 @@ export async function searchDonorsNear(
   lng: number,
   filters: SearchFilters = {}
 ): Promise<DonorSearchResult[]> {
+  if (!(await sessionReady())) return [];
   const { data, error } = await supabase.rpc('search_donors_near', {
     user_lat: lat,
     user_lng: lng,
@@ -369,6 +377,7 @@ export interface DonorPublicProfile extends MilkDonorProfile {
 }
 
 export async function getDonorProfile(donorProfileId: string): Promise<DonorPublicProfile | null> {
+  if (!(await sessionReady())) return null;
   const { data, error } = await supabase
     .from('milk_donor_profiles')
     .select(`${DONOR_SELECT_COLUMNS}, milk_trust_badges(badge_level, questionnaire_complete, bloodwork_linked, diet_disclosed, medications_disclosed, ai_safety_score, ai_trust_narrative)`)
@@ -380,6 +389,7 @@ export async function getDonorProfile(donorProfileId: string): Promise<DonorPubl
 }
 
 export async function getDonorActiveListing(donorProfileId: string): Promise<MilkListing | null> {
+  if (!(await sessionReady())) return null;
   const { data, error } = await supabase
     .from('milk_listings')
     .select('*')
@@ -393,6 +403,7 @@ export async function getDonorActiveListing(donorProfileId: string): Promise<Mil
 }
 
 export async function getSavedDonors(userId: string): Promise<DonorSearchResult[]> {
+  if (!(await sessionReady())) return [];
   const { data, error } = await supabase
     .from('milk_saved_donors')
     .select(`
@@ -432,6 +443,7 @@ export async function getSavedDonors(userId: string): Promise<DonorSearchResult[
 }
 
 export async function isSaved(userId: string, donorProfileId: string): Promise<boolean> {
+  if (!(await sessionReady())) return false;
   const { data } = await supabase
     .from('milk_saved_donors')
     .select('user_id')
@@ -555,6 +567,7 @@ export interface MilkThreadRow {
 }
 
 export async function listMyMilkThreads(userId: string): Promise<MilkThreadRow[]> {
+  if (!(await sessionReady())) return [];
   const { data, error } = await supabase.rpc('list_my_milk_threads', { p_user_id: userId });
   if (error) throw error;
   return data ?? [];
@@ -570,6 +583,7 @@ export interface MilkMessageRow {
 }
 
 export async function getThreadMessages(threadId: string, limit = 50): Promise<MilkMessageRow[]> {
+  if (!(await sessionReady())) return [];
   const { data, error } = await supabase
     .from('milk_messages')
     .select('*')

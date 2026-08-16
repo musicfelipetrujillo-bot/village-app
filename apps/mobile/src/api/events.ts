@@ -1,5 +1,6 @@
 // V4 Phase G2 — Events API (events + RSVPs + calendar handoff)
 import { supabase } from '@/lib/supabase';
+import { sessionReady } from '@/lib/requireSession';
 import { getPreferredRadiusKm } from '@store/user';
 
 export type EventType = 'local' | 'webinar';
@@ -68,6 +69,7 @@ export interface ListEventsParams {
 
 export const eventsApi = {
   async listUpcoming(params: ListEventsParams = {}): Promise<EventCard[]> {
+    if (!(await sessionReady())) return [];
     const { lat = null, lng = null, radiusKm, type = null, ageTags = null } = params;
     // Fall back to the user's preferred radius (miles → km) when the caller
     // doesn't pass an explicit override.
@@ -84,6 +86,7 @@ export const eventsApi = {
   },
 
   async getById(id: string): Promise<EventCard | null> {
+    if (!(await sessionReady())) return null;
     // Re-use the RPC: filter locally. A single-row fetch would need a second RPC;
     // this keeps the contract surface small and distance_km consistent.
     const { data, error } = await supabase
@@ -154,6 +157,7 @@ export const eventsApi = {
   },
 
   async getMyRsvpForEvent(eventId: string): Promise<{ status: RsvpStatus; added_to_calendar: boolean } | null> {
+    if (!(await sessionReady())) return null;
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return null;
     const { data, error } = await supabase
@@ -167,6 +171,7 @@ export const eventsApi = {
   },
 
   async listMyRsvps(past = false): Promise<MyRsvpRow[]> {
+    if (!(await sessionReady())) return [];
     const { data, error } = await supabase.rpc('list_my_rsvps', { p_past: past });
     if (error) throw new Error(error.message);
     return (data ?? []) as MyRsvpRow[];

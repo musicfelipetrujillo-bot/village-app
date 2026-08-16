@@ -10,6 +10,7 @@
 // legitimately return nothing. An empty result is NOT an error — the screen
 // renders a calm empty state rather than a failure.
 import { supabase } from '../lib/supabase';
+import { sessionReady } from '../lib/requireSession';
 
 export type MomTipCategory = 'you' | 'feed' | 'sleep' | 'care' | 'play';
 
@@ -44,7 +45,11 @@ export async function getTipForToday(week: number, locale = 'en'): Promise<MomTi
   return fetchTipForToday(week, 'en');
 }
 
+// `mom_tips` SELECT is `TO authenticated` — an un-tokened read returns 200 with
+// no rows, which is indistinguishable from "no approved tip for this week" and
+// leaves Mama's Corner blank. See lib/requireSession.ts.
 async function fetchTipForToday(week: number, locale: string): Promise<MomTip | null> {
+  if (!(await sessionReady())) return null;
   const { data, error } = await supabase.rpc('get_mom_tip_for_today', {
     p_week: clampWeek(week),
     p_locale: locale,
@@ -62,6 +67,7 @@ export async function listTipsForWeek(week: number, locale = 'en'): Promise<MomT
 }
 
 async function fetchTipsForWeek(week: number, locale: string): Promise<MomTip[]> {
+  if (!(await sessionReady())) return [];
   const { data, error } = await supabase.rpc('list_mom_tips_for_week', {
     p_week: clampWeek(week),
     p_locale: locale,
