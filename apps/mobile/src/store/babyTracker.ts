@@ -5,6 +5,7 @@ import { create } from 'zustand';
 import {
   babyTrackerApi, type TodayLogs, type SleepLog, type FeedLog,
   type FeedMethod, type BreastSide, type DiaperKind, type ParseResult,
+  type LogEntry, type MutationResult,
 } from '@api/babyTracker';
 
 const EMPTY: TodayLogs = { sleep: [], feeds: [], diapers: [], notes: [] };
@@ -17,14 +18,18 @@ interface TrackerState {
   loading: boolean;
 
   refresh: (babyProfileId: string) => Promise<void>;
-  startSleep: () => Promise<void>;
-  stopSleep: () => Promise<void>;
-  startFeed: (method: FeedMethod, side: BreastSide | null) => Promise<void>;
-  stopFeed: (amountOz?: number | null) => Promise<void>;
-  logBottle: (amountOz: number) => Promise<void>;
-  logDiaper: (kind: DiaperKind) => Promise<void>;
+  // `at` back-dates the entry; omitted means now.
+  startSleep: (at?: string) => Promise<void>;
+  stopSleep: (at?: string) => Promise<void>;
+  startFeed: (method: FeedMethod, side: BreastSide | null, at?: string) => Promise<void>;
+  stopFeed: (amountOz?: number | null, at?: string) => Promise<void>;
+  logBottle: (amountOz: number, at?: string) => Promise<void>;
+  logDiaper: (kind: DiaperKind, at?: string) => Promise<void>;
   logNote: (text: string) => Promise<void>;
   parseNote: (text: string) => Promise<ParseResult | null>;
+
+  updateEntry: (entry: LogEntry, patch: Record<string, unknown>) => Promise<MutationResult>;
+  deleteEntry: (entry: LogEntry) => Promise<MutationResult>;
 }
 
 export const useTrackerStore = create<TrackerState>((set, get) => ({
@@ -44,49 +49,56 @@ export const useTrackerStore = create<TrackerState>((set, get) => ({
     set({ activeSleep, activeFeed, today, loading: false });
   },
 
-  startSleep: async () => {
+  startSleep: async (at) => {
     const { babyProfileId, activeSleep } = get();
     if (!babyProfileId || activeSleep) return;
-    const row = await babyTrackerApi.startSleep(babyProfileId);
+    const row = await babyTrackerApi.startSleep(babyProfileId, at);
     if (row) set({ activeSleep: row });
-    if (babyProfileId) get().refresh(babyProfileId);
+    get().refresh(babyProfileId);
   },
 
-  stopSleep: async () => {
+  stopSleep: async (at) => {
     const { babyProfileId, activeSleep } = get();
     if (!activeSleep) return;
-    await babyTrackerApi.stopSleep(activeSleep.id);
+    await babyTrackerApi.stopSleep(activeSleep.id, at);
     set({ activeSleep: null });
     if (babyProfileId) get().refresh(babyProfileId);
   },
 
-  startFeed: async (method, side) => {
+  startFeed: async (method, side, at) => {
     const { babyProfileId, activeFeed } = get();
     if (!babyProfileId || activeFeed) return;
-    const row = await babyTrackerApi.startFeed(babyProfileId, method, side);
+    const row = await babyTrackerApi.startFeed(babyProfileId, method, side, at);
     if (row) set({ activeFeed: row });
-    if (babyProfileId) get().refresh(babyProfileId);
+    get().refresh(babyProfileId);
   },
 
-  stopFeed: async (amountOz) => {
+  stopFeed: async (amountOz, at) => {
     const { babyProfileId, activeFeed } = get();
     if (!activeFeed) return;
-    await babyTrackerApi.stopFeed(activeFeed.id, undefined, amountOz ?? null);
+    // Only a bottle carries ounces. Passing `undefined` for a breast feed
+    // leaves the column untouched rather than nulling whatever is there —
+    // playbook-parse-note can put amount_oz on a breast row, and stopping the
+    // timer should not erase it.
+    await babyTrackerApi.stopFeed(
+      activeFeed.id, at,
+      activeFeed.method === 'bottle' ? amountOz ?? null : undefined,
+    );
     set({ activeFeed: null });
     if (babyProfileId) get().refresh(babyProfileId);
   },
 
-  logBottle: async (amountOz) => {
+  logBottle: async (amountOz, at) => {
     const { babyProfileId } = get();
     if (!babyProfileId) return;
-    await babyTrackerApi.logBottle(babyProfileId, amountOz);
+    await babyTrackerApi.logBottle(babyProfileId, amountOz, at);
     get().refresh(babyProfileId);
   },
 
-  logDiaper: async (kind) => {
+  logDiaper: async (kind, at) => {
     const { babyProfileId } = get();
     if (!babyProfileId) return;
-    await babyTrackerApi.logDiaper(babyProfileId, kind);
+    await babyTrackerApi.logDiaper(babyProfileId, kind, at);
     get().refresh(babyProfileId);
   },
 
@@ -102,6 +114,26 @@ export const useTrackerStore = create<TrackerState>((set, get) => ({
     if (!babyProfileId || !text.trim()) return null;
     const res = await babyTrackerApi.parseNote(babyProfileId, text.trim());
     get().refresh(babyProfileId);
+    return res;
+  },
+
+  updateEntry: async (entry, patch) => {
+    const { babyProfileId } = get();
+    let res: MutationResult;
+    switch (entry.kind) {
+      case 'sleep':  res = await babyTrackerApi.updateSleep(entry.row.id, patch); break;
+      case 'feed':   res = await babyTrackerApi.updateFeed(entry.row.id, patch); break;
+      case 'diaper': res = await babyTrackerApi.updateDiaper(entry.row.id, patch); break;
+      case 'note':   res = await babyTrackerApi.updateNote(entry.row.id, patch); break;
+    }
+    if (res.ok && babyProfileId) await get().refresh(babyProfileId);
+    return res;
+  },
+
+  deleteEntry: async (entry) => {
+    const { babyProfileId } = get();
+    const res = await babyTrackerApi.deleteEntry(entry.kind, entry.row.id);
+    if (res.ok && babyProfileId) await get().refresh(babyProfileId);
     return res;
   },
 }));

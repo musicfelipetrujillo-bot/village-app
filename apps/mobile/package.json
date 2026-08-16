@@ -10,6 +10,8 @@
     "build": "expo export",
     "type-check": "tsc --noEmit",
     "lint": "eslint src --ext .ts,.tsx",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "ios:patch": "bash scripts/post-prebuild-patch.sh",
     "ios:patch:verify": "bash scripts/post-prebuild-patch.sh --verify",
     "specialist:invite": "node scripts/specialist-invite.mjs",
@@ -84,6 +86,7 @@
     "eslint": "^9.39.4",
     "eslint-config-expo": "^10.0.0",
     "typescript": "^5.8.3",
-    "typescript-eslint": "^8.58.2"
+    "typescript-eslint": "^8.58.2",
+    "vitest": "^2.1.9"
   }
 }

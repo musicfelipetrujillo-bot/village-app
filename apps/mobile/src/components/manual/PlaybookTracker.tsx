@@ -13,15 +13,19 @@
 // State flows through useTrackerStore. Fails soft if migration 093 isn't applied.
 import React, { useEffect, useState } from 'react';
 import {
-  View, Text, StyleSheet, TouchableOpacity, TextInput, Keyboard, ActivityIndicator,
+  View, Text, StyleSheet, TouchableOpacity, TextInput, Keyboard, ActivityIndicator, Alert,
 } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { COLORS, FONTS } from '@utils/constants';
 import { select, tap } from '@utils/haptics';
+import { isRunaway } from '@utils/logEntry';
 import { useTrackerStore } from '@store/babyTracker';
 import { wakeWindowMinutes, scheduleWakeAlarm, cancelWakeAlarm } from '@utils/sleepAlarm';
 import { babyTrackerApi } from '@api/babyTracker';
-import type { SleepLog, FeedLog, DiaperLog, NoteLog, RecentStats } from '@api/babyTracker';
+import type { RecentStats, LogEntry } from '@api/babyTracker';
+import LogTimeline, { buildTimeline, clockLabel, feedShort } from '@components/tracker/LogTimeline';
+import LogEditSheet from '@components/tracker/LogEditSheet';
+import TimeChips from '@components/tracker/TimeChips';
 
 const C = {
   paper: COLORS.v2_paper, cream: COLORS.v2_cream, parchment: COLORS.v2_parchment, cocoa: COLORS.v2_cocoa,
@@ -49,14 +53,6 @@ function Glyph({ d, color, size = 18, sw = 1.9, fill }: { d: string; color: stri
   );
 }
 
-function clockLabel(iso: string, lang: 'en' | 'es'): string {
-  const d = new Date(iso);
-  const h = d.getHours(); const m = d.getMinutes();
-  const mm = m < 10 ? `0${m}` : `${m}`;
-  if (lang === 'es') return `${h}:${mm}`;
-  const ap = h < 12 ? 'a' : 'p'; let h12 = h % 12; if (h12 === 0) h12 = 12;
-  return `${h12}:${mm}${ap}`;
-}
 function elapsedLabel(sec: number): string {
   if (sec < 0) sec = 0;
   const h = Math.floor(sec / 3600); const m = Math.floor((sec % 3600) / 60); const s = sec % 60;
@@ -80,9 +76,9 @@ function loggedLabel(counts: { sleep: number; feed: number; diaper: number }, es
 
 type Pane = 'sleep' | 'feed' | 'diaper' | null;
 
-export default function PlaybookTracker({ babyProfileId, babyName, week, lang, initialPane, onNeedBaby }: {
+export default function PlaybookTracker({ babyProfileId, babyName, week, lang, initialPane, onNeedBaby, onSeeAll }: {
   babyProfileId: string | null; babyName: string; week: number; lang: 'en' | 'es';
-  initialPane?: Pane; onNeedBaby?: () => void;
+  initialPane?: Pane; onNeedBaby?: () => void; onSeeAll?: () => void;
 }) {
   const es = lang === 'es';
   const store = useTrackerStore();
@@ -103,6 +99,22 @@ export default function PlaybookTracker({ babyProfileId, babyName, week, lang, i
   const [note, setNote] = useState('');
   const [parsing, setParsing] = useState(false);
   const [parseMsg, setParseMsg] = useState<string | null>(null);
+  const [editing, setEditing] = useState<LogEntry | null>(null);
+  const [logAt, setLogAt] = useState<string | null>(null);   // null === now
+  const resetTime = () => setLogAt(null);
+  // Independent per-session — dismissing sleep's rescue prompt must not
+  // silently suppress an unacknowledged feed prompt, and vice versa.
+  const [sleepRescueDismissed, setSleepRescueDismissed] = useState(false);
+  const [feedRescueDismissed, setFeedRescueDismissed] = useState(false);
+  // A dismissal belongs to the session it was made on. Once that session
+  // ends, the NEXT nap/feed must be able to prompt again from a clean slate.
+  // Reading the id (not the object) keeps the dep array honest — the effect
+  // depends on *which* session is open, not on the row's identity churning
+  // every refresh. No lint suppression needed.
+  const activeSleepId = activeSleep?.id ?? null;
+  const activeFeedId = activeFeed?.id ?? null;
+  useEffect(() => { if (!activeSleepId) setSleepRescueDismissed(false); }, [activeSleepId]);
+  useEffect(() => { if (!activeFeedId) setFeedRescueDismissed(false); }, [activeFeedId]);
 
   const wakeMin = wakeWindowMinutes(week);
 
@@ -111,11 +123,34 @@ export default function PlaybookTracker({ babyProfileId, babyName, week, lang, i
   // Keep the pane OPEN on start so the L/R (or sleep) control the user just
   // tapped visibly becomes the live "running" row in place — no collapse, no
   // "did anything happen?" (founder 2026-08-10).
-  const onStartSleep = async () => { if (!babyProfileId) return onNeedBaby?.(); select(); await store.startSleep(); await scheduleWakeAlarm(wakeMin * 60, babyName); };
+  const onStartSleep = async () => {
+    if (!babyProfileId) return onNeedBaby?.();
+    select();
+    await store.startSleep(logAt ?? undefined);
+    resetTime();
+    await scheduleWakeAlarm(wakeMin * 60, babyName);
+  };
   const onStopSleep = async () => { tap(); await cancelWakeAlarm(); await store.stopSleep(); };
-  const onStartFeed = (method: 'breast' | 'bottle', side: 'left' | 'right' | null) => { if (!babyProfileId) return onNeedBaby?.(); select(); setOzDraft(3); store.startFeed(method, side); };
+  const onStartFeed = (method: 'breast' | 'bottle', side: 'left' | 'right' | null) => {
+    if (!babyProfileId) return onNeedBaby?.();
+    select(); setOzDraft(3);
+    store.startFeed(method, side, logAt ?? undefined);
+    resetTime();
+  };
   const onStopFeed = () => { tap(); store.stopFeed(activeFeed?.method === 'bottle' ? ozDraft : null); };
-  const onDiaper = (kind: 'wet' | 'dirty' | 'both') => { if (!babyProfileId) return onNeedBaby?.(); tap(); store.logDiaper(kind); };
+  const onDiaper = (kind: 'wet' | 'dirty' | 'both') => {
+    if (!babyProfileId) return onNeedBaby?.();
+    tap();
+    store.logDiaper(kind, logAt ?? undefined);
+    resetTime();
+  };
+  // Finished bottle — no timer. This wires the previously-unreachable logBottle path.
+  const onLogFinishedBottle = () => {
+    if (!babyProfileId) return onNeedBaby?.();
+    tap();
+    store.logBottle(ozDraft, logAt ?? undefined);
+    resetTime();
+  };
   const onSaveNote = async () => {
     if (!note.trim() || parsing) return;
     tap();
@@ -127,11 +162,57 @@ export default function PlaybookTracker({ babyProfileId, babyName, week, lang, i
     setParseMsg(n > 0 ? `${es ? 'villie registró' : 'villie logged'}: ${loggedLabel(res!.counts, es)}` : (es ? 'guardado' : 'saved'));
   };
 
-  const togglePane = (p: Exclude<Pane, null>) => { select(); setOpen((o) => (o === p ? null : p)); };
+  const onDiscardSleep = () => {
+    Alert.alert(
+      es ? '¿Descartar esta siesta?' : 'Discard this nap?',
+      es ? 'Se borrará por completo.' : "It'll be deleted entirely.",
+      [
+        { text: es ? 'Cancelar' : 'Cancel', style: 'cancel' },
+        {
+          text: es ? 'Descartar' : 'Discard', style: 'destructive',
+          onPress: async () => {
+            if (!activeSleep) return;
+            await cancelWakeAlarm();
+            await store.deleteEntry({ kind: 'sleep', row: activeSleep });
+          },
+        },
+      ],
+    );
+  };
+
+  const onDiscardFeed = () => {
+    Alert.alert(
+      es ? '¿Descartar esta toma?' : 'Discard this feed?',
+      es ? 'Se borrará por completo.' : "It'll be deleted entirely.",
+      [
+        { text: es ? 'Cancelar' : 'Cancel', style: 'cancel' },
+        {
+          text: es ? 'Descartar' : 'Discard', style: 'destructive',
+          onPress: async () => {
+            if (!activeFeed) return;
+            await store.deleteEntry({ kind: 'feed', row: activeFeed });
+          },
+        },
+      ],
+    );
+  };
+
+  const togglePane = (p: Exclude<Pane, null>) => {
+    select();
+    // A time selection belongs to the pane it was made in. Carrying it across
+    // would silently back-date an entry she never chose to back-date.
+    resetTime();
+    setOpen((o) => (o === p ? null : p));
+  };
 
   const sleepElapsed = activeSleep ? Math.floor((nowMs - new Date(activeSleep.started_at).getTime()) / 1000) : 0;
   const wakeRemaining = wakeMin * 60 - sleepElapsed;
   const feedElapsed = activeFeed ? Math.floor((nowMs - new Date(activeFeed.started_at).getTime()) / 1000) : 0;
+  // Deliberately generous ceilings (isRunaway) — a real overnight sleep can
+  // legitimately run 8h+, so only escalate to the three-way rescue prompt
+  // once a session is unambiguously a forgotten timer.
+  const sleepRunaway = !!activeSleep && !sleepRescueDismissed && isRunaway('sleep', activeSleep.started_at, nowMs);
+  const feedRunaway = !!activeFeed && !feedRescueDismissed && isRunaway('feed', activeFeed.started_at, nowMs);
 
   const lastFeed = today.feeds.find((f) => f.ended_at) ?? null;
   const lastFeedAgoMin = lastFeed ? Math.round((nowMs - new Date(lastFeed.ended_at!).getTime()) / 60000) : null;
@@ -184,11 +265,36 @@ export default function PlaybookTracker({ babyProfileId, babyName, week, lang, i
                   : <Text style={{ fontFamily: FONTS.v2_bold, color: C.clayInk }}>{es ? 'ventana alcanzada' : 'wake window reached'}</Text>}
               </Text>
             </View>
-            <TouchableOpacity onPress={onStopSleep} activeOpacity={0.9} style={styles.sleepStopBtn}>
-              <Glyph d={ICON.stop} color="#9A4E28" size={14} fill="#9A4E28" sw={0} />
-              <Text style={styles.sleepStopText}>{es ? 'parar' : 'stop'}</Text>
-            </TouchableOpacity>
+            {!sleepRunaway && (
+              <>
+                <TouchableOpacity onPress={() => { select(); setEditing({ kind: 'sleep', row: activeSleep }); }} style={styles.endedAtBtn} accessibilityRole="button" accessibilityLabel={es ? 'Corregir la hora de fin' : 'Correct the end time'}>
+                  <Text style={styles.endedAtTxt}>{es ? 'terminó a las…' : 'ended at…'}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={onStopSleep} activeOpacity={0.9} style={styles.sleepStopBtn}>
+                  <Glyph d={ICON.stop} color="#9A4E28" size={14} fill="#9A4E28" sw={0} />
+                  <Text style={styles.sleepStopText}>{es ? 'parar' : 'stop'}</Text>
+                </TouchableOpacity>
+              </>
+            )}
           </View>
+          {sleepRunaway ? (
+            <View style={{ gap: 9, marginTop: 10 }}>
+              <Text style={styles.rescueAsk}>
+                {es ? '¿Sigue durmiendo, o el cronómetro quedó corriendo?' : 'Still asleep, or did the timer keep running?'}
+              </Text>
+              <View style={{ flexDirection: 'row', gap: 7 }}>
+                <TouchableOpacity onPress={() => { select(); setSleepRescueDismissed(true); }} style={styles.rescueBtn} accessibilityRole="button">
+                  <Text style={styles.rescueBtnTxt}>{es ? 'sigue durmiendo' : 'still asleep'}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => { select(); setEditing({ kind: 'sleep', row: activeSleep! }); }} style={styles.rescueBtn} accessibilityRole="button">
+                  <Text style={styles.rescueBtnTxt}>{es ? 'terminó a las…' : 'ended at…'}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={onDiscardSleep} style={[styles.rescueBtn, styles.rescueDanger]} accessibilityRole="button">
+                  <Text style={[styles.rescueBtnTxt, { color: '#fff' }]}>{es ? 'descartar' : 'discard'}</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          ) : null}
         </View>
       )}
 
@@ -201,11 +307,36 @@ export default function PlaybookTracker({ babyProfileId, babyName, week, lang, i
               {activeFeed.method === 'bottle' ? (es ? 'Biberón' : 'Bottle') : activeFeed.side === 'left' ? (es ? 'Pecho izq.' : 'Left breast') : (es ? 'Pecho der.' : 'Right breast')}
               {'  '}<Text style={styles.feedActiveTimer}>{elapsedLabel(feedElapsed)}</Text>
             </Text>
-            <TouchableOpacity onPress={onStopFeed} activeOpacity={0.9} style={styles.feedStopBtn}>
-              <Glyph d={ICON.stop} color="#fff" size={12} fill="#fff" sw={0} />
-              <Text style={styles.feedStopText}>{es ? 'parar' : 'stop'}</Text>
-            </TouchableOpacity>
+            {!feedRunaway && (
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                <TouchableOpacity onPress={() => { select(); setEditing({ kind: 'feed', row: activeFeed }); }} style={styles.endedAtBtn} accessibilityRole="button" accessibilityLabel={es ? 'Corregir la hora de fin' : 'Correct the end time'}>
+                  <Text style={styles.endedAtTxtFeed}>{es ? 'terminó a las…' : 'ended at…'}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={onStopFeed} activeOpacity={0.9} style={styles.feedStopBtn}>
+                  <Glyph d={ICON.stop} color="#fff" size={12} fill="#fff" sw={0} />
+                  <Text style={styles.feedStopText}>{es ? 'parar' : 'stop'}</Text>
+                </TouchableOpacity>
+              </View>
+            )}
           </View>
+          {feedRunaway ? (
+            <View style={{ gap: 9, marginTop: 10 }}>
+              <Text style={styles.rescueAskFeed}>
+                {es ? '¿Sigue comiendo, o el cronómetro quedó corriendo?' : 'Still feeding, or did the timer keep running?'}
+              </Text>
+              <View style={{ flexDirection: 'row', gap: 7 }}>
+                <TouchableOpacity onPress={() => { select(); setFeedRescueDismissed(true); }} style={styles.rescueBtnFeed} accessibilityRole="button">
+                  <Text style={styles.rescueBtnTxtFeed}>{es ? 'sigue comiendo' : 'still feeding'}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => { select(); setEditing({ kind: 'feed', row: activeFeed! }); }} style={styles.rescueBtnFeed} accessibilityRole="button">
+                  <Text style={styles.rescueBtnTxtFeed}>{es ? 'terminó a las…' : 'ended at…'}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={onDiscardFeed} style={[styles.rescueBtnFeed, styles.rescueDangerFeed]} accessibilityRole="button">
+                  <Text style={[styles.rescueBtnTxtFeed, styles.rescueDangerTxtFeed]}>{es ? 'descartar' : 'discard'}</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          ) : null}
           {activeFeed.method === 'bottle' && (
             <View style={styles.ozRow}>
               <Text style={styles.ozLabel}>{es ? 'onzas' : 'oz'}</Text>
@@ -256,11 +387,14 @@ export default function PlaybookTracker({ babyProfileId, babyName, week, lang, i
                 </TouchableOpacity>
               </View>
             ) : (
-              <TouchableOpacity onPress={onStartSleep} activeOpacity={0.9} style={styles.startBtn}>
-                <Glyph d={ICON.play} color={C.clayInk} size={14} fill={C.clayInk} sw={0} />
-                <Text style={styles.startBtnText}>{es ? 'iniciar sueño' : 'start sleep'}</Text>
-                <Text style={styles.startBtnSub}>{es ? `ventana ~${wakeMin}m` : `~${wakeMin}m window`}</Text>
-              </TouchableOpacity>
+              <>
+                <TouchableOpacity onPress={onStartSleep} activeOpacity={0.9} style={styles.startBtn}>
+                  <Glyph d={ICON.play} color={C.clayInk} size={14} fill={C.clayInk} sw={0} />
+                  <Text style={styles.startBtnText}>{es ? 'iniciar sueño' : 'start sleep'}</Text>
+                  <Text style={styles.startBtnSub}>{es ? `ventana ~${wakeMin}m` : `~${wakeMin}m window`}</Text>
+                </TouchableOpacity>
+                <TimeChips valueIso={logAt} onChange={setLogAt} lang={lang} />
+              </>
             )}
           </View>
         )}
@@ -304,6 +438,10 @@ export default function PlaybookTracker({ babyProfileId, babyName, week, lang, i
                     ? `${es ? 'última' : 'last'}: ${feedShort(lastFeed, es)} · ${lastFeedAgoMin < 60 ? `${lastFeedAgoMin}m` : `${Math.round(lastFeedAgoMin / 60)}h`}${es ? '' : ' ago'}`
                     : (es ? 'toca un lado para iniciar el cronómetro' : 'tap a side to start the timer')}
                 </Text>
+                <TouchableOpacity onPress={onLogFinishedBottle} style={styles.startBtn} accessibilityRole="button" accessibilityLabel={es ? 'Registrar biberón terminado' : 'Log a finished bottle'}>
+                  <Text style={styles.startBtnText}>{es ? `biberón terminado · ${ozDraft} oz` : `finished bottle · ${ozDraft} oz`}</Text>
+                </TouchableOpacity>
+                <TimeChips valueIso={logAt} onChange={setLogAt} lang={lang} />
               </>
             )}
           </View>
@@ -319,6 +457,7 @@ export default function PlaybookTracker({ babyProfileId, babyName, week, lang, i
               ))}
             </View>
             <Text style={styles.feedTip}>{diaperCount} {es ? 'hoy' : 'today'}</Text>
+            <TimeChips valueIso={logAt} onChange={setLogAt} lang={lang} />
           </View>
         )}
         </View>
@@ -358,15 +497,18 @@ export default function PlaybookTracker({ babyProfileId, babyName, week, lang, i
       {/* Today timeline */}
       {timeline.length > 0 && (
         <View style={{ marginTop: 16 }}>
-          <Text style={styles.todayEyebrow}>{es ? 'HOY' : 'TODAY'}</Text>
+          <View style={styles.rowBetween}>
+            <Text style={styles.todayEyebrow}>{es ? 'HOY' : 'TODAY'}</Text>
+            <TouchableOpacity
+              onPress={() => onSeeAll?.()}
+              accessibilityRole="button"
+              accessibilityLabel={es ? 'Ver todos los registros' : 'See all logs'}
+            >
+              <Text style={styles.seeAll}>{es ? 'ver todo ›' : 'see all ›'}</Text>
+            </TouchableOpacity>
+          </View>
           <View style={{ marginTop: 6 }}>
-            {timeline.slice(0, 8).map((e, i) => (
-              <View key={e.id} style={[styles.tlRow, i < Math.min(timeline.length, 8) - 1 && styles.tlDivider]}>
-                <Text style={styles.tlTime}>{clockLabel(e.iso, lang)}</Text>
-                <View style={[styles.tlIcon, { backgroundColor: e.tint }]}><Glyph d={e.icon} color={e.ink} size={12} sw={1.7} /></View>
-                <Text style={styles.tlLabel} numberOfLines={1}>{e.label}</Text>
-              </View>
-            ))}
+            <LogTimeline items={timeline.slice(0, 8)} lang={lang} onPressItem={setEditing} />
           </View>
         </View>
       )}
@@ -374,44 +516,10 @@ export default function PlaybookTracker({ babyProfileId, babyName, week, lang, i
       {/* "What your logs say" read-back removed from the Log zone (2026-08-10):
           it duplicated the Insights section below and cluttered the logger.
           Insights now lives only in the screen's "Insights" zone. */}
+
+      <LogEditSheet entry={editing} lang={lang} onClose={() => setEditing(null)} />
     </View>
   );
-}
-
-// ── Timeline builder ────────────────────────────────────────────────────────
-type Entry = { id: string; iso: string; label: string; tint: string; ink: string; icon: string };
-
-function feedShort(f: FeedLog, es: boolean): string {
-  if (f.method === 'bottle') return `${es ? 'biberón' : 'bottle'}${f.amount_oz ? ` ${f.amount_oz}oz` : ''}`;
-  return f.side === 'left' ? (es ? 'izq.' : 'left') : (es ? 'der.' : 'right');
-}
-
-function buildTimeline(today: { sleep: SleepLog[]; feeds: FeedLog[]; diapers: DiaperLog[]; notes: NoteLog[] }, es: boolean): Entry[] {
-  const out: Entry[] = [];
-  for (const s of today.sleep) {
-    const mins = s.ended_at ? Math.round((new Date(s.ended_at).getTime() - new Date(s.started_at).getTime()) / 60000) : null;
-    out.push({
-      id: `s${s.id}`, iso: s.started_at, tint: '#F0D7C3', ink: '#9A4E28', icon: ICON.moon,
-      label: mins != null ? `${es ? 'Siesta' : 'Nap'} · ${mins} min` : `${es ? 'Siesta — en curso' : 'Nap — in progress'}`,
-    });
-  }
-  for (const f of today.feeds) {
-    const mins = f.ended_at ? Math.round((new Date(f.ended_at).getTime() - new Date(f.started_at).getTime()) / 60000) : null;
-    const base = f.method === 'bottle'
-      ? `${es ? 'Biberón' : 'Bottle'}${f.amount_oz ? ` · ${f.amount_oz} oz` : ''}`
-      : `${f.side === 'left' ? (es ? 'Pecho izq.' : 'Left breast') : (es ? 'Pecho der.' : 'Right breast')}${mins != null ? ` · ${mins} min` : (es ? ' — en curso' : ' — in progress')}`;
-    out.push({ id: `f${f.id}`, iso: f.started_at, tint: C.honeyBg, ink: C.honeyInk, icon: ICON.bottle, label: base });
-  }
-  for (const d of today.diapers) {
-    out.push({
-      id: `d${d.id}`, iso: d.occurred_at, tint: C.oliveBg, ink: C.oliveInk, icon: ICON.droplet,
-      label: es ? { wet: 'Pañal mojado', dirty: 'Pañal sucio', both: 'Pañal ambos' }[d.kind] : { wet: 'Wet diaper', dirty: 'Dirty diaper', both: 'Wet + dirty' }[d.kind],
-    });
-  }
-  for (const n of today.notes) {
-    out.push({ id: `n${n.id}`, iso: n.occurred_at, tint: '#FBEFD9', ink: C.rose, icon: ICON.note, label: n.raw_text });
-  }
-  return out.sort((a, b) => new Date(b.iso).getTime() - new Date(a.iso).getTime());
 }
 
 const styles = StyleSheet.create({
@@ -425,6 +533,27 @@ const styles = StyleSheet.create({
   sleepMeta: { fontFamily: FONTS.v2_body, fontSize: 10, color: C.claySub, marginTop: 2 },
   sleepStopBtn: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: C.clayInk, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8 },
   sleepStopText: { fontFamily: FONTS.v2_bold, fontSize: 12, color: '#9A4E28' },
+
+  // Runaway-timer rescue prompt (Task 9) — shared by the sleep + feed live
+  // cards. Only ever rendered on the dark C.clay / C.honeyBg live-card
+  // backgrounds, never standalone.
+  rescueAsk: { fontFamily: FONTS.v2_body, fontSize: 12, color: C.claySub, lineHeight: 17 },
+  rescueBtn: { flex: 1, backgroundColor: 'rgba(255,249,242,0.2)', borderRadius: 10, paddingVertical: 9, alignItems: 'center' },
+  rescueDanger: { backgroundColor: '#9A4E28' },
+  rescueBtnTxt: { fontFamily: FONTS.v2_bold, fontSize: 11, color: C.clayInk },
+  endedAtBtn: { paddingHorizontal: 10, paddingVertical: 8 },
+  endedAtTxt: { fontFamily: FONTS.v2_link, fontSize: 11.5, color: C.claySub },
+
+  // Feed-card variant of the rescue prompt — the sleep-card styles above are
+  // near-white text tuned for the dark C.clay background; the feed card sits
+  // on light C.honeyBg, so it needs its own dark-ink set (mirrors how
+  // feedActiveLabel already uses a dark color on this same card).
+  rescueAskFeed: { fontFamily: FONTS.v2_body, fontSize: 12, color: C.honeyInk, lineHeight: 17 },
+  rescueBtnFeed: { flex: 1, backgroundColor: 'rgba(90,64,18,0.10)', borderRadius: 10, paddingVertical: 9, alignItems: 'center' },
+  rescueBtnTxtFeed: { fontFamily: FONTS.v2_bold, fontSize: 11, color: C.honeyInk },
+  rescueDangerFeed: { backgroundColor: C.honey },
+  rescueDangerTxtFeed: { color: '#fff' },
+  endedAtTxtFeed: { fontFamily: FONTS.v2_link, fontSize: 11.5, color: C.honeyInk },
 
   // Live feed widget
   feedActiveCard: { backgroundColor: C.honeyBg, borderRadius: 16, padding: 13, marginBottom: 11 },
@@ -492,11 +621,7 @@ const styles = StyleSheet.create({
 
   // Today timeline
   todayEyebrow: { fontFamily: FONTS.v2_mono, fontSize: 9, letterSpacing: 1.8, color: C.walnut },
-  tlRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 7 },
-  tlDivider: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(61,31,14,0.1)' },
-  tlTime: { fontFamily: FONTS.v2_mono, fontSize: 9.5, color: C.walnut, width: 44 },
-  tlIcon: { width: 22, height: 22, borderRadius: 7, alignItems: 'center', justifyContent: 'center' },
-  tlLabel: { flex: 1, fontFamily: FONTS.v2_body, fontSize: 12, color: C.cocoa },
+  seeAll: { fontFamily: FONTS.v2_link, fontSize: 11.5, color: C.rose },
 
   // Phase 3 — insights card
   insightCard: { backgroundColor: C.oliveBg, borderRadius: 16, padding: 13, marginTop: 16, borderWidth: 1, borderColor: 'rgba(111,122,67,0.28)' },
