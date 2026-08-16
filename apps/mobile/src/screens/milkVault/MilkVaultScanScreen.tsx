@@ -12,7 +12,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import * as ImagePicker from 'expo-image-picker';
 import { COLORS, FONTS } from '@utils/constants';
-import { VaultScreen, VaultHeader } from '@components/milkVault/VaultUI';
+import { VaultScreen } from '@components/milkVault/VaultUI';
 import { scanBagPhoto } from '@api/milkVault';
 import { tap } from '@utils/haptics';
 import type { MilkStackParamList } from '@/navigation/MilkNavigator';
@@ -86,43 +86,45 @@ export default function MilkVaultScanScreen() {
   return (
     <VaultScreen>
       <SafeAreaView style={{ flex: 1 }} edges={['top']}>
-        <VaultHeader eyebrow="Scan a bag" title="Snap it, we'll read it" onBack={() => nav.goBack()} />
+        {/* Clean, minimal header — no eyebrow, no loud "snap it" title
+            (founder 2026-08-16: keep it consistent + elevated). */}
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => nav.goBack()} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} accessibilityRole="button" accessibilityLabel="Back">
+            <Text style={styles.back}>‹</Text>
+          </TouchableOpacity>
+          <Text style={styles.title}>add a bag</Text>
+          <View style={{ width: 30 }} />
+        </View>
 
         <View style={styles.body}>
           <View style={styles.frame}>
             {preview ? (
               <Image source={{ uri: preview }} style={styles.previewImg} resizeMode="cover" />
             ) : (
-              <>
+              <View style={styles.frameEmpty}>
                 <Text style={styles.frameEmoji}>🍼</Text>
-                <Text style={styles.frameText}>
-                  Point at the label so the ounces and dates are readable.
-                </Text>
-              </>
+                <Text style={styles.frameText}>point at the label so the ounces and dates are readable</Text>
+              </View>
             )}
             {busy && (
               <View style={styles.busyOverlay}>
                 <ActivityIndicator color={COLORS.genz_rose} />
-                <Text style={styles.busyText}>Reading your bag…</Text>
+                <Text style={styles.busyText}>reading your bag…</Text>
               </View>
             )}
           </View>
 
           <View style={styles.btns}>
             <TouchableOpacity style={styles.primaryBtn} onPress={takePhoto} disabled={busy} activeOpacity={0.9} accessibilityRole="button" accessibilityLabel="Take a photo">
-              <Text style={styles.primaryBtnText}>📷  Take a photo</Text>
+              <Text style={styles.primaryBtnText}>take a photo</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.ghostBtn} onPress={uploadPhoto} disabled={busy} activeOpacity={0.85} accessibilityRole="button" accessibilityLabel="Upload a photo">
-              <Text style={styles.ghostBtnText}>Upload from library</Text>
+              <Text style={styles.ghostBtnText}>upload from library</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => nav.replace('MilkVaultAddBag', {})} disabled={busy} accessibilityRole="button">
-              <Text style={styles.manualLink}>Enter manually instead</Text>
+            <TouchableOpacity onPress={() => nav.replace('MilkVaultAddBag', {})} disabled={busy} accessibilityRole="button" accessibilityLabel="Enter manually">
+              <Text style={styles.manualLink}>enter manually</Text>
             </TouchableOpacity>
           </View>
-
-          <Text style={styles.disclaimer}>
-            AI reading is a helper — always double-check the values before saving.
-          </Text>
         </View>
       </SafeAreaView>
     </VaultScreen>
@@ -130,25 +132,31 @@ export default function MilkVaultScanScreen() {
 }
 
 const styles = StyleSheet.create({
-  body: { flex: 1, padding: 16 },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: 6, paddingBottom: 4 },
+  back: { fontSize: 30, color: COLORS.genz_berry, marginTop: -4, width: 30 },
+  title: { fontFamily: FONTS.v2_display, fontSize: 18, color: COLORS.genz_chestnut, letterSpacing: -0.3 },
+
+  body: { flex: 1, paddingHorizontal: 18, paddingBottom: 18, paddingTop: 8 },
+  // Elevated, clean scan card — soft shadow + hairline border (no loud dashed frame).
   frame: {
-    flex: 1, borderRadius: 22, backgroundColor: COLORS.genz_bone, alignItems: 'center', justifyContent: 'center',
-    borderWidth: 2, borderColor: 'rgba(217,108,136,0.3)', borderStyle: 'dashed', overflow: 'hidden',
-    padding: 24, marginBottom: 16,
+    flex: 1, borderRadius: 26, backgroundColor: COLORS.genz_bone, alignItems: 'center', justifyContent: 'center',
+    overflow: 'hidden', padding: 28, marginBottom: 20,
+    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(217,108,136,0.22)',
+    shadowColor: '#7A4A24', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.1, shadowRadius: 22, elevation: 3,
   },
-  frameEmoji: { fontSize: 44, marginBottom: 12 },
-  frameText: { fontFamily: FONTS.v2_body, fontSize: 14, lineHeight: 20, color: COLORS.genz_softink, textAlign: 'center' },
+  frameEmpty: { alignItems: 'center', paddingHorizontal: 12 },
+  frameEmoji: { fontSize: 46, marginBottom: 14 },
+  frameText: { fontFamily: FONTS.v2_body, fontSize: 14, lineHeight: 21, color: COLORS.genz_softink, textAlign: 'center' },
   previewImg: { ...StyleSheet.absoluteFillObject },
-  busyOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(252,247,239,0.86)', alignItems: 'center', justifyContent: 'center', gap: 10 },
+  busyOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(252,247,239,0.9)', alignItems: 'center', justifyContent: 'center', gap: 10 },
   busyText: { fontFamily: FONTS.v2_label, fontSize: 14, color: COLORS.genz_chestnut },
-  btns: { gap: 10 },
-  primaryBtn: { backgroundColor: COLORS.genz_rose, borderRadius: 999, paddingVertical: 15, alignItems: 'center' },
-  primaryBtnText: { fontFamily: FONTS.v2_link, fontSize: 15, color: COLORS.genz_bone },
+  btns: { gap: 11 },
+  primaryBtn: { backgroundColor: COLORS.genz_rose, borderRadius: 999, paddingVertical: 16, alignItems: 'center' },
+  primaryBtnText: { fontFamily: FONTS.v2_link, fontSize: 15, color: COLORS.genz_bone, letterSpacing: 0.2 },
   ghostBtn: {
     backgroundColor: COLORS.genz_bone, borderRadius: 999, paddingVertical: 14, alignItems: 'center',
     borderWidth: 1.5, borderColor: 'rgba(217,108,136,0.4)',
   },
   ghostBtnText: { fontFamily: FONTS.v2_link, fontSize: 14, color: COLORS.genz_berry },
-  manualLink: { fontFamily: FONTS.v2_label, fontSize: 14, color: COLORS.genz_softink, textAlign: 'center', paddingVertical: 10 },
-  disclaimer: { fontFamily: FONTS.v2_body, fontSize: 12, color: COLORS.genz_softink, textAlign: 'center', marginTop: 14 },
+  manualLink: { fontFamily: FONTS.v2_label, fontSize: 13.5, color: COLORS.genz_softink, textAlign: 'center', paddingVertical: 10, marginTop: 2 },
 });
