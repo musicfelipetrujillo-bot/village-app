@@ -1,18 +1,15 @@
-// ScreenHeader — the ONE modest-editorial header for every destination screen.
-// Design canon (founder call 2026-08-16): calm, not a loud masthead.
-//   [‹ back]  ……………  [right slot]      ← optional top row
-//   OPTIONAL UPPERCASE EYEBROW            ← small mono, muted
-//   Title in light Bricolage (400)        ← modest size, one quiet anchor
-// Sizes/spacing are locked here so no screen drifts. This deliberately
-// replaces the two older competing looks: the 28px bold "your day" masthead
-// and the tiny "your village" eyebrow-only header.
+// ScreenHeader — the ONE header for every screen. Deliberately minimal so the
+// whole app reads as one surface (founder 2026-08-16):
+//   [‹]  title  ……………  [right slot]     ← a single tight row, nothing more
+// No eyebrow, no dot, no second line — "less words is better." One title style,
+// one size, everywhere. This is also the ONLY place header type is defined, so
+// the 3-role type scale (title / body / meta) can't drift screen to screen.
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, type ViewStyle } from 'react-native';
 import { COLORS, FONTS } from '@utils/constants';
 
 export function ScreenHeader({
   title,
-  eyebrow,
   onBack,
   right,
   titleColor,
@@ -20,50 +17,40 @@ export function ScreenHeader({
   style,
 }: {
   title: string;
-  eyebrow?: string;
   onBack?: () => void;
   right?: React.ReactNode;
   titleColor?: string;
   backColor?: string;
   style?: ViewStyle;
 }) {
-  const hasTopRow = !!onBack || !!right;
   return (
-    <View style={[s.wrap, style]}>
-      {hasTopRow ? (
-        <View style={s.topRow}>
-          {onBack ? (
-            <TouchableOpacity
-              onPress={onBack}
-              accessibilityRole="button"
-              accessibilityLabel="Back"
-              hitSlop={{ top: 10, bottom: 10, left: 8, right: 8 }}
-            >
-              <Text style={[s.back, backColor ? { color: backColor } : null]}>‹</Text>
-            </TouchableOpacity>
-          ) : (
-            <View />
-          )}
-          {right ?? <View />}
-        </View>
+    <View style={[s.row, style]}>
+      {onBack ? (
+        <TouchableOpacity
+          onPress={onBack}
+          accessibilityRole="button"
+          accessibilityLabel="Back"
+          hitSlop={{ top: 10, bottom: 10, left: 8, right: 8 }}
+        >
+          <Text style={[s.back, backColor ? { color: backColor } : null]}>‹</Text>
+        </TouchableOpacity>
       ) : null}
-      {eyebrow ? <Text style={s.eyebrow}>{eyebrow}</Text> : null}
-      <Text style={[s.title, titleColor ? { color: titleColor } : null]}>{title}</Text>
+      <Text style={[s.title, titleColor ? { color: titleColor } : null]} numberOfLines={1}>
+        {title}
+      </Text>
+      <View style={s.spacer} />
+      {right ?? null}
     </View>
   );
 }
 
 const s = StyleSheet.create({
-  // One consistent top rhythm so no screen "starts too far up" or too low.
-  wrap: { paddingHorizontal: 20, paddingTop: 6, paddingBottom: 14 },
-  topRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 },
-  back: { fontSize: 30, color: COLORS.v2_cocoa, marginTop: -4, fontWeight: '400' },
-  eyebrow: {
-    fontFamily: FONTS.v2_mono, fontSize: 11, letterSpacing: 2,
-    textTransform: 'uppercase', color: COLORS.v2_walnut, marginBottom: 5,
-  },
-  // Modest editorial title — light Bricolage (400), one calm anchor per screen.
-  title: { fontFamily: FONTS.v2_display_regular, fontSize: 26, color: COLORS.v2_cocoa, letterSpacing: -0.3 },
+  // Snug to the top (screens already add the safe-area inset above this).
+  row: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 20, paddingTop: 2, paddingBottom: 12 },
+  back: { fontSize: 28, color: COLORS.v2_cocoa, marginTop: -2, fontWeight: '400' },
+  // The single title style — light Bricolage, one size for the entire app.
+  title: { fontFamily: FONTS.v2_display_regular, fontSize: 24, color: COLORS.v2_cocoa, letterSpacing: -0.3, flexShrink: 1 },
+  spacer: { flex: 1 },
 });
 
 export default ScreenHeader;

@@ -1129,11 +1129,6 @@ export default function ManualScrollV3() {
             as every destination screen. Replaces the old 30px bold italic-accent
             title so Manual lines up with Village / Insights / hubs. */}
         <ScreenHeader
-          eyebrow={
-            isPlaybook
-              ? (lang === 'es' ? 'el playbook' : 'the playbook')
-              : (lang === 'es' ? 'el manual' : 'the manual')
-          }
           title={
             isPlaybook
               ? (lang === 'es' ? 'tu playbook' : 'your playbook')

@@ -1,55 +1,24 @@
-// HubHeader — the ONE canonical vertical header (Milk Hub spec). Every vertical
-// (Milk / Care / Gear / Plans) renders this exact row so they can't drift:
-// `‹`  •  lowercase-name  ……………………  [right slot].
-// The only per-vertical variables are the name, the status-dot color, the back
-// target, and the right-side actions. Sizes/spacing are locked here.
+// HubHeader — kept as a thin alias over ScreenHeader so the four verticals
+// (Milk / Care / Gear / Plans) render the EXACT same header as every other
+// screen. It used to be its own bold 28px "name + dot" masthead, which is why
+// Milk looked different from Care/Gear/Plans. Now there is one header, period.
+// The `dotColor` prop is accepted but ignored (call sites keep compiling).
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { COLORS, FONTS } from '@utils/constants';
+import { ScreenHeader } from './ScreenHeader';
 
 export function HubHeader({
   name,
-  dotColor,
   onBack,
   right,
-  backAccessibilityLabel = 'Back',
+  backAccessibilityLabel,
 }: {
   name: string;
-  dotColor: string;
-  onBack: () => void;
+  dotColor?: string;
+  onBack?: () => void;
   right?: React.ReactNode;
   backAccessibilityLabel?: string;
 }) {
-  return (
-    <View style={s.header}>
-      <View style={s.left}>
-        <TouchableOpacity
-          onPress={onBack}
-          accessibilityRole="button"
-          accessibilityLabel={backAccessibilityLabel}
-          hitSlop={{ top: 10, bottom: 10, left: 8, right: 8 }}
-        >
-          <Text style={s.backArrow}>‹</Text>
-        </TouchableOpacity>
-        <View style={s.brandRow}>
-          <View style={[s.brandDot, { backgroundColor: dotColor }]} />
-          <Text style={s.brand}>{name}</Text>
-        </View>
-      </View>
-      {right ?? <View />}
-    </View>
-  );
+  return <ScreenHeader title={name} onBack={onBack} right={right} />;
 }
-
-const s = StyleSheet.create({
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 18, paddingTop: 6, paddingBottom: 14 },
-  left: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  backArrow: { fontSize: 30, color: COLORS.v2_walnut, marginTop: -4, fontWeight: '400' },
-  brandRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  brandDot: { width: 8, height: 8, borderRadius: 4 },
-  // Masthead-weight title — matches the Insights masthead (headerBold 28) so
-  // every vertical hub (milk hub / care / gear / plans) reads as one family.
-  brand: { fontFamily: FONTS.headerBold, fontSize: 28, color: COLORS.v2_cocoa, letterSpacing: -0.5 },
-});
 
 export default HubHeader;

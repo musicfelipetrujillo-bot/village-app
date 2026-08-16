@@ -22,6 +22,7 @@ import Svg, { Circle, Path } from 'react-native-svg';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { FONTS } from '@utils/constants';
+import { ScreenHeader } from '@components/shared/ScreenHeader';
 import { useMilkVaultStore } from '@store/milkVault';
 import { useHomeStore } from '@store/home';
 import { shortDate } from '@utils/milkVaultInsights';
@@ -89,28 +90,19 @@ export default function MilkVaultDashboardScreen() {
   return (
     <View style={styles.container}>
       <SafeAreaView style={{ flex: 1 }} edges={['top']}>
-        <View style={styles.header}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+        <ScreenHeader
+          title="milk hub"
+          onBack={() => (nav.canGoBack() ? nav.goBack() : (nav.getParent() as any)?.navigate('Village'))}
+          right={
             <TouchableOpacity
-              onPress={() => (nav.canGoBack() ? nav.goBack() : (nav.getParent() as any)?.navigate('Village'))}
-              accessibilityRole="button" accessibilityLabel="Back"
-              hitSlop={{ top: 10, bottom: 10, left: 8, right: 8 }}
+              onPress={() => nav.navigate('MilkVaultSettings')}
+              accessibilityRole="button" accessibilityLabel="Milk Vault settings"
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} style={styles.iconBtn}
             >
-              <Text style={styles.backArrow}>‹</Text>
+              <Path2 d="M12 15a3 3 0 100-6 3 3 0 000 6zM19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09a1.65 1.65 0 001.51-1 1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z" color={C.walnut} />
             </TouchableOpacity>
-            <View style={styles.brandRow}>
-              <View style={styles.brandDot} />
-              <Text style={styles.brand}>milk hub</Text>
-            </View>
-          </View>
-          <TouchableOpacity
-            onPress={() => nav.navigate('MilkVaultSettings')}
-            accessibilityRole="button" accessibilityLabel="Milk Vault settings"
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} style={styles.iconBtn}
-          >
-            <Path2 d="M12 15a3 3 0 100-6 3 3 0 000 6zM19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09a1.65 1.65 0 001.51-1 1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z" color={C.walnut} />
-          </TouchableOpacity>
-        </View>
+          }
+        />
 
         <View style={styles.toggle}>
           <View style={[styles.toggleSeg, styles.toggleSegActive]}><Text style={styles.toggleTextActive}>my stash</Text></View>

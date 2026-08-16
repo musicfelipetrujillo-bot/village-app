@@ -167,7 +167,6 @@ export default function VillageHomeScreenV3() {
         {/* Shared modest-editorial header (founder 2026-08-16) — same treatment
             as every destination screen: small eyebrow + light Bricolage title. */}
         <ScreenHeader
-          eyebrow={lang === 'es' ? 'tu aldea' : 'the village'}
           title={lang === 'es' ? 'tu aldea' : 'your village'}
           right={
             <TouchableOpacity
