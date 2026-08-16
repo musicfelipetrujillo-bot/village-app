@@ -239,38 +239,6 @@ function WeekRingHero({ firstName, babyName, weekNumber, expecting, onOpenManual
   );
 }
 
-// Flat-top hexagon points for an SVG Polygon centered at (cx, cy), radius R.
-function hexPoints(cx: number, cy: number, R: number): string {
-  const p: string[] = [];
-  for (let i = 0; i < 6; i++) {
-    const a = (Math.PI / 180) * (60 * i);
-    p.push(`${(cx + R * Math.cos(a)).toFixed(1)},${(cy + R * Math.sin(a)).toFixed(1)}`);
-  }
-  return p.join(' ');
-}
-
-// A honeycomb tile — a flat-top hexagon with a soft drop shadow. The hexagon
-// is a plain SVG polygon (no SVG filters — react-native-svg's filters are
-// unreliable on iOS); the shadow is cast by the wrapping View, which on iOS
-// follows the polygon's opaque pixels. Icon sits centered on top.
-function HexTile({ fill, iconPath, iconColor, iconSize, size = 64 }: {
-  fill: string; iconPath: string; iconColor: string; iconSize: number; size?: number;
-}) {
-  const R = size / 2;
-  const cx = size / 2;
-  const cy = R;
-  return (
-    <View style={[styles.hexShadow, { width: size, height: size }]}>
-      <Svg width={size} height={size}>
-        <Polygon points={hexPoints(cx, cy, R)} fill={fill} stroke="rgba(255,255,255,0.7)" strokeWidth={1.5} />
-      </Svg>
-      <View style={{ position: 'absolute', top: 0, left: 0, width: size, height: size, alignItems: 'center', justifyContent: 'center' }} pointerEvents="none">
-        <Glyph d={iconPath} color={iconColor} size={iconSize} sw={1.8} />
-      </View>
-    </View>
-  );
-}
-
 // ─── Log row — Feed · Sleep · Milk (milk = log-from-a-photo) ─────────────
 function LogRow({ onFeed, onSleep, onMilk }: { onFeed: () => void; onSleep: () => void; onMilk: () => void }) {
   const lang = useUserStore((s) => s.profile?.preferred_language ?? 'en') as 'en' | 'es';
@@ -280,17 +248,23 @@ function LogRow({ onFeed, onSleep, onMilk }: { onFeed: () => void; onSleep: () =
   return (
     <View style={styles.logRow}>
       <TouchableOpacity style={styles.logItem} activeOpacity={0.85} onPress={onFeed} accessibilityRole="button" accessibilityLabel={L.feed}>
-        <HexTile fill="#EFD79A" iconPath={ICON.bottle} iconColor="#C24A63" iconSize={26} />
+        <View style={[styles.logCircle, { backgroundColor: '#EFD79A' }]}>
+          <Glyph d={ICON.bottle} color="#C24A63" size={26} sw={1.9} />
+        </View>
         <Text style={styles.logLabel}>{L.feed}</Text>
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.logItem} activeOpacity={0.85} onPress={onSleep} accessibilityRole="button" accessibilityLabel={L.sleep}>
-        <HexTile fill="#F6C9D0" iconPath={ICON.moon} iconColor="#C24A63" iconSize={26} />
+        <View style={[styles.logCircle, { backgroundColor: '#F6C9D0' }]}>
+          <Glyph d={ICON.moon} color="#C24A63" size={26} sw={1.9} />
+        </View>
         <Text style={styles.logLabel}>{L.sleep}</Text>
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.logItem} activeOpacity={0.85} onPress={onMilk} accessibilityRole="button" accessibilityLabel={lang === 'es' ? 'Registra leche desde una foto' : 'Log milk from a photo'}>
-        <HexTile fill="#F4CBA8" iconPath={ICON.camera} iconColor="#D97B22" iconSize={25} />
+        <View style={[styles.logCircle, { backgroundColor: '#F4CBA8' }]}>
+          <Glyph d={ICON.camera} color="#D97B22" size={25} sw={1.9} />
+        </View>
         <View style={styles.logSnap}><Text style={styles.logSnapText}>{L.snap}</Text></View>
         <Text style={[styles.logLabel, { fontFamily: FONTS.v2_bold }]}>{L.milk}</Text>
       </TouchableOpacity>
@@ -299,8 +273,15 @@ function LogRow({ onFeed, onSleep, onMilk }: { onFeed: () => void; onSleep: () =
 }
 
 // ─── Quiet ask-villie bar ──────────────────────────────────────────────
-function AskVillie({ onAsk }: { onAsk: (seed?: string) => void }) {
+function AskVillie({ onAsk, weekNumber, babyName }: { onAsk: (seed?: string) => void; weekNumber: number; babyName: string }) {
   const lang = useUserStore((s) => s.profile?.preferred_language ?? 'en') as 'en' | 'es';
+  const hour = new Date().getHours();
+  const name = babyName.toLowerCase();
+  const evening = hour >= 17 || hour < 5;
+  // Contextual suggestions that shift with the baby's week + the time of day.
+  const prompts = lang === 'es'
+    ? [`¿qué es normal a las ${weekNumber} semanas?`, evening ? 'planear mañana' : `¿qué debe comer ${name} hoy?`, '¿por qué se despierta de noche?']
+    : [`what's normal at ${weekNumber} weeks?`, evening ? 'plan tomorrow' : `what should ${name} eat today?`, 'why the night wakings?'];
   return (
     <View style={styles.askWrap}>
       <View style={styles.askRow}>
@@ -313,6 +294,13 @@ function AskVillie({ onAsk }: { onAsk: (seed?: string) => void }) {
             <Glyph d={ICON.mic} color="#fff" size={19} sw={1.8} />
           </LinearGradient>
         </TouchableOpacity>
+      </View>
+      <View style={styles.askPrompts}>
+        {prompts.map((p, i) => (
+          <TouchableOpacity key={i} activeOpacity={0.65} onPress={() => onAsk(p)} style={styles.askChip} accessibilityRole="button" accessibilityLabel={p}>
+            <Text style={styles.askChipText} numberOfLines={1}>{p}</Text>
+          </TouchableOpacity>
+        ))}
       </View>
     </View>
   );
@@ -514,7 +502,7 @@ export default function HomeScreenV3() {
             <Text style={styles.patternsLinkText}>{lang === 'es' ? 'ver patrones del bebé  ›' : "baby's patterns  ›"}</Text>
           </TouchableOpacity>
 
-          <AskVillie onAsk={askVillie} />
+          <AskVillie onAsk={askVillie} weekNumber={heroWeek} babyName={heroBabyName} />
 
           {expecting && (
             <TouchableOpacity
@@ -674,23 +662,19 @@ const styles = StyleSheet.create({
   },
 
   // ── Log row ──────────────────────────────────────────────────────────
-  // Honeycomb tiles (Feed · Sleep · Milk). The hex + its soft shadow are drawn
-  // in the HexTile SVG; these just lay them out.
   logRow: { flexDirection: 'row', justifyContent: 'center', gap: 34 },
   logItem: { alignItems: 'center' },
-  // Soft drop shadow for the hex tile — cast by the View from the SVG polygon's
-  // opaque pixels (iOS). Android falls back to a rounded-rect elevation shadow.
-  hexShadow: {
-    shadowColor: '#5A3A1E', shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.22, shadowRadius: 6, elevation: 4,
+  logCircle: {
+    width: 66, height: 66, borderRadius: 33, alignItems: 'center', justifyContent: 'center',
+    shadowColor: T.walnut, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 10, elevation: 2,
   },
   logSnap: {
-    position: 'absolute', top: 0, right: 2,
+    position: 'absolute', top: -3, right: 4,
     backgroundColor: '#fff', borderRadius: 999, paddingHorizontal: 6, paddingVertical: 1,
     shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.12, shadowRadius: 3, elevation: 3,
   },
   logSnapText: { fontFamily: FONTS.v2_bold, fontSize: 8.5, color: '#B03A22', letterSpacing: 0.3 },
-  logLabel: { fontFamily: FONTS.v2_body, fontSize: 12.5, color: T.cocoa, marginTop: 3 },
+  logLabel: { fontFamily: FONTS.v2_body, fontSize: 12.5, color: T.cocoa, marginTop: 9 },
 
   // ── Ask villie ───────────────────────────────────────────────────────
   askWrap: { marginTop: 22 },
@@ -699,6 +683,11 @@ const styles = StyleSheet.create({
   askBee: { width: 24, height: 24, borderRadius: 12, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' },
   askText: { flex: 1, fontFamily: FONTS.bodySemiBold, fontSize: 13.5, color: '#A87A54' },
   askMic: { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center', shadowColor: '#E14A32', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.4, shadowRadius: 11, elevation: 4 },
+  // Understated contextual suggestions under the ask bar — soft chips, and the
+  // added height nudges Mama's corner + the rest down so the hero peeks less.
+  askPrompts: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 12, paddingHorizontal: 2 },
+  askChip: { backgroundColor: 'rgba(194,74,99,0.07)', borderRadius: 999, paddingHorizontal: 13, paddingVertical: 8 },
+  askChipText: { fontFamily: FONTS.v2_body, fontSize: 12.5, color: '#A85278' },
 
   // ── Discover (Villie Boxes + Picks) ──────────────────────────────────
   discHead: { fontFamily: FONTS.v2_mono, fontSize: 11, letterSpacing: 2.6, textTransform: 'uppercase', fontWeight: '500', color: '#B0637E', marginBottom: 12 },
