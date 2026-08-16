@@ -405,7 +405,7 @@ Quick table for the most-googled questions.
 | Need to set… | Where it lives | Affects what |
 |---|---|---|
 | `RESEND_WEBHOOK_SECRET` | Supabase dashboard → Edge Functions → Manage Secrets | newsletter open/click tracking |
-| `SUPABASE_SERVICE_ROLE_KEY` | apps/mobile/.env (local) + GitHub Actions secrets (cron) | `pnpm specialist:invite`, GH Action crons |
+| `SUPABASE_SERVICE_ROLE_KEY` | **THREE places, and they currently disagree — see §9** | `pnpm specialist:invite`, GH Action crons, every service-role edge-function gate |
 | Apple JWT for Sign In | Supabase Dashboard → Auth → Providers → Apple → Secret Key (paste full JWT) | Apple Sign In on web only (iOS-native unaffected) |
 | Google OAuth Secret | Supabase Dashboard → Auth → Providers → Google → Client Secret | Google Sign In on web only (iOS-native unaffected) |
 | `VILLIE_NEWSLETTER_FROM` | Supabase Edge Function Secrets | overrides default sender for Sunday newsletter |
@@ -464,3 +464,42 @@ You'll also need:
 ---
 
 _Last updated: 2026-05-22 by Claude during a verification sprint. When you add new env vars or smoke tests, **update this file** — that's how it stays usable._
+
+---
+
+## 9 · ⚠️ Service-role key reconciliation (open, 2026-08-15)
+
+**There are three service-role keys in circulation and they are not the same string.** All three are validly signed by the project's JWT secret, so all three pass the API gateway — but only one matches the `SUPABASE_SERVICE_ROLE_KEY` that Supabase injects into the edge-function runtime. This is consistent with an API-key rotation that kept the same signing secret: old keys stay signature-valid, only the newest matches the injected value.
+
+| # | Where | Known state |
+|---|---|---|
+| 1 | Edge-function runtime (`Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')`) | the authoritative one |
+| 2 | GitHub Actions repo secret (every cron) | ✅ works — verified 2026-08-15 by dispatching `gear-moderation-pager` → HTTP 200 |
+| 3 | `apps/mobile/.env` (`pnpm specialist:invite`) | ❌ **stale** — issued 2026-04-19; rejected by `admin-compliance-events` |
+
+### Why it matters
+
+Functions that compare the caller's bearer against the injected key **by exact string** reject any of the other two. `admin-compliance-events` and `admin-approve-specialist` do exactly that, which is why the `.env` key fails there today and why `pnpm specialist:invite` has been unreliable.
+
+This is also the root cause of the 2026-08-14 Critical. Faced with "strict equality breaks things after a rotation," someone replaced the check with one that decoded the JWT and trusted its `role` claim without verifying the signature — deleting authentication rather than reconciling the keys. See `docs/audits/security-privacy-2026-08-14.md`.
+
+### How to fix it (one action, two problems)
+
+Rotating the service-role key was already recommended as assume-breach hygiene after the Critical. **Rotating also collapses the three keys into one**, so do it once and update everywhere:
+
+1. Supabase Dashboard → Project Settings → API → rotate the `service_role` key.
+2. Update **GitHub Actions** repo secret `SUPABASE_SERVICE_ROLE_KEY`.
+3. Update **`apps/mobile/.env`** (local only — never committed).
+4. Check Supabase **Edge Function Secrets** for any manually-set copy (the runtime injects its own, but a hand-set override would shadow it).
+5. Verify, in this order:
+   - `gh workflow run supabase-crons.yml -f function=gear-moderation-pager` → expect **HTTP 200** in the run log. The workflow fails loudly on any non-2xx, so a red run means a key is still wrong.
+   - `pnpm specialist:invite` → should no longer 403.
+
+### Diagnostic tip
+
+A **401** and a **403** mean different things here, and the difference tells you which layer rejected you:
+
+- **401** with `{"code":"UNAUTHORIZED_..."}` → the **gateway** refused it. The token's signature is invalid or absent.
+- **401/403** with the function's own error body → the gateway accepted it (so the token IS validly signed) and the **in-code** check refused it. That means a real key that simply isn't the injected one.
+
+To isolate whether a change of yours is at fault, replay the same request against `admin-compliance-events` — it uses plain strict equality and has not been modified. If it rejects too, the key is stale, not your code.
