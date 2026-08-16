@@ -502,19 +502,24 @@ export default function HomeScreenV3() {
         onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], { useNativeDriver: true })}
         scrollEventThrottle={16}
       >
-        {/* Bold anchor — raspberry gradient hero with the roo week-ring. */}
-        <WeekRingHero
-          firstName={firstName}
-          babyName={heroBabyName}
-          weekNumber={heroWeek}
-          expecting={expecting}
-          onOpenManual={() => goManualView('manual')}
-          onBeforeBaby={goBeforeBaby}
-          onMenu={() => navigation.navigate('Search' as never)}
-          onNotifications={() => navigation.navigate('Notifications' as never)}
-        />
+        {/* Bold anchor — PINNED. It counter-translates by the scroll offset so it
+            stays put on screen while the cream sheet below slides UP over it
+            (founder, 2026-08-15: "the second half should pull up without moving
+            the top half off the screen"). scrollY is the native-driver offset. */}
+        <Animated.View style={{ transform: [{ translateY: scrollY }] }}>
+          <WeekRingHero
+            firstName={firstName}
+            babyName={heroBabyName}
+            weekNumber={heroWeek}
+            expecting={expecting}
+            onOpenManual={() => goManualView('manual')}
+            onBeforeBaby={goBeforeBaby}
+            onMenu={() => navigation.navigate('Search' as never)}
+            onNotifications={() => navigation.navigate('Notifications' as never)}
+          />
+        </Animated.View>
 
-        {/* Lifted cream sheet — the doing. Overlaps the hero for iOS depth. */}
+        {/* Lifted cream sheet — slides up over the pinned hero. */}
         <View style={styles.sheet}>
           <View style={styles.grabber} />
 
