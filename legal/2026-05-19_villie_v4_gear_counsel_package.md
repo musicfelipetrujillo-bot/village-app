@@ -337,18 +337,27 @@ Two smaller questions, if counsel considers them material:
 - **D-Q3.** Villie is not a HIPAA covered entity and takes no position on that here. Does the Florida Digital Bill of Rights, or any regime counsel considers applicable, impose heightened handling or deletion-response duties on the mental-health free text in `daily_checkins` / `crisis_flags` specifically?
 - **D-Q4.** `deal_claims.subid` embeds a fragment of the user id and is transmitted to third-party affiliate networks on click, by design. Does that need disclosure beyond checklist item 6.2, or an opt-out?
 
-## D.4 Not a counsel question — a product decision we owe ourselves
+## D.4 Not a counsel question — a product decision, now made
 
-Flagged here only so counsel does not wait on it. Four foreign keys are configured to **block** a hard delete, and the interesting two are two-party conversations:
+Four foreign keys are configured to **block** a hard delete. Villie has decided how each should behave; recorded here for completeness, and because counsel may have a view on the first one.
 
-| Blocking reference | The question it forces |
+| Blocking reference | Decision |
 |---|---|
-| `milk_messages.sender_id` | If Mom A deletes her account, what happens to the messages she sent Mom B? |
-| `milk_message_threads.recipient_user_id` | Mom B may still be relying on that thread to arrange a handoff |
-| `crisis_flags.moderator_id` | A moderator who handled a crisis cannot currently be deleted |
-| `gear_listing_reports.resolved_by` | Nor can an admin who resolved a report |
+| `milk_messages.sender_id` | **Keep the thread; mark the departed account as deleted.** Messages remain readable to the other party. |
+| `milk_message_threads.recipient_user_id` | Same. |
+| `crisis_flags.moderator_id` | Keep the record, strip the moderator's identity. |
+| `gear_listing_reports.resolved_by` | Same. |
 
-A hard delete errors out today rather than choosing. Whether Mom B keeps her side of the conversation is a product call about other people's records, and Villie will decide it — we note it because counsel may have a view on whether the other party's copy is Mom A's data to erase.
+**Reasoning on the messaging pair.** Milk Connect is cash-only and in person, so the thread *is* the arrangement — where to meet, when, how much. Two reasons not to delete the other party's copy:
+
+1. She may be mid-arrangement. If Mom A deletes on Tuesday and Mom B is driving to meet her on Wednesday, the pickup details are in that thread.
+2. **If Mom A behaved badly toward Mom B, deleting the thread destroys Mom B's evidence** — the same failure mode as D-2.2 above, where a seller can currently erase the moderation reports filed against them by leaving.
+
+We recognise the counter-argument: Mom A's words are arguably hers to withdraw. Our position is that she wrote them *to* someone, and a two-party conversation is not solely the property of whoever leaves first.
+
+**Counsel: does a deletion request give the departing user any right to erase the other party's copy of a conversation she participated in?** If so, tell us and we will change the design. This is the only part of D.4 we think is genuinely a legal question rather than a product one.
+
+The moderator and admin references are simpler — no consumer's personal data is at stake, and a departing moderator should not blank out the record of who handled a safety incident.
 
 ## D.5 Deliverable
 
