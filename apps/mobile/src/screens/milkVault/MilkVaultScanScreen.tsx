@@ -11,11 +11,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import * as ImagePicker from 'expo-image-picker';
+import { LinearGradient } from 'expo-linear-gradient';
 import { COLORS, FONTS } from '@utils/constants';
 import { VaultScreen } from '@components/milkVault/VaultUI';
 import { scanBagPhoto } from '@api/milkVault';
 import { tap } from '@utils/haptics';
 import type { MilkStackParamList } from '@/navigation/MilkNavigator';
+
+const SCAN_CAMERA = require('../../../assets/home/milk-camera.png');
 
 type Nav = NativeStackNavigationProp<MilkStackParamList, 'MilkVaultScan'>;
 
@@ -101,10 +104,24 @@ export default function MilkVaultScanScreen() {
             {preview ? (
               <Image source={{ uri: preview }} style={styles.previewImg} resizeMode="cover" />
             ) : (
-              <View style={styles.frameEmpty}>
-                <Text style={styles.frameEmoji}>🍼</Text>
-                <Text style={styles.frameText}>point at the label so the ounces and dates are readable</Text>
-              </View>
+              <>
+                <LinearGradient colors={['#F2E9C4', '#EADBA8', '#E8C4B6']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
+                {/* viewfinder corner brackets — a soft "scan here" cue */}
+                <View style={[styles.corner, styles.cTL]} />
+                <View style={[styles.corner, styles.cTR]} />
+                <View style={[styles.corner, styles.cBL]} />
+                <View style={[styles.corner, styles.cBR]} />
+                <View style={styles.frameEmpty}>
+                  <Image source={SCAN_CAMERA} style={styles.scanCam} resizeMode="contain" />
+                  <Text style={styles.frameTitle}>photograph your milk bag</Text>
+                  <Text style={styles.frameText}>point at the label — villie reads it for you</Text>
+                  <View style={styles.reads}>
+                    {['ounces', 'pumped date', 'notes'].map((r) => (
+                      <View key={r} style={styles.readChip}><Text style={styles.readChipText}>{r}</Text></View>
+                    ))}
+                  </View>
+                </View>
+              </>
             )}
             {busy && (
               <View style={styles.busyOverlay}>
@@ -137,16 +154,27 @@ const styles = StyleSheet.create({
   title: { fontFamily: FONTS.v2_display, fontSize: 18, color: COLORS.genz_chestnut, letterSpacing: -0.3 },
 
   body: { flex: 1, paddingHorizontal: 18, paddingBottom: 18, paddingTop: 8 },
-  // Elevated, clean scan card — soft shadow + hairline border (no loud dashed frame).
+  // A warm, elevated "viewfinder" card — gradient ground + corner brackets +
+  // the pink camera, so the empty state feels like a capture moment, not a box.
   frame: {
     flex: 1, borderRadius: 26, backgroundColor: COLORS.genz_bone, alignItems: 'center', justifyContent: 'center',
-    overflow: 'hidden', padding: 28, marginBottom: 20,
+    overflow: 'hidden', padding: 24, marginBottom: 20,
     borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(217,108,136,0.22)',
-    shadowColor: '#7A4A24', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.1, shadowRadius: 22, elevation: 3,
+    shadowColor: '#7A4A24', shadowOffset: { width: 0, height: 12 }, shadowOpacity: 0.12, shadowRadius: 24, elevation: 4,
   },
-  frameEmpty: { alignItems: 'center', paddingHorizontal: 12 },
-  frameEmoji: { fontSize: 46, marginBottom: 14 },
-  frameText: { fontFamily: FONTS.v2_body, fontSize: 14, lineHeight: 21, color: COLORS.genz_softink, textAlign: 'center' },
+  frameEmpty: { alignItems: 'center', paddingHorizontal: 16 },
+  scanCam: { width: 128, height: 128, marginBottom: 2 },
+  frameTitle: { fontFamily: FONTS.v2_display, fontSize: 19, color: COLORS.genz_chestnut, letterSpacing: -0.3, marginTop: 4 },
+  frameText: { fontFamily: FONTS.v2_body, fontSize: 13.5, lineHeight: 20, color: COLORS.genz_softink, textAlign: 'center', marginTop: 5 },
+  reads: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 7, marginTop: 16 },
+  readChip: { backgroundColor: 'rgba(255,255,255,0.6)', borderRadius: 999, paddingHorizontal: 12, paddingVertical: 5 },
+  readChipText: { fontFamily: FONTS.v2_label, fontSize: 11.5, color: COLORS.genz_berry },
+  // Viewfinder corner brackets
+  corner: { position: 'absolute', width: 24, height: 24, borderColor: 'rgba(217,108,136,0.5)' },
+  cTL: { top: 16, left: 16, borderTopWidth: 3, borderLeftWidth: 3, borderTopLeftRadius: 7 },
+  cTR: { top: 16, right: 16, borderTopWidth: 3, borderRightWidth: 3, borderTopRightRadius: 7 },
+  cBL: { bottom: 16, left: 16, borderBottomWidth: 3, borderLeftWidth: 3, borderBottomLeftRadius: 7 },
+  cBR: { bottom: 16, right: 16, borderBottomWidth: 3, borderRightWidth: 3, borderBottomRightRadius: 7 },
   previewImg: { ...StyleSheet.absoluteFillObject },
   busyOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(252,247,239,0.9)', alignItems: 'center', justifyContent: 'center', gap: 10 },
   busyText: { fontFamily: FONTS.v2_label, fontSize: 14, color: COLORS.genz_chestnut },

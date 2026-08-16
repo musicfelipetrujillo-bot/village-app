@@ -13,7 +13,6 @@ import { AuthStack } from './AuthStack';
 import { AppNavigator } from './AppNavigator';
 import AIHelpChatScreen from '@screens/help/AIHelpChatScreen';
 import QuickReferenceScreen from '@screens/safety/QuickReferenceScreen';
-import FloatingHelpButton from '@components/shared/FloatingHelpButton';
 import InternalAgentsScreen from '@screens/internal/InternalAgentsScreen';
 import PaywallScreen from '@screens/paywall/PaywallScreen';
 import ClinicalReviewScreen from '@screens/internal/ClinicalReviewScreen';
@@ -89,14 +88,7 @@ export function RootNavigator() {
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {session ? (
           <>
-            <Stack.Screen name="App">
-              {() => (
-                <View style={{ flex: 1 }}>
-                  <AppNavigator />
-                  <FloatingHelpButton />
-                </View>
-              )}
-            </Stack.Screen>
+            <Stack.Screen name="App" component={AppNavigator} />
             <Stack.Screen
               name="AIHelpChat"
               component={AIHelpChatScreen}
