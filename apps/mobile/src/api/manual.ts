@@ -11,6 +11,7 @@
 // callers can't re-introduce the dead path. The migration table itself
 // stays on disk (not dropped) since it carries no data dependency.
 import { supabase } from '@/lib/supabase';
+import { sessionReady } from '@/lib/requireSession';
 
 // One (audience, category) bucket maps to one tile. The 10 valid pairs are
 // CHECK-enforced in the DB; mismatched calls return an empty list.
@@ -162,6 +163,10 @@ export async function listManualVideos(
   category: string,
   locale: 'en' | 'es' = 'en',
 ): Promise<ManualVideo[]> {
+  // Manual content is `TO authenticated` — un-tokened this returns 200 + [],
+  // which renders as "no videos this week" rather than an error. See
+  // lib/requireSession.ts.
+  if (!(await sessionReady())) return [];
   const { data, error } = await supabase.rpc('list_manual_videos', {
     p_audience: audience,
     p_category: category,
@@ -207,6 +212,7 @@ export async function listManualPieces(
   category: string,
   locale: 'en' | 'es' = 'en',
 ): Promise<ManualPiece[]> {
+  if (!(await sessionReady())) return [];
   const { data, error } = await supabase.rpc('list_manual_pieces', {
     p_audience: audience,
     p_category: category,
@@ -257,6 +263,7 @@ export async function getWeekIntroVideo(
   week: number,
   locale: 'en' | 'es',
 ): Promise<WeekIntroVideo | null> {
+  if (!(await sessionReady())) return null;
   // RPC (migration 110) instead of a direct table select: it returns teaser
   // metadata + is_locked for free-tier users once the pro_video_gate flag is
   // on, which the RLS path can't express (it can only hide whole rows).
@@ -299,6 +306,7 @@ export async function markVideoWatched(
   videoId: string,
   seconds: number,
 ): Promise<void> {
+  if (!(await sessionReady())) return;
   const { error } = await supabase.rpc('mark_video_watched', {
     p_video_id: videoId,
     p_seconds:  Math.max(0, Math.floor(seconds)),
@@ -311,6 +319,7 @@ export async function markVideoWatched(
 // Returns the new saved state. Mobile flips the heart on the returned value
 // (true = now saved, false = now unsaved) so we don't need a refetch.
 export async function toggleManualSave(videoId: string): Promise<boolean> {
+  if (!(await sessionReady())) return false;
   const { data, error } = await supabase.rpc('toggle_manual_save', {
     p_video_id: videoId,
   });
@@ -321,6 +330,7 @@ export async function toggleManualSave(videoId: string): Promise<boolean> {
 export async function listMySavedManual(
   locale: 'en' | 'es' = 'en',
 ): Promise<SavedManualVideo[]> {
+  if (!(await sessionReady())) return [];
   const { data, error } = await supabase.rpc('list_my_saved_manual', {
     p_locale: locale,
   });

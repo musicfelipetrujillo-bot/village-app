@@ -2,6 +2,7 @@
 // Compliance: prohibited categories excluded at the DB enum level.
 // CPSC check, AI vision assist, messaging, and payments ship in later phases (G5/G6/G8).
 import { supabase } from '@/lib/supabase';
+import { sessionReady } from '@/lib/requireSession';
 import { getPreferredRadiusKm } from '@store/user';
 import type { AgeTag } from '@api/events';
 
@@ -281,12 +282,14 @@ export const gearApi = {
   },
 
   async listMyListings(): Promise<MyListingRow[]> {
+    if (!(await sessionReady())) return [];
     const { data, error } = await supabase.rpc('list_my_gear_listings');
     if (error) throw new Error(error.message);
     return (data ?? []) as MyListingRow[];
   },
 
   async listMySaved(): Promise<SavedListingRow[]> {
+    if (!(await sessionReady())) return [];
     const { data, error } = await supabase.rpc('list_my_saved_gear');
     if (error) throw new Error(error.message);
     return (data ?? []) as SavedListingRow[];
@@ -530,12 +533,14 @@ export async function getOrCreateGearThread(listingId: string): Promise<GearThre
 }
 
 export async function listMyGearThreads(): Promise<GearThreadRow[]> {
+  if (!(await sessionReady())) return [];
   const { data, error } = await supabase.rpc('list_my_gear_threads');
   if (error) throw new Error(error.message);
   return (data ?? []) as GearThreadRow[];
 }
 
 export async function getGearThreadMessages(threadId: string, limit = 50): Promise<GearMessageRow[]> {
+  if (!(await sessionReady())) return [];
   const { data, error } = await supabase
     .from('gear_messages')
     .select('*')

@@ -20,6 +20,7 @@
 // Core items are never removable (protects the box's integrity + margin).
 
 import { supabase } from '@/lib/supabase';
+import { sessionReady } from '@/lib/requireSession';
 
 // ----- types -------------------------------------------------------------
 
@@ -370,6 +371,9 @@ export const boxesApi = {
 
   /** The signed-in user's box orders (newest first), with their line items. */
   async listMyOrders(): Promise<BoxOrderRow[]> {
+    // Owner-scoped by RLS only — un-tokened this returns 200 + [] and the
+    // buyer's order history reads as "you've never ordered anything".
+    if (!(await sessionReady())) return [];
     const { data, error } = await supabase
       .from('villie_box_orders')
       .select(
