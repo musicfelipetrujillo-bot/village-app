@@ -38,6 +38,8 @@ const WEEK_SEAL = require('../../../assets/home/week-seal.png');
 // a real illustration rather than a generic icon.
 const MILK_CAMERA = require('../../../assets/home/milk-camera.png');
 const SLEEP_MOON = require('../../../assets/home/sleep-moon.png');
+const FEED_BOTTLE = require('../../../assets/home/feed-bottle.png');
+const VILLIE_BOXES = require('../../../assets/home/villie-boxes.png');
 const SCREEN_W = Dimensions.get('window').width;
 
 // ─── Tokens (raspberry rebrand) ────────────────────────────────────────
@@ -255,8 +257,8 @@ function LogRow({ onFeed, onSleep, onMilk }: { onFeed: () => void; onSleep: () =
   return (
     <View style={styles.logRow}>
       <TouchableOpacity style={styles.logItem} activeOpacity={0.85} onPress={onFeed} accessibilityRole="button" accessibilityLabel={L.feed}>
-        <View style={[styles.logCircle, { backgroundColor: '#EFD79A' }]}>
-          <Glyph d={ICON.bottle} color="#C24A63" size={26} sw={1.9} />
+        <View style={[styles.logCircle, { backgroundColor: '#F4CBA8' }]}>
+          <Image source={FEED_BOTTLE} style={styles.feedBottleIcon} resizeMode="contain" />
         </View>
         <Text style={styles.logLabel}>{L.feed}</Text>
       </TouchableOpacity>
@@ -269,7 +271,7 @@ function LogRow({ onFeed, onSleep, onMilk }: { onFeed: () => void; onSleep: () =
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.logItem} activeOpacity={0.85} onPress={onMilk} accessibilityRole="button" accessibilityLabel={lang === 'es' ? 'Registra leche desde una foto' : 'Log milk from a photo'}>
-        <View style={[styles.logCircle, { backgroundColor: '#F4CBA8' }]}>
+        <View style={[styles.logCircle, { backgroundColor: '#EFD79A' }]}>
           <Image source={MILK_CAMERA} style={styles.milkCamIcon} resizeMode="contain" />
         </View>
         <View style={styles.logSnap}><Text style={styles.logSnapText}>{L.snap}</Text></View>
@@ -314,16 +316,20 @@ function AskVillie({ onAsk, onTalk, weekNumber, babyName }: { onAsk: (seed?: str
 }
 
 // ─── Discover — two feature cards (Villie Boxes + Villie Picks) ─────────
-function DiscoverCard({ cap, capIcon, imageUrl, eyebrow, title, sub, onPress }: {
-  cap: readonly [string, string]; capIcon: keyof typeof ICON; imageUrl?: string | null;
+function DiscoverCard({ cap, capIcon, imageUrl, imageSource, eyebrow, title, sub, onPress }: {
+  cap: readonly [string, string]; capIcon?: keyof typeof ICON; imageUrl?: string | null; imageSource?: number;
   eyebrow: string; title: string; sub: string; onPress: () => void;
 }) {
   return (
     <TouchableOpacity activeOpacity={0.9} onPress={onPress} style={styles.discCard} accessibilityRole="button" accessibilityLabel={title}>
       <LinearGradient colors={cap} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.discCap}>
-        {imageUrl
+        {imageSource
+          ? <Image source={imageSource} style={styles.discCapImg} resizeMode="contain" />
+          : imageUrl
           ? <Image source={{ uri: imageUrl }} style={StyleSheet.absoluteFillObject} resizeMode="cover" />
-          : <Glyph d={ICON[capIcon]} color="#fff" size={30} sw={1.9} />}
+          : capIcon
+          ? <Glyph d={ICON[capIcon]} color="#fff" size={30} sw={1.9} />
+          : null}
       </LinearGradient>
       <View style={styles.discBody}>
         <Text style={styles.discEyebrow} numberOfLines={1}>{eyebrow}</Text>
@@ -340,7 +346,7 @@ function DiscoverRow({ showBoxes, picksImage, onBoxes, onPicks }: { showBoxes: b
     <View style={styles.discoverRow}>
       {showBoxes && (
           <DiscoverCard
-            cap={['#C24A63', '#9E2F4C']} capIcon="gift"
+            cap={['#FBE6EC', '#F5D2DC']} imageSource={VILLIE_BOXES}
             eyebrow={lang === 'es' ? 'nuevo · curado' : 'new · curated'}
             title="Villie Boxes" sub={lang === 'es' ? 'entrega · recién nacido' : 'delivery · newborn · mama'}
             onPress={onBoxes}
@@ -706,6 +712,7 @@ const styles = StyleSheet.create({
   logSnapText: { fontFamily: FONTS.v2_bold, fontSize: 8.5, color: '#B03A22', letterSpacing: 0.3 },
   milkCamIcon: { width: 44, height: 44 },
   sleepMoonIcon: { width: 46, height: 46 },
+  feedBottleIcon: { width: 30, height: 50 },
   logLabel: { fontFamily: FONTS.v2_body, fontSize: 12.5, color: T.cocoa, marginTop: 9 },
 
   // ── Ask villie ───────────────────────────────────────────────────────
@@ -730,6 +737,7 @@ const styles = StyleSheet.create({
     shadowColor: T.walnut, shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.12, shadowRadius: 18, elevation: 2,
   },
   discCap: { height: 92, alignItems: 'center', justifyContent: 'center' },
+  discCapImg: { width: 86, height: 82 },
   discBody: { padding: 14 },
   discEyebrow: { fontFamily: FONTS.v2_mono, fontSize: 9.5, letterSpacing: 1.6, textTransform: 'uppercase', fontWeight: '700', color: '#C24A63' },
   discTitle: { fontFamily: FONTS.v3_display, fontSize: 17, color: T.cocoa, letterSpacing: -0.5, marginTop: 6 },
