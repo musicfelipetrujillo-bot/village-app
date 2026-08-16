@@ -273,7 +273,9 @@ function LogRow({ onFeed, onSleep, onMilk }: { onFeed: () => void; onSleep: () =
 }
 
 // ─── Quiet ask-villie bar ──────────────────────────────────────────────
-function AskVillie({ onAsk, weekNumber, babyName }: { onAsk: (seed?: string) => void; weekNumber: number; babyName: string }) {
+function AskVillie({ onAsk, onTalk, weekNumber, babyName }: {
+  onAsk: (seed?: string) => void; onTalk: () => void; weekNumber: number; babyName: string;
+}) {
   const lang = useUserStore((s) => s.profile?.preferred_language ?? 'en') as 'en' | 'es';
   const hour = new Date().getHours();
   const name = babyName.toLowerCase();
@@ -289,7 +291,7 @@ function AskVillie({ onAsk, weekNumber, babyName }: { onAsk: (seed?: string) => 
           <View style={styles.askBee}><Image source={VILLIE_BEE} style={{ width: 16, height: 16 }} resizeMode="contain" /></View>
           <Text style={styles.askText}>{lang === 'es' ? 'pregúntale o dile lo que sea…' : 'ask or tell villie anything…'}</Text>
         </TouchableOpacity>
-        <TouchableOpacity activeOpacity={0.85} onPress={() => onAsk()} accessibilityRole="button" accessibilityLabel={lang === 'es' ? 'Habla con Villie' : 'Talk to Villie'}>
+        <TouchableOpacity activeOpacity={0.85} onPress={onTalk} accessibilityRole="button" accessibilityLabel={lang === 'es' ? 'Habla con Villie' : 'Talk to Villie'} accessibilityHint={lang === 'es' ? 'Abre el chat con el teclado listo para dictar' : 'Opens the chat with the keyboard ready to dictate'}>
           <LinearGradient colors={['#E14A32', '#EE9A38']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.askMic}>
             <Glyph d={ICON.mic} color="#fff" size={19} sw={1.8} />
           </LinearGradient>
@@ -421,6 +423,17 @@ export default function HomeScreenV3() {
     navigation.getParent()?.navigate('Manual', { screen: 'ManualHome', params: { view } });
   const goBeforeBaby = () => navigation.getParent()?.navigate('Manual', { screen: 'BeforeBaby' });
   const askVillie = (seed?: string) => (navigation.getParent()?.getParent() as any)?.navigate('AIHelpChat', seed ? { seed, autosend: true } : {});
+  // The mic. It cannot record: there is no NSMicrophoneUsageDescription in the
+  // Info.plist (removed before Build 12 to dodge an App Store permission-
+  // mismatch rejection) and `expo-audio` is a guarded dynamic import that no
+  // shipped build is known to contain — so an in-app recorder needs a NEW
+  // NATIVE BUILD plus a transcription backend, neither of which an OTA can
+  // deliver. Until then it opens the chat with the keyboard already up, which
+  // puts iOS's own dictation key one tap away. That is the same "talk to it,
+  // villie sorts it" route the tracker's jot field already tells mothers to use.
+  // Previously this button called askVillie() — byte-identical to tapping the
+  // text bar beside it — so it looked broken because it WAS inert.
+  const talkToVillie = () => (navigation.getParent()?.getParent() as any)?.navigate('AIHelpChat', { focusComposer: true });
   // The signature "log milk from a photo" action → Milk Vault bag scanner.
   const scanMilk = () => (navigation.getParent() as any)?.navigate('Milk', { screen: 'MilkVaultScan' });
 
@@ -510,7 +523,7 @@ export default function HomeScreenV3() {
             <Text style={styles.patternsLinkText}>{lang === 'es' ? 'ver patrones del bebé  ›' : "baby's patterns  ›"}</Text>
           </TouchableOpacity>
 
-          <AskVillie onAsk={askVillie} weekNumber={heroWeek} babyName={heroBabyName} />
+          <AskVillie onAsk={askVillie} onTalk={talkToVillie} weekNumber={heroWeek} babyName={heroBabyName} />
 
           {expecting && (
             <TouchableOpacity
