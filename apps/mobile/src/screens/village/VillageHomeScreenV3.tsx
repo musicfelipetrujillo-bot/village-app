@@ -63,6 +63,8 @@ const ArrowRight = ({ color }: { color: string }) => (
 // icons land. `route` is the TAB name (goVertical cross-tabs via getParent()).
 const MILK_ICON = require('../../../assets/village/milk-hub-icon.png');
 const CARE_ICON = require('../../../assets/village/care-icon.png');
+const GEAR_ICON = require('../../../assets/village/gear-icon.png');
+const PLANS_ICON = require('../../../assets/village/plans-icon.png');
 const GLYPH: Record<string, string> = {
   bag: 'M6 8h12l-1 12H7L6 8zm3 0V6a3 3 0 016 0v2',
   calendar: 'M4 6h16v15H4zM4 10h16M8 3v4M16 3v4',
@@ -70,17 +72,18 @@ const GLYPH: Record<string, string> = {
 
 type Vertical = {
   title: string;
+  sub: string;
   route: string;
-  icon?: number;              // require() asset — the illustrated badge
+  icon?: number;              // require() asset — the illustrated icon itself
   glyph?: keyof typeof GLYPH; // fallback line glyph until a real icon exists
   isNew?: boolean;
 };
 
 const VERTICALS: Vertical[] = [
-  { title: 'Milk Hub',     icon: MILK_ICON,   route: 'Milk',    isNew: true },
-  { title: 'Care',         icon: CARE_ICON,   route: 'Experts' },
-  { title: 'Baby Gear',    glyph: 'bag',      route: 'Gear'    },
-  { title: 'Villie Plans', glyph: 'calendar', route: 'Village' },
+  { title: 'Milk Hub',     sub: 'your stash + peer milk',      icon: MILK_ICON,   route: 'Milk',    isNew: true },
+  { title: 'Care',         sub: 'doctors, doulas, lactation',  icon: CARE_ICON,   route: 'Experts' },
+  { title: 'Baby Gear',    sub: 'hand-me-downs from moms',     icon: GEAR_ICON,   route: 'Gear'    },
+  { title: 'Villie Plans', sub: 'classes, circles, meetups',   icon: PLANS_ICON,  route: 'Village' },
 ];
 
 // Short weekday + day-of-month for the calendar chip.
@@ -180,32 +183,33 @@ export default function VillageHomeScreenV3() {
           </TouchableOpacity>
         </View>
 
-        {/* 2×2 vertical grid — unified tiles, illustrated icon badges */}
+        {/* 2×2 — the four sections ARE the hero. No card box around the icon
+            (that read as a redundant double-box). The big illustrated icon is
+            the element; title + description sit beneath it (founder 2026-08-16). */}
         <View style={styles.gridWrap}>
           {VERTICALS.map((v) => (
             <TouchableOpacity
               key={v.title}
               onPress={v.route === 'Village' ? goAllPlans : () => goVertical(v.route)}
-              activeOpacity={0.88}
+              activeOpacity={0.82}
               accessibilityRole="button"
               accessibilityLabel={v.title}
-              style={styles.tile}
+              style={styles.cell}
             >
-              {v.isNew && (
-                <View style={styles.tileBadge}>
-                  <Text style={styles.tileBadgeText}>new</Text>
-                </View>
-              )}
-              <View style={styles.iconBadge}>
+              <View style={styles.iconWrap}>
                 {v.icon ? (
-                  <Image source={v.icon} style={styles.badgeImg} resizeMode="cover" />
+                  <Image source={v.icon} style={styles.iconImg} resizeMode="cover" />
                 ) : (
-                  <Svg width={26} height={26} viewBox="0 0 24 24">
-                    <Path d={GLYPH[v.glyph!]} stroke="#B08A5E" strokeWidth={1.8} fill="none" strokeLinecap="round" strokeLinejoin="round" />
+                  <Svg width={40} height={40} viewBox="0 0 24 24">
+                    <Path d={GLYPH[v.glyph!]} stroke="#B08A5E" strokeWidth={1.7} fill="none" strokeLinecap="round" strokeLinejoin="round" />
                   </Svg>
                 )}
+                {v.isNew && (
+                  <View style={styles.newDot}><Text style={styles.newDotText}>new</Text></View>
+                )}
               </View>
-              <Text style={styles.tileTitle}>{v.title}</Text>
+              <Text style={styles.cellTitle}>{v.title}</Text>
+              <Text style={styles.cellSub} numberOfLines={1}>{v.sub}</Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -219,64 +223,34 @@ export default function VillageHomeScreenV3() {
             </TouchableOpacity>
           </View>
 
-          {featured ? (
-            <>
-              <TouchableOpacity
-                style={styles.eventCard}
-                activeOpacity={0.92}
-                onPress={() => goEvent(featured.id)}
-                accessibilityRole="button"
-                accessibilityLabel={featured.title}
-              >
-                {featured.cover_image_url ? (
-                  <Image source={{ uri: featured.cover_image_url }} style={styles.eventCover} resizeMode="cover" />
-                ) : (
-                  <View style={[styles.eventCover, styles.eventCoverFallback]}>
-                    <Svg width={34} height={34} viewBox="0 0 24 24">
-                      <Path d="M8 2v3M16 2v3M3 9h18M5 5h14a2 2 0 012 2v12a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2z"
-                        stroke="#B98A1E" strokeWidth={1.6} fill="none" strokeLinecap="round" strokeLinejoin="round" />
-                    </Svg>
+          {upcoming.length > 0 ? (
+            upcoming.slice(0, 3).map((e) => {
+              const dp = dayParts(e.starts_at);
+              return (
+                <TouchableOpacity
+                  key={e.id}
+                  style={styles.eventRow}
+                  activeOpacity={0.85}
+                  onPress={() => goEvent(e.id)}
+                  accessibilityRole="button"
+                  accessibilityLabel={e.title}
+                >
+                  <View style={styles.dayChip}>
+                    <Text style={styles.dayWd}>{dp.wd}</Text>
+                    <Text style={styles.dayNum}>{dp.day}</Text>
                   </View>
-                )}
-                <View style={styles.eventBody}>
-                  <Text style={styles.eventTitle} numberOfLines={2}>{featured.title}</Text>
-                  <View style={styles.eventFooterRow}>
-                    <Text style={styles.eventMeta} numberOfLines={1}>{eventMeta(featured)}</Text>
-                    <View style={styles.joinBtn}><Text style={styles.joinText}>{lang === 'es' ? 'Unirme' : 'Join'}</Text></View>
+                  <View style={{ flex: 1, minWidth: 0 }}>
+                    <Text style={styles.eventRowTitle} numberOfLines={1}>{e.title}</Text>
+                    <Text style={styles.eventRowMeta} numberOfLines={1}>{eventMeta(e)}</Text>
                   </View>
-                </View>
-              </TouchableOpacity>
-
-              {rest.map((e) => {
-                const dp = dayParts(e.starts_at);
-                return (
-                  <TouchableOpacity
-                    key={e.id}
-                    style={styles.eventRow}
-                    activeOpacity={0.85}
-                    onPress={() => goEvent(e.id)}
-                    accessibilityRole="button"
-                    accessibilityLabel={e.title}
-                  >
-                    <View style={styles.dayChip}>
-                      <Text style={styles.dayWd}>{dp.wd}</Text>
-                      <Text style={styles.dayNum}>{dp.day}</Text>
-                    </View>
-                    <View style={{ flex: 1, minWidth: 0 }}>
-                      <Text style={styles.eventRowTitle} numberOfLines={1}>{e.title}</Text>
-                      <Text style={styles.eventRowMeta} numberOfLines={1}>{eventMeta(e)}</Text>
-                    </View>
-                    <ArrowRight color="#C9B79F" />
-                  </TouchableOpacity>
-                );
-              })}
-            </>
+                  <ArrowRight color="#C9B79F" />
+                </TouchableOpacity>
+              );
+            })
           ) : (
             <TouchableOpacity style={styles.eventEmpty} onPress={goAllPlans} activeOpacity={0.85}>
               <Text style={styles.eventEmptyText}>
-                {lang === 'es'
-                  ? 'Nada cerca de ti todavía — mira todos los planes.'
-                  : "Nothing near you yet — browse all plans."}
+                {lang === 'es' ? 'Nada esta semana — mira todos los planes.' : 'Nothing this week — browse all plans.'}
               </Text>
             </TouchableOpacity>
           )}
@@ -298,38 +272,34 @@ const styles = StyleSheet.create({
   },
 
   gridWrap: {
-    marginTop: 16,
-    flexDirection: 'row', flexWrap: 'wrap', gap: 12,
+    marginTop: 18,
+    flexDirection: 'row', flexWrap: 'wrap', rowGap: 26, columnGap: 12,
   },
-  // One unified neutral tile — the illustrated icon badge carries the colour.
-  tile: {
-    width: '48%', minHeight: 128,
-    padding: 16,
-    borderRadius: 18, overflow: 'hidden',
-    justifyContent: 'flex-start',
-    backgroundColor: '#FDF7EF',
-    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(122,74,40,0.12)',
+  // No card box — the big illustrated icon is the element. The icon's own
+  // rounded surface + soft shadow gives it presence; title + sub sit beneath.
+  cell: { width: '48%', alignItems: 'flex-start' },
+  iconWrap: {
+    width: 92, height: 92, borderRadius: 26, overflow: 'hidden',
+    backgroundColor: '#F3E8D8', alignItems: 'center', justifyContent: 'center',
     shadowColor: T.walnut, shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.1, shadowRadius: 20, elevation: 2,
+    shadowOpacity: 0.16, shadowRadius: 18, elevation: 3, marginBottom: 12,
   },
-  iconBadge: {
-    width: 56, height: 56, borderRadius: 16, overflow: 'hidden',
-    backgroundColor: '#F2E7D6', alignItems: 'center', justifyContent: 'center',
-    marginBottom: 14,
-  },
-  badgeImg: { width: 56, height: 56 },
-  tileBadge: {
-    position: 'absolute', top: 12, right: 12,
-    backgroundColor: 'rgba(255,252,246,0.85)', borderRadius: 999,
+  iconImg: { width: 92, height: 92 },
+  newDot: {
+    position: 'absolute', top: 8, right: 8,
+    backgroundColor: 'rgba(255,252,246,0.92)', borderRadius: 999,
     paddingHorizontal: 8, paddingVertical: 2,
   },
-  tileBadgeText: {
+  newDotText: {
     fontFamily: FONTS.v2_mono, fontSize: 8.5, letterSpacing: 1.2,
     textTransform: 'uppercase', fontWeight: '600', color: '#C24A63',
   },
-  tileTitle: {
-    fontFamily: FONTS.v3_display, fontSize: 21, lineHeight: 24,
-    color: T.cocoa, letterSpacing: -0.5,
+  cellTitle: {
+    fontFamily: FONTS.v3_display, fontSize: 18, lineHeight: 21,
+    color: T.cocoa, letterSpacing: -0.4,
+  },
+  cellSub: {
+    fontFamily: FONTS.v2_body, fontSize: 12, color: T.walnut, marginTop: 3,
   },
 
   sectionHead: {
