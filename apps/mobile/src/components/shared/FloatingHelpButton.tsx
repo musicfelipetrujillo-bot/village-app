@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
+import { useRouteStore } from '@store/route';
 import { FONTS, NAV_HEIGHT } from '@utils/constants';
 
 const VILLIE_BEE = require('../../../assets/brand/villie-bee.png');
@@ -56,6 +57,10 @@ function nearestCorner(x: number, y: number): Corner {
 
 export default function FloatingHelpButton() {
   const navigation = useNavigation<any>();
+  // Hidden on the Home screen (founder 2026-08-15). The current route name is
+  // published by RootNavigator's onStateChange into useRouteStore — reliable
+  // across nested tab/stack navigation, unlike useNavigationState here.
+  const currentRoute = useRouteStore((s) => s.currentRoute);
   const [corner, setCorner] = useState<Corner>(DEFAULT_CORNER);
   const initial = cornerToXY(DEFAULT_CORNER);
   const pan = useRef(new Animated.ValueXY(initial)).current;
@@ -165,6 +170,8 @@ export default function FloatingHelpButton() {
       },
     })
   ).current;
+
+  if (currentRoute === 'HomeRoot') return null;
 
   return (
     <View pointerEvents="box-none" style={StyleSheet.absoluteFill}>

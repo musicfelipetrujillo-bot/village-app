@@ -119,7 +119,6 @@ export function MilkNavigator() {
       <Stack.Screen name="MilkVaultKeepSell" component={MilkVaultKeepSellScreen} />
       <Stack.Screen name="MilkVaultListing" component={MilkVaultListingScreen} />
       <Stack.Screen name="MilkVaultSettings" component={MilkVaultSettingsScreen} />
-      {/* M5+ placeholder */}
       <Stack.Screen name="DonorListingManager" component={MilkMyListingsScreen} />
     </Stack.Navigator>
   );

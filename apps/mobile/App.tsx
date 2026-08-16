@@ -3,42 +3,14 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
-import {
-  useFonts as usePlayfair,
-  PlayfairDisplay_400Regular,
-  PlayfairDisplay_400Regular_Italic,
-  PlayfairDisplay_600SemiBold_Italic,
-  PlayfairDisplay_700Bold,
-  PlayfairDisplay_800ExtraBold,
-} from '@expo-google-fonts/playfair-display';
-// ─── Brand Kit v2 (villie · May 2026) ─── canonical type families
-// Inter has been retired (was the v1 body family) — every FONTS.body* token
-// in constants.ts now resolves to Plus Jakarta Sans. Removing the Inter
-// import + font load saves ~80KB of bundle weight.
-import { Caprasimo_400Regular } from '@expo-google-fonts/caprasimo';
-import {
-  PlusJakartaSans_400Regular,
-  PlusJakartaSans_500Medium,
-  PlusJakartaSans_600SemiBold,
-  PlusJakartaSans_700Bold,
-} from '@expo-google-fonts/plus-jakarta-sans';
-import {
-  JetBrainsMono_400Regular,
-  JetBrainsMono_500Medium,
-} from '@expo-google-fonts/jetbrains-mono';
-// ─── Brand Kit v3 (villie · May 24, 2026) ─── canonical italic accent
-// Fraunces SemiBold Italic — the "wonky moment" font per the design
-// handoff. Used as one-per-screen italic flourish on key nouns
-// (greeting names, manual., here., etc.). v3 preview screens
-// (HomeScreenV3 / VillageHomeScreenV3 / ManualScrollV3) reach for this
-// via FONTS.v3_display_italic.
-import { Fraunces_600SemiBold_Italic } from '@expo-google-fonts/fraunces';
-// ─── Brand Kit V10 (villie · Gen Z · May 2026) ─── new canonical families.
-// See docs/V10_GENZ_REBRAND.md. Bricolage = display ("loud bits"),
-// Hanken = body/UI (retires Plus Jakarta + JetBrains mono), Caveat = the
-// handwritten accent/marginalia layer ("we see you, mom"). FONTS tokens in
-// constants.ts route to these; the legacy families stay loaded through the
-// Phase 2 literal sweep so raw font-name refs keep resolving.
+import { useFonts } from 'expo-font';
+// ─── Canonical type families — 3-font ceiling (founder, 2026-08-15) ───
+// Bricolage = display ("loud bits"), Hanken = body/UI, Caveat = the
+// handwritten accent. Every FONTS token in constants.ts routes to one of
+// these three. The older families (Playfair, Plus Jakarta, JetBrains Mono,
+// Fraunces, Caprasimo) were rerouted away and are no longer loaded — this
+// keeps the whole app to three families and trims bundle weight.
+// See docs/V10_GENZ_REBRAND.md.
 import {
   BricolageGrotesque_400Regular,
   BricolageGrotesque_700Bold,
@@ -50,7 +22,7 @@ import {
   HankenGrotesk_600SemiBold,
   HankenGrotesk_700Bold,
 } from '@expo-google-fonts/hanken-grotesk';
-import { Caveat_400Regular, Caveat_600SemiBold } from '@expo-google-fonts/caveat';
+import { Caveat_600SemiBold } from '@expo-google-fonts/caveat';
 import { RootNavigator } from '@/navigation/RootNavigator';
 import { useAuthStore } from '@store/auth';
 import { usePreAuthLanguage } from '@store/preAuthLanguage';
@@ -109,26 +81,8 @@ export default function App() {
   const setSession = useAuthStore((s) => s.setSession);
   const hydrateLang = usePreAuthLanguage((s) => s.hydrate);
 
-  const [fontsLoaded] = usePlayfair({
-    // Playfair Display — display family
-    PlayfairDisplay_400Regular,
-    PlayfairDisplay_400Regular_Italic,
-    PlayfairDisplay_600SemiBold_Italic,    // v2 flourish weight (italic per-screen)
-    PlayfairDisplay_700Bold,               // v2 roman default
-    PlayfairDisplay_800ExtraBold,          // v2 big numbers (week count, stats)
-    // Caprasimo — wordmark inline fallback only
-    Caprasimo_400Regular,
-    // Plus Jakarta Sans — v2 body / labels / buttons / links
-    PlusJakartaSans_400Regular,
-    PlusJakartaSans_500Medium,
-    PlusJakartaSans_600SemiBold,
-    PlusJakartaSans_700Bold,
-    // JetBrains Mono — v2 eyebrows / metadata / dates
-    JetBrainsMono_400Regular,
-    JetBrainsMono_500Medium,
-    // Fraunces — v3 italic accent ("wonky moment") on v3 preview screens
-    Fraunces_600SemiBold_Italic,
-    // V10 Gen Z — Bricolage (display) · Hanken (body/UI) · Caveat (marker)
+  const [fontsLoaded] = useFonts({
+    // Three families, whole app — Bricolage (display) · Hanken (body/UI) · Caveat (accent)
     BricolageGrotesque_400Regular,
     BricolageGrotesque_700Bold,
     BricolageGrotesque_800ExtraBold,
@@ -136,7 +90,6 @@ export default function App() {
     HankenGrotesk_500Medium,
     HankenGrotesk_600SemiBold,
     HankenGrotesk_700Bold,
-    Caveat_400Regular,
     Caveat_600SemiBold,
   });
 

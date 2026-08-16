@@ -5,6 +5,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { navigationRef } from './navigationRef';
 import { useAuthStore } from '@store/auth';
 import { useUserStore } from '@store/user';
+import { useRouteStore } from '@store/route';
 import { useOneSignal } from '@hooks/useOneSignal';
 import { useAnalytics } from '@hooks/useAnalytics';
 import { initSentry } from '@/lib/sentry';
@@ -67,6 +68,12 @@ export function RootNavigator() {
   return (
     <NavigationContainer
       ref={navigationRef}
+      onReady={() => {
+        // onStateChange doesn't fire for the initial state — seed the current
+        // route so the FloatingHelpButton hides on a cold launch to Home.
+        const r = navigationRef.getCurrentRoute();
+        if (r) useRouteStore.getState().setCurrentRoute(r.name);
+      }}
       onStateChange={(state) => {
         if (!state) return;
         // Walk to the deepest active route name for screen tracking
@@ -76,6 +83,7 @@ export function RootNavigator() {
           route = nested.routes[nested.index ?? 0];
         }
         trackScreen(route.name);
+        useRouteStore.getState().setCurrentRoute(route.name);
       }}
     >
       <Stack.Navigator screenOptions={{ headerShown: false }}>
