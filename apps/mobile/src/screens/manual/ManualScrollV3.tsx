@@ -28,7 +28,6 @@ import {
   View, Text, StyleSheet, TouchableOpacity, Image,
   Dimensions, findNodeHandle, UIManager, Share, Alert,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   listManualPieces, formatDuration, getWeekIntroVideo,
   type WeekIntroVideo, type ManualAudience, type ManualPiece,
@@ -759,7 +758,6 @@ const SLEEP_DEMO_POSTER = require('../../../assets/manual/sleep-thumb.jpg');
 // ─── Screen ────────────────────────────────────────────────────────────
 export default function ManualScrollV3() {
   const navigation = useNavigation<any>();
-  const insets = useSafeAreaInsets();
   const t = useT();
   const profile = useUserStore((s) => s.profile);
   const babyProfile = useHomeStore((s) => s.babyProfile);
@@ -1116,7 +1114,7 @@ export default function ManualScrollV3() {
       />
       <Animated.ScrollView
         style={{ flex: 1 }}
-        contentContainerStyle={[styles.scroll, { paddingTop: insets.top + 30 }]}
+        contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
         onScroll={Animated.event(
           [{ nativeEvent: { contentOffset: { y: scrollY } } }],
@@ -1554,7 +1552,7 @@ export default function ManualScrollV3() {
 // ─── Styles ────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: T.paper },
-  scroll: { paddingTop: 82, paddingBottom: 96 },
+  scroll: { paddingTop: 0, paddingBottom: 96 },
 
   // ── Week-level "this week" video card ──────────────────────────────────
   wiCard: { marginTop: 18, borderRadius: 18, overflow: 'hidden', borderWidth: 2, borderColor: T.cinnamon },

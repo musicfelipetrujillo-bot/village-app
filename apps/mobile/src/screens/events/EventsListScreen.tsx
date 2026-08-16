@@ -18,7 +18,6 @@ import { KenBurnsImage } from '@components/shared/KenBurnsImage';
 import { V9PageBackdrop } from '@components/shared/V9PageBackdrop';
 import { HoneycombBackdrop } from '@components/shared/HoneycombBackdrop';
 import { HubHeader } from '@components/shared/HubHeader';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useT } from '@/i18n';
 
 type TFn = (key: string, params?: Record<string, string | number>) => string;
@@ -40,7 +39,6 @@ const AGE_FILTER_KEYS: { key: AgeTag; labelKey: string }[] = [
 export default function EventsListScreen() {
   const t = useT();
   const navigation = useNavigation<any>();
-  const insets = useSafeAreaInsets();
   const { upcoming, loading, fetchUpcoming, savedIds, fetchSavedIds, toggleSave } = useEventsStore();
   const [typeFilter, setTypeFilter] = useState<EventType | 'all'>('all');
   const [ageFilter, setAgeFilter] = useState<AgeTag | null>(null);
@@ -110,7 +108,7 @@ export default function EventsListScreen() {
         style={styles.pageWash}
       />
       {/* Canonical shared header — matches Milk / Care / Gear exactly. */}
-      <View style={{ paddingTop: insets.top + 6 }}>
+      <View>
         <HubHeader
           name="plans"
           dotColor="#EFB2C8"

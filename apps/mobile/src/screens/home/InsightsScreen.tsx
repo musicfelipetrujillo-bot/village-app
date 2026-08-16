@@ -104,7 +104,7 @@ export default function InsightsScreen() {
 
   return (
     <View style={styles.container}>
-      <SafeAreaView style={{ flex: 1 }} edges={['top']}>
+      <SafeAreaView style={{ flex: 1 }} edges={[]}>
         <ScreenHeader
           title={lang === 'es' ? 'tu día' : 'your day'}
           onBack={() => nav.goBack()}

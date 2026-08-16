@@ -2,7 +2,6 @@ import React, { useEffect, useCallback, useMemo } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput, Linking, Platform,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FlashList } from '@shopify/flash-list';
 import { LinearGradient } from 'expo-linear-gradient';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -47,7 +46,6 @@ const FILTER_CHIPS: { i18nKey: string; key: string; value?: ChipFilter }[] = [
 
 export default function ExpertsHomeScreen({ navigation, route }: Props) {
   const t = useT();
-  const insets = useSafeAreaInsets();
   const { results, loading, filters, search, setFilters } = useExpertsStore();
   const profile = useUserStore((s) => s.profile);
   // Pre-select the chip whose value.specialty matches the deeplink hint. If
@@ -198,7 +196,7 @@ export default function ExpertsHomeScreen({ navigation, route }: Props) {
           header per Felipe. See MilkConnectHomeScreen for the pattern. */}
       {/* Canonical shared header (identical across all verticals). Map/Saved
           stay as text pills per Felipe; peach dot carries the Care identity. */}
-      <View style={{ marginHorizontal: -18, paddingTop: insets.top + 6 }}>
+      <View style={{ marginHorizontal: -18 }}>
         <HubHeader
           name="care"
           dotColor="#F3B79C"

@@ -6,7 +6,12 @@
 // the 3-role type scale (title / body / meta) can't drift screen to screen.
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, type ViewStyle } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS, FONTS } from '@utils/constants';
+
+// The ONE top gap for every header, applied on top of the safe-area inset.
+// Because it lives here, no screen sets its own top padding — they all line up.
+const HEADER_TOP_GAP = 8;
 
 export function ScreenHeader({
   title,
@@ -23,8 +28,9 @@ export function ScreenHeader({
   backColor?: string;
   style?: ViewStyle;
 }) {
+  const insets = useSafeAreaInsets();
   return (
-    <View style={[s.row, style]}>
+    <View style={[s.row, style, { paddingTop: insets.top + HEADER_TOP_GAP }]}>
       {onBack ? (
         <TouchableOpacity
           onPress={onBack}

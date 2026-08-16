@@ -23,6 +23,7 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { FONTS } from '@utils/constants';
 import { ScreenHeader } from '@components/shared/ScreenHeader';
+import { WarmGlowBackdrop } from '@components/shared/WarmGlowBackdrop';
 import { useMilkVaultStore } from '@store/milkVault';
 import { useHomeStore } from '@store/home';
 import { shortDate } from '@utils/milkVaultInsights';
@@ -89,7 +90,14 @@ export default function MilkVaultDashboardScreen() {
 
   return (
     <View style={styles.container}>
-      <SafeAreaView style={{ flex: 1 }} edges={['top']}>
+      <WarmGlowBackdrop hideClusters />
+      <LinearGradient
+        pointerEvents="none"
+        colors={['rgba(194,74,99,0.20)', 'rgba(194,74,99,0.06)', 'rgba(252,247,239,0)']}
+        locations={[0, 0.45, 1]}
+        style={styles.pageWash}
+      />
+      <SafeAreaView style={{ flex: 1 }} edges={[]}>
         <ScreenHeader
           title="milk hub"
           onBack={() => (nav.canGoBack() ? nav.goBack() : (nav.getParent() as any)?.navigate('Village'))}
@@ -306,6 +314,7 @@ function Path2({ d, color, size = 18 }: { d: string; color: string; size?: numbe
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: C.cream },
+  pageWash: { position: 'absolute', top: 0, left: 0, right: 0, height: 640 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   loadingText: { fontFamily: FONTS.v2_body, fontSize: 15, color: C.walnut },
 
