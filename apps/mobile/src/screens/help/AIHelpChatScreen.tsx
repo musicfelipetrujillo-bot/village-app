@@ -168,6 +168,13 @@ export default function AIHelpChatScreen() {
   // so the chat focuses on the request. Without it (Manual's partial prompt) the
   // seed just prefills the composer for her to finish.
   const autosend: boolean = !!route.params?.autosend;
+  // focusComposer: opened from the Home mic. Raising the keyboard immediately
+  // puts iOS's own dictation key one tap away, which is the only voice input
+  // the app can offer over-the-air — expo-audio is a guarded dynamic import
+  // that no shipped build is known to contain, and there is no
+  // NSMicrophoneUsageDescription in the Info.plist, so in-app recording would
+  // be denied outright. See the mic button in HomeScreenV3.
+  const focusComposer: boolean = !!route.params?.focusComposer;
 
   const [messages, setMessages] = useState<UIMessage[]>(() => [
     { id: 'greeting', role: 'assistant', content: t('help.greeting') },
@@ -419,6 +426,7 @@ export default function AIHelpChatScreen() {
           onChangeText={setDraft}
           multiline
           maxLength={800}
+          autoFocus={focusComposer}
           accessibilityLabel={t('help.composerA11y')}
         />
         <TouchableOpacity
