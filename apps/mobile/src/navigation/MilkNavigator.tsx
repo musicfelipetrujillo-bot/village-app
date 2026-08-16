@@ -13,7 +13,6 @@
 // OnboardingComplete, DonorSearchList, DonorMap, DonorProfile, SavedDonors,
 // MilkMessageThreads, MilkMessageDetail.
 import React from 'react';
-import { View } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 // M1 screens
@@ -56,11 +55,6 @@ export interface MilkVaultBagPrefill {
   raw?: Record<string, unknown> | null;
 }
 
-// Placeholders
-function PlaceholderScreen() {
-  return <View style={{ flex: 1, backgroundColor: '#F5F0E8' }} />;
-}
-
 export type MilkStackParamList = {
   MilkHome: undefined;
   // M1 — BecomeDonor flow
@@ -75,7 +69,6 @@ export type MilkStackParamList = {
   DonorProfile: { donorProfileId: string };
   SavedDonors: undefined;
   // M2 — Donor dashboard
-  DonorDashboard: undefined;
   DonorListingManager: undefined;
   DonorSocialLinks: { donorProfileId: string };
   // M4 — Messaging
@@ -127,7 +120,6 @@ export function MilkNavigator() {
       <Stack.Screen name="MilkVaultListing" component={MilkVaultListingScreen} />
       <Stack.Screen name="MilkVaultSettings" component={MilkVaultSettingsScreen} />
       {/* M5+ placeholder */}
-      <Stack.Screen name="DonorDashboard" component={PlaceholderScreen} />
       <Stack.Screen name="DonorListingManager" component={MilkMyListingsScreen} />
     </Stack.Navigator>
   );
