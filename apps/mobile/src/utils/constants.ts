@@ -202,7 +202,7 @@ export const FONTS = {
   v2_display:        'BricolageGrotesque_700Bold',           // ▲ was Playfair 700
   v2_display_italic: 'Caveat_600SemiBold',       // ▲ was Playfair italic
   v2_display_big:    'BricolageGrotesque_800ExtraBold',           // ▲ was Playfair 800 (no 800 grotesk loaded; 700 reads big enough at large sizes)
-  v2_wordmark:       'Caprasimo_400Regular',              // KEEP current logo — inline wordmark fallback stays Caprasimo (Felipe 2026-05-29: don't adopt kit's Bricolage wordmark)
+  v2_wordmark:       'BricolageGrotesque_700Bold',        // ▲ 2026-08-15: rerouted off Caprasimo to hold the 3-font ceiling (Bricolage/Hanken/Caveat). Inline "villie" wordmark fallback only; the canonical wordmark is the PNG asset.
   v2_display_regular: 'BricolageGrotesque_400Regular',  // refined light display (subtitles)
   v2_body:           'HankenGrotesk_400Regular',        // body text
   v2_label:          'HankenGrotesk_500Medium',         // form labels
@@ -227,8 +227,8 @@ export const FONTS = {
   v3_display:        'BricolageGrotesque_700Bold',      // display heads — grotesk modern
   v3_display_italic: 'Caveat_600SemiBold',
   // --- V10 Gen Z marker layer (Caveat handwriting) ---
-  v2_script:         'Caveat_400Regular',
-  marker:            'Caveat_400Regular',  // italic accent — "wonky moment"
+  v2_script:         'Caveat_600SemiBold',
+  marker:            'Caveat_600SemiBold',  // italic accent — "wonky moment" (Caveat 600, the only Caveat weight loaded)
 } as const;
 
 export const NAV_HEIGHT = 72;
