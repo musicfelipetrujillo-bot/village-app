@@ -75,7 +75,6 @@ export type MilkStackParamList = {
   DonorProfile: { donorProfileId: string };
   SavedDonors: undefined;
   // M2 — Donor dashboard
-  DonorDashboard: undefined;
   DonorListingManager: undefined;
   DonorSocialLinks: { donorProfileId: string };
   // M4 — Messaging
@@ -126,8 +125,6 @@ export function MilkNavigator() {
       <Stack.Screen name="MilkVaultKeepSell" component={MilkVaultKeepSellScreen} />
       <Stack.Screen name="MilkVaultListing" component={MilkVaultListingScreen} />
       <Stack.Screen name="MilkVaultSettings" component={MilkVaultSettingsScreen} />
-      {/* M5+ placeholder */}
-      <Stack.Screen name="DonorDashboard" component={PlaceholderScreen} />
       <Stack.Screen name="DonorListingManager" component={MilkMyListingsScreen} />
     </Stack.Navigator>
   );
