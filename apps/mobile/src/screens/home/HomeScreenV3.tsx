@@ -40,6 +40,7 @@ const MILK_CAMERA = require('../../../assets/home/milk-camera.png');
 const SLEEP_MOON = require('../../../assets/home/sleep-moon.png');
 const FEED_BOTTLE = require('../../../assets/home/feed-bottle.png');
 const VILLIE_BOXES = require('../../../assets/home/villie-boxes.png');
+const BUZZ_BEE = require('../../../assets/home/buzz-bee.png');
 const SCREEN_W = Dimensions.get('window').width;
 
 // ─── Tokens (raspberry rebrand) ────────────────────────────────────────
@@ -240,9 +241,7 @@ function WeekRingHero({ firstName, babyName, weekNumber, expecting, onOpenManual
           ? (lang === 'es' ? 'Prepárate para la llegada del bebé' : 'Get ready for baby')
           : (lang === 'es' ? "Abre el manual de esta semana" : "Open this week's manual")}
       >
-        <LinearGradient colors={['#E14A32', '#EE9A38']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.heroTapPill}>
-          <Text style={styles.heroTapHintText}>{tapHint}</Text>
-        </LinearGradient>
+        <Text style={styles.heroTapHintText}>{tapHint}</Text>
       </TouchableOpacity>
     </LinearGradient>
   );
@@ -257,7 +256,7 @@ function LogRow({ onFeed, onSleep, onMilk }: { onFeed: () => void; onSleep: () =
   return (
     <View style={styles.logRow}>
       <TouchableOpacity style={styles.logItem} activeOpacity={0.85} onPress={onFeed} accessibilityRole="button" accessibilityLabel={L.feed}>
-        <View style={[styles.logCircle, { backgroundColor: '#F4CBA8' }]}>
+        <View style={[styles.logCircle, { backgroundColor: '#E8B98A' }]}>
           <Image source={FEED_BOTTLE} style={styles.feedBottleIcon} resizeMode="contain" />
         </View>
         <Text style={styles.logLabel}>{L.feed}</Text>
@@ -294,14 +293,16 @@ function AskVillie({ onAsk, onTalk, weekNumber, babyName }: { onAsk: (seed?: str
   return (
     <View style={styles.askWrap}>
       <View style={styles.askRow}>
-        <TouchableOpacity style={styles.askBar} activeOpacity={0.85} onPress={() => onAsk()} accessibilityRole="button" accessibilityLabel={lang === 'es' ? 'Pregúntale o dile a Villie' : 'Ask or tell Villie anything'}>
-          <View style={styles.askBee}><Image source={VILLIE_BEE} style={{ width: 16, height: 16 }} resizeMode="contain" /></View>
-          <Text style={styles.askText}>{lang === 'es' ? 'pregúntale o dile lo que sea…' : 'ask or tell villie anything…'}</Text>
+        <TouchableOpacity style={styles.askBarWrap} activeOpacity={0.9} onPress={() => onAsk()} accessibilityRole="button" accessibilityLabel={lang === 'es' ? 'Pregúntale o dile a Villie' : 'Ask or tell Villie anything'}>
+          <LinearGradient colors={['#E14A32', '#EE9A38']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.askBar}>
+            <View style={styles.askBee}><Image source={VILLIE_BEE} style={{ width: 16, height: 16 }} resizeMode="contain" /></View>
+            <Text style={styles.askText}>{lang === 'es' ? 'pregúntale o dile lo que sea…' : 'ask or tell villie anything…'}</Text>
+          </LinearGradient>
         </TouchableOpacity>
         <TouchableOpacity activeOpacity={0.85} onPress={onTalk} accessibilityRole="button" accessibilityLabel={lang === 'es' ? 'Habla con Villie' : 'Talk to Villie'} accessibilityHint={lang === 'es' ? 'Abre el chat con el teclado listo para dictar' : 'Opens the chat with the keyboard ready to dictate'}>
-          <LinearGradient colors={['#E14A32', '#EE9A38']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.askMic}>
-            <Glyph d={ICON.mic} color="#fff" size={19} sw={1.8} />
-          </LinearGradient>
+          <View style={styles.askMic}>
+            <Glyph d={ICON.mic} color="#E14A32" size={19} sw={1.8} />
+          </View>
         </TouchableOpacity>
       </View>
       <View style={styles.askPrompts}>
@@ -394,7 +395,7 @@ function BuzzCard({ t, lang, onPress }: { t: (k: string, p?: any) => string; lan
   return (
     <TouchableOpacity activeOpacity={0.92} onPress={onPress} accessibilityRole="button" accessibilityLabel={t('home.buzzCardTitle')}>
       <LinearGradient colors={['#F4C64A', '#E89020']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.buzzCard}>
-        <View style={styles.buzzBee}><Text style={{ fontSize: 22 }}>🐝</Text></View>
+        <View style={styles.buzzBee}><Image source={BUZZ_BEE} style={styles.buzzBeeImg} resizeMode="cover" /></View>
         <View style={{ flex: 1, minWidth: 0 }}>
           <Text style={styles.buzzEyebrow}>{lang === 'es' ? 'el buzz' : 'the buzz'}</Text>
           <Text style={styles.buzzTitle} numberOfLines={2}>{sub}</Text>
@@ -665,17 +666,13 @@ const styles = StyleSheet.create({
     textTransform: 'lowercase', color: '#F2E4C8', marginTop: 2,
     textShadowColor: 'rgba(58,24,10,0.45)', textShadowOffset: { width: 0, height: 2 }, textShadowRadius: 3,
   },
-  // The hero's single warm spark — scarlet→amber gradient so it harmonises with
-  // the seal instead of reading as a flat red block (founder, 2026-08-15).
+  // Quiet, flat pill so it doesn't compete with the wax seal — the vibrant
+  // gradient moved to the Ask Villie bar for contrast (founder, 2026-08-15).
   heroTapHint: {
-    marginTop: 20, borderRadius: 999,
-    shadowColor: '#E1732F', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.26, shadowRadius: 10, elevation: 3,
+    marginTop: 18, borderRadius: 999, paddingHorizontal: 16, paddingVertical: 8,
+    backgroundColor: 'rgba(255,255,255,0.42)',
   },
-  heroTapPill: {
-    borderRadius: 999, paddingHorizontal: 18, paddingVertical: 9,
-    alignItems: 'center', justifyContent: 'center',
-  },
-  heroTapHintText: { fontFamily: FONTS.bodyBold, fontSize: 11.5, color: '#FFF3E4', letterSpacing: 0.6, textTransform: 'uppercase' },
+  heroTapHintText: { fontFamily: FONTS.bodyBold, fontSize: 11.5, color: '#A8385A', letterSpacing: 0.6, textTransform: 'uppercase' },
 
   // ── Lifted cream sheet ───────────────────────────────────────────────
   sheet: {
@@ -712,16 +709,19 @@ const styles = StyleSheet.create({
   logSnapText: { fontFamily: FONTS.v2_bold, fontSize: 8.5, color: '#B03A22', letterSpacing: 0.3 },
   milkCamIcon: { width: 44, height: 44 },
   sleepMoonIcon: { width: 46, height: 46 },
-  feedBottleIcon: { width: 30, height: 50 },
+  feedBottleIcon: { width: 44, height: 56 },
   logLabel: { fontFamily: FONTS.v2_body, fontSize: 12.5, color: T.cocoa, marginTop: 9 },
 
   // ── Ask villie ───────────────────────────────────────────────────────
   askWrap: { marginTop: 22 },
   askRow: { flexDirection: 'row', alignItems: 'center', gap: 9 },
-  askBar: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 9, backgroundColor: '#F7EAD8', borderRadius: 14, paddingHorizontal: 13, paddingVertical: 14, borderWidth: 1.5, borderColor: 'rgba(194,74,99,0.32)' },
+  // The Ask Villie bar carries the vibrant gradient now (moved off the seal
+  // pill). Shadow on the wrapper; the gradient clips to its own borderRadius.
+  askBarWrap: { flex: 1, borderRadius: 14, shadowColor: '#E14A32', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.24, shadowRadius: 9, elevation: 3 },
+  askBar: { flexDirection: 'row', alignItems: 'center', gap: 9, borderRadius: 14, paddingHorizontal: 14, paddingVertical: 14 },
   askBee: { width: 24, height: 24, borderRadius: 12, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' },
-  askText: { flex: 1, fontFamily: FONTS.bodySemiBold, fontSize: 13.5, color: '#A87A54' },
-  askMic: { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center', shadowColor: '#E14A32', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.4, shadowRadius: 11, elevation: 4 },
+  askText: { flex: 1, fontFamily: FONTS.bodySemiBold, fontSize: 13.5, color: '#FFF3E4' },
+  askMic: { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center', backgroundColor: '#fff', shadowColor: '#B03A22', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.2, shadowRadius: 8, elevation: 3 },
   // Understated contextual suggestions under the ask bar — soft chips, and the
   // added height nudges Mama's corner + the rest down so the hero peeks less.
   askPrompts: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 12, paddingHorizontal: 2 },
@@ -772,7 +772,8 @@ const styles = StyleSheet.create({
 
   // The Buzz — vibrant honey card that stands out from the cream nav rows
   buzzCard: { flexDirection: 'row', alignItems: 'center', gap: 14, borderRadius: 18, paddingHorizontal: 16, paddingVertical: 15 },
-  buzzBee: { width: 46, height: 46, borderRadius: 14, backgroundColor: 'rgba(255,255,255,0.32)', alignItems: 'center', justifyContent: 'center' },
+  buzzBee: { width: 50, height: 50, borderRadius: 15, overflow: 'hidden', backgroundColor: 'rgba(255,255,255,0.32)' },
+  buzzBeeImg: { width: '100%', height: '100%' },
   buzzEyebrow: { fontFamily: FONTS.v2_mono, fontSize: 10, letterSpacing: 1.6, textTransform: 'uppercase', color: '#7A3B0E' },
   buzzTitle: { fontFamily: FONTS.v3_display, fontSize: 17, lineHeight: 21, color: '#4A2408', letterSpacing: -0.2, marginTop: 3 },
   buzzChevron: { fontFamily: FONTS.v2_body, fontSize: 24, color: '#5A2A08' },
