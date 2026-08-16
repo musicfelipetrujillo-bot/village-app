@@ -273,9 +273,7 @@ function LogRow({ onFeed, onSleep, onMilk }: { onFeed: () => void; onSleep: () =
 }
 
 // ─── Quiet ask-villie bar ──────────────────────────────────────────────
-function AskVillie({ onAsk, onTalk, weekNumber, babyName }: {
-  onAsk: (seed?: string) => void; onTalk: () => void; weekNumber: number; babyName: string;
-}) {
+function AskVillie({ onAsk, onTalk, weekNumber, babyName }: { onAsk: (seed?: string) => void; onTalk: () => void; weekNumber: number; babyName: string }) {
   const lang = useUserStore((s) => s.profile?.preferred_language ?? 'en') as 'en' | 'es';
   const hour = new Date().getHours();
   const name = babyName.toLowerCase();
