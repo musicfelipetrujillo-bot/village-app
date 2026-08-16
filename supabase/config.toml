@@ -43,3 +43,259 @@ enable_confirmations = false
 enable_signup = true
 enable_confirmations = false
 template = "Your The Village code is {{ .Code }}"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Edge Function JWT verification  (appsec 2026-08-14)
+# docs/audits/security-privacy-2026-08-14.md
+#
+# `verify_jwt` used to live ONLY in whatever `--no-verify-jwt` flag someone
+# happened to type at deploy time. It appeared in no file, so it could not be
+# reviewed, diffed, or tested — a copy-pasted deploy command silently decided
+# whether a function was authenticated. That is how `specialist-invite-create`
+# ended up publicly callable with a forgeable admin gate. Pinning every
+# function here makes the setting reviewable and makes drift show up as a diff.
+#
+# DEFAULT IS true. Set false ONLY for endpoints that genuinely cannot present a
+# Supabase JWT, and only where the function authenticates the caller ITSELF
+# (HMAC signature, shared secret, or an unguessable token).
+#
+# ⚠️ Functions using _shared/service-role.ts pass `gatewayVerifiesJwt` to that
+# helper. That argument MUST match the value set here for the same function —
+# if you flip one, flip the other.
+# ─────────────────────────────────────────────────────────────────────────────
+
+# ─── Public by design (each authenticates its own caller) ───
+
+# Pre-session OAuth code exchange — caller has no JWT yet, by definition
+[functions.auth-google-exchange]
+verify_jwt = false
+
+# Calendly webhook — HMAC-signed (t=,v1=), fails closed
+[functions.calendly-webhook]
+verify_jwt = false
+
+# Public caregiver day-sheet page — unguessable revocable share token
+[functions.day-sheet-page]
+verify_jwt = false
+
+# Public OG/share metadata for link unfurls
+[functions.manual-og]
+verify_jwt = false
+
+# Affiliate webhooks — per-network HMAC / IP allowlist
+[functions.perks-redemption-webhook]
+verify_jwt = false
+
+# Resend webhook — full Svix HMAC + replay guard
+[functions.resend-webhook]
+verify_jwt = false
+
+# RevenueCat webhook — shared bearer, fails closed on empty secret
+[functions.revenuecat-webhook]
+verify_jwt = false
+
+# Anonymous invitee completing onboarding — the invite token IS the auth
+[functions.specialist-invite-accept]
+verify_jwt = false
+
+# Stripe webhook — signature verified over the raw body
+[functions.stripe-webhook]
+verify_jwt = false
+
+# External scheduled agent — TRENDING_INGEST_SECRET header
+[functions.trending-ingest]
+verify_jwt = false
+
+# ─── Everything else: authenticated ───
+
+[functions.account-delete]
+verify_jwt = true
+
+[functions.admin-approve-specialist]
+verify_jwt = true
+
+[functions.admin-compliance-events]
+verify_jwt = true
+
+[functions.admin-specialist-invite]
+verify_jwt = true
+
+[functions.agents-health]
+verify_jwt = true
+
+[functions.agents-run]
+verify_jwt = true
+
+[functions.agents-triage]
+verify_jwt = true
+
+[functions.ai-daily-checkin]
+verify_jwt = true
+
+[functions.ai-event-relevance]
+verify_jwt = true
+
+[functions.ai-event-screen]
+verify_jwt = true
+
+[functions.ai-followup-questions]
+verify_jwt = true
+
+[functions.ai-gear-tip]
+verify_jwt = true
+
+[functions.ai-match]
+verify_jwt = true
+
+[functions.ai-milestone-explainer]
+verify_jwt = true
+
+[functions.ai-perk-recommender]
+verify_jwt = true
+
+[functions.ai-profile-qa]
+verify_jwt = true
+
+[functions.ai-review-summary]
+verify_jwt = true
+
+[functions.ai-translate]
+verify_jwt = true
+
+[functions.ai-triage]
+verify_jwt = true
+
+[functions.ai-week-nudge-generate]
+verify_jwt = true
+
+[functions.ai-weekly-journey-fill]
+verify_jwt = true
+
+[functions.app-help-chat]
+verify_jwt = true
+
+[functions.appointment-reminder]
+verify_jwt = true
+
+[functions.boxes-create-payment-intent]
+verify_jwt = true
+
+[functions.create-payment-intent]
+verify_jwt = true
+
+[functions.daycares-nearby]
+verify_jwt = true
+
+[functions.events-geocode]
+verify_jwt = true
+
+[functions.events-harvest]
+verify_jwt = true
+
+[functions.events-ingest-ics]
+verify_jwt = true
+
+[functions.gear-boost-activate]
+verify_jwt = true
+
+[functions.gear-cpsc-check]
+verify_jwt = true
+
+[functions.gear-cpsc-recall-sync]
+verify_jwt = true
+
+[functions.gear-moderation-auto-withdraw]
+verify_jwt = true
+
+[functions.gear-moderation-daily-digest]
+verify_jwt = true
+
+[functions.gear-moderation-pager]
+verify_jwt = true
+
+[functions.gear-price-suggest]
+verify_jwt = true
+
+[functions.gear-takedown-template-dispatch]
+verify_jwt = true
+
+[functions.gear-upc-lookup]
+verify_jwt = true
+
+[functions.gear-vision-identify]
+verify_jwt = true
+
+[functions.geocode-zip]
+verify_jwt = true
+
+[functions.home-feed-curator]
+verify_jwt = true
+
+[functions.milk-donor-qa]
+verify_jwt = true
+
+[functions.milk-match-donors]
+verify_jwt = true
+
+[functions.milk-questionnaire-coach]
+verify_jwt = true
+
+[functions.milk-safety-screener]
+verify_jwt = true
+
+[functions.milk-trust-narrative]
+verify_jwt = true
+
+[functions.milk-vault-scan]
+verify_jwt = true
+
+[functions.npi-verify]
+verify_jwt = true
+
+[functions.perks-build-deeplink]
+verify_jwt = true
+
+[functions.playbook-parse-note]
+verify_jwt = true
+
+[functions.push-notify]
+verify_jwt = true
+
+[functions.refresh-stale-summaries]
+verify_jwt = true
+
+[functions.room-ai-companion]
+verify_jwt = true
+
+[functions.room-alias-generate]
+verify_jwt = true
+
+[functions.room-auto-match]
+verify_jwt = true
+
+[functions.room-icebreaker]
+verify_jwt = true
+
+[functions.room-message-scan]
+verify_jwt = true
+
+[functions.room-weekly-summary]
+verify_jwt = true
+
+[functions.specialist-invite-create]
+verify_jwt = true
+
+[functions.trending-compliance-pass]
+verify_jwt = true
+
+[functions.trending-publish-notify]
+verify_jwt = true
+
+[functions.twilio-sms]
+verify_jwt = true
+
+[functions.villie-weekly-digest]
+verify_jwt = true
+
+[functions.week-nudge-notify]
+verify_jwt = true

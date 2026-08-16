@@ -39,6 +39,7 @@
 //     `send_when_empty` body param if you'd rather have silence on
 //     quiet days.
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { isServiceRoleRequest } from '../_shared/service-role.ts';
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -280,26 +281,10 @@ function renderEmail(args: {
   return { subject, html, text: textLines.join('\n') };
 }
 
-// JWT-decode based auth. See gear-moderation-pager for the rationale —
-// strict-equality against SERVICE_ROLE_KEY was brittle to key rotation +
-// whitespace in the GH Action repo secret. verify_jwt: true at the gateway
-// validates signature; this function just confirms role=service_role.
-function isServiceRoleRequest(req: Request): boolean {
-  const auth = req.headers.get('authorization') ?? '';
-  const match = auth.match(/^Bearer\s+(.+)$/i);
-  if (!match) return false;
-  const token = match[1].trim();
-  try {
-    const payloadB64 = token.split('.')[1];
-    if (!payloadB64) return false;
-    const normalized = payloadB64.replace(/-/g, '+').replace(/_/g, '/');
-    const padded = normalized + '='.repeat((4 - normalized.length % 4) % 4);
-    const payload = JSON.parse(atob(padded));
-    return payload?.role === 'service_role';
-  } catch {
-    return false;
-  }
-}
+// Service-role gate lives in ../_shared/service-role.ts.
+// `gatewayVerifiesJwt: true` MUST match `verify_jwt` for this function in
+// supabase/config.toml. If that is ever set to false, flip this to false too
+// or the gate degrades to trusting an unverified claim (appsec 2026-08-14).
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: CORS });
@@ -309,7 +294,7 @@ Deno.serve(async (req) => {
     });
   }
 
-  if (!isServiceRoleRequest(req)) {
+  if (!isServiceRoleRequest(req, { gatewayVerifiesJwt: true })) {
     return new Response(JSON.stringify({ error: 'unauthorized' }), {
       status: 401, headers: { ...CORS, 'Content-Type': 'application/json' },
     });

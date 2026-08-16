@@ -37,6 +37,7 @@
 //   500 — DB error
 
 import { createClient } from 'npm:@supabase/supabase-js@2';
+import { isServiceRoleRequest } from '../_shared/service-role.ts';
 
 const supabase = createClient(
   Deno.env.get('SUPABASE_URL')!,
@@ -274,35 +275,16 @@ async function sendInviteEmail(to: string, msg: { subject: string; html: string;
   }
 }
 
-// JWT-decode based auth. Same fix that landed for V4 Gear moderation fns
-// (commit a22f4f9): strict-equality against Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
-// was brittle to key rotation + any whitespace that snuck into either side.
-// verify_jwt:false means the platform doesn't validate the JWT signature,
-// but that's OK — anyone with a service_role-claim JWT signed by the
-// project's JWT secret can already do anything, and they wouldn't have
-// gotten such a JWT without service-role access.
-function isServiceRoleRequest(req: Request): boolean {
-  const auth = req.headers.get('authorization') ?? '';
-  const match = auth.match(/^Bearer\s+(.+)$/i);
-  if (!match) return false;
-  const token = match[1].trim();
-  try {
-    const payloadB64 = token.split('.')[1];
-    if (!payloadB64) return false;
-    const normalized = payloadB64.replace(/-/g, '+').replace(/_/g, '/');
-    const padded = normalized + '='.repeat((4 - normalized.length % 4) % 4);
-    const payload = JSON.parse(atob(padded));
-    return payload?.role === 'service_role';
-  } catch {
-    return false;
-  }
-}
+// Service-role gate lives in ../_shared/service-role.ts.
+// `gatewayVerifiesJwt: true` MUST match `verify_jwt` for this function in
+// supabase/config.toml. If that is ever set to false, flip this to false too
+// or the gate degrades to trusting an unverified claim (appsec 2026-08-14).
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: CORS });
 
   // ─── Auth gate (service role only) ─────────────────────────────────
-  if (!isServiceRoleRequest(req)) {
+  if (!isServiceRoleRequest(req, { gatewayVerifiesJwt: true })) {
     return json({ error: 'Forbidden' }, 403);
   }
 

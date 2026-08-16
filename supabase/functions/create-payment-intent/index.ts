@@ -45,11 +45,61 @@ serve(async (req) => {
 
     const { amount_cents, specialist_id, service_name, currency = 'usd' } = await req.json();
 
-    if (!amount_cents || amount_cents < 50) {
-      return new Response(JSON.stringify({ error: 'Invalid amount' }), {
+    if (!specialist_id || !service_name) {
+      return new Response(JSON.stringify({ error: 'specialist_id and service_name are required' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
+    }
+
+    // ─── Price the charge SERVER-SIDE ──────────────────────────────────
+    // SECURITY (appsec F-M1 / M-2): the charge used to be `amount_cents`
+    // straight off the request body, validated only as `>= 50`. A tampered
+    // client could name its own price — including the base the 15% platform
+    // fee and the Connect payout are computed from. The client's number is now
+    // advisory only; the specialist's own catalogue row is the source of truth.
+    // This mirrors what boxes-create-payment-intent already does.
+    const { data: service, error: serviceErr } = await supabase
+      .from('specialist_services')
+      .select('price_cents, service_name')
+      .eq('specialist_id', specialist_id)
+      .eq('service_name', service_name)
+      .maybeSingle();
+
+    if (serviceErr) {
+      console.error('create-payment-intent service lookup error', serviceErr);
+      return new Response(JSON.stringify({ error: 'Could not price this service' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    if (!service) {
+      // No catalogue row ⇒ nothing authoritative to charge. Fail closed rather
+      // than falling back to the client's figure.
+      return new Response(JSON.stringify({ error: 'Unknown service for this specialist' }), {
+        status: 404,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const chargeCents = service.price_cents ?? 0;
+
+    if (chargeCents < 50) {
+      // Free/unpriced services must not reach Stripe — BookingScreen already
+      // routes those straight to confirmation without a payment step.
+      return new Response(JSON.stringify({ error: 'This service is not payable' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    if (typeof amount_cents === 'number' && amount_cents !== chargeCents) {
+      // Not fatal — a stale client can legitimately hold an old price. We charge
+      // the catalogue price regardless, but this is worth seeing.
+      console.warn(
+        `create-payment-intent price mismatch: client=${amount_cents} server=${chargeCents} ` +
+        `specialist=${specialist_id} service=${service_name}`,
+      );
     }
 
     // Fetch specialist to get their stripe_account_id (for Connect)
@@ -60,7 +110,7 @@ serve(async (req) => {
       .single();
 
     const intentParams: Stripe.PaymentIntentCreateParams = {
-      amount: amount_cents,
+      amount: chargeCents,
       currency,
       metadata: {
         specialist_id,
@@ -72,7 +122,7 @@ serve(async (req) => {
 
     // If specialist has Stripe Connect account, route payment to them (15% platform fee)
     if (specialist?.stripe_account_id) {
-      intentParams.application_fee_amount = Math.round(amount_cents * 0.15);
+      intentParams.application_fee_amount = Math.round(chargeCents * 0.15);
       intentParams.transfer_data = { destination: specialist.stripe_account_id };
     }
 
@@ -86,6 +136,10 @@ serve(async (req) => {
       JSON.stringify({
         client_secret: paymentIntent.client_secret,
         payment_intent_id: paymentIntent.id,
+        // The amount actually charged, recomputed server-side. Clients should
+        // display THIS, not the figure they sent — same contract as
+        // boxes-create-payment-intent.
+        amount_cents: chargeCents,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
     );
