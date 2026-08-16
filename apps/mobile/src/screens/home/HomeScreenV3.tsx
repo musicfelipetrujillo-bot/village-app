@@ -33,6 +33,7 @@ import { useFocusEffect } from '@react-navigation/native';
 
 const VILLIE_BEE = require('../../../assets/brand/villie-bee.png');
 const WEEK_SEAL = require('../../../assets/home/week-seal.png');
+const MILK_CAMERA = require('../../../assets/home/milk-camera.png');
 const SCREEN_W = Dimensions.get('window').width;
 
 // ─── Tokens (raspberry rebrand) ────────────────────────────────────────
@@ -263,7 +264,7 @@ function LogRow({ onFeed, onSleep, onMilk }: { onFeed: () => void; onSleep: () =
 
       <TouchableOpacity style={styles.logItem} activeOpacity={0.85} onPress={onMilk} accessibilityRole="button" accessibilityLabel={lang === 'es' ? 'Registra leche desde una foto' : 'Log milk from a photo'}>
         <View style={[styles.logCircle, { backgroundColor: '#F4CBA8' }]}>
-          <Glyph d={ICON.camera} color="#D97B22" size={25} sw={1.9} />
+          <Image source={MILK_CAMERA} style={styles.milkCamIcon} resizeMode="contain" />
         </View>
         <View style={styles.logSnap}><Text style={styles.logSnapText}>{L.snap}</Text></View>
         <Text style={[styles.logLabel, { fontFamily: FONTS.v2_bold }]}>{L.milk}</Text>
@@ -674,6 +675,7 @@ const styles = StyleSheet.create({
     shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.12, shadowRadius: 3, elevation: 3,
   },
   logSnapText: { fontFamily: FONTS.v2_bold, fontSize: 8.5, color: '#B03A22', letterSpacing: 0.3 },
+  milkCamIcon: { width: 44, height: 44 },
   logLabel: { fontFamily: FONTS.v2_body, fontSize: 12.5, color: T.cocoa, marginTop: 9 },
 
   // ── Ask villie ───────────────────────────────────────────────────────
