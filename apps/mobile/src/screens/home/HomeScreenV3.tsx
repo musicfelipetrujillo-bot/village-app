@@ -19,7 +19,7 @@ import {
   Dimensions,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import Svg, { Path, Circle, Polygon, Defs, Filter, FeDropShadow } from 'react-native-svg';
+import Svg, { Path, Circle, Polygon } from 'react-native-svg';
 import { useNavigation } from '@react-navigation/native';
 import { COLORS, FONTS, PLACEHOLDER_BABY_NAME } from '@utils/constants';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -249,29 +249,22 @@ function hexPoints(cx: number, cy: number, R: number): string {
   return p.join(' ');
 }
 
-// A honeycomb tile — a flat-top hexagon with a soft drop shadow. RN View
-// shadows only follow a rectangle, so the shadow is a real SVG blur
-// (FeDropShadow) on the hexagon itself. Icon sits centered on top. `tid` keeps
-// the filter id unique per tile so the three don't collide.
-function HexTile({ fill, iconPath, iconColor, iconSize, tid, size = 64 }: {
-  fill: string; iconPath: string; iconColor: string; iconSize: number; tid: string; size?: number;
+// A honeycomb tile — a flat-top hexagon with a soft drop shadow. The hexagon
+// is a plain SVG polygon (no SVG filters — react-native-svg's filters are
+// unreliable on iOS); the shadow is cast by the wrapping View, which on iOS
+// follows the polygon's opaque pixels. Icon sits centered on top.
+function HexTile({ fill, iconPath, iconColor, iconSize, size = 64 }: {
+  fill: string; iconPath: string; iconColor: string; iconSize: number; size?: number;
 }) {
   const R = size / 2;
   const cx = size / 2;
-  const cy = R + 2;             // nudge up so the blurred shadow has room below
-  const boxH = size + 14;
-  const fid = `hexShadow_${tid}`;
+  const cy = R;
   return (
-    <View style={{ width: size, height: boxH }}>
-      <Svg width={size} height={boxH}>
-        <Defs>
-          <Filter id={fid} x="-50%" y="-50%" width="200%" height="200%">
-            <FeDropShadow dx="0" dy="3" stdDeviation="3.4" floodColor="#5A3A1E" floodOpacity="0.3" />
-          </Filter>
-        </Defs>
-        <Polygon points={hexPoints(cx, cy, R)} fill={fill} stroke="rgba(255,255,255,0.7)" strokeWidth={1.5} filter={`url(#${fid})`} />
+    <View style={[styles.hexShadow, { width: size, height: size }]}>
+      <Svg width={size} height={size}>
+        <Polygon points={hexPoints(cx, cy, R)} fill={fill} stroke="rgba(255,255,255,0.7)" strokeWidth={1.5} />
       </Svg>
-      <View style={{ position: 'absolute', top: 2, left: 0, width: size, height: size, alignItems: 'center', justifyContent: 'center' }} pointerEvents="none">
+      <View style={{ position: 'absolute', top: 0, left: 0, width: size, height: size, alignItems: 'center', justifyContent: 'center' }} pointerEvents="none">
         <Glyph d={iconPath} color={iconColor} size={iconSize} sw={1.8} />
       </View>
     </View>
@@ -287,17 +280,17 @@ function LogRow({ onFeed, onSleep, onMilk }: { onFeed: () => void; onSleep: () =
   return (
     <View style={styles.logRow}>
       <TouchableOpacity style={styles.logItem} activeOpacity={0.85} onPress={onFeed} accessibilityRole="button" accessibilityLabel={L.feed}>
-        <HexTile fill="#EFD79A" iconPath={ICON.bottle} iconColor="#C24A63" iconSize={26} tid="feed" />
+        <HexTile fill="#EFD79A" iconPath={ICON.bottle} iconColor="#C24A63" iconSize={26} />
         <Text style={styles.logLabel}>{L.feed}</Text>
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.logItem} activeOpacity={0.85} onPress={onSleep} accessibilityRole="button" accessibilityLabel={L.sleep}>
-        <HexTile fill="#F6C9D0" iconPath={ICON.moon} iconColor="#C24A63" iconSize={26} tid="sleep" />
+        <HexTile fill="#F6C9D0" iconPath={ICON.moon} iconColor="#C24A63" iconSize={26} />
         <Text style={styles.logLabel}>{L.sleep}</Text>
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.logItem} activeOpacity={0.85} onPress={onMilk} accessibilityRole="button" accessibilityLabel={lang === 'es' ? 'Registra leche desde una foto' : 'Log milk from a photo'}>
-        <HexTile fill="#F4CBA8" iconPath={ICON.camera} iconColor="#D97B22" iconSize={25} tid="milk" />
+        <HexTile fill="#F4CBA8" iconPath={ICON.camera} iconColor="#D97B22" iconSize={25} />
         <View style={styles.logSnap}><Text style={styles.logSnapText}>{L.snap}</Text></View>
         <Text style={[styles.logLabel, { fontFamily: FONTS.v2_bold }]}>{L.milk}</Text>
       </TouchableOpacity>
@@ -685,6 +678,12 @@ const styles = StyleSheet.create({
   // in the HexTile SVG; these just lay them out.
   logRow: { flexDirection: 'row', justifyContent: 'center', gap: 34 },
   logItem: { alignItems: 'center' },
+  // Soft drop shadow for the hex tile — cast by the View from the SVG polygon's
+  // opaque pixels (iOS). Android falls back to a rounded-rect elevation shadow.
+  hexShadow: {
+    shadowColor: '#5A3A1E', shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.22, shadowRadius: 6, elevation: 4,
+  },
   logSnap: {
     position: 'absolute', top: 0, right: 2,
     backgroundColor: '#fff', borderRadius: 999, paddingHorizontal: 6, paddingVertical: 1,
