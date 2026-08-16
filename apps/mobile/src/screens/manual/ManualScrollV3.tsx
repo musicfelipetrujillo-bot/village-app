@@ -1114,6 +1114,7 @@ export default function ManualScrollV3() {
       />
       <Animated.ScrollView
         style={{ flex: 1 }}
+        contentInsetAdjustmentBehavior="never"
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
         onScroll={Animated.event(

@@ -54,8 +54,8 @@ const s = StyleSheet.create({
   // Snug to the top (screens already add the safe-area inset above this).
   row: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 20, paddingTop: 2, paddingBottom: 12 },
   back: { fontSize: 28, color: COLORS.v2_cocoa, marginTop: -2, fontWeight: '400' },
-  // The single title style — light Bricolage, one size for the entire app.
-  title: { fontFamily: FONTS.v2_display_regular, fontSize: 24, color: COLORS.v2_cocoa, letterSpacing: -0.3, flexShrink: 1 },
+  // The single title style — bold Bricolage, one size for the entire app.
+  title: { fontFamily: FONTS.v2_display, fontSize: 25, color: COLORS.v2_cocoa, letterSpacing: -0.5, flexShrink: 1 },
   spacer: { flex: 1 },
 });
 

@@ -154,6 +154,7 @@ export default function VillageHomeScreenV3() {
       <HoneycombBackdrop accent="#E0A23E" scene="village" intensity="subtle" topOffset={92} />
       <Animated.ScrollView
         style={{ flex: 1 }}
+        contentInsetAdjustmentBehavior="never"
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
         onScroll={Animated.event(
