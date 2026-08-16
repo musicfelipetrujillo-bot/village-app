@@ -255,6 +255,7 @@ Each item below is a specific position we have taken in code. Counsel either sig
 | 6.1 | Compliance-relevant data lives in `gear_analytics_events`, `gear_legal_acceptances`, `gear_listing_reports`, `admin_audit_log`. Currently all retained indefinitely. | B §3, B §5 | ⬜ | **counsel to specify retention schedule** |
 | 6.2 | **Counsel deliverable: Privacy Policy update** covering location data (gear browse), IP / user-agent capture in `gear_legal_acceptances`, analytics-event contents, Florida Digital Bill of Rights compliance. | — | ⬜ | **YES — update required** |
 | 6.3 | **Counsel deliverable: General Terms of Service update** covering account-termination, dispute-resolution forum, relationship to the Addendum. | — | ⬜ | **YES — update required** |
+| 6.4 | ⚠️ **Rows 6.1–6.3 are Gear-scoped. The same unanswered retention question applies app-wide — including postpartum mental-health free text, infant data, and the account-deletion cascade, which is blocked pending this answer.** See **Appendix D**, added 2026-08-15. | App. D | ⬜ | **YES — please answer Appendix D alongside 6.1** |
 
 ### C-7 · Final go / no-go
 
@@ -267,3 +268,90 @@ Each item below is a specific position we have taken in code. Counsel either sig
 ---
 
 *Engineering will treat the signed C-7 line as the go-signal for public Gear launch, subject to resolution of any items left blank or marked with requested edits. For any factual claim in this document that does not match the codebase, the codebase is authoritative — please open an issue rather than relying on a verbal correction.*
+
+---
+
+# Appendix D · App-wide data retention + the deletion cascade
+
+**Added 2026-08-15.** Source: internal data-minimisation audit (`docs/audits/privacy-minimization-2026-07-09.md`, gap #1) and security & privacy review (`docs/audits/security-privacy-2026-08-14.md`, finding P-2).
+
+**Why this appendix exists.** Checklist item 6.1 asks counsel to set a retention schedule for four *Gear* tables. That question is not Gear-specific. Villie holds materially more sensitive data elsewhere — postpartum mental-health free text and infant health records — under **no retention policy at all**, and the account-deletion feature is built but switched off precisely because nobody has told engineering what deletion is allowed to delete. Since counsel is already answering 6.1, answering it once for the whole app avoids a second engagement.
+
+**Current state, stated plainly:** nothing is ever deleted. `account-delete` sets a `deleted_at` timestamp and stops; the row becomes invisible to the app and every underlying record persists indefinitely. The delete-account UI ships behind a disabled flag for that reason.
+
+**What changed on 2026-08-15.** This appendix originally asked counsel an open-ended question. It now states a **proposed policy** instead. Engineering has since mapped every foreign-key relationship in the database, and it turns out the schema has already made most of these decisions — 57 relationships delete automatically when a user is removed, 17 keep the record and strip the user id. So rather than ask counsel to design a retention posture from scratch, we set out below what we propose to do, and ask counsel to **confirm or correct**. That should be a much cheaper review.
+
+## D.1 Proposed policy — please confirm or correct
+
+**Default: on account deletion, the user's data is deleted.** Three groups, with the exceptions named explicitly.
+
+### Group 1 · Delete outright (proposed: no change — the schema already does this)
+
+Personal and health data with no compliance role. All 57 of these already cascade on user deletion:
+
+`daily_checkins` · `crisis_flags` (the mother's own linkage) · `ai_conversations` · `ai_companion_mentions` · `baby_profiles` · `baby_sleep_logs` · `baby_feed_logs` · `baby_diaper_logs` · `baby_log_notes` · `day_sheets` · `villie_memories` · `home_feed_cache` · `milk_donor_profiles` · `milk_vault_*` · `favorites` · `event_rsvps` · `event_saves` · `deal_claims` · `manual_*` progress and saves · `room_members` · `room_presence` · `user_anonymous_identities` · `push_sends` · `newsletter_sends` · `gear_boosts` · `messages`
+
+> **Counsel: is there anything here we must NOT delete?** We would rather over-delete than under-delete, but we would rather be told now than discover it in a dispute.
+
+### Group 2 · Keep the record, strip the person (proposed: no change — the schema already does this)
+
+Compliance and safety evidence that must outlive the account. The row survives with `user_id` set to NULL, so the event is still provable but is no longer attributable to a named person:
+
+| Table | Why it must survive |
+|---|---|
+| `gear_analytics_events` | The CPSIA §19 chain of custody — `gear_cpsc_block_shown` is the proof we blocked a recalled listing (Part B §3, observation 1) |
+| `milk_analytics_events` | Same posture for the Milk vertical |
+| `crisis_flags.flagged_user_id` | A safety incident record. **A record of a crisis intervention should not be erasable by the person it concerns.** |
+| `room_messages` | Community content others replied to; authorship anonymised |
+| `specialists`, `specialist_invites` | Provider directory records |
+
+`admin_audit_log` has no foreign key to `users` at all, so it is already immune to any cascade and survives untouched. We believe that is correct for a chain-of-custody log.
+
+### Group 3 · Retained intact
+
+Nothing currently. Listed for completeness so the absence is deliberate rather than an oversight.
+
+## D.2 Three places our schema and our own internal policy disagree — please rule
+
+Our internal engineering notes state that certain tables should be "PII-scrubbed on delete, not row-deleted." The schema currently **deletes** them. We do not know which is right, and this is exactly the sort of thing we would rather have counsel settle than pick ourselves.
+
+| # | Table | Schema does | Our notes say | Why it matters |
+|---|---|---|---|---|
+| D-2.1 | `gear_listings` | **Deletes** (via `seller_id`) | Retain — carries `cpsc_recall_status` | Deleting a seller destroys the recall-check evidence for every listing they posted. If a §19 question is ever raised about a listing, the proof we checked it is gone. |
+| D-2.2 | `gear_listing_reports` | **Deletes** (cascades from the listing above) | Retain — moderation record | **A seller could erase the moderation reports filed against them by deleting their account.** That is a moderation-evasion hole as much as a legal one. |
+| D-2.3 | `villie_box_orders` | **Deletes** | Retain per tax/accounting | This is a real merchant purchase record with a shipping address and a Stripe payment reference. Retail records normally carry a statutory retention period. |
+
+Our instinct is that all three should move to Group 2 — keep the row, strip the buyer/seller identity — but we are not confident, and D-2.3 in particular turns on tax rules we are not qualified to read.
+
+*(Note: our internal notes also name `milk_transactions` as a retained table. It no longer exists — it was dropped in migration 098 when Milk went cash-only. We mention it so counsel is not looking for it.)*
+
+## D.3 What genuinely remains open
+
+With Groups 1–3 confirmed, only two real questions are left.
+
+- **D-Q1 · Time limits (the larger one, and untouched by any deletion policy).** Deciding what happens on deletion says nothing about the people who never delete — which is almost everyone. Absent a rule, a mother's postpartum check-in free text and her infant's feed logs sit in the database forever. **How long may we keep each Group 1 category for an active account?** We can implement any period; we currently have none. `daily_checkins`, `crisis_flags` and the baby tracker are the ones we would most like a number for.
+- **D-Q2 · Consent evidence.** `milk_legal_acceptances` and `gear_legal_acceptances` store **IP address + user-agent** as proof of consent, currently forever. How long does that need to be kept to remain useful as evidence — life of the account, a statutory limitation window, or a fixed period?
+
+Two smaller questions, if counsel considers them material:
+
+- **D-Q3.** Villie is not a HIPAA covered entity and takes no position on that here. Does the Florida Digital Bill of Rights, or any regime counsel considers applicable, impose heightened handling or deletion-response duties on the mental-health free text in `daily_checkins` / `crisis_flags` specifically?
+- **D-Q4.** `deal_claims.subid` embeds a fragment of the user id and is transmitted to third-party affiliate networks on click, by design. Does that need disclosure beyond checklist item 6.2, or an opt-out?
+
+## D.4 Not a counsel question — a product decision we owe ourselves
+
+Flagged here only so counsel does not wait on it. Four foreign keys are configured to **block** a hard delete, and the interesting two are two-party conversations:
+
+| Blocking reference | The question it forces |
+|---|---|
+| `milk_messages.sender_id` | If Mom A deletes her account, what happens to the messages she sent Mom B? |
+| `milk_message_threads.recipient_user_id` | Mom B may still be relying on that thread to arrange a handoff |
+| `crisis_flags.moderator_id` | A moderator who handled a crisis cannot currently be deleted |
+| `gear_listing_reports.resolved_by` | Nor can an admin who resolved a report |
+
+A hard delete errors out today rather than choosing. Whether Mom B keeps her side of the conversation is a product call about other people's records, and Villie will decide it — we note it because counsel may have a view on whether the other party's copy is Mom A's data to erase.
+
+## D.5 Deliverable
+
+Ideally: this document returned with Group 1–3 marked confirmed or corrected, a ruling on the three conflicts in D.2, and a number for D-Q1 and D-Q2. That is directly implementable — we will wire it into both a scheduled expiry job and the deletion cascade so time-based expiry and account deletion share one policy.
+
+*Nothing in this appendix is implemented. Account deletion currently sets a flag and deletes nothing, and there is no expiry anywhere — so the data in Group 1 keeps accumulating until this comes back. The one exception, added 2026-08-15, is the generated home-feed cache, which now ages out after 7 days; it is a regenerable cache holding no record of anything, so we did not consider it to need review.*
