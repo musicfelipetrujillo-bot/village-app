@@ -12,6 +12,7 @@ import { useT } from '@/i18n';
 import { useUserStore } from '@store/user';
 import { theBuzzApi, type TheBuzzIssue, type TheBuzzItem } from '@api/theBuzz';
 import { isNoSession } from '@/lib/requireSession';
+import { ScreenHeader } from '@components/shared/ScreenHeader';
 import type { HomeStackParamList } from '@/navigation/HomeNavigator';
 
 type Route = RouteProp<HomeStackParamList, 'TheBuzz'>;
@@ -62,13 +63,7 @@ export default function TheBuzzScreen() {
 
   return (
     <View style={s.container}>
-      <View style={s.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn} accessibilityRole="button" accessibilityLabel={t('common.back')}>
-          <Text style={s.backChevron}>‹</Text>
-        </TouchableOpacity>
-        <Text style={s.headerTitle}>{t('theBuzz.title')}</Text>
-        <View style={{ width: 40 }} />
-      </View>
+      <ScreenHeader title={t('theBuzz.title')} onBack={() => navigation.goBack()} backColor="#D96C88" />
 
       {loading ? (
         <View style={s.center}><ActivityIndicator color="#D96C88" /></View>
@@ -167,7 +162,7 @@ const s = StyleSheet.create({
   emptyBody: { fontFamily: FONTS.v2_body, fontSize: 14, color: COLORS.v2_walnut, textAlign: 'center', lineHeight: 20, marginTop: 4 },
 
   scroll: { padding: 22, paddingTop: 20, paddingBottom: 48 },
-  issueTitle: { fontFamily: FONTS.v2_display, fontSize: 22, lineHeight: 27, color: COLORS.v2_cocoa, letterSpacing: -0.3 },
+  issueTitle: { fontFamily: FONTS.v2_display, fontSize: 18, lineHeight: 23, color: COLORS.v2_cocoa, letterSpacing: -0.3 },
   issueIntro: { fontFamily: FONTS.v2_body, fontSize: 13.5, color: COLORS.v2_walnut, lineHeight: 20, marginTop: 7 },
 
   // Vibrant colour-cycled cards — each topic pops in its own hue, none blend
@@ -183,11 +178,11 @@ const s = StyleSheet.create({
   // Article headlines sit in the LIGHT display weight (Bricolage 400), not the
   // 700 bold — a wall of bold headlines was the "too much bold" complaint. The
   // colour chip + size carry the hierarchy now; the headline just reads calmly.
-  itemTitle: { fontFamily: FONTS.v2_display_regular, fontSize: 16.5, color: COLORS.v2_cocoa, letterSpacing: -0.1, lineHeight: 23 },
+  itemTitle: { fontFamily: FONTS.v2_display_regular, fontSize: 15, color: COLORS.v2_cocoa, letterSpacing: -0.1, lineHeight: 20 },
   itemToggle: { fontFamily: FONTS.v2_body, fontSize: 22, lineHeight: 24, marginTop: 3, width: 14, textAlign: 'center' },
   itemToggleOpen: { transform: [{ rotate: '90deg' }] },
   itemBody: { paddingLeft: 60, paddingRight: 15, paddingBottom: 16, marginTop: -4, gap: 10 },
-  bodyText: { fontFamily: FONTS.v2_body, fontSize: 14.5, color: '#4A3420', lineHeight: 22 },
+  bodyText: { fontFamily: FONTS.v2_body, fontSize: 13.5, color: '#4A3420', lineHeight: 20 },
   askLine: { fontFamily: FONTS.v2_body, fontSize: 13, color: '#6B4A38', lineHeight: 19, fontStyle: 'italic' },
   sourceLink: { fontFamily: FONTS.v2_link, fontSize: 12.5 },
   disclaimer: {
