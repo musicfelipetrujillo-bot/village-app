@@ -186,15 +186,16 @@ function FilledStash({
 
   return (
     <>
-      {/* Bold rose→honey freezer-ring hero (same energy as the marketplace) */}
-      <LinearGradient colors={['#C24A63', '#E894AC']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.heroWrap}>
+      {/* Calm light freezer-ring hero — soft rose card (was a bold saturated
+          gradient); reads clean like Care/Gear (founder 2026-08-16). */}
+      <LinearGradient colors={['#FDF1F4', '#F8E4EB']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.heroWrap}>
         {sample ? <View style={styles.sampleTag}><Text style={styles.sampleTagText}>example</Text></View> : null}
         <Text style={styles.heroEyebrow}>your freezer</Text>
         <View style={styles.ringWrap}>
           <Svg width={184} height={184} viewBox="0 0 120 120">
-            <Circle cx={60} cy={60} r={RING_R} fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth={12} />
+            <Circle cx={60} cy={60} r={RING_R} fill="none" stroke="rgba(194,74,99,0.14)" strokeWidth={12} />
             <Circle
-              cx={60} cy={60} r={RING_R} fill="none" stroke="#FFFDF9" strokeWidth={12}
+              cx={60} cy={60} r={RING_R} fill="none" stroke="#C24A63" strokeWidth={12}
               strokeLinecap="round" strokeDasharray={[dash, RING_C]}
               rotation={-90} originX={60} originY={60}
             />
@@ -336,17 +337,17 @@ const styles = StyleSheet.create({
   exampleDivider: { flexDirection: 'row', alignItems: 'center', gap: 8, marginHorizontal: 18, marginTop: 22, marginBottom: 4 },
   exampleLine: { flex: 1, height: 1, backgroundColor: 'rgba(61,31,14,0.12)' },
   exampleLabel: { fontFamily: FONTS.v2_mono, fontSize: 9, letterSpacing: 1.6, textTransform: 'uppercase', color: '#A9906B', fontWeight: '700', backgroundColor: C.track, paddingHorizontal: 9, paddingVertical: 3, borderRadius: 999, overflow: 'hidden' },
-  sampleTag: { position: 'absolute', top: 12, right: 12, backgroundColor: 'rgba(255,253,249,0.9)', borderRadius: 999, paddingHorizontal: 9, paddingVertical: 3, zIndex: 2 },
+  sampleTag: { position: 'absolute', top: 12, right: 12, backgroundColor: 'rgba(194,74,99,0.12)', borderRadius: 999, paddingHorizontal: 9, paddingVertical: 3, zIndex: 2 },
   sampleTagText: { fontFamily: FONTS.v2_mono, fontSize: 8.5, letterSpacing: 1.4, textTransform: 'uppercase', color: '#7A3548', fontWeight: '700' },
 
-  heroWrap: { alignItems: 'center', paddingTop: 18, paddingBottom: 18, marginHorizontal: 18, borderRadius: 24, overflow: 'hidden', shadowColor: C.rose, shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.24, shadowRadius: 24, elevation: 4 },
+  heroWrap: { alignItems: 'center', paddingTop: 20, paddingBottom: 20, marginHorizontal: 18, borderRadius: 24, overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(194,74,99,0.18)', shadowColor: C.rose, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.08, shadowRadius: 16, elevation: 2 },
   heroEyebrow: { fontFamily: FONTS.v2_mono, fontSize: 10, letterSpacing: 2, textTransform: 'uppercase', color: '#7A3548', fontWeight: '700' },
   ringWrap: { width: 184, height: 184, alignItems: 'center', justifyContent: 'center', marginTop: 4 },
   ringCenter: { position: 'absolute', alignItems: 'center', justifyContent: 'center' },
   ringNum: { fontFamily: FONTS.v2_display_big, fontSize: 50, color: '#43260F', lineHeight: 54 },
   ringUnit: { fontFamily: FONTS.v2_body, fontSize: 13, color: '#7A3548', marginTop: -2, fontWeight: '600' },
   ringFeeds: { fontFamily: FONTS.v2_body, fontSize: 11.5, color: '#8A4A5C', marginTop: 5 },
-  coverage: { fontFamily: FONTS.v3_display_italic, fontSize: 24, color: '#7A3548', marginTop: 8, textAlign: 'center', paddingHorizontal: 16 },
+  coverage: { fontFamily: FONTS.v2_body, fontSize: 13.5, lineHeight: 19, color: '#8A4A5C', marginTop: 10, textAlign: 'center', paddingHorizontal: 16 },
 
   strip: { flexDirection: 'row', backgroundColor: C.paper, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, borderColor: C.hair, paddingVertical: 13, marginHorizontal: 18, marginTop: 16 },
   stripDiv: { width: StyleSheet.hairlineWidth, backgroundColor: 'rgba(61,31,14,0.1)' },
