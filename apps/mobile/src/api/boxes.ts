@@ -47,6 +47,9 @@ export interface BoxItem {
   amazonKind?: 'cart' | 'link';
   /** Quantity to add to the Amazon cart (cart items only; defaults to 1). */
   qty?: number;
+  /** Placeholder glyph shown on the item tile until real product photos land
+   *  (Amazon photos need the Creators API — gated on 10 sales). */
+  icon?: string;
 }
 
 export interface BoxAddOn {
@@ -136,19 +139,19 @@ export const BOXES: Box[] = [
     // pre-added to the Amazon cart in one tap; amazonKind:'link' items (apparel)
     // open the product page so the mom picks her own size.
     items: [
-      { t: 'Nursing robe', q: '×1', n: 'Kindred Bravely Emmaline', tone: 'rose', v: 34, core: false, asin: 'B07CTRDN7M', amazonKind: 'link' },
-      { t: 'Nursing bras', q: '×2', n: 'wireless, sleep-friendly', tone: 'blush', v: 40, core: true, asin: 'B08BVSDP62', amazonKind: 'link' },
-      { t: 'Going-home outfit', q: '×1', n: 'loose & comfy — for you', tone: 'caramel', v: 40, core: false, asin: 'B0DM1PHWJZ', amazonKind: 'link' },
-      { t: 'Postpartum underwear', q: '8 pk', n: "yes, you'll want these", tone: 'sage', v: 16, core: true, asin: 'B07THFQS6Y', amazonKind: 'link' },
-      { t: 'Baby coming-home outfit', q: '×1', n: "baby's first outfit", tone: 'blush', v: 20, core: true, asin: 'B07B3P65MT', amazonKind: 'link' },
-      { t: 'Postpartum pads', q: '1 pk', n: 'for the first days', tone: 'rose', v: 12, core: true, asin: 'B0BL5T4QF2', amazonKind: 'cart', qty: 1 },
-      { t: 'Swaddle blankets', q: '4 pk', n: 'for the ride home', tone: 'caramel', v: 50, core: true, asin: 'B074G5FQG8', amazonKind: 'cart', qty: 1 },
-      { t: 'Toiletry bag', q: '×1', n: 'travel size for hospital', tone: 'sky', v: 15, core: false, asin: 'B0C77Y2VK4', amazonKind: 'cart', qty: 1 },
-      { t: 'Lip balm', q: '×1', n: 'dry hospital air', tone: 'blush', v: 14, core: false, asin: 'B07DY2QRF6', amazonKind: 'cart', qty: 1 },
-      { t: '10 ft phone charger', q: '×1', n: 'the outlet is never close', tone: 'ink', v: 16, core: false, asin: 'B08PVPTNZL', amazonKind: 'cart', qty: 1 },
-      { t: 'Straw water bottle', q: '×1', n: 'labor is thirsty work', tone: 'honey', v: 28, core: false, asin: 'B085DTZQNZ', amazonKind: 'cart', qty: 1 },
-      { t: 'Snacks', q: '1 pk', n: 'keep your energy up', tone: 'honey', v: 12, core: false, asin: 'B07YTJFLGT', amazonKind: 'cart', qty: 1 },
-      { t: 'Grip socks', q: '×1', n: 'hospital floors are cold', tone: 'sage', v: 12, core: false, asin: 'B0H13DZ55M', amazonKind: 'cart', qty: 1 },
+      { t: 'Nursing robe', q: '×1', n: 'Kindred Bravely Emmaline', tone: 'rose', v: 34, core: false, asin: 'B07CTRDN7M', amazonKind: 'link', icon: '👘' },
+      { t: 'Nursing bras', q: '×2', n: 'wireless, sleep-friendly', tone: 'blush', v: 40, core: true, asin: 'B08BVSDP62', amazonKind: 'link', icon: '🩱' },
+      { t: 'Going-home outfit', q: '×1', n: 'loose & comfy — for you', tone: 'caramel', v: 40, core: false, asin: 'B0DM1PHWJZ', amazonKind: 'link', icon: '👗' },
+      { t: 'Postpartum underwear', q: '8 pk', n: "yes, you'll want these", tone: 'sage', v: 16, core: true, asin: 'B07THFQS6Y', amazonKind: 'link', icon: '🩲' },
+      { t: 'Baby coming-home outfit', q: '×1', n: "baby's first outfit", tone: 'blush', v: 20, core: true, asin: 'B07B3P65MT', amazonKind: 'link', icon: '👶' },
+      { t: 'Postpartum pads', q: '1 pk', n: 'for the first days', tone: 'rose', v: 12, core: true, asin: 'B0BL5T4QF2', amazonKind: 'cart', qty: 1, icon: '🩹' },
+      { t: 'Swaddle blankets', q: '4 pk', n: 'for the ride home', tone: 'caramel', v: 50, core: true, asin: 'B074G5FQG8', amazonKind: 'cart', qty: 1, icon: '🧣' },
+      { t: 'Toiletry bag', q: '×1', n: 'travel size for hospital', tone: 'sky', v: 15, core: false, asin: 'B0C77Y2VK4', amazonKind: 'cart', qty: 1, icon: '👜' },
+      { t: 'Lip balm', q: '×1', n: 'dry hospital air', tone: 'blush', v: 14, core: false, asin: 'B07DY2QRF6', amazonKind: 'cart', qty: 1, icon: '💄' },
+      { t: '10 ft phone charger', q: '×1', n: 'the outlet is never close', tone: 'ink', v: 16, core: false, asin: 'B08PVPTNZL', amazonKind: 'cart', qty: 1, icon: '🔌' },
+      { t: 'Straw water bottle', q: '×1', n: 'labor is thirsty work', tone: 'honey', v: 28, core: false, asin: 'B085DTZQNZ', amazonKind: 'cart', qty: 1, icon: '🥤' },
+      { t: 'Snacks', q: '1 pk', n: 'keep your energy up', tone: 'honey', v: 12, core: false, asin: 'B07YTJFLGT', amazonKind: 'cart', qty: 1, icon: '🍓' },
+      { t: 'Grip socks', q: '×1', n: 'hospital floors are cold', tone: 'sage', v: 12, core: false, asin: 'B0H13DZ55M', amazonKind: 'cart', qty: 1, icon: '🧦' },
     ],
     addons: [],
   },

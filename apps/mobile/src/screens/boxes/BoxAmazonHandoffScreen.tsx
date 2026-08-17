@@ -96,7 +96,10 @@ export default function BoxAmazonHandoffScreen() {
       accessibilityRole="button"
       accessibilityLabel={label}
     >
-      <Text style={styles.rowName} numberOfLines={1}>{it.t}</Text>
+      <View style={styles.rowLeft}>
+        {it.icon ? <Text style={styles.rowIcon}>{it.icon}</Text> : null}
+        <Text style={styles.rowName} numberOfLines={1}>{it.t}</Text>
+      </View>
       {right}
     </TouchableOpacity>
   );
@@ -184,6 +187,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, paddingVertical: 15 },
+  rowLeft: { flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  rowIcon: { fontSize: 20 },
   rowName: { flex: 1, minWidth: 0, fontFamily: FONTS.v2_bold, fontSize: 15.5, color: T.cocoa },
   rowQty: { fontFamily: FONTS.v2_label, fontSize: 13.5, color: T.walnut },
   rowAction: { fontFamily: FONTS.v2_link, fontSize: 13.5, color: T.rose },

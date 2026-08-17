@@ -286,9 +286,11 @@ function ItemTile({ item, grid, removed, customizing, onToggle }: {
       <LinearGradient
         colors={tone as readonly [string, string, ...string[]]}
         start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-        style={[styles.itemSwatch, grid ? styles.itemSwatchGrid : styles.itemSwatchRow]}
+        style={[styles.itemSwatch, grid ? styles.itemSwatchGrid : styles.itemSwatchRow, styles.itemSwatchCenter]}
       >
-        {item.tone === 'ink' ? <View style={{ width: 1, height: 1 }} /> : null}
+        {item.icon ? (
+          <Text style={grid ? styles.itemIconGrid : styles.itemIconRow}>{item.icon}</Text>
+        ) : null}
       </LinearGradient>
 
       <View style={grid ? { marginTop: 8 } : { flex: 1, minWidth: 0 }}>
@@ -458,6 +460,9 @@ const styles = StyleSheet.create({
   itemSwatch: { borderRadius: 10, overflow: 'hidden' },
   itemSwatchRow: { width: 46, height: 46 },
   itemSwatchGrid: { width: '100%', height: 64 },
+  itemSwatchCenter: { alignItems: 'center', justifyContent: 'center' },
+  itemIconRow: { fontSize: 22 },
+  itemIconGrid: { fontSize: 30 },
   itemName: { fontFamily: FONTS.v2_bold, fontSize: 13.5, color: T.cocoa, flexShrink: 1 },
   itemNameRemoved: { textDecorationLine: 'line-through' },
   itemQty: { fontFamily: FONTS.v2_mono, fontSize: 10.5, color: T.caramel, fontWeight: '600' },
