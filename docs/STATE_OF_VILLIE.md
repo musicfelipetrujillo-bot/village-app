@@ -4,11 +4,19 @@
 Read this first. Update it last. When sessions collide (duplicate migration numbers, duplicate
 feature builds, stepping on shared files), the fix is: everyone coordinates *here*.
 
-- **Last updated:** 2026-08-12 (62-commit branch drift CLOSED · Billy waves 1+2 verified · see §0 RELEASE LOG)
-- **`main` head:** `e9d1515` — **pushed; `main` == `origin/main`, no drift.**
+- **Last updated:** 2026-08-15 (security & privacy review CLOSED OUT · 5 PRs merged · migrations 127+129+130+131 applied · see §0 RELEASE LOG)
+- **`main` head:** `7c8d285` — all security/privacy work is merged AND applied to prod.
 - **Authoritative for:** in-flight work, migration numbers, deploy queue, launch sequence.
 - **NOT authoritative for:** per-phase build history (`CLAUDE.md`), env/key setup (`docs/OPS_RUNBOOK.md`), product intent (`docs/source/*`). This doc points at those; it doesn't replace them.
 
+> 🟢 **§0 · RELEASE LOG — 2026-08-15 (newest; read this first).**
+> **The 2026-08-14/15 security & privacy review is CLOSED OUT.** Every engineering item is shipped, applied to prod, and verified against the DEPLOYED artifact rather than the source tree. Five PRs merged: **#6** (auth hardening), **#7** (donor location, migration 127), **#8** (counsel retention ask), **#9** (migration 129), **#10** (migrations 130+131). Supabase security advisor **63 → 61**; every remaining lint is on CLAUDE.md's documented accepted list.
+> **The finding that mattered:** `specialist-invite-create` was deployed `verify_jwt:false` **and** its only auth gate base64-decoded the caller's JWT and trusted `payload.role === 'service_role'` **without verifying the signature**. Anyone could send `Bearer x.eyJyb2xlIjoic2VydmljZV9yb2xlIn0.x` and be treated as an admin — mint an invite token, then redeem it via `specialist-invite-accept` to insert themselves into the provider directory as `admin_approved:true, accepting_patients:true`. Fixed (constant-time compare vs the real key + `verify_jwt` on), **re-fired the exploit at prod to confirm: 401**. Exposure audit clean — all 7 invites are the founder's own address or smoke tests, all 11 specialists accounted for.
+> ⚠️ **Root cause worth internalising:** the three-service-role-key drift (`docs/OPS_RUNBOOK.md` §9) is *why* that hole existed — someone hit "strict equality breaks the crons after a rotation" and deleted the auth check instead of reconciling the keys. **Rotating the key fixes both problems at once** and is the last open engineering item (founder/dashboard).
+> 🚨 **Two traps this session, both now written down.** (1) **Verify edge-function findings against the DEPLOYED artifact** (`mcp__supabase__get_edge_function`), never the source tree — the Calendly fail-open fix sat on `main` unshipped for five weeks while prod ran the vulnerable version. *(Now deployed — v23, hardened, confirmed 2026-08-15.)* (2) **`REVOKE … FROM anon` is a silent no-op when the grant is to PUBLIC** (ACL shows a leading `=X/` — empty grantee means PUBLIC). Migration 052 revoked FROM PUBLIC and was a no-op; migration 130 revoked FROM anon and was a no-op. **Always revoke from BOTH, then verify against `pg_proc.proacl`** — the migration succeeding proves nothing.
+> **Privacy:** donor pinpoint coordinates were readable by any signed-in user, and had gone from 0 rows in July to **4 real donors** — coarsened to ~1.1 km via migration 127. Retention is now a written proposal for counsel (Appendix D of the counsel package) rather than an open question; the founder decided the two-party-messaging rule (keep the thread, mark the account deleted). Migration **129 is the first retention job this database has ever had** — nothing was ever deleted before it.
+> ⬜ **Left open, neither of them code:** rotate the service-role key (founder, dashboard, ~15 min, procedure in OPS_RUNBOOK §9) and counsel's retention answer. Plus a spawned task: **8 pg_cron jobs fail on every run** (jobid 1 alone: 288 failures/3 days) because they call `net.http_post` with a GUC the Free tier locks. All 8 are already covered by `.github/workflows/supabase-crons.yml`, so nothing is broken — but the failure log is pure noise, so a *real* failure would go unnoticed. `room-weekly-summaries-sunday` is the same shape with **no** GH replacement (Connect tab is dark, so not urgent).
+>
 > 🟢 **§0 · RELEASE LOG — 2026-08-12 (newest; read this first).**
 > **`feat/billy-capability-coverage` is MERGED into `main` and pushed** (merge `e9d1515`, parents `91e07d3` + `1903489`). It had grown to **62 commits ahead / 5 behind**, and **44 of those had never been pushed anywhere** — the raspberry rebrand, the roo icon + iOS modular-headers fix, the week-anchor Home, the Manual vertical-card story, global search, the Insights/Log rework, and all of Billy waves 1+2 existed on one unpushed local branch. **Migrations 113/114/115 lived only there, and 113 was already APPLIED TO PROD** — so prod schema was not reproducible from `main` until this merge. It is now. Migrations on disk: **115**, no duplicate numbers, **next free = 117** (116 is on `chore/mig-116-reviewer-roles`).
 > Two add/add conflicts, both resolved deliberately: **migration `112`** — both sides wrote the same file with identical SQL; kept the branch copy for its fuller provenance note. **`events-harvest/index.ts`** — kept `main`'s 429-line version (it carries `b51a667` + `91e07d3`, the probe/render fixes that took Villie Plans from 0→6 live events on 2026-08-12) and verified it already contained the branch's `auto_publish_threshold: 1.0` fix verbatim, so nothing was lost. Merged tree typechecks clean.
@@ -47,7 +55,17 @@ Villie is a **pre-launch** maternal-health platform (React Native + Expo + Supab
 
 ### 2a. Open PRs
 
-**Open PR count: 0.** All three prior in-flight PRs have resolved:
+**Open PR count: 1 (stale — see below).** The five security/privacy PRs all merged 2026-08-15:
+
+| PR | Branch | Outcome |
+|---|---|---|
+| **#6** | `sec/edge-auth-hardening` | ✅ **MERGED** — real auth on the admin edge functions (the Critical). |
+| **#7** | `privacy/coarsen-donor-location` | ✅ **MERGED** — migration **127**, donor coords → ~1.1 km. |
+| **#8** | `legal/app-wide-retention-ask` | ✅ **MERGED** — Appendix D, app-wide retention proposal for counsel. |
+| **#9** | `chore/home-feed-cache-purge` | ✅ **MERGED** — migration **129**, first retention/purge job. |
+| **#10** | `sec/advisor-closeout` | ⚠️ **Shows OPEN, but its commits (`88250e6`, `e0a4f5b`) are already on `main` and byte-identical.** Migrations 130+131 are on main and applied. **This PR is stale — close it, don't re-merge or rebase it.** |
+
+*(Historical, for reference:)*
 
 | PR | Branch | Outcome | Follow-through owed |
 |---|---|---|---|
@@ -79,9 +97,9 @@ Villie is a **pre-launch** maternal-health platform (React Native + Expo + Supab
 
 **This is the section that stops sessions from stepping on each other. Claim your number HERE before you create the file.**
 
-- **Highest APPLIED on prod:** **112** (re-verified 2026-07-30 via read-only MCP `list_migrations`). **ALL of `001`→`112` are applied** — including 098 (retire milk Stripe), 099 (Milk Vault), 101–105 (Care/day sheets/daycares/RLS backfill/The Buzz), 106–108 (reviewer-flag consolidation onto the founder's primary Apple login), 109 (`villie_memories`), 110 (`villie_pro_entitlement`), 111 (`week_nudge_push`), 112 (`unpublish_buzz_smoke_test`). The apply queue is **empty**.
-- **Highest ON DISK (`main`):** **112.**
-- **Highest CLAIMED:** **112. → NEXT FREE = 113.**
+- **Highest APPLIED on prod:** **131** (re-verified 2026-08-15 via `list_migrations`). ⚠️ **126 and 128 were claimed by a concurrent session mid-work this session** — the re-check-before-writing rule caught it twice. Re-run `list_migrations` immediately before you create the file, not at planning time. **ALL of `001`→`131` are applied** — including 098/099 (retire milk Stripe, Milk Vault), 101–105 (Care/day sheets/daycares/RLS backfill/The Buzz), 106–108 (reviewer flags), 109–116, 117 (`zip_centroids`), 120–124 (Mom Tips), 125–126, 128 (Mom Tips ES), and this session's **127** (donor location), **129** (first purge job), **130+131** (advisor closeout). The apply queue is **empty**.
+- **Highest ON DISK (`main`):** **131.**
+- **Highest CLAIMED:** **131. → NEXT FREE = 132.**
 - ⚠️ **MCP is read-only** — `apply_migration` fails. Apply with the authenticated CLI: `supabase db push` from the repo root.
 - ⚠️ **106–110 were claimed + applied by a parallel session on 2026-07-29/30** while another session was mid-OTA. Re-run `list_migrations` before claiming a number — this doc can lag by hours when sessions run concurrently.
 
@@ -95,13 +113,17 @@ Villie is a **pre-launch** maternal-health platform (React Native + Expo + Supab
 | 097 | `097_security_milk_bloodwork_url_scope.sql` | Scope bloodwork URL (health data) | ✅ **APPLIED to prod** (2026-07-09). On main. |
 | **098** | `098_retire_milk_stripe_connect.sql` | Retire Milk Stripe Connect | ✅ **MERGED to origin/main** (PR #1). ⚠️ **NOT yet applied** — top of §4 queue. |
 | **099** | `099_v6_milk_vault.sql` | V6 Milk Vault tables | ✅ **MERGED to origin/main** (PR #3). ⚠️ **NOT yet applied** — §4 queue. |
+| **127** | `127_privacy_coarsen_donor_location.sql` | Donor lat/lng → ~1.1 km (public read) | ✅ **MERGED (PR #7) + APPLIED to prod** (2026-08-15). |
+| **129** | `129_retention_purge_home_feed_cache.sql` | First retention job — ages out expired home-feed cache (7-day grace) | ✅ **MERGED (PR #9) + APPLIED to prod** (2026-08-15). pg_cron `home-feed-cache-purge`, 20 8 * * *. |
+| **130** | `130_security_trending_rpc_hardening.sql` | Pin `search_path` on the last 2 flagged fns | ✅ **APPLIED to prod** (2026-08-15). ⚠️ Its anon REVOKE was a **no-op** — see 131. |
+| **131** | `131_security_trending_revoke_public.sql` | Fixes 130 — revokes the **PUBLIC** grant anon inherited | ✅ **APPLIED to prod** (2026-08-15). |
 | **100** | `100_waitlist.sql` | Marketing-site waitlist (anon INSERT only, no anon SELECT) | ✅ **MERGED (PR #5) + APPLIED to prod** (2026-07-10). Fully shipped. |
 
-### ➡️ NEXT FREE MIGRATION NUMBER: **101**
+### ➡️ NEXT FREE MIGRATION NUMBER: **132**
 
 **Rule (enforced):**
 1. Before creating any migration, add a row to the table above with your number, name, and "CLAIMED — <branch>".
-2. Use the **next free number** (currently **113**). Never reuse 001–112 — all are on disk in `main` and applied to prod. **Verify with `list_migrations` first** — a concurrent session may have claimed numbers since this doc was written.
+2. Use the **next free number** (currently **132**). Never reuse 001–131 — all are on disk in `main` and applied to prod. **Verify with `list_migrations` first** — a concurrent session may have claimed numbers since this doc was written.
 3. Filenames are **numeric-prefix only** (`101_...sql`) — the CLI silently skips `101b`.
 4. After your PR merges + the migration applies, update the row to ✅ APPLIED.
 
@@ -124,7 +146,7 @@ MCP Supabase access is **read-only** — **only Felipe** can apply migrations, d
 |---|---|---|
 | `milk-vault-scan` | **DEPLOY** | Milk Vault AI scanner; feature dead until deployed (PR #3 merged, fn still not live). |
 | milk-stripe-connect, milk-purchase-intent, milk-purchase-confirmed, milk-dispute-open, milk-shippo-label | **DELETE** (5 fns) | Dead now that PR #1 (retire Stripe) is merged. |
-| `calendly-webhook` | **DEPLOY** (`--project-ref albyndcruwopulazvpjs`) | Prod still runs the **old fail-open** version; hardened fail-closed code is on main only. `CALENDLY_WEBHOOK_SECRET` already set. Pre-launch checklist in `project_appsec_c1_fix_pending.md`. |
+| ~~`calendly-webhook`~~ | ✅ **DONE 2026-08-15** | Prod ran the **old fail-open** version for five weeks after the fix landed on `main`. Now **v23, hardened, fail-closed + replay guard** — verified against the deployed artifact. This is the canonical example of why you check what's deployed, not what's committed. |
 | `appointment-reminder` | **DEPLOY** | SMS leg removed (Twilio A2P dropping texts → push-only decided 2026-07-09). Repo change not yet deployed. |
 
 ### 4c. OTA / bundle ships
@@ -145,8 +167,9 @@ MCP Supabase access is **read-only** — **only Felipe** can apply migrations, d
 
 Ordered by dependency. A gate can't clear until the ones it depends on clear.
 
-### Gate 0 — Security & privacy — ✅ DONE
-C-1 milk donor PII leak (095/096), bloodwork-URL health-data scope (097), data-minimization — **all applied to prod, zero exposure (pre-launch)**. Remaining tail: confirm `api/milk.ts` change in live bundle (§4c); one still-open High = `specialist-invite-accept` non-atomic claim race (not launch-blocking).
+### Gate 0 — Security & privacy — ✅ DONE (re-audited + re-closed 2026-08-15)
+C-1 milk donor PII (095/096), bloodwork-URL scope (097), data-minimization — applied to prod. **Full re-audit 2026-08-15** (`docs/audits/security-privacy-2026-08-14.md`) found and fixed a **Critical**: `specialist-invite-create` accepted a forged, unsigned `service_role` JWT, letting an unauthenticated attacker insert themselves into the provider directory as an approved, bookable specialist. Fixed, redeployed with `verify_jwt` on, exploit re-fired at prod → 401, exposure audit clean. Also fixed: the 5 sibling functions sharing that gate, the invite replay race (the old open High — now closed), client-supplied pricing, donor pinpoint location (migration 127), and the last 2 advisor lints. Advisor **63 → 61**, all remaining accepted + documented.
+⬜ **Tail, not launch-blocking:** rotate the service-role key (founder/dashboard — also fixes the 3-key drift, OPS_RUNBOOK §9); 8 dead pg_cron jobs making the failure log unreadable (spawned task; nothing actually broken — GH Actions covers all 8).
 
 ### Gate 1 — Compliance / attorney sign-off — ⚪ BLOCKING (biggest launch blocker)
 None of these are code problems; all need counsel. **These block the hospital pilot / real users.**
