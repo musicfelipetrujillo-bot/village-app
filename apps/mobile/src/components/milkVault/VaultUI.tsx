@@ -11,6 +11,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { COLORS, FONTS } from '@utils/constants';
 import { V3Card } from '@components/shared/V3Card';
+import { ScreenHeader } from '@components/shared/ScreenHeader';
 import { clamp } from '@utils/milkVaultCalc';
 
 // ── Screen scaffold: warm page wash + safe top padding ─────────────────────
@@ -28,43 +29,20 @@ export function VaultScreen({ children, style }: { children: React.ReactNode; st
   );
 }
 
-// ── Editorial header with optional back + eyebrow + title + italic accent ──
+// ── Header — now the app-standard ScreenHeader so the vault screens read the
+// same as Care / Gear / Plans (single clean title, standard top placement, no
+// eyebrow/italic-accent). `eyebrow`/`accent` are accepted but ignored so the
+// existing call sites keep compiling.
 export function VaultHeader({
-  eyebrow, title, accent, onBack, right,
+  title, onBack, right,
 }: {
-  eyebrow: string;
+  eyebrow?: string;
   title: string;
-  accent?: string;       // italic Caveat word appended after the title
+  accent?: string;
   onBack?: () => void;
   right?: React.ReactNode;
 }) {
-  return (
-    <View style={styles.header}>
-      <View style={styles.headerTopRow}>
-        {onBack ? (
-          <TouchableOpacity
-            onPress={onBack}
-            accessibilityRole="button"
-            accessibilityLabel="Back"
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          >
-            <Text style={styles.back}>‹</Text>
-          </TouchableOpacity>
-        ) : <View style={{ width: 18 }} />}
-        <View style={{ flex: 1 }} />
-        {right ?? null}
-      </View>
-      <View style={styles.eyebrowRow}>
-        <View style={styles.eyebrowBar} />
-        <Text style={styles.eyebrow}>{eyebrow}</Text>
-      </View>
-      <Text style={styles.headerTitle}>
-        {title}
-        {accent ? <Text style={styles.headerAccent}>{' '}{accent}</Text> : null}
-      </Text>
-      <View style={styles.hairline} />
-    </View>
-  );
+  return <ScreenHeader title={title} onBack={onBack} right={right} />;
 }
 
 // ── Small labeled section head ─────────────────────────────────────────────

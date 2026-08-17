@@ -93,7 +93,7 @@ export default function MilkVaultAddBagScreen() {
       <SafeAreaView style={{ flex: 1 }} edges={['top']}>
         <VaultHeader
           eyebrow={fromScan ? 'Scan · Confirm' : 'Add milk'}
-          title={fromScan ? 'Does this look right?' : 'Add a milk bag'}
+          title={fromScan ? 'does this look right?' : 'add a milk bag'}
           onBack={() => nav.goBack()}
         />
         <KeyboardAvoidingView
