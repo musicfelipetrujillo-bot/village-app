@@ -9,7 +9,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as Location from 'expo-location';
 import {
-  View, Text, StyleSheet, TouchableOpacity, Animated, Image,
+  View, Text, StyleSheet, TouchableOpacity, Animated,
   StyleProp, ViewStyle,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -61,10 +61,6 @@ const ArrowRight = ({ color }: { color: string }) => (
 // (founder 2026-08-16), not a rainbow of tile colours. Milk + Care have real
 // illustrated icons; Gear + Plans use a placeholder line glyph until their real
 // icons land. `route` is the TAB name (goVertical cross-tabs via getParent()).
-const MILK_ICON = require('../../../assets/village/milk-hub-icon.png');
-const CARE_ICON = require('../../../assets/village/care-icon.png');
-const GEAR_ICON = require('../../../assets/village/gear-icon.png');
-const PLANS_ICON = require('../../../assets/village/plans-icon.png');
 const GLYPH: Record<string, string> = {
   bag: 'M6 8h12l-1 12H7L6 8zm3 0V6a3 3 0 016 0v2',
   calendar: 'M4 6h16v15H4zM4 10h16M8 3v4M16 3v4',
@@ -74,16 +70,15 @@ type Vertical = {
   title: string;
   sub: string;
   route: string;
-  icon?: number;              // require() asset — the illustrated icon itself
-  glyph?: keyof typeof GLYPH; // fallback line glyph until a real icon exists
+  tone: string;   // per-pillar accent (no icons — the text leads)
   isNew?: boolean;
 };
 
 const VERTICALS: Vertical[] = [
-  { title: 'Milk Hub',     sub: 'your stash + peer milk',      icon: MILK_ICON,   route: 'Milk',    isNew: true },
-  { title: 'Care',         sub: 'doctors, doulas, lactation',  icon: CARE_ICON,   route: 'Experts' },
-  { title: 'Baby Gear',    sub: 'hand-me-downs from moms',     icon: GEAR_ICON,   route: 'Gear'    },
-  { title: 'Villie Plans', sub: 'classes, circles, meetups',   icon: PLANS_ICON,  route: 'Village' },
+  { title: 'Milk Hub',     sub: 'your stash + peer milk',      tone: '#C24A63', route: 'Milk',    isNew: true },
+  { title: 'Care',         sub: 'doctors, doulas, lactation',  tone: '#E08A6E', route: 'Experts' },
+  { title: 'Baby Gear',    sub: 'hand-me-downs from moms',     tone: '#DA9A2C', route: 'Gear'    },
+  { title: 'Villie Plans', sub: 'classes, circles, meetups',   tone: '#CB5480', route: 'Village' },
 ];
 
 // Short weekday + day-of-month for the calendar chip.
@@ -186,77 +181,29 @@ export default function VillageHomeScreenV3() {
           }
         />
 
-        {/* 2×2 — the four sections ARE the hero. No card box around the icon
-            (that read as a redundant double-box). The big illustrated icon is
-            the element; title + description sit beneath it (founder 2026-08-16). */}
-        <View style={styles.gridWrap}>
+        {/* The four pillars ARE the page (founder 2026-08-16) — icons removed,
+            a clean full-width row each with a per-pillar accent; the text leads. */}
+        <View style={styles.pillars}>
           {VERTICALS.map((v) => (
             <TouchableOpacity
               key={v.title}
               onPress={v.route === 'Village' ? goAllPlans : () => goVertical(v.route)}
-              activeOpacity={0.82}
+              activeOpacity={0.85}
               accessibilityRole="button"
               accessibilityLabel={v.title}
-              style={styles.cell}
+              style={styles.pillarRow}
             >
-              <View style={styles.iconWrap}>
-                {v.icon ? (
-                  <Image source={v.icon} style={styles.iconImg} resizeMode="cover" />
-                ) : (
-                  <Svg width={40} height={40} viewBox="0 0 24 24">
-                    <Path d={GLYPH[v.glyph!]} stroke="#B08A5E" strokeWidth={1.7} fill="none" strokeLinecap="round" strokeLinejoin="round" />
-                  </Svg>
-                )}
-                {v.isNew && (
-                  <View style={styles.newDot}><Text style={styles.newDotText}>new</Text></View>
-                )}
+              <View style={[styles.pillarBar, { backgroundColor: v.tone }]} />
+              <View style={{ flex: 1, minWidth: 0 }}>
+                <View style={styles.pillarTitleRow}>
+                  <Text style={styles.pillarTitle}>{v.title}</Text>
+                  {v.isNew && <View style={styles.newDot}><Text style={styles.newDotText}>new</Text></View>}
+                </View>
+                <Text style={styles.pillarSub} numberOfLines={1}>{v.sub}</Text>
               </View>
-              <Text style={styles.cellTitle}>{v.title}</Text>
-              <Text style={styles.cellSub} numberOfLines={1}>{v.sub}</Text>
+              <ArrowRight color={v.tone} />
             </TouchableOpacity>
           ))}
-        </View>
-
-        {/* Events — the leaned-in local block */}
-        <View style={{ marginTop: 28 }}>
-          <View style={styles.sectionHead}>
-            <Eyebrow>{lang === 'es' ? 'Esta semana' : 'Happening this week'}</Eyebrow>
-            <TouchableOpacity onPress={goAllPlans} accessibilityRole="button">
-              <Text style={styles.sectionLink}>{lang === 'es' ? 'ver todo' : 'see all'}</Text>
-            </TouchableOpacity>
-          </View>
-
-          {upcoming.length > 0 ? (
-            upcoming.slice(0, 3).map((e) => {
-              const dp = dayParts(e.starts_at);
-              return (
-                <TouchableOpacity
-                  key={e.id}
-                  style={styles.eventRow}
-                  activeOpacity={0.85}
-                  onPress={() => goEvent(e.id)}
-                  accessibilityRole="button"
-                  accessibilityLabel={e.title}
-                >
-                  <View style={styles.dayChip}>
-                    <Text style={styles.dayWd}>{dp.wd}</Text>
-                    <Text style={styles.dayNum}>{dp.day}</Text>
-                  </View>
-                  <View style={{ flex: 1, minWidth: 0 }}>
-                    <Text style={styles.eventRowTitle} numberOfLines={1}>{e.title}</Text>
-                    <Text style={styles.eventRowMeta} numberOfLines={1}>{eventMeta(e)}</Text>
-                  </View>
-                  <ArrowRight color="#C9B79F" />
-                </TouchableOpacity>
-              );
-            })
-          ) : (
-            <TouchableOpacity style={styles.eventEmpty} onPress={goAllPlans} activeOpacity={0.85}>
-              <Text style={styles.eventEmptyText}>
-                {lang === 'es' ? 'Nada esta semana — mira todos los planes.' : 'Nothing this week — browse all plans.'}
-              </Text>
-            </TouchableOpacity>
-          )}
         </View>
       </Animated.ScrollView>
     </View>
@@ -267,6 +214,19 @@ export default function VillageHomeScreenV3() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#FBF4E6', overflow: 'hidden' },
   scroll: { paddingTop: 0, paddingHorizontal: 22, paddingBottom: 96 },
+
+  // Four pillars — clean full-width rows, no icons; a slim accent bar carries
+  // each pillar's identity and the title leads.
+  pillars: { marginTop: 12, gap: 12 },
+  pillarRow: {
+    flexDirection: 'row', alignItems: 'center', gap: 14,
+    backgroundColor: T.paper, borderRadius: 16, borderWidth: 1, borderColor: T.rule,
+    paddingVertical: 18, paddingHorizontal: 16,
+  },
+  pillarBar: { width: 4, height: 40, borderRadius: 2 },
+  pillarTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  pillarTitle: { fontFamily: FONTS.v2_display, fontSize: 18, color: T.cocoa, letterSpacing: -0.3 },
+  pillarSub: { fontFamily: FONTS.v2_body, fontSize: 13, color: T.walnut, marginTop: 3 },
 
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },
   mapBtn: {
