@@ -30,9 +30,37 @@ One source of truth. Run it any time:
 SELECT * FROM pro_launch_readiness();
 ```
 
+### English-first (decided 2026-08-17, migration 132)
+
+The locale scope is now data, not a constant — `pro_launch_targets.locales`
+says which locales each check may claim:
+
+| Check | Claims | Why |
+|---|---|---|
+| `week_intro_weeks` | `{en}` | Felipe records English first. Under the old function mom/es + baby/es sat at 0 weeks forever, `min()` stayed 0, and the guard could never open no matter how much English got shot. |
+| `captions_pct` | `{en,es}` | **Unchanged on purpose.** `manual_videos` has no locale column — it is one language-neutral asset with per-locale caption tracks. Serving Spanish there is a translation job, not a reshoot, so we keep claiming it. |
+
+Add Spanish week-intros to the claim when they actually exist:
+
+```sql
+UPDATE pro_launch_targets SET locales = ARRAY['en','es'] WHERE key = 'week_intro_weeks';
+```
+
+What an English-first launch means for a Spanish-speaking user: `get_manual_week_intro`
+filters on `locale` with **no fallback**, so she gets no week-intro slot at all
+(it hides — she never sees a broken player). She still gets the full how-to
+library with Spanish subtitles. Do **not** restore paywall bullet `b1` to
+"every week's specialist video" while that's true in only one language.
+
+⚠️ **Known gap:** `manual_week_intro` has no caption columns, so the 52-week
+videos — the headline benefit — cannot carry captions at all, and `captions_pct`
+only ever measured `manual_videos`. (`mark_week_intro_captioned()` writes to
+`manual_videos` despite its name.) Closing this needs new columns plus a check
+that reads them.
+
 | Check | Passes when | Why it blocks a paid launch |
 |---|---|---|
-| `week_intro_coverage` | every audience+locale has 52 published weeks with a playback id | the paywall's headline benefit is per-week video; the weakest combination decides, so a full EN set can't hide an empty ES one |
+| `week_intro_coverage` | every claimed audience+locale has 52 published weeks with a playback id | the paywall's headline benefit is per-week video; the weakest combination decides, so a full EN set can't hide an empty ES one |
 | `videos_per_bucket` | every (audience, category) has ≥2 approved videos | a paying user must never open an empty category |
 | `captions_both_locales` | 100% of playable videos captioned EN **and** ES | we advertise captions; a paid accessibility claim has to be true |
 | `clinical_review` | 100% of playable videos have `clinical_advisor_reviewed` | charging for un-reviewed health video is a materially different liability posture than giving it away |
