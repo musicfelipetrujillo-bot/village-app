@@ -124,7 +124,9 @@ export const BOXES: Box[] = [
     glow: 'rgba(255,255,255,0.42)',
     badge: 'L&D nurse approved',
     popColor: '#F2C84B',
-    price: 309,
+    // `price` only feeds the Full Journey bundle math now (this box's own
+    // screens show "Amazon"/"See price on Amazon"). `was` is the ≈value estimate.
+    price: 128,
     was: 309,
     trust: [
       ['shield', 'Built with L&D nurses'],

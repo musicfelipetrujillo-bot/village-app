@@ -63,9 +63,6 @@ export default function BoxesHubScreen() {
 
   const bundle = bundlePricing();
   const bundleInCart = cart.some((l) => l.kind === 'bundle');
-  // The Full Journey bundle Stripe-charges all three boxes together — it can't
-  // include an Amazon-fulfilled box, so hide it while any box is on Amazon.
-  const hasAmazonBox = BOXES.some(isAmazonBox);
   const cartCount = cart.length;
   const total = cartTotal(cart);
 
@@ -98,30 +95,28 @@ export default function BoxesHubScreen() {
         {/* one calm line */}
         <Text style={styles.intro}>The right things, gathered for each stage.</Text>
 
-        {/* the one warm moment — the Full Journey bundle (Stripe boxes only) */}
-        {!hasAmazonBox && (
-          <TouchableOpacity
-            style={styles.heroCard}
-            activeOpacity={0.92}
-            onPress={toggleBundle}
-            accessibilityRole="button"
-            accessibilityLabel={bundleInCart ? 'Remove the full journey bundle from cart' : 'Add all three boxes to cart'}
-          >
-            <LinearGradient colors={[ROSE, BLUSH]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.heroInner}>
-              <View style={styles.heroBee}><Image source={VILLIE_BEE} style={{ width: 26, height: 26 }} resizeMode="contain" /></View>
-              <Text style={styles.heroTitle}>the full journey</Text>
-              <Text style={styles.heroSub}>all three boxes, bundled at 10% off</Text>
-              <View style={styles.heroPriceRow}>
-                <Text style={styles.heroNow}>{formatPrice(bundle.now)}</Text>
-                <Text style={styles.heroWas}>{formatPrice(bundle.was)}</Text>
-                <View style={styles.heroSaveChip}><Text style={styles.heroSaveText}>save {formatPrice(bundle.save)}</Text></View>
-              </View>
-              <View style={[styles.heroPill, bundleInCart && styles.heroPillAdded]}>
-                <Text style={styles.heroPillText}>{bundleInCart ? '✓ in cart' : 'add all three ›'}</Text>
-              </View>
-            </LinearGradient>
-          </TouchableOpacity>
-        )}
+        {/* the one warm moment — the Full Journey bundle */}
+        <TouchableOpacity
+          style={styles.heroCard}
+          activeOpacity={0.92}
+          onPress={toggleBundle}
+          accessibilityRole="button"
+          accessibilityLabel={bundleInCart ? 'Remove the full journey bundle from cart' : 'Add all three boxes to cart'}
+        >
+          <LinearGradient colors={[ROSE, BLUSH]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.heroInner}>
+            <View style={styles.heroBee}><Image source={VILLIE_BEE} style={{ width: 26, height: 26 }} resizeMode="contain" /></View>
+            <Text style={styles.heroTitle}>the full journey</Text>
+            <Text style={styles.heroSub}>all three boxes, bundled at 10% off</Text>
+            <View style={styles.heroPriceRow}>
+              <Text style={styles.heroNow}>{formatPrice(bundle.now)}</Text>
+              <Text style={styles.heroWas}>{formatPrice(bundle.was)}</Text>
+              <View style={styles.heroSaveChip}><Text style={styles.heroSaveText}>save {formatPrice(bundle.save)}</Text></View>
+            </View>
+            <View style={[styles.heroPill, bundleInCart && styles.heroPillAdded]}>
+              <Text style={styles.heroPillText}>{bundleInCart ? '✓ in cart' : 'add all three ›'}</Text>
+            </View>
+          </LinearGradient>
+        </TouchableOpacity>
 
         {/* the three stage boxes — a descriptive card each */}
         {BOXES.map((box) => (
