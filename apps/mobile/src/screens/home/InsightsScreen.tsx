@@ -149,7 +149,10 @@ export default function InsightsScreen() {
               onSeeAll={() => nav.navigate('LogHistory')}
             />
 
-            <Text style={[styles.sectionLabel, { marginTop: 26 }]}>{lang === 'es' ? 'Análisis' : 'Insights'}</Text>
+            {/* INSIGHTS — lifted onto a distinct paper panel so the read-back
+                zone is clearly set apart from the LOG zone above (founder). */}
+            <View style={styles.insightsZone}>
+            <Text style={[styles.sectionLabel, { marginTop: 0 }]}>{lang === 'es' ? 'Análisis' : 'Insights'}</Text>
 
             {/* Villie's read — the gradient "Villie moment" */}
             <LinearGradient colors={['#C24A63', '#E894AC']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.narrCard}>
@@ -198,6 +201,7 @@ export default function InsightsScreen() {
             </View>
 
             <Text style={styles.disclaimer}>patterns from your own logs — not medical advice</Text>
+            </View>
           </ScrollView>
         )}
       </SafeAreaView>
@@ -220,6 +224,14 @@ const styles = StyleSheet.create({
   weekStepperText: { fontFamily: FONTS.v2_mono, fontSize: 9.5, letterSpacing: 1, textTransform: 'uppercase', color: C.walnut, fontWeight: '600', minWidth: 64, textAlign: 'center' },
   weekArrow: { fontFamily: FONTS.v2_link, fontSize: 18, color: C.roseInk, paddingHorizontal: 3, marginTop: -2 },
   sectionLabel: { fontFamily: FONTS.v2_mono, fontSize: 11, letterSpacing: 2, textTransform: 'uppercase', color: C.walnut, fontWeight: '600', marginHorizontal: 16, marginTop: 6, marginBottom: 8 },
+  // Read-back panel — a raised warm sheet that sets Insights apart from Log.
+  insightsZone: {
+    backgroundColor: '#F6EFE3',
+    borderTopLeftRadius: 26, borderTopRightRadius: 26,
+    marginTop: 28, paddingTop: 20, paddingBottom: 30,
+    borderTopWidth: 1, borderColor: 'rgba(61,31,14,0.07)',
+    shadowColor: '#3D2116', shadowOffset: { width: 0, height: -3 }, shadowOpacity: 0.06, shadowRadius: 12, elevation: 2,
+  },
 
   narrCard: { borderRadius: 18, padding: 18, marginHorizontal: 16, overflow: 'hidden' },
   narrHead: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 },
