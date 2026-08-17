@@ -83,6 +83,8 @@ export type AnalyticsEvent =
   | 'paywall_purchase_failed'
   | 'paywall_restore_succeeded'
   | 'paywall_dismissed'
+  // Villie Boxes
+  | 'box_amazon_handoff'
   // Navigation
   | 'screen_view';
 

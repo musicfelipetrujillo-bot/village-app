@@ -17,7 +17,7 @@ import { useNavigation, useRoute, type RouteProp } from '@react-navigation/nativ
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { COLORS, FONTS } from '@utils/constants';
 import {
-  getBox, computeBoxPricing, formatPrice, TONE_GRADIENTS,
+  getBox, computeBoxPricing, formatPrice, TONE_GRADIENTS, isAmazonBox,
   type BoxItem, type BoxAddOn,
 } from '@api/boxes';
 import { useBoxesStore, type ContentsLayout } from '@store/boxes';
@@ -86,7 +86,13 @@ export default function BoxDetailScreen() {
     );
   }
 
+  const amazon = isAmazonBox(box);
+
   const onAdd = () => {
+    if (amazon) {
+      navigation.navigate('BoxAmazonHandoff', { boxId, removed: [...removedSet] });
+      return;
+    }
     addBoxToCart(boxId);
     navigation.navigate('BoxesCart');
   };
@@ -114,14 +120,20 @@ export default function BoxDetailScreen() {
           <View style={styles.metaRow}>
             <View style={{ flex: 1, minWidth: 0 }}>
               <Text style={styles.stage}>{box.stage}</Text>
-              <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 8, marginTop: 3 }}>
-                <Text style={styles.priceNow}>{formatPrice(pricing.now)}</Text>
-                <Text style={styles.priceWas}>{formatPrice(pricing.was)}</Text>
+              {amazon ? (
+                <Text style={[styles.priceNow, { fontSize: 18, marginTop: 4 }]}>See price on Amazon</Text>
+              ) : (
+                <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 8, marginTop: 3 }}>
+                  <Text style={styles.priceNow}>{formatPrice(pricing.now)}</Text>
+                  <Text style={styles.priceWas}>{formatPrice(pricing.was)}</Text>
+                </View>
+              )}
+            </View>
+            {!amazon && (
+              <View style={styles.priceSaveChip}>
+                <Text style={styles.priceSaveText}>save {formatPrice(pricing.save)}</Text>
               </View>
-            </View>
-            <View style={styles.priceSaveChip}>
-              <Text style={styles.priceSaveText}>save {formatPrice(pricing.save)}</Text>
-            </View>
+            )}
           </View>
 
           <View style={styles.trustRow}>
@@ -133,7 +145,7 @@ export default function BoxDetailScreen() {
             ))}
           </View>
 
-          {pricing.removedCount > 0 && (
+          {!amazon && pricing.removedCount > 0 && (
             <Text style={styles.skipNote}>
               You skipped {pricing.removedCount} {pricing.removedCount === 1 ? 'item' : 'items'} —
               that&apos;s {formatPrice(pricing.skippedSave)} you&apos;re not paying for.
@@ -187,37 +199,50 @@ export default function BoxDetailScreen() {
             ))}
           </View>
 
-          {/* Add-on shelf */}
-          <View style={styles.addonHead}>
-            <Text style={styles.sectionTitle}>Add-ons</Text>
-          </View>
-          <View style={{ gap: 10 }}>
-            {box.addons.map((addon, i) => (
-              <AddOnRow
-                key={`${addon.t}-${i}`}
-                addon={addon}
-                selected={addonSet.has(i)}
-                onToggle={() => toggleAddon(boxId, i)}
-              />
-            ))}
-          </View>
+          {/* Add-on shelf — Stripe boxes only (Amazon boxes have no add-on ASINs) */}
+          {!amazon && box.addons.length > 0 && (
+            <>
+              <View style={styles.addonHead}>
+                <Text style={styles.sectionTitle}>Add-ons</Text>
+              </View>
+              <View style={{ gap: 10 }}>
+                {box.addons.map((addon, i) => (
+                  <AddOnRow
+                    key={`${addon.t}-${i}`}
+                    addon={addon}
+                    selected={addonSet.has(i)}
+                    onToggle={() => toggleAddon(boxId, i)}
+                  />
+                ))}
+              </View>
+            </>
+          )}
         </View>
       </ScrollView>
 
       {/* Sticky buy bar */}
       <View style={styles.buyBar}>
         <View style={{ flex: 1 }}>
-          <Text style={styles.buyNow}>{formatPrice(pricing.now)}</Text>
-          <Text style={styles.buyMeta}>{pricing.includedCount} items{addonSet.size > 0 ? ` · ${addonSet.size} add-ons` : ''}</Text>
+          {amazon ? (
+            <>
+              <Text style={styles.buyNow}>on Amazon</Text>
+              <Text style={styles.buyMeta}>{pricing.includedCount} items · ≈ {formatPrice(pricing.was)} value</Text>
+            </>
+          ) : (
+            <>
+              <Text style={styles.buyNow}>{formatPrice(pricing.now)}</Text>
+              <Text style={styles.buyMeta}>{pricing.includedCount} items{addonSet.size > 0 ? ` · ${addonSet.size} add-ons` : ''}</Text>
+            </>
+          )}
         </View>
         <TouchableOpacity
           onPress={onAdd}
           activeOpacity={0.9}
           accessibilityRole="button"
-          accessibilityLabel={`Add the ${box.pop} box to cart, ${formatPrice(pricing.now)}`}
+          accessibilityLabel={amazon ? `Send the ${box.pop} box to Amazon` : `Add the ${box.pop} box to cart, ${formatPrice(pricing.now)}`}
           style={styles.buyBtn}
         >
-          <Text style={styles.buyBtnText}>Add to cart →</Text>
+          <Text style={styles.buyBtnText}>{amazon ? 'Send to Amazon →' : 'Add to cart →'}</Text>
         </TouchableOpacity>
       </View>
     </View>

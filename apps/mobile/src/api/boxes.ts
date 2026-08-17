@@ -40,6 +40,13 @@ export interface BoxItem {
   v: number;
   /** Essential item — locked, cannot be removed in customize mode. */
   core: boolean;
+  /** Amazon product code — set on affiliate (`fulfillment: 'amazon'`) boxes. */
+  asin?: string;
+  /** How this item is handed to Amazon: 'cart' = pre-added (consumables),
+   *  'link' = opens the product page so the mom picks her size (apparel). */
+  amazonKind?: 'cart' | 'link';
+  /** Quantity to add to the Amazon cart (cart items only; defaults to 1). */
+  qty?: number;
 }
 
 export interface BoxAddOn {
@@ -60,6 +67,9 @@ export type BoxId = 'delivery' | 'newborn' | 'mama';
 
 export interface Box {
   id: BoxId;
+  /** How this box is bought. 'stripe' = first-party Stripe checkout (default).
+   *  'amazon' = affiliate hand-off (items carry `asin`; no Stripe, no price). */
+  fulfillment?: 'stripe' | 'amazon';
   /** Caveat "pop" word in the title, e.g. "Delivery" → "The Delivery Box". */
   pop: string;
   /** Stage label, e.g. "weeks 36+ · the big day". */
@@ -104,40 +114,41 @@ export const TONE_GRADIENTS: Record<ToneKey, readonly string[]> = {
 export const BOXES: Box[] = [
   {
     id: 'delivery',
+    fulfillment: 'amazon',
     pop: 'Delivery',
     stage: 'weeks 36+ · the big day',
-    tagline: "Everything you'll want at the hospital — packed and ready by the door.",
+    tagline: "Everything you'll want at the hospital — hand-picked, ready to ship from Amazon.",
     blurb:
-      'The bag you grab on the way out. Comfort for you, the first outfit for baby, and the little things nobody remembers until 2 a.m.',
+      'The bag you grab on the way out. Comfort for you, the first outfit for baby, and the little things nobody remembers until 2 a.m. Curated by Villie, sent straight to your Amazon cart.',
     hero: ['#E27C9D', '#C23E63', '#A23456'],
     glow: 'rgba(255,255,255,0.42)',
     badge: 'L&D nurse approved',
     popColor: '#F2C84B',
-    price: 128,
-    was: 159,
+    price: 309,
+    was: 309,
     trust: [
       ['shield', 'Built with L&D nurses'],
-      ['truck', 'Ships free by week 34'],
+      ['heart', 'Villie-curated on Amazon'],
     ],
+    // Amazon affiliate box (tag villieapp-20). amazonKind:'cart' items are
+    // pre-added to the Amazon cart in one tap; amazonKind:'link' items (apparel)
+    // open the product page so the mom picks her own size.
     items: [
-      { t: 'Nursing robe', q: '×1', n: 'soft, easy to nurse in', tone: 'rose', v: 24, core: false },
-      { t: 'Wireless nursing bras', q: '×2', n: 'stretchy, sleep-friendly', tone: 'blush', v: 22, core: true },
-      { t: 'Going-home outfit', q: '×1', n: 'loose & comfy — for you', tone: 'caramel', v: 20, core: false },
-      { t: 'Postpartum mesh undies', q: '×5', n: "yes, you'll want these", tone: 'sage', v: 12, core: true },
-      { t: 'Heavy-flow maternity pads', q: '1 pk', n: 'for the first days', tone: 'rose', v: 9, core: true },
-      { t: 'Toiletries + lip balm', q: '1 kit', n: 'travel size, dry hospital air', tone: 'sky', v: 11, core: false },
-      { t: '10 ft phone charger', q: '×1', n: 'the outlet is never close', tone: 'ink', v: 12, core: false },
-      { t: 'Snacks + straw water bottle', q: '1 set', n: 'labor is hungry work', tone: 'honey', v: 14, core: false },
-      { t: 'Baby coming-home set', q: '1 set', n: 'outfit, hat & mittens', tone: 'blush', v: 18, core: true },
-      { t: 'Swaddle blankets', q: '×2', n: 'for the ride home', tone: 'caramel', v: 12, core: true },
-      { t: 'Cozy grip socks', q: '×1', n: 'hospital floors are cold', tone: 'sage', v: 5, core: false },
+      { t: 'Nursing robe', q: '×1', n: 'Kindred Bravely Emmaline', tone: 'rose', v: 34, core: false, asin: 'B07CTRDN7M', amazonKind: 'link' },
+      { t: 'Nursing bras', q: '×2', n: 'wireless, sleep-friendly', tone: 'blush', v: 40, core: true, asin: 'B08BVSDP62', amazonKind: 'link' },
+      { t: 'Going-home outfit', q: '×1', n: 'loose & comfy — for you', tone: 'caramel', v: 40, core: false, asin: 'B0DM1PHWJZ', amazonKind: 'link' },
+      { t: 'Postpartum underwear', q: '8 pk', n: "yes, you'll want these", tone: 'sage', v: 16, core: true, asin: 'B07THFQS6Y', amazonKind: 'link' },
+      { t: 'Baby coming-home outfit', q: '×1', n: "baby's first outfit", tone: 'blush', v: 20, core: true, asin: 'B07B3P65MT', amazonKind: 'link' },
+      { t: 'Postpartum pads', q: '1 pk', n: 'for the first days', tone: 'rose', v: 12, core: true, asin: 'B0BL5T4QF2', amazonKind: 'cart', qty: 1 },
+      { t: 'Swaddle blankets', q: '4 pk', n: 'for the ride home', tone: 'caramel', v: 50, core: true, asin: 'B074G5FQG8', amazonKind: 'cart', qty: 1 },
+      { t: 'Toiletry bag', q: '×1', n: 'travel size for hospital', tone: 'sky', v: 15, core: false, asin: 'B0C77Y2VK4', amazonKind: 'cart', qty: 1 },
+      { t: 'Lip balm', q: '×1', n: 'dry hospital air', tone: 'blush', v: 14, core: false, asin: 'B07DY2QRF6', amazonKind: 'cart', qty: 1 },
+      { t: '10 ft phone charger', q: '×1', n: 'the outlet is never close', tone: 'ink', v: 16, core: false, asin: 'B08PVPTNZL', amazonKind: 'cart', qty: 1 },
+      { t: 'Straw water bottle', q: '×1', n: 'labor is thirsty work', tone: 'honey', v: 28, core: false, asin: 'B085DTZQNZ', amazonKind: 'cart', qty: 1 },
+      { t: 'Snacks', q: '1 pk', n: 'keep your energy up', tone: 'honey', v: 12, core: false, asin: 'B07YTJFLGT', amazonKind: 'cart', qty: 1 },
+      { t: 'Grip socks', q: '×1', n: 'hospital floors are cold', tone: 'sage', v: 12, core: false, asin: 'B0H13DZ55M', amazonKind: 'cart', qty: 1 },
     ],
-    addons: [
-      { t: 'Extra swaddle set', n: 'you can never have too many', p: 16, tone: 'caramel' },
-      { t: 'Nursing pillow', n: 'support from the first feed', p: 32, tone: 'blush' },
-      { t: 'Silk eye mask — for mom', n: 'steal sleep when you can', p: 18, tone: 'rose' },
-      { t: 'Labor-prep birth ball', n: 'ease the early hours', p: 28, tone: 'sage' },
-    ],
+    addons: [],
   },
   {
     id: 'newborn',
@@ -289,6 +300,32 @@ export function bundlePricing(): { now: number; was: number; save: number } {
 
 /** "$128", "$1,164". */
 export const formatPrice = (dollars: number): string => `$${Math.round(dollars).toLocaleString('en-US')}`;
+
+// ----- Amazon affiliate hand-off ----------------------------------------
+
+/** Is this box bought by handing off to Amazon (vs Stripe)? */
+export const isAmazonBox = (box: Box): boolean => box.fulfillment === 'amazon';
+
+/**
+ * Split an Amazon box's *surviving* items (after the mom's removals) into the
+ * two hand-off groups:
+ *   - `cart`  — consumables, pre-added to the Amazon cart in one tap.
+ *   - `links` — apparel, opened individually so she picks her own size.
+ * Items without an `asin` are ignored. Add-ons are not part of the hand-off.
+ */
+export function resolveAmazonItems(
+  box: Box,
+  removed: Set<number> = new Set(),
+): { cart: BoxItem[]; links: BoxItem[] } {
+  const cart: BoxItem[] = [];
+  const links: BoxItem[] = [];
+  box.items.forEach((item, i) => {
+    if (removed.has(i) || !item.asin) return;
+    if (item.amazonKind === 'link') links.push(item);
+    else cart.push(item);
+  });
+  return { cart, links };
+}
 
 // ----- checkout (Stripe) -------------------------------------------------
 // Wired in Stage 4 to the `boxes-create-payment-intent` edge function +

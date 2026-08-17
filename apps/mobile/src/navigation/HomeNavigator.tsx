@@ -34,6 +34,7 @@ import BoxesHubScreen from '@screens/boxes/BoxesHubScreen';
 import BoxDetailScreen from '@screens/boxes/BoxDetailScreen';
 import BoxesCartScreen from '@screens/boxes/BoxesCartScreen';
 import BoxesCheckoutScreen from '@screens/boxes/BoxesCheckoutScreen';
+import BoxAmazonHandoffScreen from '@screens/boxes/BoxAmazonHandoffScreen';
 import BoxOrderConfirmScreen from '@screens/boxes/BoxOrderConfirmScreen';
 import BoxOrdersScreen from '@screens/boxes/BoxOrdersScreen';
 // Day Sheet (2026-07-11) — caregiver handoff (schedule + tips + QR/PDF).
@@ -73,6 +74,7 @@ export type HomeStackParamList = {
   BoxDetail: { boxId: BoxId };
   BoxesCart: undefined;
   BoxesCheckout: undefined;
+  BoxAmazonHandoff: { boxId: BoxId; removed: number[] };
   BoxOrderConfirm: { orderId: string; amountCents: number };
   BoxOrders: undefined;
   DaySheetList: undefined;
@@ -119,6 +121,7 @@ export function HomeNavigator() {
       <Stack.Screen name="BoxDetail" component={BoxDetailScreen} />
       <Stack.Screen name="BoxesCart" component={BoxesCartScreen} />
       <Stack.Screen name="BoxesCheckout" component={BoxesCheckoutScreen} />
+      <Stack.Screen name="BoxAmazonHandoff" component={BoxAmazonHandoffScreen} />
       <Stack.Screen name="BoxOrderConfirm" component={BoxOrderConfirmScreen} />
       <Stack.Screen name="BoxOrders" component={BoxOrdersScreen} />
     </Stack.Navigator>
