@@ -15,7 +15,7 @@ import { useEventsStore } from '@store/events';
 import { formatDistance, type EventCard, type EventType, type AgeTag } from '@api/events';
 import { EventCardSkeleton } from '@components/shared/SkeletonLoader';
 import { KenBurnsImage } from '@components/shared/KenBurnsImage';
-import { V9PageBackdrop } from '@components/shared/V9PageBackdrop';
+import { WarmGlowBackdrop } from '@components/shared/WarmGlowBackdrop';
 import { HoneycombBackdrop } from '@components/shared/HoneycombBackdrop';
 import { HubHeader } from '@components/shared/HubHeader';
 import { useT } from '@/i18n';
@@ -99,7 +99,7 @@ export default function EventsListScreen() {
 
   return (
     <View style={styles.container}>
-      <V9PageBackdrop />
+      <WarmGlowBackdrop hideClusters />
       {/* Ambient warm wash — soft blush→honey so the page isn't flat cream. */}
       <LinearGradient
         pointerEvents="none"
@@ -270,7 +270,7 @@ export function EventCardView({ event, onPress, isSaved, onToggleSave, t }: {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: 'transparent' },
+  container: { flex: 1, backgroundColor: COLORS.v2_cream },
   pageWash: { position: 'absolute', top: 0, left: 0, right: 0, height: 620 },
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
@@ -418,16 +418,17 @@ const styles = StyleSheet.create({
     fontSize: 9, fontFamily: FONTS.bodySemiBold, letterSpacing: 0.6, color: COLORS.sage,
     backgroundColor: 'rgba(92,107,58,0.1)', borderRadius: 999, paddingHorizontal: 7, paddingVertical: 2,
   },
-  // Italic Playfair title — the editorial hero.
+  // Clean readable title (was 22px italic serif — too big / hard to read).
+  // Matches the modest sans titles used across the other verticals.
   cardTitle: {
-    fontSize: 22,
-    lineHeight: 28,
-    fontFamily: FONTS.headerItalic,
-    fontStyle: 'italic',
-    color: COLORS.bark,
+    fontSize: 16.5,
+    lineHeight: 21,
+    fontFamily: FONTS.v2_display,
+    color: COLORS.v2_cocoa,
+    letterSpacing: -0.2,
     marginTop: 2,
   },
-  cardHost: { fontSize: 13, color: COLORS.barkSoft, marginTop: 4, fontFamily: FONTS.body },
+  cardHost: { fontSize: 12.5, color: COLORS.barkSoft, marginTop: 4, fontFamily: FONTS.body },
   metaRow: {
     flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 6, marginTop: 8,
   },
