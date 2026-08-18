@@ -1,7 +1,7 @@
 # Villie Plans — per-event price and format
 
 **Date:** 2026-08-12
-**Status:** Approved design, ready for implementation plan
+**Status:** ✅ **IMPLEMENTED 2026-08-17** — shipped on `main`, deployed to prod. One verification gate still open (see §9).
 **Follows:** `2026-08-12-villie-plans-event-sources-design.md`
 
 ---
@@ -145,3 +145,27 @@ Already modeled. `events.is_free` and `price_cents` exist and are read by the cl
 - **Queue growth.** Mixed sources will add review items. That is the intended cost of not lying about price; if it becomes a burden, the lever is dropping the source, not loosening the gate.
 - **Regression surface on healthy feeds.** All four live feeds flow through the changed code path. Criterion 6 exists to catch that specifically.
 - **`upsert_ingested_event` is shared with `events-ingest-ics`.** The signature change must default to today's behavior so the ICS path is untouched.
+
+## 9. Implementation record (2026-08-17)
+
+Everything landed **directly on `main`**, not via the plan's branch — see "Why the branch was abandoned" below.
+
+| Task | Commit | State |
+|---|---|---|
+| 1 — price through `upsert_ingested_event` | migrations 118 + 119 | ✅ applied |
+| 2 — extract `cost` / `format` per event | `bfeb943`, `d1645b7` | ✅ |
+| 3 — write price + per-event type through | `76e7418` → `a3b7f5f` on main | ✅ shipped & deployed · ⛔ **live gate not run** |
+| 4 — never auto-publish what isn't known free | `ea6076d` | ✅ |
+| 5 — honest price on `EventDetailScreen` | `b1b2353` | ✅ |
+| 6 — land + document | this section | ✅ |
+
+**Verified.** `tsc --noEmit` exits 0. `eventCost()` and the harvester's failure classifier were each extracted from their shipped source, compiled, and run against the spec's cases plus hostile inputs (zero / negative / NaN price; infra-vs-feed error shapes) — all passing, with an explicit assertion that no input can render `$0.00`. EN/ES i18n parity is exact across the whole file. Against production: `is_free` defaults `true`, so ICS events are untouched, and **0 of 42** approved events were held by the new gate — criterion 6 satisfied.
+
+**The one gate that has not run.** Criteria 1–3 need a live harvest against a mixed source, and the harvester has been unable to reach Anthropic since the account's credit lapsed. When credit is restored: `POST {}` to `events-harvest`, confirm `upserted == found` and `skipped == 0` on the four free feeds, then re-run §7's assertions. Note that criterion `paid_total > 0` **cannot** be satisfied until a genuinely paid or price-silent source is registered — as of 2026-08-17 every live event is `is_free = true`, so the gate has never actually fired in production.
+
+**Why the branch was abandoned.** `feat/plans-per-event-attributes` was cut from an older `main`. Merging it would have deleted ~1,900 lines of since-shipped work — `MomTipsScreen`, `ResetRechargeScreen`, `momTips.ts`, `comfortAudio.ts`, and migrations 120/121/122. That is the same stale-base failure that made migration 118 revert 048's cross-feed dedup. Only the files that genuinely needed to move were carried across. **Do not merge that branch.**
+
+**Two production faults found while verifying this work**, both fixed:
+
+1. **`main` was 82 lines behind the deployed harvester** (`a3b7f5f`). This repo deploys the *working tree*, so a `functions deploy` from `main` would have silently reverted the live extractor — restoring the "everything advertises as free" defect this spec exists to remove.
+2. **All five feeds had auto-retired** (`ebdca3e`). The credit lapse made every nightly harvest throw; three runs tripped `failures >= 3 → is_active = false` on all five at once. Deactivation is sticky, so restoring credit would *not* have revived the tab. `consecutive_failures` now counts only failures the feed actually caused — billing, auth, rate-limit and Anthropic 5xx are recorded but never retire a source. Feeds were reactivated the same day.
