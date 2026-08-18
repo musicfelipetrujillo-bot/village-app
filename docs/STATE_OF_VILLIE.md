@@ -79,17 +79,32 @@ Villie is a **pre-launch** maternal-health platform (React Native + Expo + Supab
 
 ### 2b. Active workstreams / sessions (coordinate before touching)
 
-| Workstream | State | Owner surface (don't collide) | Next step |
-|---|---|---|---|
-| 🔴 **Billy Wave 2** (ACTIVE as of 2026-07-30 evening — another session is writing right now) | Branch **`feat/billy-capability-coverage`**, 5 commits ahead of `main` (head `c5b0a09`), plus uncommitted work. **This branch is the shared checkout** — do not `git switch` it away; use a worktree. | `supabase/functions/app-help-chat/**` (tools: `saveItem`, `logMilkStash`, `draftDaySheet`, wave-2 `navigate` routes), `screens/help/AIHelpChatScreen.tsx`, `docs/BILLY_*.md` | Let that session finish + typecheck, then merge to `main` and OTA. Do **not** OTA `main` mid-flight expecting Wave 2 — it isn't merged. |
-| **Waitlist migration (100)** | ✅ **DONE** — committed on `feat/waitlist-migration`, merged (PR #5), applied to prod | `supabase/migrations/100_waitlist.sql` | Fully shipped, no follow-up. |
-| **`feat/villie-boxes-home-polish`** (current working branch) | 15 ahead / behind `origin/main` (100_waitlist.sql duplicate removed — it now lives only on main history) | `screens/home/*`, Villie Boxes catalog/store, migration **092** | **Rebase/merge origin/main IN** — it's still behind on the 096/098/099 changes. |
-| **Milk Vault V6** | ✅ Merged (PR #3). Not deployed. | `src/screens/milkVault/*`, `api/milkVault.ts`, `store/milkVault.ts`, `milk-vault-scan` fn, migration 099 | Apply 099 + deploy `milk-vault-scan` + OTA (§4). Founder go-ahead to ship still open. |
-| **Milk Hub unification** | ✅ Plan doc merged (PR #4). Not built. | `docs/MILK_HUB_UNIFICATION.md` | Read before restructuring the Milk tab (Vault + Connect → one ecosystem). |
-| **The Buzz (trending)** | Spec approved + committed, **not built** | `docs/THE_BUZZ_TRENDING.md`; will add `TheBuzzScreen`, edge fns, review-queue | Write implementation plan (phases B1–B5); B2 installs `last30days` skill. Editorial (not clinical), two-tier review gate. Awaiting green-light. |
-| **Playbook baby tracker** | Phases 1–3 **LIVE** (migration 093 applied, `playbook-parse-note` deployed) | `src/screens/playbook/*`, tracker tables | Only Phase 4 (native iOS Lock-Screen widget) pending — needs a **native build**, not OTA. |
-| **Manual content (52 wks)** | Weeks 0–4 authored, 5–52 pending | `manualWeekContent.ts` (story/checklist/info) | Claude authors story/checklist/info; Felipe does specialist articles+videos. Fallback reads nearest earlier seeded week. |
-| **Deck fixes (seed raise)** | Review done (`DECK_REVIEW_2026-07-10.md`) | `~/Downloads/villie-pitch-updated/project/villie-pitch.html` (editable master) | Top-5 fixes in §5. Team slide + revenue reframe are founder-input. |
+**Re-surveyed 2026-08-15 from `git worktree list` + per-branch ahead/behind.** Only **one** branch is genuinely active; the other four are spent worktrees whose work is already on `main`. Left mounted, they read like live sessions and invite exactly the collisions this doc exists to prevent.
+
+#### 🔴 LIVE — do not touch
+
+| Branch | State | Owns (don't collide) |
+|---|---|---|
+| **`feat/billy-capability-coverage`** | **This is the shared checkout at the repo root.** Last commit **~20 min ago**, **12 uncommitted files**, ahead 3 / **behind 104** of `main`, pushed. | `supabase/functions/app-help-chat/**`, `supabase/functions/_shared/service-role.ts`, `supabase/functions/specialist-invite-create/index.ts`, `docs/THE_BUZZ_TRENDING.md`, `docs/audits/buzz-discovery-*` |
+
+**Do not `git switch` the root checkout — use a worktree.** Two live warnings on it:
+
+1. ⚠️ **Behind 104 with uncommitted work.** That is the same shape as the 62-commit drift incident in §0, where 44 commits existed only locally and prod schema wasn't reproducible from `main`. Merge `main` in soon.
+2. ⚠️ **It holds an uncommitted rewrite of `specialist-invite-create` + a new `_shared/service-role.ts`.** This is a **genuine improvement** on the 2026-08-15 Critical fix — a shared two-mode gate that solves the multi-key problem the strict-equality fix can't (`gatewayVerifiesJwt:false` → exact key only; `true` → exact key **or** a gateway-verified `service_role` claim, which tolerates key rotation). **Whoever owns that branch should commit it** — `supabase functions deploy` bundles the working tree, so this is one careless deploy from either shipping half-done or being lost.
+   🚨 **Unfinished dependency:** the helper's comment says *"the flag is not a guess: `supabase/config.toml` pins `verify_jwt` for every function."* **That is not true yet** — `config.toml` exists but contains only local-dev ports/auth, with **no `[functions.*]` sections and no `verify_jwt` anywhere.** `gatewayVerifiesJwt:true` is *currently* correct only because `specialist-invite-create` was deployed with `verify_jwt` on (verified live). Nothing durable enforces that. **Land the `config.toml` pins in the same change**, or a future `--no-verify-jwt` deploy silently turns the flag into a lie and restores the Critical. Only 1 of the 6 functions has been migrated to the shared gate so far.
+
+#### ✅ SPENT — work is on `main`, safe to delete
+
+All four are **local-only** (never pushed), **0 commits ahead** of `main`, and show **no diff** against it.
+
+| Branch | Evidence | Note |
+|---|---|---|
+| `fix/auth-guard-sweep` | 0 ahead / 25 behind, clean | RLS auth-guard sweep landed. Delete. |
+| `feat/log-editing` | 0 ahead / 96 behind, 2 stray files | Migration 125 applied; work merged. Strays are `ios/Podfile.lock` + `project.pbxproj` (build churn, not source). Delete after a glance. |
+| `release/mamas-corner-ota` | 0 ahead / 26 behind, clean | OTA shipped. Delete. |
+| `feat/plans-per-event-attributes` | 0 ahead / **156 behind**, 2 strays (`node_modules` only) | ⛔ **NEVER MERGE THIS BRANCH.** Its base is 156 commits stale — merging would revert ~1,900 lines. The per-event work is **already on `main`** by another route. Delete it rather than leave the trap mounted. |
+
+> **Convention that held up this session:** every change went through its own worktree off a freshly-fetched `origin/main`, and the shared checkout was never switched. That is why five PRs landed alongside an active Billy session without a single conflict.
 
 ---
 
