@@ -245,6 +245,32 @@ async function invokeEdge(fnName: string, body: unknown) {
   } catch { /* cron sweeps mop up */ }
 }
 
+/**
+ * Is this failure OURS (billing, auth, capacity) rather than the feed's?
+ *
+ * consecutive_failures exists to retire sources that have genuinely stopped
+ * being harvestable — a dead URL, a site redesign, a venue that stopped
+ * publishing. It must not retire a perfectly good source because our own
+ * Anthropic key ran out of credit, got rotated, or was rate-limited: that
+ * punishes every feed at once for a problem none of them caused, and because
+ * deactivation is sticky, the tab stays empty even after we fix the billing.
+ *
+ * Errs toward NOT counting. A missed retirement costs one stale feed that the
+ * daily digest's liveness guard will surface anyway; a wrong retirement costs
+ * the whole vertical and needs a human to notice and undo it.
+ */
+function isOurFailureNotTheFeeds(msg: string): boolean {
+  const m = msg.toLowerCase();
+  return m.includes('credit balance')       // billing lapsed
+    || m.includes('authentication_error')   // key revoked / wrong
+    || m.includes('permission_error')
+    || m.includes('invalid x-api-key')
+    || m.includes('rate_limit')             // our quota, not their page
+    || m.includes('overloaded')             // Anthropic capacity
+    || m.includes('api_error')              // Anthropic 5xx
+    || m.includes('anthropic_api_key');     // secret missing entirely
+}
+
 async function harvestFeed(feed: any): Promise<{ found: number; upserted: number; rendered: boolean; skipped: number; error?: string }> {
   const url = String(feed.ics_url).slice(HARVEST_PREFIX.length);
 
@@ -487,14 +513,22 @@ Deno.serve(async (req) => {
         }
       } catch (e) {
         const msg = e instanceof Error ? e.message : String(e);
-        report[feed.partner_name] = { error: msg };
-        const failures = (feed.consecutive_failures ?? 0) + 1;
+        const infra = isOurFailureNotTheFeeds(msg);
+        report[feed.partner_name] = { error: msg, counted_against_feed: !infra };
+
+        // Only a failure the FEED is responsible for counts toward retirement.
+        // Verified 2026-08-17: an Anthropic credit lapse took all five feeds to
+        // consecutive_failures=3 in three nightly runs and deactivated every one
+        // of them — turning a billing problem into an empty Plans tab that would
+        // NOT have recovered on its own once credit was restored, because
+        // is_active stays false until a human flips it back.
+        const failures = infra ? (feed.consecutive_failures ?? 0) : (feed.consecutive_failures ?? 0) + 1;
         const patch: Record<string, unknown> = {
           last_synced_at: new Date().toISOString(),
-          last_sync_status: `error: ${msg}`.slice(0, 200),
+          last_sync_status: (infra ? `blocked (our infra): ${msg}` : `error: ${msg}`).slice(0, 200),
           consecutive_failures: failures,
         };
-        if (failures >= 3) patch.is_active = false;
+        if (!infra && failures >= 3) patch.is_active = false;
         await supabase.from('events_partner_feeds').update(patch).eq('id', feed.id);
       }
     }
