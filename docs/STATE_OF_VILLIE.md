@@ -86,23 +86,26 @@ Villie is a **pre-launch** maternal-health platform (React Native + Expo + Supab
 | Branch | State | Owns (don't collide) |
 |---|---|---|
 | **`feat/billy-capability-coverage`** | **This is the shared checkout at the repo root.** Last commit **~20 min ago**, **12 uncommitted files**, ahead 3 / **behind 104** of `main`, pushed. | `supabase/functions/app-help-chat/**`, `supabase/functions/_shared/service-role.ts`, `supabase/functions/specialist-invite-create/index.ts`, `docs/THE_BUZZ_TRENDING.md`, `docs/audits/buzz-discovery-*` |
+| **`feat/pro-locale-gate`** | Sibling worktree at `../village-app-pro-gate` — **not** under `.worktrees/`, so it is easy to miss. **1 ahead** / 2 behind, clean, last commit ~10h ago. Genuinely pending. | villie Pro launch-gate locale handling |
 
 **Do not `git switch` the root checkout — use a worktree.** Two live warnings on it:
 
 1. ⚠️ **Behind 104 with uncommitted work.** That is the same shape as the 62-commit drift incident in §0, where 44 commits existed only locally and prod schema wasn't reproducible from `main`. Merge `main` in soon.
-2. ⚠️ **It holds an uncommitted rewrite of `specialist-invite-create` + a new `_shared/service-role.ts`.** This is a **genuine improvement** on the 2026-08-15 Critical fix — a shared two-mode gate that solves the multi-key problem the strict-equality fix can't (`gatewayVerifiesJwt:false` → exact key only; `true` → exact key **or** a gateway-verified `service_role` claim, which tolerates key rotation). **Whoever owns that branch should commit it** — `supabase functions deploy` bundles the working tree, so this is one careless deploy from either shipping half-done or being lost.
-   🚨 **Unfinished dependency:** the helper's comment says *"the flag is not a guess: `supabase/config.toml` pins `verify_jwt` for every function."* **That is not true yet** — `config.toml` exists but contains only local-dev ports/auth, with **no `[functions.*]` sections and no `verify_jwt` anywhere.** `gatewayVerifiesJwt:true` is *currently* correct only because `specialist-invite-create` was deployed with `verify_jwt` on (verified live). Nothing durable enforces that. **Land the `config.toml` pins in the same change**, or a future `--no-verify-jwt` deploy silently turns the flag into a lie and restores the Critical. Only 1 of the 6 functions has been migrated to the shared gate so far.
+2. ⚠️ **It holds an uncommitted rewrite of `specialist-invite-create` + a new `_shared/service-role.ts`.** This is a **genuine improvement** on the 2026-08-15 Critical fix — a shared two-mode gate that solves the multi-key problem the strict-equality fix can't (`gatewayVerifiesJwt:false` → exact key only; `true` → exact key **or** a gateway-verified `service_role` claim, which tolerates key rotation). ✅ **Committed 2026-08-15 as `4e61ac9`** — no longer one working-tree deploy from being lost.
+   🚨 **Unfinished dependency:** the helper's comment says *"the flag is not a guess: `supabase/config.toml` pins `verify_jwt` for every function."* **That is not true yet** — `config.toml` exists but contains only local-dev ports/auth, with **no `[functions.*]` sections and no `verify_jwt` anywhere.** `gatewayVerifiesJwt:true` is *currently* correct only because `specialist-invite-create` was deployed with `verify_jwt` on (verified live). Nothing durable enforces that. **Land the `config.toml` pins in the same change**, or a future `--no-verify-jwt` deploy silently turns the flag into a lie and restores the Critical. Only 1 of the 6 functions has been migrated so far (the other 5 are `verify_jwt:true`, so not exploitable meanwhile). **As of `4e61ac9` the `config.toml` pins are still absent** — that commit carried only the helper plus the one call site.
 
-#### ✅ SPENT — work is on `main`, safe to delete
+#### ✅ SPENT — DELETED 2026-08-15
 
-All four are **local-only** (never pushed), **0 commits ahead** of `main`, and show **no diff** against it.
+All four were local-only (never pushed), 0 commits ahead of `main`, with each tip verified as an ancestor of `origin/main` — nothing was lost. **Worktrees unmounted and branches deleted.** Recorded so the next session knows they're gone deliberately, not missing.
 
-| Branch | Evidence | Note |
+| Branch | Was | Outcome |
 |---|---|---|
-| `fix/auth-guard-sweep` | 0 ahead / 25 behind, clean | RLS auth-guard sweep landed. Delete. |
-| `feat/log-editing` | 0 ahead / 96 behind, 2 stray files | Migration 125 applied; work merged. Strays are `ios/Podfile.lock` + `project.pbxproj` (build churn, not source). Delete after a glance. |
-| `release/mamas-corner-ota` | 0 ahead / 26 behind, clean | OTA shipped. Delete. |
-| `feat/plans-per-event-attributes` | 0 ahead / **156 behind**, 2 strays (`node_modules` only) | ⛔ **NEVER MERGE THIS BRANCH.** Its base is 156 commits stale — merging would revert ~1,900 lines. The per-event work is **already on `main`** by another route. Delete it rather than leave the trap mounted. |
+| `fix/auth-guard-sweep` | 0 ahead / 25 behind | Deleted — sweep already on main. |
+| `feat/log-editing` | 0 ahead / 96 behind | Deleted. Migration 125 applied. Its 2 stray files were `pod install` output (Podfile.lock + pbxproj) — regenerable, discarded. |
+| `release/mamas-corner-ota` | 0 ahead / 26 behind | Deleted — OTA shipped. |
+| `feat/plans-per-event-attributes` | 0 ahead / **156 behind** | Deleted — **this was the one that mattered.** A never-merge trap: merging it would have reverted ~1,900 lines while its real work was already on `main` by another route. Deleting turns "remember not to do this" into "cannot happen." |
+
+> ⚠️ **`git branch -d` compares against the CURRENT checkout, not `main`.** It refused three of these as "not fully merged" purely because the root checkout sits on `feat/billy-capability-coverage`, 104 behind `main`. The correct check is `git merge-base --is-ancestor <branch> origin/main`. Confirm that way before reaching for `-D` — a safety net that cries wolf is one people learn to bypass.
 
 > **Convention that held up this session:** every change went through its own worktree off a freshly-fetched `origin/main`, and the shared checkout was never switched. That is why five PRs landed alongside an active Billy session without a single conflict.
 
