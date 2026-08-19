@@ -5,12 +5,13 @@
 // for "nurse now, switch to formula later". Prices are tight historical
 // estimates the mom can compare against (see utils/formulaCosts).
 
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { COLORS, FONTS } from '@utils/constants';
 import { VaultScreen } from '@components/milkVault/VaultUI';
 import { ScreenHeader } from '@components/shared/ScreenHeader';
+import { babyTrackerApi } from '@api/babyTracker';
 import {
   FORMULA_BRANDS, feedingScenarios, yearOutlook, rangeLabel, type FormulaBrand,
 } from '@utils/formulaCosts';
@@ -51,9 +52,31 @@ function Stepper({ value, onDec, onInc, suffix }: { value: string; onDec: () => 
 export default function MilkFeedCostScreen() {
   const nav = useNavigation<any>();
   const [ozPerDay, setOzPerDay] = useState(26);
+  const [pulledFromLogs, setPulledFromLogs] = useState(false);
   const [brandId, setBrandId] = useState('enfamil');
   const [comboShare, setComboShare] = useState(0.5);
   const [switchMonth, setSwitchMonth] = useState(4);
+
+  // Pre-fill ounces/day from the mom's own bottle logs (best-effort). Only if
+  // she hasn't already nudged the stepper — never fight a manual change.
+  const [touched, setTouched] = useState(false);
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const avg = await babyTrackerApi.avgFeedOzPerDay();
+      if (cancelled || touched || avg == null) return;
+      setOzPerDay(Math.min(OZ_MAX, Math.max(OZ_MIN, avg)));
+      setPulledFromLogs(true);
+    })();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- run once on mount
+  }, []);
+
+  const bumpOz = (delta: number) => {
+    setTouched(true);
+    setPulledFromLogs(false);
+    setOzPerDay((v) => Math.min(OZ_MAX, Math.max(OZ_MIN, v + delta)));
+  };
 
   const brand: FormulaBrand = FORMULA_BRANDS.find((b) => b.id === brandId) ?? FORMULA_BRANDS[0];
   const scenarios = useMemo(
@@ -72,10 +95,14 @@ export default function MilkFeedCostScreen() {
         <Text style={s.q}>How much does baby drink a day?</Text>
         <Stepper
           value={String(ozPerDay)} suffix="oz"
-          onDec={() => setOzPerDay((v) => Math.max(OZ_MIN, v - 2))}
-          onInc={() => setOzPerDay((v) => Math.min(OZ_MAX, v + 2))}
+          onDec={() => bumpOz(-2)}
+          onInc={() => bumpOz(2)}
         />
-        <Text style={s.hint}>newborn ≈ 24 · 3 months ≈ 30 · we’ll pull this from your logs soon</Text>
+        <Text style={s.hint}>
+          {pulledFromLogs
+            ? '✓ pulled from your recent bottle logs — adjust anytime'
+            : 'newborn ≈ 24 · 3 months ≈ 30'}
+        </Text>
 
         {/* Q2 — formula brand */}
         <Text style={s.q}>Which formula? <Text style={s.qLight}>(for the formula options)</Text></Text>

@@ -525,4 +525,26 @@ export const babyTrackerApi = {
       dirtyPerDay: dirty ? Math.round((dirty / diaperDays) * 10) / 10 : null,
     };
   },
+
+  // Average ounces/day from logged bottle feeds over the last `days` — for the
+  // feeding-cost planner's pre-fill. Only oz-bearing feeds count (direct
+  // nursing has no oz), divided by the distinct days that actually have data so
+  // sparse logging doesn't drag the average down. null when there's nothing to
+  // go on. Guarded like every read (RLS-silent-empty trap).
+  async avgFeedOzPerDay(days = 7): Promise<number | null> {
+    if (!(await sessionReady())) return null;
+    const since = new Date(Date.now() - days * 86400000).toISOString();
+    const { data, error } = await supabase
+      .from('baby_feed_logs')
+      .select('started_at, amount_oz')
+      .gte('started_at', since)
+      .not('amount_oz', 'is', null);
+    if (error || !data) return null;
+    const rows = (data as { started_at: string; amount_oz: number | null }[])
+      .filter((r) => typeof r.amount_oz === 'number' && r.amount_oz > 0);
+    if (rows.length === 0) return null;
+    const totalOz = rows.reduce((sum, r) => sum + (r.amount_oz ?? 0), 0);
+    const dayCount = new Set(rows.map((r) => dayKeyLocal(r.started_at))).size || 1;
+    return Math.round(totalOz / dayCount);
+  },
 };
