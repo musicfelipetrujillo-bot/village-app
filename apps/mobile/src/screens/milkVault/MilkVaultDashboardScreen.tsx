@@ -240,6 +240,16 @@ function FilledStash({
         </TouchableOpacity>
       </View>
 
+      {/* Feeding-cost planner */}
+      <TouchableOpacity style={styles.costCard} activeOpacity={0.9} onPress={() => nav.navigate('MilkFeedCost')} accessibilityRole="button" accessibilityLabel="Plan feeding costs">
+        <View style={styles.costIcon}><Text style={styles.costEmoji}>🧮</Text></View>
+        <View style={{ flex: 1, minWidth: 0 }}>
+          <Text style={styles.costTitle}>What will feeding cost?</Text>
+          <Text style={styles.costSub}>compare formula, donor & combo — per month</Text>
+        </View>
+        <Text style={styles.costArrow}>›</Text>
+      </TouchableOpacity>
+
       {/* Recent bags */}
       {bags.length > 0 && (
         <View style={styles.section}>
@@ -379,6 +389,13 @@ const styles = StyleSheet.create({
   shareText: { flex: 1, fontFamily: FONTS.v2_body, fontSize: 13, color: '#5A4030', lineHeight: 18 },
   shareEarn: { fontFamily: FONTS.v2_link, fontSize: 12, color: C.roseInk, marginTop: 3 },
   shareArrow: { fontSize: 20, color: C.roseInk },
+
+  costCard: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: C.paper, borderWidth: 1, borderColor: C.hair, borderRadius: 16, padding: 13, marginHorizontal: 18, marginTop: 14 },
+  costIcon: { width: 44, height: 44, borderRadius: 14, alignItems: 'center', justifyContent: 'center', backgroundColor: '#FBE0E8' },
+  costEmoji: { fontSize: 20 },
+  costTitle: { fontFamily: FONTS.v2_bold, fontSize: 14.5, color: C.cocoa },
+  costSub: { fontFamily: FONTS.v2_body, fontSize: 12, color: C.walnut, marginTop: 2 },
+  costArrow: { fontSize: 20, color: C.roseInk },
 
   addManual: { alignItems: 'center', paddingVertical: 16, marginTop: 6 },
   addManualText: { fontFamily: FONTS.v2_link, fontSize: 14, color: C.roseInk },

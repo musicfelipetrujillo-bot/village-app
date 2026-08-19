@@ -44,6 +44,7 @@ import MilkVaultBagsScreen from '@screens/milkVault/MilkVaultBagsScreen';
 import MilkVaultKeepSellScreen from '@screens/milkVault/MilkVaultKeepSellScreen';
 import MilkVaultListingScreen from '@screens/milkVault/MilkVaultListingScreen';
 import MilkVaultSettingsScreen from '@screens/milkVault/MilkVaultSettingsScreen';
+import MilkFeedCostScreen from '@screens/milkVault/MilkFeedCostScreen';
 
 /** Prefill payload passed from the AI scanner into the Add Bag confirmation. */
 export interface MilkVaultBagPrefill {
@@ -84,6 +85,7 @@ export type MilkStackParamList = {
   MilkVaultKeepSell: undefined;
   MilkVaultListing: { prefillOunces?: number } | undefined;
   MilkVaultSettings: undefined;
+  MilkFeedCost: undefined;
 };
 
 const Stack = createNativeStackNavigator<MilkStackParamList>();
@@ -119,6 +121,7 @@ export function MilkNavigator() {
       <Stack.Screen name="MilkVaultKeepSell" component={MilkVaultKeepSellScreen} />
       <Stack.Screen name="MilkVaultListing" component={MilkVaultListingScreen} />
       <Stack.Screen name="MilkVaultSettings" component={MilkVaultSettingsScreen} />
+      <Stack.Screen name="MilkFeedCost" component={MilkFeedCostScreen} />
       <Stack.Screen name="DonorListingManager" component={MilkMyListingsScreen} />
     </Stack.Navigator>
   );
