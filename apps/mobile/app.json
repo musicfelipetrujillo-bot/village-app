@@ -35,6 +35,8 @@
         "NSCalendarsUsageDescription": "villie adds your specialist booking to your calendar when you tap Add to Calendar.",
         "NSCalendarsFullAccessUsageDescription": "villie adds your specialist booking to your calendar when you tap Add to Calendar.",
         "NSUserNotificationsUsageDescription": "Notifications for appointments, new donors, and community messages.",
+        "NSMicrophoneUsageDescription": "villie uses the microphone when you tap the mic on Home, so you can ask a question out loud instead of typing it one-handed.",
+        "NSSpeechRecognitionUsageDescription": "villie turns what you say into text on your device so your question can be sent to the villie assistant. The audio stays on your phone.",
         "ITSAppUsesNonExemptEncryption": false,
         "UIBackgroundModes": [
           "audio"
@@ -148,7 +150,14 @@
         }
       ],
       "./plugins/withModularHeaders.js",
-      "expo-audio"
+      "expo-audio",
+      [
+        "expo-speech-recognition",
+        {
+          "microphonePermission": "villie uses the microphone when you tap the mic on Home, so you can ask a question out loud instead of typing it one-handed.",
+          "speechRecognitionPermission": "villie turns what you say into text on your device so your question can be sent to the villie assistant. The audio stays on your phone."
+        }
+      ]
     ],
     "extra": {
       "eas": {

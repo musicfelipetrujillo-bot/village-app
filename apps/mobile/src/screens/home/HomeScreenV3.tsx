@@ -30,6 +30,8 @@ import { useT } from '@/i18n';
 import { isExpecting } from '@/manual/beforeBaby';
 import { theBuzzApi, type TheBuzzArchiveRow } from '@api/theBuzz';
 import { useFocusEffect } from '@react-navigation/native';
+import VoiceDictationSheet from '@components/shared/VoiceDictationSheet';
+import { isVoiceDictationAvailable } from '@/lib/voiceDictation';
 
 const VILLIE_BEE = require('../../../assets/brand/villie-bee.png');
 const WEEK_SEAL = require('../../../assets/home/week-seal.png');
@@ -274,7 +276,7 @@ function LogRow({ onFeed, onSleep, onMilk }: { onFeed: () => void; onSleep: () =
 }
 
 // ─── Quiet ask-villie bar ──────────────────────────────────────────────
-function AskVillie({ onAsk, weekNumber, babyName }: { onAsk: (seed?: string) => void; weekNumber: number; babyName: string }) {
+function AskVillie({ onAsk, onMic, weekNumber, babyName }: { onAsk: (seed?: string) => void; onMic: () => void; weekNumber: number; babyName: string }) {
   const lang = useUserStore((s) => s.profile?.preferred_language ?? 'en') as 'en' | 'es';
   const hour = new Date().getHours();
   const name = babyName.toLowerCase();
@@ -290,7 +292,7 @@ function AskVillie({ onAsk, weekNumber, babyName }: { onAsk: (seed?: string) => 
           <View style={styles.askBee}><Image source={VILLIE_BEE} style={{ width: 16, height: 16 }} resizeMode="contain" /></View>
           <Text style={styles.askText}>{lang === 'es' ? 'pregúntale o dile lo que sea…' : 'ask or tell villie anything…'}</Text>
         </TouchableOpacity>
-        <TouchableOpacity activeOpacity={0.85} onPress={() => onAsk()} accessibilityRole="button" accessibilityLabel={lang === 'es' ? 'Habla con Villie' : 'Talk to Villie'}>
+        <TouchableOpacity activeOpacity={0.85} onPress={onMic} accessibilityRole="button" accessibilityLabel={lang === 'es' ? 'Dile a Villie con tu voz' : 'Speak to Villie instead of typing'}>
           <LinearGradient colors={['#E14A32', '#EE9A38']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.askMic}>
             <Glyph d={ICON.mic} color="#fff" size={19} sw={1.8} />
           </LinearGradient>
@@ -422,6 +424,20 @@ export default function HomeScreenV3() {
     navigation.getParent()?.navigate('Manual', { screen: 'ManualHome', params: { view } });
   const goBeforeBaby = () => navigation.getParent()?.navigate('Manual', { screen: 'BeforeBaby' });
   const askVillie = (seed?: string) => (navigation.getParent()?.getParent() as any)?.navigate('AIHelpChat', seed ? { seed, autosend: true } : {});
+
+  // Mic → dictate → the transcript lands in the SAME AIHelpChat call the text
+  // bar makes, already sent. Voice is an input method here, not a second brain.
+  //
+  // The availability check is load-bearing: the native recognizer only exists
+  // in a build made after this landed, and this JS ships over the air to every
+  // older binary. On those, the mic keeps doing exactly what it did before —
+  // opens the composer — rather than a sheet that can never hear anything.
+  const [voiceOpen, setVoiceOpen] = React.useState(false);
+  const openVoice = React.useCallback(async () => {
+    if (await isVoiceDictationAvailable()) setVoiceOpen(true);
+    else askVillie();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   // The signature "log milk from a photo" action → Milk Vault bag scanner.
   const scanMilk = () => (navigation.getParent() as any)?.navigate('Milk', { screen: 'MilkVaultScan' });
 
@@ -503,7 +519,7 @@ export default function HomeScreenV3() {
             <Text style={styles.patternsLinkText}>{lang === 'es' ? 'ver patrones del bebé  ›' : "baby's patterns  ›"}</Text>
           </TouchableOpacity>
 
-          <AskVillie onAsk={askVillie} weekNumber={heroWeek} babyName={heroBabyName} />
+          <AskVillie onAsk={askVillie} onMic={openVoice} weekNumber={heroWeek} babyName={heroBabyName} />
 
           {expecting && (
             <TouchableOpacity
@@ -573,6 +589,16 @@ export default function HomeScreenV3() {
       <Animated.View pointerEvents="none" style={[styles.miniHeader, { paddingTop: insets.top + 4, opacity: miniOpacity }]}>
         <Text style={styles.miniHeaderText}>{heroBabyName.toLowerCase()} · {heroWeek} {weekUnit} old</Text>
       </Animated.View>
+
+      {/* Voice dictation — closes first, THEN navigates, so the chat screen
+          doesn't push in underneath a sheet that's still animating out. */}
+      <VoiceDictationSheet
+        visible={voiceOpen}
+        lang={lang}
+        onTranscript={(text) => { setVoiceOpen(false); askVillie(text); }}
+        onCancel={() => setVoiceOpen(false)}
+        onTypeInstead={() => { setVoiceOpen(false); askVillie(); }}
+      />
     </View>
   );
 }
