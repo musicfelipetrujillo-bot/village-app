@@ -43,7 +43,8 @@ serve(async (req) => {
       });
     }
 
-    const { amount_cents, specialist_id, service_name, currency = 'usd' } = await req.json();
+    // `currency` is deliberately NOT read from the body — see CURRENCY note below.
+    const { amount_cents, specialist_id, service_name } = await req.json();
 
     if (!specialist_id || !service_name) {
       return new Response(JSON.stringify({ error: 'specialist_id and service_name are required' }), {
@@ -109,9 +110,27 @@ serve(async (req) => {
       .eq('id', specialist_id)
       .single();
 
+    // ─── CURRENCY is server-fixed, not client-supplied ─────────────────
+    // The amount was moved server-side above, but `currency` was still being read
+    // off the request body and handed to Stripe — which reopened the same hole by
+    // a different door. Stripe amounts are denominated in the given currency, so a
+    // tampered client sending `{"currency":"idr"}` against a $150.00 service would
+    // create a 15000-IDR intent (~US$0.90) and complete a "paid" booking for
+    // pocket change. `application_fee_amount` and the Connect transfer below are
+    // derived from the same figure, so the specialist gets paid in the forged
+    // currency too.
+    //
+    // `specialist_services` has no currency column — every price_cents in the
+    // catalogue is implicitly USD — so there is nothing authoritative to read and
+    // the correct move is to pin it. This matches boxes-create-payment-intent,
+    // which hardcodes 'usd' at index.ts:166,190.
+    //
+    // If multi-currency pricing is ever added, add a `currency` column to
+    // specialist_services and read it from `service` alongside price_cents. Do NOT
+    // reinstate the body parameter.
     const intentParams: Stripe.PaymentIntentCreateParams = {
       amount: chargeCents,
-      currency,
+      currency: 'usd',
       metadata: {
         specialist_id,
         service_name,
