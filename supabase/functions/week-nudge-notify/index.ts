@@ -21,6 +21,7 @@
 // filter (defense in depth — see push-notify's header).
 
 import { createClient } from 'jsr:@supabase/supabase-js@2';
+import { isServiceRoleRequest } from '../_shared/service-role.ts';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -286,6 +287,23 @@ async function runCheckinDrain(localHour: number, limit: number, dryRun: boolean
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS });
+
+  // AUTH (2026-09-04): this function had no authorization check. `verify_jwt = true`
+  // is not one — the anon publishable key ships in the mobile bundle and satisfies
+  // the gateway, so "server-only" was enforced nowhere.
+  //
+  // Anyone could trigger the "baby's week" push fan-out with attacker-tuned windows, and pollute the push_sends ledger.
+  //
+  // Only caller: the hourly GH Actions cron (.github/workflows/supabase-crons.yml:64),
+  // which sends `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`. This gate breaks nothing.
+  //
+  // gatewayVerifiesJwt: true matches this function's verify_jwt pin in config.toml.
+  if (!isServiceRoleRequest(req, { gatewayVerifiesJwt: true })) {
+    return new Response(JSON.stringify({ error: 'unauthorized' }), {
+      status: 401,
+      headers: { ...CORS, 'Content-Type': 'application/json' },
+    });
+  }
 
   const body = await req.json().catch(() => ({}));
   const mode: 'week' | 'winback' | 'checkin' | 'both' =

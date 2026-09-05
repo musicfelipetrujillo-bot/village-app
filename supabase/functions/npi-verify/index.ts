@@ -7,6 +7,7 @@
 // Auth: service role or authenticated specialist claiming own profile.
 
 import { createClient } from 'npm:@supabase/supabase-js';
+import { isServiceRoleRequest } from '../_shared/service-role.ts';
 
 const supabase = createClient(
   Deno.env.get('SUPABASE_URL')!,
@@ -61,6 +62,27 @@ interface NPIResult {
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: CORS });
+  }
+
+  // AUTH (2026-09-04): this function had no authorization check. `verify_jwt = true`
+  // is not one — the anon publishable key ships in the mobile bundle and satisfies
+  // the gateway, so "server-only" was enforced nowhere.
+  //
+  // An unauthenticated caller could flip `specialists.npi_verified = true`, forging the credential badge moms rely on when picking a clinician.
+  //
+  // Callers: NONE in this repo — the function is deployed but currently unreferenced
+  // by mobile, SQL, and every other edge function (only supabase/seed.sql mentions it,
+  // in a comment). Nothing can break, and leaving a gateless write endpoint deployed
+  // for a badge moms use to judge a clinician is not a defensible default. If it is
+  // ever wired to the specialist-onboarding flow, that caller is anon pre-signup and
+  // will need a different gate than service-role — revisit here, don't loosen this.
+  //
+  // gatewayVerifiesJwt: true matches this function's verify_jwt pin in config.toml.
+  if (!isServiceRoleRequest(req, { gatewayVerifiesJwt: true })) {
+    return new Response(JSON.stringify({ error: 'unauthorized' }), {
+      status: 401,
+      headers: { ...CORS, 'Content-Type': 'application/json' },
+    });
   }
 
   try {

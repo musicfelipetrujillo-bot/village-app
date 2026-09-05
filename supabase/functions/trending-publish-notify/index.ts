@@ -8,6 +8,7 @@
 // external_ids list, and push-notify's central pref/quiet-hours gate still
 // re-checks each one as the safety net.
 import { createClient } from 'jsr:@supabase/supabase-js@2';
+import { isServiceRoleRequest } from '../_shared/service-role.ts';
 
 const supabase = createClient(
   Deno.env.get('SUPABASE_URL')!,
@@ -25,6 +26,23 @@ function json(body: unknown, status = 200) {
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: CORS });
+
+  // AUTH (2026-09-04): this function had no authorization check. `verify_jwt = true`
+  // is not one — the anon publishable key ships in the mobile bundle and satisfies
+  // the gateway, so "server-only" was enforced nowhere.
+  //
+  // Anyone could trigger a Buzz publish push fan-out to the user base.
+  //
+  // Only caller: pg_cron (105_v7_the_buzz.sql:245), which sends
+  // `Bearer <current_setting('app.service_role_key')>`. This gate breaks nothing.
+  //
+  // gatewayVerifiesJwt: true matches this function's verify_jwt pin in config.toml.
+  if (!isServiceRoleRequest(req, { gatewayVerifiesJwt: true })) {
+    return new Response(JSON.stringify({ error: 'unauthorized' }), {
+      status: 401,
+      headers: { ...CORS, 'Content-Type': 'application/json' },
+    });
+  }
 
   try {
     const body = await req.json().catch(() => ({}));

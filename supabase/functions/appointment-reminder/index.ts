@@ -11,6 +11,7 @@
 
 import { createClient } from 'npm:@supabase/supabase-js';
 import { isQuietHoursActive } from '../_shared/quiet-hours.ts';
+import { isServiceRoleRequest } from '../_shared/service-role.ts';
 
 const supabase = createClient(
   Deno.env.get('SUPABASE_URL')!,
@@ -25,6 +26,23 @@ const CORS = {
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: CORS });
+  }
+
+  // AUTH (2026-09-04): this function had no authorization check. `verify_jwt = true`
+  // is not one — the anon publishable key ships in the mobile bundle and satisfies
+  // the gateway, so "server-only" was enforced nowhere.
+  //
+  // Anyone could drive the reminder sweep: SMS + push fan-out plus `twilio_reminder_sent` writes.
+  //
+  // Only caller: pg_cron every 15 minutes (014_v1_cron_jobs.sql:18), which sends
+  // `Bearer <current_setting('app.service_role_key')>`. This gate breaks nothing.
+  //
+  // gatewayVerifiesJwt: true matches this function's verify_jwt pin in config.toml.
+  if (!isServiceRoleRequest(req, { gatewayVerifiesJwt: true })) {
+    return new Response(JSON.stringify({ error: 'unauthorized' }), {
+      status: 401,
+      headers: { ...CORS, 'Content-Type': 'application/json' },
+    });
   }
 
   try {

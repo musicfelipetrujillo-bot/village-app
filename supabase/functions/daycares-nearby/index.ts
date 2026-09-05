@@ -7,6 +7,7 @@
 // Env: GOOGLE_MAPS_API_KEY (must have the Places API enabled + be server-usable).
 
 import { createClient } from 'npm:@supabase/supabase-js';
+import { isAuthenticatedUser } from '../_shared/user-auth.ts';
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -146,6 +147,23 @@ export async function fetchDaycares(lat: number, lng: number, radiusMiles: numbe
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: CORS });
+
+  // AUTH (2026-09-04): no authorization check existed here. `verify_jwt = true` is
+  // not one — the anon publishable key ships in the mobile bundle and satisfies the
+  // gateway, so this was open to the internet. Queries the Google Places API — a billable call, previously invocable by anyone holding the anon key.
+  //
+  // Only caller is the mobile app as a signed-in user, which already sends her JWT
+  // via supabase.functions.invoke, so requiring a real user breaks nothing.
+  //
+  // This function does not act on a specific user's records, so proving "a valid
+  // user is asking" is the right bar. Anything that reads or writes a particular
+  // user's data must use getCallerUserId and compare ids instead.
+  if (!(await isAuthenticatedUser(req))) {
+    return new Response(JSON.stringify({ error: 'unauthorized' }), {
+      status: 401,
+      headers: { ...CORS, 'Content-Type': 'application/json' },
+    });
+  }
   try {
     const body = await req.json();
     const lat = Number(body.lat), lng = Number(body.lng);

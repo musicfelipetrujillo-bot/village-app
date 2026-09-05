@@ -12,6 +12,8 @@
 // If neither key is set we return { found: false } with a 200 so the mobile
 // flow gracefully degrades to manual entry.
 
+import { isAuthenticatedUser } from '../_shared/user-auth.ts';
+
 const CORS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -99,6 +101,24 @@ async function lookupUpcItemDb(upc: string, apiKey: string): Promise<LookupResul
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: CORS });
+
+  // AUTH (2026-09-04): no authorization check existed here. `verify_jwt = true` is
+  // not one — the anon publishable key ships in the mobile bundle and satisfies the
+  // gateway, so this was open to the internet. Calls the Go-UPC / UPCitemdb APIs —
+  // billable third-party lookups, previously invocable by anyone holding that key.
+  //
+  // Only caller is the mobile app as a signed-in user (api/gear.ts:307), which
+  // already sends her JWT via supabase.functions.invoke, so this breaks nothing.
+  //
+  // This function does not act on a specific user's records, so proving "a valid
+  // user is asking" is the right bar. Anything that reads or writes a particular
+  // user's data must use getCallerUserId and compare ids instead.
+  if (!(await isAuthenticatedUser(req))) {
+    return new Response(JSON.stringify({ error: 'unauthorized' }), {
+      status: 401,
+      headers: { ...CORS, 'Content-Type': 'application/json' },
+    });
+  }
   if (req.method !== 'POST') {
     return new Response(JSON.stringify({ error: 'method not allowed' }), {
       status: 405, headers: { ...CORS, 'Content-Type': 'application/json' },

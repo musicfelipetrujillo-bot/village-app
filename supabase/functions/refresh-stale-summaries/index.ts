@@ -4,6 +4,7 @@
 // Uses get_specialists_needing_summary_refresh() SQL function
 
 import { createClient } from 'npm:@supabase/supabase-js';
+import { isServiceRoleRequest } from '../_shared/service-role.ts';
 
 const supabase = createClient(
   Deno.env.get('SUPABASE_URL')!,
@@ -13,7 +14,25 @@ const supabase = createClient(
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
-Deno.serve(async () => {
+// AUTH (2026-09-04): this function had no authorization check, and the handler did
+// not even accept the Request — so there was nothing to check it against.
+// `verify_jwt = true` is not a gate: the anon publishable key ships in the mobile
+// bundle and satisfies the gateway. Anyone could drive the whole summary-refresh
+// sweep, which fans out one Anthropic call per stale specialist — an open tap on
+// the Anthropic bill.
+//
+// Only caller: pg_cron daily at 3am ET (014_v1_cron_jobs.sql:38), which sends
+// `Bearer <current_setting('app.service_role_key')>`, so this gate breaks nothing.
+//
+// gatewayVerifiesJwt: true matches this function's verify_jwt pin in config.toml.
+Deno.serve(async (req) => {
+  if (!isServiceRoleRequest(req, { gatewayVerifiesJwt: true })) {
+    return new Response(JSON.stringify({ error: 'unauthorized' }), {
+      status: 401,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
   try {
     // Get specialists needing refresh
     const { data: rows, error } = await supabase.rpc('get_specialists_needing_summary_refresh');
