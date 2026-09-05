@@ -1449,7 +1449,9 @@
     "dayWe": "We",
     "dayTh": "Th",
     "dayFr": "Fr",
-    "daySa": "Sa"
+    "daySa": "Sa",
+    "saveErrorTitle": "We couldn't book that",
+    "saveErrorBody": "Your appointment wasn't saved. Your time slot is still selected — please tap again to retry."
   },
   "expertsHome": {
     "eyebrow": "VERIFIED · NEAR YOU",

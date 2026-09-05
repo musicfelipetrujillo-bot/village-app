@@ -1449,7 +1449,9 @@
     "dayWe": "Mi",
     "dayTh": "Ju",
     "dayFr": "Vi",
-    "daySa": "Sa"
+    "daySa": "Sa",
+    "saveErrorTitle": "No pudimos agendar la cita",
+    "saveErrorBody": "Tu cita no se guardó. Tu horario sigue seleccionado — toca de nuevo para reintentar."
   },
   "expertsHome": {
     "eyebrow": "VERIFICADOS · CERCA DE TI",
