@@ -488,15 +488,20 @@ export async function callQuestionnaireCoach(
   return res.json();
 }
 
+// `recipientPreferences` removed 2026-09-05. The server no longer accepts it: the
+// narrative it produces is cached on the donor's badge row and served to every
+// user, so letting a viewer inject text into that prompt was a cache-poisoning
+// vector (see supabase/functions/milk-trust-narrative/index.ts). No call site ever
+// passed it. Dropping the parameter rather than ignoring it server-side, so it
+// can't look like a working feature.
 export async function callTrustNarrative(
-  donorProfileId: string,
-  recipientPreferences?: string
+  donorProfileId: string
 ): Promise<{ narrative: string; cached: boolean }> {
   const token = await getAccessToken();
   const res = await fetch(`${EDGE}/milk-trust-narrative`, {
     method: 'POST',
     headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ donor_profile_id: donorProfileId, recipient_preferences: recipientPreferences }),
+    body: JSON.stringify({ donor_profile_id: donorProfileId }),
   });
   if (!res.ok) throw new Error('Trust narrative failed');
   return res.json();

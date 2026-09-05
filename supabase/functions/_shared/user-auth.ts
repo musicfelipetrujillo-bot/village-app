@@ -62,3 +62,46 @@ export async function getCallerUserId(req: Request): Promise<string | null> {
 export async function isAuthenticatedUser(req: Request): Promise<boolean> {
   return (await getCallerUserId(req)) !== null;
 }
+
+export type TargetUser =
+  | { ok: true; userId: string }
+  | { ok: false; status: 401 | 403; error: string };
+
+/**
+ * Resolves which user a request is allowed to act on, for the very common shape:
+ * "the body names a `user_id`, and the function then reads or writes that user's
+ * data with the service-role client".
+ *
+ * That shape was the single most repeated IDOR in this codebase (security audit
+ * 2026-09-04): `user_id` was taken on trust, so any caller holding the anon key
+ * could target anyone — reading a victim's pregnancy stage, due date, city or
+ * insurance into an LLM prompt, or overwriting her generated rows.
+ *
+ * Rules:
+ *   - service role  → may act on any user, including a body-supplied id. Internal
+ *     fan-out (home-feed-curator, crons) legitimately curates for other people.
+ *   - signed-in user → may act ONLY on herself. A body `user_id` naming someone
+ *     else is REFUSED (403), not silently rewritten: a client sending the wrong id
+ *     is a bug, and quietly "fixing" it hides the bug while looking like success.
+ *   - anyone else   → 401.
+ *
+ * Callers should pass `isServiceRoleRequest(req, …)` in as `isService` so the
+ * gatewayVerifiesJwt flag stays visible (and reviewable against config.toml) at
+ * the call site rather than being buried here.
+ */
+export async function resolveTargetUser(
+  req: Request,
+  bodyUserId: string | null | undefined,
+  isService: boolean,
+): Promise<TargetUser> {
+  if (isService) {
+    if (!bodyUserId) return { ok: false, status: 403, error: 'user_id required' };
+    return { ok: true, userId: bodyUserId };
+  }
+  const caller = await getCallerUserId(req);
+  if (!caller) return { ok: false, status: 401, error: 'unauthorized' };
+  if (bodyUserId && bodyUserId !== caller) {
+    return { ok: false, status: 403, error: 'forbidden' };
+  }
+  return { ok: true, userId: caller };
+}

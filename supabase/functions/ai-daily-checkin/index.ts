@@ -15,6 +15,8 @@
 
 import Anthropic from 'npm:@anthropic-ai/sdk';
 import { createClient } from 'jsr:@supabase/supabase-js@2';
+import { isServiceRoleRequest } from '../_shared/service-role.ts';
+import { getCallerUserId } from '../_shared/user-auth.ts';
 
 const anthropic = new Anthropic({ apiKey: Deno.env.get('ANTHROPIC_API_KEY')! });
 const supabase = createClient(
@@ -106,6 +108,26 @@ Deno.serve(async (req) => {
       });
     }
 
+    // ─── Authorize the caller against THIS check-in ────────────────────
+    // IDOR (fixed 2026-09-05): `checkin_id` came off the body and was never tied
+    // to the caller, while the read below uses the service-role client and so
+    // bypasses RLS. Any holder of the anon key — which ships inside the mobile
+    // bundle — could pass an arbitrary checkin_id and receive an AI reply derived
+    // from `user_response`: another mother's free-text mental-health entry. The
+    // same call also PATCHes `ai_reply` / `crisis_flagged` onto her row, so it
+    // was a write as well as a read.
+    //
+    // Service role stays allowed: there is no such caller today, but a re-scan
+    // sweep over past check-ins is a plausible cron and would legitimately need
+    // to run for other users.
+    const isService = isServiceRoleRequest(req, { gatewayVerifiesJwt: true });
+    const callerId = isService ? null : await getCallerUserId(req);
+    if (!isService && !callerId) {
+      return new Response(JSON.stringify({ error: 'unauthorized' }), {
+        status: 401, headers: { ...CORS, 'Content-Type': 'application/json' },
+      });
+    }
+
     // Load check-in + user stage context (service role — bypasses RLS).
     const { data: checkin, error: checkinErr } = await supabase
       .from('daily_checkins')
@@ -113,6 +135,15 @@ Deno.serve(async (req) => {
       .eq('id', checkinId)
       .maybeSingle();
     if (checkinErr || !checkin) {
+      return new Response(JSON.stringify({ error: 'checkin not found' }), {
+        status: 404, headers: { ...CORS, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Not-yours is answered with the SAME 404 as not-found, deliberately. A 403
+    // here would confirm that a given checkin_id exists, turning this into an id
+    // oracle over other users' mental-health records.
+    if (!isService && checkin.user_id !== callerId) {
       return new Response(JSON.stringify({ error: 'checkin not found' }), {
         status: 404, headers: { ...CORS, 'Content-Type': 'application/json' },
       });

@@ -13,6 +13,9 @@
 import Anthropic from 'npm:@anthropic-ai/sdk';
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 
+import { isServiceRoleRequest } from '../_shared/service-role.ts';
+import { resolveTargetUser } from '../_shared/user-auth.ts';
+
 const anthropic = new Anthropic({ apiKey: Deno.env.get('ANTHROPIC_API_KEY')! });
 const supabase = createClient(
   Deno.env.get('SUPABASE_URL')!,
@@ -55,11 +58,23 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: CORS });
 
   try {
-    const { user_id: userId } = await req.json();
-    if (!userId) {
-      return new Response(JSON.stringify({ error: 'user_id required' }),
-        { status: 400, headers: { ...CORS, 'Content-Type': 'application/json' } });
+    const { user_id: bodyUserId } = await req.json();
+
+    // IDOR (fixed 2026-09-05): `user_id` was taken on trust. The reads below use
+    // the service-role client, so any anon-key holder could pass someone else's id
+    // and get back a match "reason" derived from her pregnancy_stage, due_date and
+    // city — and the upsert at the end would overwrite that victim's
+    // room_match_suggestions row.
+    const target = await resolveTargetUser(
+      req,
+      bodyUserId,
+      isServiceRoleRequest(req, { gatewayVerifiesJwt: true }),
+    );
+    if (!target.ok) {
+      return new Response(JSON.stringify({ error: target.error }),
+        { status: target.status, headers: { ...CORS, 'Content-Type': 'application/json' } });
     }
+    const userId = target.userId;
 
     const { data: userRow } = await supabase
       .from('users')
