@@ -7,6 +7,8 @@
 import Anthropic from 'npm:@anthropic-ai/sdk';
 import { createClient } from 'npm:@supabase/supabase-js';
 
+import { isAuthenticatedUser } from '../_shared/user-auth.ts';
+
 const anthropic = new Anthropic({ apiKey: Deno.env.get('ANTHROPIC_API_KEY')! });
 const supabase = createClient(
   Deno.env.get('SUPABASE_URL')!,
@@ -33,6 +35,22 @@ Rules:
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: CORS });
+  }
+
+  // AUTH (2026-09-05): no authorization check existed, and `verify_jwt = true` is
+  // not one — the anon publishable key ships in the mobile bundle and satisfies the
+  // gateway. This function generates follow-up questions via Haiku, so anyone who extracted that key had a free,
+  // unmetered endpoint billed to Villie's account.
+  //
+  // The real caller is the mobile app as a signed-in user (it already sends her
+  // JWT), so requiring a valid user breaks nothing. NOTE: this stops anonymous
+  // abuse but NOT a signed-in user looping the endpoint — per-user rate limiting
+  // is tracked separately in docs/audits/security-2026-09-04.md.
+  if (!(await isAuthenticatedUser(req))) {
+    return new Response(JSON.stringify({ error: 'unauthorized' }), {
+      status: 401,
+      headers: { ...CORS, 'Content-Type': 'application/json' },
+    });
   }
 
   try {

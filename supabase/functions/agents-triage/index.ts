@@ -1,3 +1,5 @@
+import { isAuthenticatedUser } from '../_shared/user-auth.ts';
+
 // Village agents bridge — /triage
 // POST /functions/v1/agents-triage
 //
@@ -35,6 +37,19 @@ type AgentRequest = {
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: CORS });
+  }
+
+  // AUTH (2026-09-05): the header above claimed "Callers must be authenticated
+  // (Supabase verifies JWT by default)". That premise is wrong, and it is the
+  // reason this whole class of function was unguarded: `verify_jwt` proves only
+  // that the bearer is signed by this project's JWT secret, and the anon
+  // publishable key IS such a token — it ships inside the mobile bundle. So the
+  // bridge to the internal agent runtime was reachable by anyone holding it.
+  if (!(await isAuthenticatedUser(req))) {
+    return new Response(JSON.stringify({ error: 'unauthorized' }), {
+      status: 401,
+      headers: { ...CORS, 'Content-Type': 'application/json' },
+    });
   }
 
   if (req.method !== 'POST') {

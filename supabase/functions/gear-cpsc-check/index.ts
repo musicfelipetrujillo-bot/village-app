@@ -28,6 +28,8 @@
 
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 
+import { isAuthenticatedUser } from '../_shared/user-auth.ts';
+
 const CORS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -167,6 +169,22 @@ async function upsertCache(
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: CORS });
+
+  // AUTH (2026-09-05): no authorization check existed, and `verify_jwt = true` is
+  // not one — the anon publishable key ships in the mobile bundle and satisfies the
+  // gateway. This function queries the CPSC SaferProducts API and can persist a recall verdict, so anyone who extracted that key had a free,
+  // unmetered endpoint billed to Villie's account.
+  //
+  // The real caller is the mobile app as a signed-in user (it already sends her
+  // JWT), so requiring a valid user breaks nothing. NOTE: this stops anonymous
+  // abuse but NOT a signed-in user looping the endpoint — per-user rate limiting
+  // is tracked separately in docs/audits/security-2026-09-04.md.
+  if (!(await isAuthenticatedUser(req))) {
+    return new Response(JSON.stringify({ error: 'unauthorized' }), {
+      status: 401,
+      headers: { ...CORS, 'Content-Type': 'application/json' },
+    });
+  }
   if (req.method !== 'POST') {
     return new Response(JSON.stringify({ error: 'method not allowed' }), {
       status: 405, headers: { ...CORS, 'Content-Type': 'application/json' },

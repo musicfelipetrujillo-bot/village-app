@@ -4,6 +4,8 @@
 
 import Anthropic from 'npm:@anthropic-ai/sdk';
 
+import { isAuthenticatedUser } from '../_shared/user-auth.ts';
+
 const anthropic = new Anthropic();
 
 const SYSTEM_PROMPT = `You are a warm, knowledgeable guide helping breast milk donors complete a safety questionnaire.
@@ -27,8 +29,20 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) return new Response('Unauthorized', { status: 401 });
+    // AUTH (2026-09-05): this was a PRESENCE check — any non-empty Authorization
+    // header passed. Combined with `verify_jwt = true`, which the anon publishable
+    // key (shipped in the mobile bundle) already satisfies, it authenticated
+    // nobody: it just confirmed the gateway had let the request through. That made
+    // this a free Haiku endpoint billed to Villie.
+    //
+    // Now validates the token against Supabase Auth and requires a real user. The
+    // caller is the donor filling in her own questionnaire (api/milk.ts:482), so
+    // she is always signed in. Stops anonymous abuse, not a signed-in user looping
+    // the endpoint — per-user rate limiting is tracked in
+    // docs/audits/security-2026-09-04.md.
+    if (!(await isAuthenticatedUser(req))) {
+      return new Response('Unauthorized', { status: 401 });
+    }
 
     const { question_key, question_text, answer_value } = await req.json();
     if (!question_text || !answer_value) {

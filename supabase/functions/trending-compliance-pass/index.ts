@@ -15,6 +15,8 @@
 import Anthropic from 'npm:@anthropic-ai/sdk';
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 
+import { isServiceRoleRequest } from '../_shared/service-role.ts';
+
 const anthropic = new Anthropic({ apiKey: Deno.env.get('ANTHROPIC_API_KEY')! });
 const supabase = createClient(
   Deno.env.get('SUPABASE_URL')!,
@@ -116,6 +118,21 @@ async function screenOne(item: ItemRow) {
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: CORS });
+
+  // AUTH (2026-09-05): no authorization check existed, and `verify_jwt = true` is
+  // not one — the anon publishable key ships in the mobile bundle and satisfies the
+  // gateway. This function auto-clears non-medical Buzz items via Sonnet, so it was a billable model endpoint open to the
+  // internet (and, where it writes, a way to churn shared content on demand).
+  //
+  // Only caller: the scheduled ops task / runbook (docs/OPS_RUNBOOK.md:315) — service role. No mobile code calls it.
+  //
+  // gatewayVerifiesJwt: true matches this function's verify_jwt pin in config.toml.
+  if (!isServiceRoleRequest(req, { gatewayVerifiesJwt: true })) {
+    return new Response(JSON.stringify({ error: 'unauthorized' }), {
+      status: 401,
+      headers: { ...CORS, 'Content-Type': 'application/json' },
+    });
+  }
 
   try {
     const body = req.method === 'POST' ? await req.json().catch(() => ({})) : {};

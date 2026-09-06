@@ -28,10 +28,15 @@
 // truth; this function can be re-run to regenerate without retaining any
 // history of past aliases.
 //
-// Auth: authenticated user JWT (verify_jwt: true default).
+// Auth: a real signed-in user, verified in-handler via getCallerUserId.
+// NOT "verify_jwt: true default" as this line used to claim — that only proves the
+// bearer is signed by this project, and the anon publishable key (shipped in the
+// mobile bundle) satisfies it.
 
 import Anthropic from 'https://esm.sh/@anthropic-ai/sdk@0.27.0';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+import { getCallerUserId } from '../_shared/user-auth.ts';
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -174,15 +179,18 @@ Deno.serve(async (req) => {
     });
   }
 
-  // Identify caller (for the avatar seed). Decode user_id from the JWT.
-  let userId: string | null = null;
-  try {
-    const token = authHeader.replace(/^Bearer\s+/i, '');
-    const payload = JSON.parse(atob(token.split('.')[1]));
-    userId = payload?.sub ?? null;
-  } catch {
-    /* fall through */
-  }
+  // AUTH (2026-09-05): this used to base64-decode the JWT payload and trust
+  // `sub` WITHOUT VERIFYING THE SIGNATURE — the same defect `_shared/service-role.ts`
+  // was written to kill after the 2026-08-14 incident, just applied to a user id
+  // instead of a role claim. A JWT is three base64 segments joined by dots and the
+  // signature segment was never read, so `Bearer x.eyJzdWIiOiI8YW55LXV1aWQ+In0.x`
+  // would impersonate any user. That mattered here because the alias this function
+  // mints is persisted against `userId` — the caller could seed or overwrite
+  // another member's anonymous identity in a room.
+  //
+  // `getCallerUserId` validates the token against Supabase Auth instead of reading
+  // what it claims about itself.
+  const userId = await getCallerUserId(req);
   if (!userId) {
     return new Response(JSON.stringify({ error: 'unauthorized' }), {
       status: 401, headers: { ...CORS, 'Content-Type': 'application/json' },

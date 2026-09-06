@@ -1,3 +1,5 @@
+import { isAuthenticatedUser } from '../_shared/user-auth.ts';
+
 // Village agents bridge — /health
 // GET /functions/v1/agents-health
 //
@@ -10,7 +12,9 @@
 //   AGENTS_BRIDGE_SECRET  — optional shared secret forwarded to the runtime as x-agents-secret
 //
 // Security posture (INTERNAL-ONLY):
-//   - Callers must be authenticated (Supabase verifies JWT by default).
+//   - Callers must be authenticated. NOTE: `verify_jwt` alone does NOT give
+//     this — the anon key is a valid project JWT — so the handler checks for
+//     a real signed-in user explicitly (see the gate below).
 //   - No RLS bypass, no DB mutation. This function ONLY proxies.
 //   - Responds 503 if AGENT_BASE_URL is unset so a dev without the runtime
 //     can't accidentally think the pipe is wired.
@@ -23,6 +27,19 @@ const CORS = {
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: CORS });
+  }
+
+  // AUTH (2026-09-05): the header above claimed "Callers must be authenticated
+  // (Supabase verifies JWT by default)". That premise is wrong, and it is the
+  // reason this whole class of function was unguarded: `verify_jwt` proves only
+  // that the bearer is signed by this project's JWT secret, and the anon
+  // publishable key IS such a token — it ships inside the mobile bundle. So the
+  // bridge to the internal agent runtime was reachable by anyone holding it.
+  if (!(await isAuthenticatedUser(req))) {
+    return new Response(JSON.stringify({ error: 'unauthorized' }), {
+      status: 401,
+      headers: { ...CORS, 'Content-Type': 'application/json' },
+    });
   }
 
   const base = Deno.env.get('AGENT_BASE_URL');
