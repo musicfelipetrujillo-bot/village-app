@@ -6,6 +6,18 @@
 
 export type ParkAge = 'babies' | 'toddlers' | 'big kids' | 'all ages';
 
+// The insider intel Google can't give — what moms actually want to know.
+export interface ParkIntel {
+  shade?: 'full' | 'some';
+  fenced?: boolean;
+  benches?: boolean;
+  strollerFriendly?: boolean;
+  changingTable?: boolean;
+  bathroom?: boolean;
+  quiet?: boolean;
+  parking?: 'easy' | 'street' | 'limited';
+}
+
 export interface Park {
   id: string;
   name: string;
@@ -14,6 +26,7 @@ export interface Park {
   lng: number;
   ages: ParkAge[];
   blurb: string;
+  intel?: ParkIntel;
   /** Street address — used for accurate directions when the pin is approximate. */
   address?: string;
 }
@@ -26,7 +39,8 @@ export const PARKS: Park[] = [
     lat: 25.7316,
     lng: -80.2452,
     ages: ['babies', 'toddlers'],
-    blurb: 'The if-you-know-you-know local spot — quiet, off the tourist path, easy for the littlest ones.',
+    blurb: 'The if-you-know-you-know local spot — mostly the under-3 crowd. Quiet, full shade, benches, stroller-easy. Parking is tight (it’s a walk-to park for the neighborhood).',
+    intel: { shade: 'full', benches: true, strollerFriendly: true, quiet: true, parking: 'limited' },
     address: '2954 Jackson Ave, Miami, FL 33133',
   },
   {
@@ -44,8 +58,9 @@ export const PARKS: Park[] = [
     area: 'Coconut Grove',
     lat: 25.7259,
     lng: -80.2392,
-    ages: ['all ages'],
-    blurb: 'Big bayfront green with a playground, open lawn, and room to roam.',
+    ages: ['big kids'],
+    blurb: 'Big bayfront green with a playground — bathrooms, changing tables, and restaurants right next door. All ages welcome, but really shines for kids 3+.',
+    intel: { shade: 'some', changingTable: true, bathroom: true, strollerFriendly: true },
   },
   {
     id: 'woodside',
@@ -67,6 +82,24 @@ export const AGE_TONE: Record<ParkAge, string> = {
 
 /** Primary tone for a park's map pin (its youngest age tag). */
 export const parkTone = (p: Park): string => AGE_TONE[p.ages[0]] ?? '#7B8A46';
+
+/** The insider intel as scannable chips (icon + short label). */
+export function intelChips(intel?: ParkIntel): { icon: string; label: string }[] {
+  if (!intel) return [];
+  const out: { icon: string; label: string }[] = [];
+  if (intel.shade === 'full') out.push({ icon: '🌳', label: 'full shade' });
+  else if (intel.shade === 'some') out.push({ icon: '🌳', label: 'good shade' });
+  if (intel.fenced) out.push({ icon: '🔒', label: 'fenced' });
+  if (intel.strollerFriendly) out.push({ icon: '🍼', label: 'stroller-easy' });
+  if (intel.benches) out.push({ icon: '🪑', label: 'benches' });
+  if (intel.changingTable) out.push({ icon: '🚼', label: 'changing table' });
+  if (intel.bathroom) out.push({ icon: '🚻', label: 'bathrooms' });
+  if (intel.quiet) out.push({ icon: '🤫', label: 'quiet' });
+  if (intel.parking === 'easy') out.push({ icon: '🚗', label: 'easy parking' });
+  else if (intel.parking === 'street') out.push({ icon: '🚗', label: 'street parking' });
+  else if (intel.parking === 'limited') out.push({ icon: '🚗', label: 'limited parking' });
+  return out;
+}
 
 /** An Apple/Google-friendly directions URL for a park. Prefers the street
  *  address (accurate even when the map pin is only approximate). */

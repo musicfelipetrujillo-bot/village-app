@@ -12,7 +12,7 @@ import * as Location from 'expo-location';
 import { useNavigation } from '@react-navigation/native';
 import { COLORS, FONTS } from '@utils/constants';
 import { ScreenHeader } from '@components/shared/ScreenHeader';
-import { PARKS, AGE_TONE, parkTone, parkDirectionsUrl, type Park } from '@utils/parks';
+import { PARKS, AGE_TONE, parkTone, parkDirectionsUrl, intelChips, type Park } from '@utils/parks';
 
 const T = {
   cream: COLORS.v2_cream,
@@ -106,6 +106,15 @@ export default function ParksMapScreen() {
               </View>
               <AgeChips park={p} />
               <Text style={s.cardBlurb}>{p.blurb}</Text>
+              {intelChips(p.intel).length > 0 && (
+                <View style={s.intelRow}>
+                  {intelChips(p.intel).map((c) => (
+                    <View key={c.label} style={s.intelChip}>
+                      <Text style={s.intelText}>{c.icon} {c.label}</Text>
+                    </View>
+                  ))}
+                </View>
+              )}
               <Text style={s.cardGo}>get directions ›</Text>
             </View>
           </TouchableOpacity>
@@ -137,7 +146,10 @@ const s = StyleSheet.create({
   chip: { borderRadius: 999, borderWidth: 1, paddingHorizontal: 9, paddingVertical: 3 },
   chipText: { fontFamily: FONTS.v2_label, fontSize: 11 },
   cardBlurb: { fontFamily: FONTS.v2_body, fontSize: 13, lineHeight: 19, color: T.walnut, marginTop: 8 },
-  cardGo: { fontFamily: FONTS.v2_link, fontSize: 13, color: T.rose, marginTop: 8 },
+  intelRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 10 },
+  intelChip: { backgroundColor: '#F3E8D8', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 4 },
+  intelText: { fontFamily: FONTS.v2_label, fontSize: 11.5, color: T.cocoa },
+  cardGo: { fontFamily: FONTS.v2_link, fontSize: 13, color: T.rose, marginTop: 10 },
 
   disclaimer: { fontFamily: FONTS.v2_body, fontSize: 11.5, color: T.walnut, textAlign: 'center', marginTop: 10 },
 });
