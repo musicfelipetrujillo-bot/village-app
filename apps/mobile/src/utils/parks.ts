@@ -13,8 +13,10 @@ export interface ParkIntel {
   benches?: boolean;
   strollerFriendly?: boolean;
   changingTable?: boolean;
+  /** true = has bathrooms; false = explicitly none (shown as negative intel). */
   bathroom?: boolean;
   quiet?: boolean;
+  dogPark?: boolean;
   parking?: 'easy' | 'street' | 'limited';
 }
 
@@ -49,8 +51,9 @@ export const PARKS: Park[] = [
     area: 'Coconut Grove',
     lat: 25.7355,
     lng: -80.2418,
-    ages: ['babies', 'toddlers'],
-    blurb: 'Shaded Grove playground with a fenced tot lot — easy and safe for the littlest ones.',
+    ages: ['big kids'],
+    blurb: 'Shaded Grove favorite — stroller-easy and kid-friendly (also a dog park). All kids, but mainly 3+. Heads up: no bathrooms.',
+    intel: { shade: 'some', strollerFriendly: true, dogPark: true, bathroom: false },
   },
   {
     id: 'peacock',
@@ -93,7 +96,9 @@ export function intelChips(intel?: ParkIntel): { icon: string; label: string }[]
   if (intel.strollerFriendly) out.push({ icon: '🍼', label: 'stroller-easy' });
   if (intel.benches) out.push({ icon: '🪑', label: 'benches' });
   if (intel.changingTable) out.push({ icon: '🚼', label: 'changing table' });
-  if (intel.bathroom) out.push({ icon: '🚻', label: 'bathrooms' });
+  if (intel.bathroom === true) out.push({ icon: '🚻', label: 'bathrooms' });
+  else if (intel.bathroom === false) out.push({ icon: '🚫', label: 'no bathrooms' });
+  if (intel.dogPark) out.push({ icon: '🐶', label: 'dog park' });
   if (intel.quiet) out.push({ icon: '🤫', label: 'quiet' });
   if (intel.parking === 'easy') out.push({ icon: '🚗', label: 'easy parking' });
   else if (intel.parking === 'street') out.push({ icon: '🚗', label: 'street parking' });
