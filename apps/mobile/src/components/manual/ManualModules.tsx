@@ -711,6 +711,14 @@ export default function ManualModules({ content, story, onAskVillie, lang = 'en'
       <TilePanel visible={panel === 'read'} onClose={close} title={L('Read this week', 'Para leer')} lang={lang}>
         {hasRead ? <StoryArticle story={story!} lang={lang} /> : null}
       </TilePanel>
+
+      {/* villie's top picks — at the very END, after the to-dos, so it reads as
+          a helpful footnote, not a sales pitch (founder 2026-08-16). */}
+      {content.helps?.picks?.length ? (
+        <View style={{ marginTop: 26 }}>
+          <HelpsModule data={content.helps} lang={lang} />
+        </View>
+      ) : null}
     </View>
   );
 }
