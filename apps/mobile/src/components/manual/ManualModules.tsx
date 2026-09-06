@@ -10,6 +10,7 @@ import Svg, { Path, Circle, Defs, LinearGradient as SvgGrad, Stop } from 'react-
 import { useNavigation } from '@react-navigation/native';
 import { FONTS } from '@utils/constants';
 import { select, tap } from '@utils/haptics';
+import { tagAmazonUrl } from '@utils/amazon';
 import { isProUser, isProEnabled } from '@/lib/pro';
 import DeepDiveVideoCard from './DeepDiveVideoCard';
 import type { CategoryContent, Checklist, Article, Info, Helps, StoryCard } from '@/manual/manualWeekContent';
@@ -40,9 +41,9 @@ const CH = {
   checklist: { en: 'do this week', es: 'para esta semana' },
   expert:    { en: 'ask the expert', es: 'pregunta al experto' },
   info:      { en: 'at a glance', es: 'de un vistazo' },
-  helps:     { en: 'worth a look', es: 'vale la pena' },
+  helps:     { en: 'villie’s top picks', es: 'favoritos de villie' },
   villie:    { en: 'Ask · villie', es: 'Pregunta · villie' },
-  helpsNote: { en: 'tips + picks — not medical advice', es: 'tips + favoritos — no es consejo médico' },
+  helpsNote: { en: 'top mom picks — not medical advice', es: 'favoritos de mamás — no es consejo médico' },
   helpsDisc: { en: 'villie may earn a small commission — we only add what moms actually love.', es: 'villie puede ganar una pequeña comisión — solo agregamos lo que de verdad les encanta a las mamás.' },
   helpsShop: { en: 'shop ›', es: 'ver ›' },
   momAsked:  { en: 'A mom asked…', es: 'Una mamá preguntó…' },
@@ -326,7 +327,7 @@ function InfographicModule({ data, lang, embedded }: { data: Info; lang: Lang; e
 // product recommendation never masquerades as education. Tips first (optional),
 // then curated picks, with an FTC disclosure line. Products open in the browser.
 function HelpsModule({ data, lang, embedded }: { data: Helps; lang: Lang; embedded?: boolean }) {
-  const open = (url: string) => { tap(); Linking.openURL(url).catch(() => {}); };
+  const open = (url: string) => { tap(); Linking.openURL(tagAmazonUrl(url)).catch(() => {}); };
   return (
     <View>
       {!embedded && <ModuleLabel type={CH.helps[lang]} icon={<LookGlyph />} divider />}
@@ -463,7 +464,7 @@ function StoryBody({ card, ink, lang }: { card: StoryCard; ink: string; lang: La
         <TouchableOpacity
           style={s.stLink}
           activeOpacity={0.8}
-          onPress={() => Linking.openURL(card.link!.url).catch(() => {})}
+          onPress={() => Linking.openURL(tagAmazonUrl(card.link!.url)).catch(() => {})}
           accessibilityRole="link"
           accessibilityLabel={card.link.label}
         >
@@ -577,7 +578,7 @@ function StoryArticle({ story, lang }: { story: StoryCard[]; lang: Lang }) {
           <Text style={i === 0 ? s.artLead : s.artTitle}>{(card.title ?? '').replace(/\n/g, ' ')}</Text>
           {card.body ? <Text style={s.artBody}>{card.body}</Text> : null}
           {card.link ? (
-            <TouchableOpacity style={s.artLink} activeOpacity={0.85} onPress={() => Linking.openURL(card.link!.url).catch(() => {})} accessibilityRole="link" accessibilityLabel={card.link.label}>
+            <TouchableOpacity style={s.artLink} activeOpacity={0.85} onPress={() => Linking.openURL(tagAmazonUrl(card.link!.url)).catch(() => {})} accessibilityRole="link" accessibilityLabel={card.link.label}>
               <Text style={s.artLinkGl}>{card.link.kind === 'shop' ? '🛍' : '↗'}</Text>
               <Text style={s.artLinkT} numberOfLines={1}>{card.link.label}</Text>
             </TouchableOpacity>

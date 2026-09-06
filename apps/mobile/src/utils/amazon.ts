@@ -48,5 +48,20 @@ export function buildAmazonCartUrl(items: AmazonCartItem[], subtag?: string): st
   return `${HOST}/gp/aws/cart/add.html?${parts.join('&')}`;
 }
 
+/**
+ * Append our associate tag to any amazon.com link that doesn't already carry
+ * one. Non-Amazon URLs (Kyte, Target, brand sites…) pass through untouched, so
+ * it's safe to run over every outbound shop link in the app.
+ */
+export function tagAmazonUrl(url: string): string {
+  try {
+    if (!/amazon\.[a-z.]{2,6}\//i.test(url)) return url;
+    if (/[?&]tag=/i.test(url)) return url;
+    return url + (url.includes('?') ? '&' : '?') + 'tag=' + encodeURIComponent(AMAZON_ASSOCIATE_TAG);
+  } catch {
+    return url;
+  }
+}
+
 /** FTC-required disclosure — must be shown wherever we link out to Amazon. */
 export const AMAZON_DISCLOSURE = 'As an Amazon Associate, Villie earns from qualifying purchases.';

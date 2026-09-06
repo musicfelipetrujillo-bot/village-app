@@ -2096,7 +2096,8 @@ const WEEK_17: Record<string, CategoryContent> = {
         "eyebrow": "comfort tools",
         "title": "easing those\ngummy gums",
         "say": "if teething starts",
-        "body": "a clean chilled (not frozen) teether or your clean finger can soothe sore gums. skip teething necklaces and numbing gels."
+        "body": "a clean chilled (not frozen) teether or your clean finger can soothe sore gums. skip teething necklaces and numbing gels.",
+        "link": { "kind": "shop", "label": "Villie’s pick: Sophie the Giraffe teether", "url": "https://www.amazon.com/dp/B000IDSLOG" }
       },
       {
         "color": "caramel",
