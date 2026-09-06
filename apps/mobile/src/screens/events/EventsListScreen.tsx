@@ -127,6 +127,21 @@ export default function EventsListScreen() {
         />
       </View>
 
+      <TouchableOpacity
+        style={styles.parksCard}
+        activeOpacity={0.9}
+        onPress={() => navigation.navigate('ParksMap')}
+        accessibilityRole="button"
+        accessibilityLabel={t('eventsList.parksA11y')}
+      >
+        <Text style={styles.parksEmoji}>🌳</Text>
+        <View style={{ flex: 1, minWidth: 0 }}>
+          <Text style={styles.parksTitle}>{t('eventsList.parksTitle')}</Text>
+          <Text style={styles.parksSub}>{t('eventsList.parksSub')}</Text>
+        </View>
+        <Text style={styles.parksArrow}>›</Text>
+      </TouchableOpacity>
+
       <View style={styles.filterRow}>
         {TYPE_FILTER_KEYS.map((f) => (
           <TouchableOpacity
@@ -272,6 +287,18 @@ export function EventCardView({ event, onPress, isSaved, onToggleSave, t }: {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.v2_cream },
   pageWash: { position: 'absolute', top: 0, left: 0, right: 0, height: 620 },
+
+  parksCard: {
+    flexDirection: 'row', alignItems: 'center', gap: 12,
+    marginHorizontal: 16, marginTop: 12,
+    backgroundColor: COLORS.v2_card, borderRadius: 14,
+    borderWidth: 1, borderColor: 'rgba(61,31,14,0.13)',
+    paddingVertical: 13, paddingHorizontal: 14,
+  },
+  parksEmoji: { fontSize: 22 },
+  parksTitle: { fontFamily: FONTS.v2_display, fontSize: 16, color: COLORS.v2_cocoa, letterSpacing: -0.2 },
+  parksSub: { fontFamily: FONTS.v2_body, fontSize: 12.5, color: COLORS.v2_walnut, marginTop: 2 },
+  parksArrow: { fontSize: 20, color: '#C24A63' },
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingTop: 56, paddingBottom: 12, paddingHorizontal: 16,

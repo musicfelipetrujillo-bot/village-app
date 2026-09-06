@@ -9,6 +9,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 // Revert by uncommenting the v9 line + commenting the v3 line.
 import VillageHomeScreen from '@screens/village/VillageHomeScreenV3';
 import EventsListScreen from '@screens/events/EventsListScreen';
+import ParksMapScreen from '@screens/village/ParksMapScreen';
 import EventDetailScreen from '@screens/events/EventDetailScreen';
 import RsvpConfirmScreen from '@screens/events/RsvpConfirmScreen';
 import MyRsvpsScreen from '@screens/events/MyRsvpsScreen';
@@ -26,6 +27,7 @@ export function VillageNavigator() {
       <Stack.Screen name="VillageHome" component={VillageHomeScreen} />
       {/* Events */}
       <Stack.Screen name="EventsList" component={EventsListScreen} />
+      <Stack.Screen name="ParksMap" component={ParksMapScreen} />
       <Stack.Screen name="EventDetail" component={EventDetailScreen} />
       <Stack.Screen
         name="RsvpConfirm"
