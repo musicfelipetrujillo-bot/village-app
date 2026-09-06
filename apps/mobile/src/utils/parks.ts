@@ -14,9 +14,21 @@ export interface Park {
   lng: number;
   ages: ParkAge[];
   blurb: string;
+  /** Street address — used for accurate directions when the pin is approximate. */
+  address?: string;
 }
 
 export const PARKS: Park[] = [
+  {
+    id: 'lincoln',
+    name: 'Lincoln Park',
+    area: 'West Grove',
+    lat: 25.7316,
+    lng: -80.2452,
+    ages: ['babies', 'toddlers'],
+    blurb: 'The if-you-know-you-know local spot — quiet, off the tourist path, easy for the littlest ones.',
+    address: '2954 Jackson Ave, Miami, FL 33133',
+  },
   {
     id: 'blanche',
     name: 'Blanche Park',
@@ -56,6 +68,9 @@ export const AGE_TONE: Record<ParkAge, string> = {
 /** Primary tone for a park's map pin (its youngest age tag). */
 export const parkTone = (p: Park): string => AGE_TONE[p.ages[0]] ?? '#7B8A46';
 
-/** An Apple/Google-friendly directions URL for a park. */
+/** An Apple/Google-friendly directions URL for a park. Prefers the street
+ *  address (accurate even when the map pin is only approximate). */
 export const parkDirectionsUrl = (p: Park): string =>
-  `https://maps.apple.com/?daddr=${p.lat},${p.lng}&q=${encodeURIComponent(p.name)}`;
+  p.address
+    ? `https://maps.apple.com/?daddr=${encodeURIComponent(p.address)}`
+    : `https://maps.apple.com/?daddr=${p.lat},${p.lng}&q=${encodeURIComponent(p.name)}`;
