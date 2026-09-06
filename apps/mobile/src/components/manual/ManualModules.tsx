@@ -713,15 +713,33 @@ export default function ManualModules({ content, story, onAskVillie, lang = 'en'
       </TilePanel>
 
       {/* villie's top picks — at the very END, after the to-dos, so it reads as
-          a helpful footnote, not a sales pitch (founder 2026-08-16). */}
-      {content.helps?.picks?.length ? (
-        <View style={{ marginTop: 26 }}>
-          <HelpsModule data={content.helps} lang={lang} />
-        </View>
-      ) : null}
+          a helpful footnote, not a sales pitch (founder 2026-08-16). Uses the
+          chapter's derived picks; falls back to a per-category default so every
+          chapter reliably shows one (only 16 chapters have their own shop link). */}
+      {(() => {
+        const derived = content.helps?.picks ?? [];
+        const fallback = category && CATEGORY_PICK[category] ? [CATEGORY_PICK[category]] : [];
+        const picks = derived.length ? derived : fallback;
+        return picks.length ? (
+          <View style={{ marginTop: 26 }}>
+            <HelpsModule data={{ picks }} lang={lang} />
+          </View>
+        ) : null;
+      })()}
     </View>
   );
 }
+
+// Fallback "villie's top pick" per manual category (tagged at open via
+// tagAmazonUrl). Shown only when a chapter has no derived pick of its own — so
+// every chapter reliably surfaces one relevant recommendation.
+const CATEGORY_PICK: Record<string, { tag?: string; label: string; url: string }> = {
+  sleep:  { tag: 'villie’s top pick', label: 'Muslin swaddle set', url: 'https://www.amazon.com/dp/B074G5FQG8' },
+  feed:   { tag: 'villie’s top pick', label: 'Milk storage bags', url: 'https://www.amazon.com/dp/B09R4PVYG8' },
+  grow:   { tag: 'villie’s top pick', label: 'High-contrast cards', url: 'https://www.amazon.com/dp/B0DHH7LGZT' },
+  soothe: { tag: 'villie’s top pick', label: 'Sophie the Giraffe teether', url: 'https://www.amazon.com/dp/B000IDSLOG' },
+  care:   { tag: 'villie’s top pick', label: 'Postpartum recovery kit', url: 'https://www.amazon.com/dp/B0CZSD8YZV' },
+};
 
 const s = StyleSheet.create({
   wrap: { marginTop: 20, paddingHorizontal: 20 },
