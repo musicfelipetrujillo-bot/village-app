@@ -2305,5 +2305,8 @@
     "soonBody": "El impulso llega con la próxima actualización de la app. Un poquito de paciencia.",
     "errorTitle": "Algo salió mal",
     "errorBody": "Inténtalo de nuevo."
+  },
+  "errors": {
+    "rateLimited": "Villie necesita un respiro — inténtalo de nuevo en unos {{minutes}} min."
   }
 }

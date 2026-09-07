@@ -38,6 +38,8 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 import { getCallerUserId } from '../_shared/user-auth.ts';
 
+import { consumeQuota, tooManyRequests } from '../_shared/rate-limit.ts';
+
 const CORS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -196,6 +198,13 @@ Deno.serve(async (req) => {
       status: 401, headers: { ...CORS, 'Content-Type': 'application/json' },
     });
   }
+
+  // Per-user quota (migration 135). Alias generation is a Haiku call per request
+  // and the preview mode is explicitly "regenerate until you like it", so it is
+  // the easiest endpoint here to spin. 15/hr leaves ample room to pick a handle
+  // without leaving the loop open.
+  const quota = await consumeQuota(userId, 'room-alias-generate');
+  if (!quota.allowed) return tooManyRequests(quota, CORS);
 
   // Build the taken-aliases list. For room_id mode we query the room;
   // for preview mode we skip (any alias is fine since we don't persist).

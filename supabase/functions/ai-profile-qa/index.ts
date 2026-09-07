@@ -7,7 +7,8 @@
 import Anthropic from 'npm:@anthropic-ai/sdk';
 import { createClient } from 'npm:@supabase/supabase-js';
 
-import { isAuthenticatedUser } from '../_shared/user-auth.ts';
+import { getCallerUserId } from '../_shared/user-auth.ts';
+import { consumeQuota, tooManyRequests } from '../_shared/rate-limit.ts';
 
 const anthropic = new Anthropic({ apiKey: Deno.env.get('ANTHROPIC_API_KEY')! });
 const supabase = createClient(
@@ -41,15 +42,24 @@ Deno.serve(async (req) => {
   // unmetered endpoint billed to Villie's account.
   //
   // The real caller is the mobile app as a signed-in user (it already sends her
-  // JWT), so requiring a valid user breaks nothing. NOTE: this stops anonymous
-  // abuse but NOT a signed-in user looping the endpoint — per-user rate limiting
-  // is tracked separately in docs/audits/security-2026-09-04.md.
-  if (!(await isAuthenticatedUser(req))) {
+  // JWT), so requiring a valid user breaks nothing. The gate alone would still
+  // leave a signed-in user free to loop the endpoint; the quota below closes that.
+  const callerId = await getCallerUserId(req);
+  if (!callerId) {
     return new Response(JSON.stringify({ error: 'unauthorized' }), {
       status: 401,
       headers: { ...CORS, 'Content-Type': 'application/json' },
     });
   }
+
+  // Per-user quota (migration 135 + _shared/rate-limit.ts). The gate above says
+  // WHO is calling; this says HOW MUCH they may have. Without it one real account
+  // could loop this endpoint and bill Villie without limit. Decided atomically in
+  // SQL, so concurrent requests cannot all pass the same check. Fails OPEN on a
+  // ledger error — this is a cost control, and a DB blip must not block a mother
+  // mid-flow.
+  const quota = await consumeQuota(callerId, 'ai-profile-qa');
+  if (!quota.allowed) return tooManyRequests(quota, CORS);
 
   try {
     const { specialist_id, question, pregnancy_stage, preferred_language = 'en' } = await req.json();

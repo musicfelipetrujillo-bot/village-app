@@ -38,6 +38,8 @@ import { createClient } from 'jsr:@supabase/supabase-js@2';
 import { isServiceRoleRequest } from '../_shared/service-role.ts';
 import { getCallerUserId } from '../_shared/user-auth.ts';
 
+import { consumeQuota, tooManyRequests } from '../_shared/rate-limit.ts';
+
 const supabase = createClient(
   Deno.env.get('SUPABASE_URL')!,
   Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
@@ -245,6 +247,14 @@ Deno.serve(async (req) => {
           });
         }
         userId = caller;
+
+        // Per-user quota (migration 135) — USER path only; the nightly batch runs
+        // as service role and must not be throttled. A single 'single' call fans
+        // out to several model endpoints to rebuild one feed, so this is one of
+        // the more expensive things a client can ask for: 10/hr, well above the
+        // stale-cache refresh the app actually performs.
+        const quota = await consumeQuota(caller, 'home-feed-curator');
+        if (!quota.allowed) return tooManyRequests(quota, CORS);
       }
 
       if (!userId) {

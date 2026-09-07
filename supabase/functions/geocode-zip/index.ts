@@ -19,7 +19,8 @@
 // not read any user data — it takes a ZIP and returns public postal coords.
 
 import { createClient } from 'npm:@supabase/supabase-js';
-import { isAuthenticatedUser } from '../_shared/user-auth.ts';
+import { getCallerUserId } from '../_shared/user-auth.ts';
+import { consumeQuota, tooManyRequests } from '../_shared/rate-limit.ts';
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -56,12 +57,22 @@ Deno.serve(async (req) => {
   // This function does not act on a specific user's records, so proving "a valid
   // user is asking" is the right bar. Anything that reads or writes a particular
   // user's data must use getCallerUserId and compare ids instead.
-  if (!(await isAuthenticatedUser(req))) {
+  const callerId = await getCallerUserId(req);
+  if (!callerId) {
     return new Response(JSON.stringify({ error: 'unauthorized' }), {
       status: 401,
       headers: { ...CORS, 'Content-Type': 'application/json' },
     });
   }
+
+  // Per-user quota (migration 135 + _shared/rate-limit.ts). The gate above says
+  // WHO is calling; this says HOW MUCH they may have. Without it one real account
+  // could loop this endpoint and bill Villie without limit. Decided atomically in
+  // SQL, so concurrent requests cannot all pass the same check. Fails OPEN on a
+  // ledger error — this is a cost control, and a DB blip must not block a mother
+  // mid-flow.
+  const quota = await consumeQuota(callerId, 'geocode-zip');
+  if (!quota.allowed) return tooManyRequests(quota, CORS);
   if (req.method !== 'POST') return json({ error: 'method_not_allowed' }, 405);
 
   const body = await req.json().catch(() => ({}));

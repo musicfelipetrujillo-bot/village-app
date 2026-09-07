@@ -6,6 +6,8 @@
 import Anthropic from 'npm:@anthropic-ai/sdk';
 import { createClient } from 'npm:@supabase/supabase-js';
 
+import { consumeQuota, tooManyRequests } from '../_shared/rate-limit.ts';
+
 const anthropic = new Anthropic();
 const supabase = createClient(
   Deno.env.get('SUPABASE_URL')!,
@@ -32,6 +34,14 @@ Deno.serve(async (req) => {
 
     const { data: { user } } = await supabase.auth.getUser(authHeader.replace('Bearer ', ''));
     if (!user) return new Response('Unauthorized', { status: 401 });
+
+    // NOTE ON QUOTA PLACEMENT: unlike the other model endpoints, the quota check
+    // here sits BELOW the 24h cache lookup, not directly after auth. This function
+    // is called on EVERY DonorProfileScreen view (DonorProfileScreen.tsx:118), and
+    // the overwhelming majority of those are cache hits that cost nothing. Charging
+    // them would rate-limit a mom for simply browsing donors — she'd hit a 20/hr
+    // ceiling after 20 profile views while Villie spent nothing. The budget must
+    // bound the expensive operation (generation), not the cheap one (a cached read).
 
     // `recipient_preferences` REMOVED 2026-09-05 — cache-poisoning vector.
     //
@@ -83,6 +93,12 @@ Deno.serve(async (req) => {
         headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
       });
     }
+
+    // Cache miss ⇒ we are about to spend a Haiku call. THIS is what the budget is
+    // for. Atomic in SQL, so concurrent misses cannot all pass. Fails OPEN on a
+    // ledger error — a cost control must not block a mother mid-flow.
+    const quota = await consumeQuota(user.id, 'milk-trust-narrative');
+    if (!quota.allowed) return tooManyRequests(quota, { 'Access-Control-Allow-Origin': '*' });
 
     // Fetch full donor profile
     const { data: profile } = await supabase

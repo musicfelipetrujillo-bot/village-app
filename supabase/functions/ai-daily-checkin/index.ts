@@ -18,6 +18,8 @@ import { createClient } from 'jsr:@supabase/supabase-js@2';
 import { isServiceRoleRequest } from '../_shared/service-role.ts';
 import { getCallerUserId } from '../_shared/user-auth.ts';
 
+import { consumeQuota, tooManyRequests } from '../_shared/rate-limit.ts';
+
 const anthropic = new Anthropic({ apiKey: Deno.env.get('ANTHROPIC_API_KEY')! });
 const supabase = createClient(
   Deno.env.get('SUPABASE_URL')!,
@@ -126,6 +128,16 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: 'unauthorized' }), {
         status: 401, headers: { ...CORS, 'Content-Type': 'application/json' },
       });
+    }
+
+    // Per-user quota (migration 135) — USER path only. A cron re-scan sweep runs
+    // as service role over many users' rows and must never be throttled by one
+    // person's budget. 20/hr is far above real use (she submits one check-in a
+    // day) while still stopping a script. Fails OPEN on ledger error: this reply
+    // is the response to a mental-health check-in, so a DB blip must not swallow it.
+    if (!isService && callerId) {
+      const quota = await consumeQuota(callerId, 'ai-daily-checkin');
+      if (!quota.allowed) return tooManyRequests(quota, CORS);
     }
 
     // Load check-in + user stage context (service role — bypasses RLS).

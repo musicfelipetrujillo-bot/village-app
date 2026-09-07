@@ -9,6 +9,8 @@ import { createClient } from 'npm:@supabase/supabase-js';
 import { isServiceRoleRequest } from '../_shared/service-role.ts';
 import { resolveTargetUser } from '../_shared/user-auth.ts';
 
+import { consumeQuota, tooManyRequests } from '../_shared/rate-limit.ts';
+
 const anthropic = new Anthropic({ apiKey: Deno.env.get('ANTHROPIC_API_KEY')! });
 const supabase = createClient(
   Deno.env.get('SUPABASE_URL')!,
@@ -50,6 +52,14 @@ Deno.serve(async (req) => {
       });
     }
     const user_id = target.userId;
+    
+    // Per-user quota (migration 135). The gate above establishes WHO; this bounds
+    // HOW MUCH. Placed immediately after auth and before any model call so it
+    // covers every downstream branch — deferring it deeper risks a path that skips
+    // it. Atomic in SQL, so concurrent requests cannot all pass the same check.
+    // Fails OPEN on ledger error: a cost control must not block a mother mid-flow.
+    const quota = await consumeQuota(user_id, 'ai-match');
+    if (!quota.allowed) return tooManyRequests(quota, { 'Access-Control-Allow-Origin': '*' });
 
     // Fetch user profile
     const { data: user } = await supabase

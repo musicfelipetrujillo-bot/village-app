@@ -4,7 +4,8 @@
 
 import Anthropic from 'npm:@anthropic-ai/sdk';
 
-import { isAuthenticatedUser } from '../_shared/user-auth.ts';
+import { getCallerUserId } from '../_shared/user-auth.ts';
+import { consumeQuota } from '../_shared/rate-limit.ts';
 
 const anthropic = new Anthropic();
 
@@ -37,11 +38,25 @@ Deno.serve(async (req) => {
     //
     // Now validates the token against Supabase Auth and requires a real user. The
     // caller is the donor filling in her own questionnaire (api/milk.ts:482), so
-    // she is always signed in. Stops anonymous abuse, not a signed-in user looping
-    // the endpoint — per-user rate limiting is tracked in
-    // docs/audits/security-2026-09-04.md.
-    if (!(await isAuthenticatedUser(req))) {
+    // she is always signed in. The quota below covers the remaining case: a
+    // signed-in user looping the endpoint.
+    const callerId = await getCallerUserId(req);
+    if (!callerId) {
       return new Response('Unauthorized', { status: 401 });
+    }
+
+    // Per-user quota (migration 135). Limit is deliberately generous (80/hr): the
+    // donor questionnaire is ~12 questions and coaches EACH answer, so one honest
+    // sitting is already a dozen calls and she may revise several.
+    const quota = await consumeQuota(callerId, 'milk-questionnaire-coach');
+    if (!quota.allowed) {
+      return new Response(
+        JSON.stringify({ error: 'rate_limited', retry_after_seconds: quota.retryAfterSeconds }),
+        {
+          status: 429,
+          headers: { 'Content-Type': 'application/json', 'Retry-After': String(quota.retryAfterSeconds) },
+        },
+      );
     }
 
     const { question_key, question_text, answer_value } = await req.json();

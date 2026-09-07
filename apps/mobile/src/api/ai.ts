@@ -1,4 +1,6 @@
 import { supabase } from '@/lib/supabase';
+import { t, type Lang } from '@/i18n';
+import { useUserStore } from '@store/user';
 import type { AIMatchRequest, AIMatchResponse, AITriageResponse } from 'shared/src/types/v1';
 
 const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL ?? '';
@@ -14,7 +16,20 @@ async function callEdgeFunction<T>(name: string, body: object): Promise<T> {
     body: JSON.stringify(body),
   });
   const json = await res.json();
-  if (!res.ok) throw new Error(json.error ?? `${name} failed`);
+  if (!res.ok) {
+    // 429 = per-user quota (edge `_shared/rate-limit.ts`, migration 135). Without
+    // this branch the raw wire code `rate_limited` would be thrown straight into
+    // an Alert and shown to the user, which is meaningless to her and alarming in
+    // an app she opens at 3am. Translate it, and use Retry-After to say WHEN
+    // rather than just "no".
+    if (res.status === 429) {
+      const lang = (useUserStore.getState().profile?.preferred_language ?? 'en') as Lang;
+      const secs = Number(res.headers.get('Retry-After') ?? json.retry_after_seconds ?? 0);
+      const minutes = Math.max(1, Math.ceil(secs / 60));
+      throw new Error(t('errors.rateLimited', lang, { minutes }));
+    }
+    throw new Error(json.error ?? `${name} failed`);
+  }
   return json as T;
 }
 
