@@ -30,6 +30,8 @@ import { useT } from '@/i18n';
 import { isExpecting } from '@/manual/beforeBaby';
 import { theBuzzApi, type TheBuzzArchiveRow } from '@api/theBuzz';
 import { useFocusEffect } from '@react-navigation/native';
+import VoiceDictationSheet from '@components/shared/VoiceDictationSheet';
+import { isVoiceDictationAvailable } from '@/lib/voiceDictation';
 
 const VILLIE_BEE = require('../../../assets/brand/villie-bee.png');
 const WEEK_SEAL = require('../../../assets/home/week-seal.png');
@@ -435,17 +437,26 @@ export default function HomeScreenV3() {
     navigation.getParent()?.navigate('Manual', { screen: 'ManualHome', params: { view } });
   const goBeforeBaby = () => navigation.getParent()?.navigate('Manual', { screen: 'BeforeBaby' });
   const askVillie = (seed?: string) => (navigation.getParent()?.getParent() as any)?.navigate('AIHelpChat', seed ? { seed, autosend: true } : {});
-  // The mic. It cannot record: there is no NSMicrophoneUsageDescription in the
-  // Info.plist (removed before Build 12 to dodge an App Store permission-
-  // mismatch rejection) and `expo-audio` is a guarded dynamic import that no
-  // shipped build is known to contain — so an in-app recorder needs a NEW
-  // NATIVE BUILD plus a transcription backend, neither of which an OTA can
-  // deliver. Until then it opens the chat with the keyboard already up, which
-  // puts iOS's own dictation key one tap away. That is the same "talk to it,
-  // villie sorts it" route the tracker's jot field already tells mothers to use.
-  // Previously this button called askVillie() — byte-identical to tapping the
-  // text bar beside it — so it looked broken because it WAS inert.
-  const talkToVillie = () => (navigation.getParent()?.getParent() as any)?.navigate('AIHelpChat', { focusComposer: true });
+  // The mic, in two tiers.
+  //
+  // The comment that used to live here said the mic "cannot record" — no
+  // NSMicrophoneUsageDescription (stripped before Build 12 to dodge a review
+  // permission-mismatch) and no recognizer in any shipped binary — so it opened
+  // the chat with the keyboard up, putting iOS's own dictation key one tap away.
+  // That was the right call at the time. Build 21 changes the premise: it ships
+  // both usage-description strings and an on-device recognizer.
+  //
+  // But only 21+ has it, and this JS reaches every older binary over the air, so
+  // the old behaviour is exactly what the fallback should be. Try the recognizer;
+  // where it does not exist, open the autofocused chat just as before. The one
+  // outcome neither tier produces is the dead text box this button shipped with
+  // originally — the failure that made it look broken because it WAS inert.
+  const [voiceOpen, setVoiceOpen] = React.useState(false);
+  const talkToVillie = React.useCallback(async () => {
+    if (await isVoiceDictationAvailable()) { setVoiceOpen(true); return; }
+    (navigation.getParent()?.getParent() as any)?.navigate('AIHelpChat', { focusComposer: true });
+  }, [navigation]);
+
   // The signature "log milk from a photo" action → Milk Vault bag scanner.
   const scanMilk = () => (navigation.getParent() as any)?.navigate('Milk', { screen: 'MilkVaultScan' });
 
@@ -610,6 +621,22 @@ export default function HomeScreenV3() {
       <Animated.View pointerEvents="none" style={[styles.miniHeader, { paddingTop: insets.top + 4, opacity: miniOpacity }]}>
         <Text style={styles.miniHeaderText}>{heroBabyName.toLowerCase()} · {heroWeek} {weekUnit} old</Text>
       </Animated.View>
+
+      {/* Voice dictation — closes first, THEN navigates, so the chat screen
+          doesn't push in underneath a sheet that's still animating out. */}
+      <VoiceDictationSheet
+        visible={voiceOpen}
+        lang={lang}
+        onTranscript={(text) => { setVoiceOpen(false); askVillie(text); }}
+        onCancel={() => setVoiceOpen(false)}
+        // "Type instead" gets the SAME autofocused chat the no-recognizer
+        // fallback opens — she asked to type, so put the keyboard up rather
+        // than making her tap the composer once more.
+        onTypeInstead={() => {
+          setVoiceOpen(false);
+          (navigation.getParent()?.getParent() as any)?.navigate('AIHelpChat', { focusComposer: true });
+        }}
+      />
     </View>
   );
 }

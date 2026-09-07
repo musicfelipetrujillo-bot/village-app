@@ -30,6 +30,10 @@ supabase/.temp
 # Build outputs
 build/
 dist/
+# Xcode derived data from a local `xcodebuild -derivedDataPath` run. Bare
+# `build/` above does NOT match these — the suffix makes them distinct names,
+# and a single simulator build is ~4 GB.
+apps/mobile/ios/build-*/
 
 # Turbo
 .turbo/

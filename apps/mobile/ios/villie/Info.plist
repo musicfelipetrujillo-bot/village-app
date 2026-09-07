@@ -40,7 +40,7 @@
       </dict>
     </array>
     <key>CFBundleVersion</key>
-    <string>14</string>
+    <string>21</string>
     <key>ITSAppUsesNonExemptEncryption</key>
     <false/>
     <key>LSMinimumSystemVersion</key>
@@ -64,6 +64,8 @@
     <string>Allow $(PRODUCT_NAME) to access your Face ID biometric data.</string>
     <key>NSLocationWhenInUseUsageDescription</key>
     <string>villie uses your location to find nearby donors, specialists, and events.</string>
+    <key>NSMicrophoneUsageDescription</key>
+    <string>villie uses the microphone when you tap the mic on Home, so you can ask a question out loud instead of typing it one-handed.</string>
     <key>NSPhotoLibraryAddUsageDescription</key>
     <string>Save photos you take in villie to your library.</string>
     <key>NSPhotoLibraryUsageDescription</key>
@@ -72,6 +74,8 @@
     <string>Allow $(PRODUCT_NAME) to access your reminders</string>
     <key>NSRemindersUsageDescription</key>
     <string>Allow $(PRODUCT_NAME) to access your reminders</string>
+    <key>NSSpeechRecognitionUsageDescription</key>
+    <string>villie turns what you say into text on your device so your question can be sent to the villie assistant. The audio stays on your phone.</string>
     <key>NSUserNotificationsUsageDescription</key>
     <string>Notifications for appointments, new donors, and community messages.</string>
     <key>RCTNewArchEnabled</key>

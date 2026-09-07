@@ -231,10 +231,44 @@ Reply with JSON only.`
         : m.content,
     }));
 
+    // The breakpoint belongs on the LAST system block, not the first. Caching is
+    // a prefix match over tools → system → messages, so a marker on
+    // SYSTEM_PROMPT cached the tool schemas + SYSTEM_PROMPT and left TOOL_GUIDE
+    // (~2k tokens) to be reprocessed at full price on every request AND on every
+    // hop of the tool loop — up to 6 model calls for one user message.
     const systemBlocks = [
-      { type: 'text', text: SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } },
-      { type: 'text', text: TOOL_GUIDE },
+      { type: 'text', text: SYSTEM_PROMPT },
+      { type: 'text', text: TOOL_GUIDE, cache_control: { type: 'ephemeral' } },
     ];
+
+    // A MOVING cache breakpoint on the conversation. Without one, the retained
+    // turns — and, inside the tool loop, every assistant tool_use + tool_result
+    // block appended so far — are reprocessed at full price on every hop. Tool
+    // results are the expensive part: read_manual and get_my_day return real
+    // content, and that content was being re-billed on each subsequent hop.
+    //
+    // It MOVES rather than accumulates because a request may carry at most 4
+    // breakpoints; one already sits on TOOL_GUIDE, and a 4-hop loop that added
+    // one per hop would hit 5 and 400. Clearing the old marker costs nothing —
+    // the cache entry it wrote survives and a later breakpoint still reads it
+    // (within the 20-block lookback, which 4 hops stays well inside).
+    const moveCacheBreakpoint = (turns: any[]) => {
+      for (const m of turns) {
+        if (Array.isArray(m.content)) {
+          for (const b of m.content) {
+            if (b && typeof b === 'object' && 'cache_control' in b) delete b.cache_control;
+          }
+        }
+      }
+      const last = turns[turns.length - 1];
+      if (!last) return;
+      // Plain-string turns must become block form to carry the marker at all.
+      if (typeof last.content === 'string') {
+        last.content = [{ type: 'text', text: last.content, cache_control: { type: 'ephemeral' } }];
+      } else if (Array.isArray(last.content) && last.content.length > 0) {
+        last.content[last.content.length - 1].cache_control = { type: 'ephemeral' };
+      }
+    };
 
     // Tool-use loop — the model may call get_baby_tracking_stats (bounded to a few
     // hops), then must reply with the JSON contract. Non-tool questions break out
@@ -243,6 +277,9 @@ Reply with JSON only.`
     let aiResponse: any = null;
     let navigateAction: { screen: string; params?: Record<string, unknown> } | null = null;
     for (let hop = 0; hop < 4; hop++) {
+      // Hop 0 writes the entry; every later hop reads everything up to the
+      // previous hop's tool results instead of re-paying for it.
+      moveCacheBreakpoint(convo);
       const resp = await anthropic.messages.create({
         model: 'claude-haiku-4-5-20251001',
         max_tokens: 700,
@@ -331,17 +368,49 @@ Reply with JSON only.`
       }),
       { headers: { ...CORS, 'Content-Type': 'application/json' } },
     );
-  } catch (_err) {
+  } catch (err) {
     // This is a TRANSPORT/PARSE failure, not a medical one — so it must not
     // impersonate a crisis response. The old copy led with "call 911", which
     // read as though Billy had flagged her message when he had simply failed to
     // answer it (and it masked the JSON bug above for weeks). Say what actually
     // happened, invite a retry, and keep the hotlines as a quiet footer.
+    //
+    // The copy stays. What changes is that the failure now NAMES ITSELF. The
+    // comment above says this handler hid a bug for weeks — it did it again,
+    // because `catch (_err)` threw the error away: an upstream 401 and a model
+    // that returned prose produced the identical apology, so a total outage was
+    // indistinguishable from one bad answer. Two cheap fixes:
+    //   1. console.error → the Edge Function logs name the cause.
+    //   2. error_kind on the response → callable from curl, so the failure can
+    //      be classified without dashboard access, and the mobile client can
+    //      eventually tell "retry works" from "Villie is down".
+    // Deliberately NOT included: err.message on the wire. Provider messages can
+    // echo request fragments, and this endpoint is reachable with the anon key.
+    const status = typeof (err as any)?.status === 'number' ? (err as any).status : null;
+    const upstreamType = (err as any)?.type ?? (err as any)?.error?.type ?? null;
+    const message = String((err as any)?.message ?? err);
+
+    // Duck-typed on purpose: `npm:@anthropic-ai/sdk` is imported unpinned, so
+    // instanceof against a specific SDK build is not something to rely on.
+    const kind = message === 'unparseable_reply' ? 'model_format'
+      : status === 401 ? 'upstream_auth'
+      : status === 403 ? 'upstream_forbidden'
+      : status === 404 ? 'upstream_model'
+      : status === 429 ? 'upstream_rate_limit'
+      : status !== null && status >= 500 ? 'upstream_down'
+      : status === 400 ? 'upstream_bad_request'
+      : 'unknown';
+
+    console.error('[app-help-chat] request failed', JSON.stringify({
+      kind, status, upstream_type: upstreamType, message: message.slice(0, 300),
+    }));
+
     return new Response(
       JSON.stringify({
         reply: "Sorry — I lost that one on my end. Say it again and I'll pick it right up.\n\nIf you need someone this second: 988 for a mental-health crisis, 911 for an emergency.",
         crisis: false,
         crisis_resources: undefined,
+        error_kind: kind,
       }),
       { headers: { ...CORS, 'Content-Type': 'application/json' } },
     );
