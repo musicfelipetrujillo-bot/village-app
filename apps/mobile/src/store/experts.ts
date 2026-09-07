@@ -10,6 +10,8 @@ interface ExpertsState {
   loading: boolean;
   filters: Partial<SearchFilters>;
 
+  /** Clear results, selection and saved favourites on sign-out. */
+  reset: () => void;
   search: (filters: SearchFilters) => Promise<void>;
   selectSpecialist: (id: string) => Promise<void>;
   loadReviews: (specialistId: string) => Promise<void>;
@@ -25,6 +27,8 @@ export const useExpertsStore = create<ExpertsState>((set, get) => ({
   favorites: new Set(),
   loading: false,
   filters: {},
+
+  reset: () => set({ results: [], selectedSpecialist: null, reviews: [], favorites: new Set(), loading: false, filters: {} }),
 
   search: async (filters) => {
     set({ loading: true, filters });

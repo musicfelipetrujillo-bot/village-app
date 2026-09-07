@@ -17,6 +17,10 @@ interface TrackerState {
   today: TodayLogs;
   loading: boolean;
 
+  /** Clear every log + active timer. Called on sign-out — these are one
+   *  mother's feeding/sleep/diaper records and must not survive into the
+   *  next account on a shared or resold device. */
+  reset: () => void;
   refresh: (babyProfileId: string) => Promise<void>;
   // `at` back-dates the entry; omitted means now.
   startSleep: (at?: string) => Promise<void>;
@@ -38,6 +42,8 @@ export const useTrackerStore = create<TrackerState>((set, get) => ({
   activeFeed: null,
   today: EMPTY,
   loading: false,
+
+  reset: () => set({ babyProfileId: null, activeSleep: null, activeFeed: null, today: EMPTY, loading: false }),
 
   refresh: async (babyProfileId) => {
     set({ babyProfileId, loading: true });
