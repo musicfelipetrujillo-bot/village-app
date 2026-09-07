@@ -61,8 +61,24 @@
 
 begin;
 
--- authenticated: table-wide UPDATE -> column-scoped UPDATE.
-revoke update on public.users from authenticated;
+-- Table-wide UPDATE -> column-scoped UPDATE.
+--
+-- REVOKE FROM PUBLIC **AND** FROM THE ROLES. This project has been bitten by this
+-- exact trap twice: migration 052 revoked FROM PUBLIC only and was a no-op because
+-- the grant was role-specific; migration 130 revoked FROM anon only and was a
+-- no-op because that grant was to PUBLIC. Migration 131 wrote the rule down —
+-- neither alone is sufficient.
+--
+-- Verified empirically 2026-09-07 that it matters HERE too: with `GRANT UPDATE ON
+-- users TO PUBLIC` in place, the earlier version of this migration (which revoked
+-- only from authenticated + anon) left the ACL as `=rw/postgres` and the
+-- privilege-escalation UPDATE still SUCCEEDED. A revoke that misses the real
+-- grantee silently leaves the hole wide open while looking like a fix.
+--
+-- Supabase's own default for tables is role-specific, so the PUBLIC revoke is
+-- most likely a no-op on the live database — but it costs nothing, and the live
+-- ACL is not something this migration can see. Belt and braces.
+revoke update on public.users from public, anon, authenticated;
 grant update (
   full_name,
   phone,
@@ -77,11 +93,6 @@ grant update (
   anonymous_mode_default
 ) on public.users to authenticated;
 
--- anon holds no UPDATE policy on users (so it sees no rows to update), but it does hold the
--- default table grant. Mirror the revoke rather than leaving a dangling privilege — defence in
--- depth if an anon-visible policy is ever added by mistake.
-revoke update on public.users from anon;
-
 -- Belt-and-braces on the policy itself. Postgres already reuses the USING expression as the
 -- WITH CHECK when none is given, so the pre-existing policy did NOT permit reassigning a row
 -- to another user's id — the hole was purely the column scope above. Stating WITH CHECK
@@ -95,7 +106,16 @@ create policy "users_update_own" on public.users
 commit;
 
 -- ── Verification (run after apply) ──
--- Expect: t, t, f, f, f
+-- FIRST check no grantee still holds table-wide UPDATE. `w` in the privilege
+-- string is UPDATE; an entry beginning with `=` is PUBLIC. Expect to see only the
+-- owner's row and column-scoped grants — NOT `=rw/` or `authenticated=rw/`:
+--   select unnest(relacl)::text from pg_class where relname = 'users';
+--   select grantee, privilege_type, column_name
+--     from information_schema.column_privileges
+--    where table_name = 'users' and privilege_type = 'UPDATE'
+--    order by grantee, column_name;
+--
+-- Then: t, t, f, f, f
 -- select
 --   has_column_privilege('authenticated','public.users','full_name','UPDATE')            as can_name,
 --   has_column_privilege('authenticated','public.users','notif_prefs','UPDATE')          as can_prefs,
