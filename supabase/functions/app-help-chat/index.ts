@@ -231,9 +231,14 @@ Reply with JSON only.`
         : m.content,
     }));
 
+    // The breakpoint belongs on the LAST system block, not the first. Caching is
+    // a prefix match over tools → system → messages, so a marker on
+    // SYSTEM_PROMPT cached the tool schemas + SYSTEM_PROMPT and left TOOL_GUIDE
+    // (~2k tokens) to be reprocessed at full price on every request AND on every
+    // hop of the tool loop — up to 6 model calls for one user message.
     const systemBlocks = [
-      { type: 'text', text: SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } },
-      { type: 'text', text: TOOL_GUIDE },
+      { type: 'text', text: SYSTEM_PROMPT },
+      { type: 'text', text: TOOL_GUIDE, cache_control: { type: 'ephemeral' } },
     ];
 
     // Tool-use loop — the model may call get_baby_tracking_stats (bounded to a few
