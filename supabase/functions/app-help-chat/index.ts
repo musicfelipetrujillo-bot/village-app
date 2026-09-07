@@ -331,17 +331,49 @@ Reply with JSON only.`
       }),
       { headers: { ...CORS, 'Content-Type': 'application/json' } },
     );
-  } catch (_err) {
+  } catch (err) {
     // This is a TRANSPORT/PARSE failure, not a medical one — so it must not
     // impersonate a crisis response. The old copy led with "call 911", which
     // read as though Billy had flagged her message when he had simply failed to
     // answer it (and it masked the JSON bug above for weeks). Say what actually
     // happened, invite a retry, and keep the hotlines as a quiet footer.
+    //
+    // The copy stays. What changes is that the failure now NAMES ITSELF. The
+    // comment above says this handler hid a bug for weeks — it did it again,
+    // because `catch (_err)` threw the error away: an upstream 401 and a model
+    // that returned prose produced the identical apology, so a total outage was
+    // indistinguishable from one bad answer. Two cheap fixes:
+    //   1. console.error → the Edge Function logs name the cause.
+    //   2. error_kind on the response → callable from curl, so the failure can
+    //      be classified without dashboard access, and the mobile client can
+    //      eventually tell "retry works" from "Villie is down".
+    // Deliberately NOT included: err.message on the wire. Provider messages can
+    // echo request fragments, and this endpoint is reachable with the anon key.
+    const status = typeof (err as any)?.status === 'number' ? (err as any).status : null;
+    const upstreamType = (err as any)?.type ?? (err as any)?.error?.type ?? null;
+    const message = String((err as any)?.message ?? err);
+
+    // Duck-typed on purpose: `npm:@anthropic-ai/sdk` is imported unpinned, so
+    // instanceof against a specific SDK build is not something to rely on.
+    const kind = message === 'unparseable_reply' ? 'model_format'
+      : status === 401 ? 'upstream_auth'
+      : status === 403 ? 'upstream_forbidden'
+      : status === 404 ? 'upstream_model'
+      : status === 429 ? 'upstream_rate_limit'
+      : status !== null && status >= 500 ? 'upstream_down'
+      : status === 400 ? 'upstream_bad_request'
+      : 'unknown';
+
+    console.error('[app-help-chat] request failed', JSON.stringify({
+      kind, status, upstream_type: upstreamType, message: message.slice(0, 300),
+    }));
+
     return new Response(
       JSON.stringify({
         reply: "Sorry — I lost that one on my end. Say it again and I'll pick it right up.\n\nIf you need someone this second: 988 for a mental-health crisis, 911 for an emergency.",
         crisis: false,
         crisis_resources: undefined,
+        error_kind: kind,
       }),
       { headers: { ...CORS, 'Content-Type': 'application/json' } },
     );
