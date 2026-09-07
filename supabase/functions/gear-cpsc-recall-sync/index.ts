@@ -17,6 +17,7 @@
 // individual upserts are idempotent.
 
 import { createClient } from 'jsr:@supabase/supabase-js@2';
+import { isServiceRoleRequest } from '../_shared/service-role.ts';
 
 const SAFER_PRODUCTS_URL = 'https://www.saferproducts.gov/RestWebServices/Recall';
 const FETCH_TIMEOUT_MS = 20000;
