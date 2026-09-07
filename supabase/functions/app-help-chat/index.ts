@@ -241,6 +241,35 @@ Reply with JSON only.`
       { type: 'text', text: TOOL_GUIDE, cache_control: { type: 'ephemeral' } },
     ];
 
+    // A MOVING cache breakpoint on the conversation. Without one, the retained
+    // turns — and, inside the tool loop, every assistant tool_use + tool_result
+    // block appended so far — are reprocessed at full price on every hop. Tool
+    // results are the expensive part: read_manual and get_my_day return real
+    // content, and that content was being re-billed on each subsequent hop.
+    //
+    // It MOVES rather than accumulates because a request may carry at most 4
+    // breakpoints; one already sits on TOOL_GUIDE, and a 4-hop loop that added
+    // one per hop would hit 5 and 400. Clearing the old marker costs nothing —
+    // the cache entry it wrote survives and a later breakpoint still reads it
+    // (within the 20-block lookback, which 4 hops stays well inside).
+    const moveCacheBreakpoint = (turns: any[]) => {
+      for (const m of turns) {
+        if (Array.isArray(m.content)) {
+          for (const b of m.content) {
+            if (b && typeof b === 'object' && 'cache_control' in b) delete b.cache_control;
+          }
+        }
+      }
+      const last = turns[turns.length - 1];
+      if (!last) return;
+      // Plain-string turns must become block form to carry the marker at all.
+      if (typeof last.content === 'string') {
+        last.content = [{ type: 'text', text: last.content, cache_control: { type: 'ephemeral' } }];
+      } else if (Array.isArray(last.content) && last.content.length > 0) {
+        last.content[last.content.length - 1].cache_control = { type: 'ephemeral' };
+      }
+    };
+
     // Tool-use loop — the model may call get_baby_tracking_stats (bounded to a few
     // hops), then must reply with the JSON contract. Non-tool questions break out
     // on the first turn, so how-to/crisis handling is unchanged.
@@ -248,6 +277,9 @@ Reply with JSON only.`
     let aiResponse: any = null;
     let navigateAction: { screen: string; params?: Record<string, unknown> } | null = null;
     for (let hop = 0; hop < 4; hop++) {
+      // Hop 0 writes the entry; every later hop reads everything up to the
+      // previous hop's tool results instead of re-paying for it.
+      moveCacheBreakpoint(convo);
       const resp = await anthropic.messages.create({
         model: 'claude-haiku-4-5-20251001',
         max_tokens: 700,
