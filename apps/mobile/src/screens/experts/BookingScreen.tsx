@@ -2,7 +2,7 @@
 import React, { useCallback, useEffect, useRef, useState, useMemo } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  ActivityIndicator,
+  ActivityIndicator, Alert,
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useFocusEffect } from '@react-navigation/native';
@@ -11,6 +11,8 @@ import { cardLift, cardLiftBorder } from '@utils/cardLift';
 import { V9PageBackdrop } from '@components/shared/V9PageBackdrop';
 import { useT } from '@/i18n';
 import { useExpertsStore } from '@store/experts';
+import { useAuthStore } from '@store/auth';
+import { appointmentsApi } from '@api/appointments';
 import type { ExpertsStackParamList } from '@/navigation/ExpertsNavigator';
 import type { SpecialistService } from 'shared/src/types/v1';
 
@@ -57,6 +59,7 @@ export default function BookingScreen({ navigation, route }: Props) {
   const t = useT();
   const { specialistId } = route.params;
   const { selectedSpecialist: spec, selectSpecialist, loading } = useExpertsStore();
+  const user = useAuthStore((s) => s.user);
 
   const today = useMemo(() => {
     const d = new Date();
@@ -69,6 +72,10 @@ export default function BookingScreen({ navigation, route }: Props) {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
   const [isTelehealth, setIsTelehealth] = useState(false);
+  // In-flight guard for the free-booking insert (the paid path has its own in
+  // PaymentScreen). Drives the CTA's busy state so a slow network doesn't read
+  // as a dead button.
+  const [booking, setBooking] = useState(false);
 
   useEffect(() => {
     if (!spec || spec.id !== specialistId) selectSpecialist(specialistId);
@@ -105,7 +112,7 @@ export default function BookingScreen({ navigation, route }: Props) {
     }, []),
   );
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     if (pressedRef.current) return;
     if (!spec || !selectedService || !selectedDate || !selectedSlot) return;
     pressedRef.current = true;
@@ -113,6 +120,8 @@ export default function BookingScreen({ navigation, route }: Props) {
     const amountCents = selectedService.price_cents ?? 0;
 
     if (amountCents > 0) {
+      // Paid path: PaymentScreen charges, then persists the appointment row
+      // itself (PaymentScreen.tsx:210 persistAppointmentWithRetry).
       navigation.navigate('Payment', {
         specialistId: spec.id,
         serviceName: selectedService.service_name,
@@ -122,7 +131,37 @@ export default function BookingScreen({ navigation, route }: Props) {
         specialistName: spec.full_name,
         telehealth_link: spec.telehealth_link ?? undefined,
       });
-    } else {
+      return;
+    }
+
+    // ─── Free path ────────────────────────────────────────────────────
+    // This branch used to navigate STRAIGHT to BookingConfirm, which is a purely
+    // presentational screen — it renders a success animation and "we'll remind
+    // you", but never writes anything. The app's ONLY appointments insert lives
+    // in PaymentScreen, which a free booking never reaches. So a mom booking a
+    // free consult (formatPrice supports "Free", so this is a real product path)
+    // saw a confirmation for an appointment that did not exist: nothing in her
+    // list, no reminder — `appointment-reminder` polls the appointments table —
+    // and the specialist never notified. She shows up to nothing, or no-shows.
+    //
+    // Persist FIRST and only navigate on success, so the confirmation screen can
+    // never again claim something that didn't happen.
+    if (!user) {
+      pressedRef.current = false;
+      Alert.alert(t('bookingScreen.saveErrorTitle'), t('bookingScreen.saveErrorBody'));
+      return;
+    }
+    setBooking(true);
+    try {
+      await appointmentsApi.create({
+        user_id: user.id,
+        specialist_id: spec.id,
+        source: 'in_app',
+        appointment_at: appointmentAt,
+        service_type: selectedService.service_name,
+        is_telehealth: isTelehealth,
+        amount_cents: 0,
+      });
       navigation.navigate('BookingConfirm', {
         specialistId: spec.id,
         specialistName: spec.full_name,
@@ -132,6 +171,13 @@ export default function BookingScreen({ navigation, route }: Props) {
         telehealth_link: spec.telehealth_link ?? undefined,
         amountCents: 0,
       });
+    } catch {
+      // Stay on this screen with the selection intact so she can retry the same
+      // slot — no money is involved, so a plain retry is the right recovery.
+      pressedRef.current = false;
+      Alert.alert(t('bookingScreen.saveErrorTitle'), t('bookingScreen.saveErrorBody'));
+    } finally {
+      setBooking(false);
     }
   };
 
@@ -310,18 +356,22 @@ export default function BookingScreen({ navigation, route }: Props) {
           </Text>
         )}
         <TouchableOpacity
-          style={[styles.ctaBtn, !canContinue && styles.ctaBtnDisabled]}
+          style={[styles.ctaBtn, (!canContinue || booking) && styles.ctaBtnDisabled]}
           onPress={handleContinue}
-          disabled={!canContinue}
+          disabled={!canContinue || booking}
           accessibilityLabel={selectedService?.price_cents ? t('bookingScreen.ctaContinueA11y', { amount: Math.round(selectedService.price_cents / 100) }) : t('bookingScreen.ctaConfirmFreeA11y')}
           accessibilityRole="button"
-          accessibilityState={{ disabled: !canContinue }}
+          accessibilityState={{ disabled: !canContinue || booking, busy: booking }}
         >
-          <Text style={styles.ctaBtnText}>
-            {selectedService?.price_cents
-              ? t('bookingScreen.ctaContinue', { amount: Math.round(selectedService.price_cents / 100) })
-              : t('bookingScreen.ctaBookFree')}
-          </Text>
+          {booking ? (
+            <ActivityIndicator color="#FFFCF6" />
+          ) : (
+            <Text style={styles.ctaBtnText}>
+              {selectedService?.price_cents
+                ? t('bookingScreen.ctaContinue', { amount: Math.round(selectedService.price_cents / 100) })
+                : t('bookingScreen.ctaBookFree')}
+            </Text>
+          )}
         </TouchableOpacity>
       </View>
     </View>

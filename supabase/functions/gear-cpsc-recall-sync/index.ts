@@ -17,6 +17,7 @@
 // individual upserts are idempotent.
 
 import { createClient } from 'jsr:@supabase/supabase-js@2';
+import { isServiceRoleRequest } from '../_shared/service-role.ts';
 
 const SAFER_PRODUCTS_URL = 'https://www.saferproducts.gov/RestWebServices/Recall';
 const FETCH_TIMEOUT_MS = 20000;
@@ -61,14 +62,34 @@ async function fetchRecalls(): Promise<CPSCRecall[]> {
   } finally { clearTimeout(tid); }
 }
 
-Deno.serve(async (_req) => {
-  // Auth: Supabase gateway-level verify_jwt (default ON) already validates the
-  // service role JWT in the Authorization header before this code runs. The
-  // GH Actions cron at .github/workflows/supabase-crons.yml posts with
-  // `Authorization: Bearer <SUPABASE_SERVICE_ROLE_KEY>`; the gateway rejects
+Deno.serve(async (req) => {
+  // AUTH (2026-09-05). The comment that stood here said: "the gateway rejects
   // anything else with 401 before reaching here. No need for a redundant
-  // function-level check (and the previous one introduced an env-mismatch
-  // failure mode that broke this cron after the last key rotation).
+  // function-level check." That is not true. `verify_jwt` only proves the bearer
+  // is signed by THIS PROJECT's JWT secret — and the anon publishable key is
+  // exactly such a token. It ships inside the mobile bundle and on the marketing
+  // site, so "anything else" very much included every user of the app. This
+  // function upserts `cpsc_recall_cache` and then runs
+  // `sweep_active_listings_for_recalls`, which auto-withdraws live gear listings
+  // and writes seller notifications — so an open trigger is a content-integrity
+  // problem, not just a cost one.
+  //
+  // The same comment records WHY the old check was deleted: it "introduced an
+  // env-mismatch failure mode that broke this cron after the last key rotation."
+  // That is the exact failure `_shared/service-role.ts` was written for. Its
+  // two-mode gate accepts the injected key OR an authentic `service_role` claim
+  // when the gateway is verifying signatures, so it survives key rotation instead
+  // of 401-ing the cron. Deleting authentication was never the fix; this is.
+  //
+  // gatewayVerifiesJwt: true matches `[functions.gear-cpsc-recall-sync]
+  // verify_jwt = true` in supabase/config.toml.
+  if (!isServiceRoleRequest(req, { gatewayVerifiesJwt: true })) {
+    return new Response(JSON.stringify({ error: 'unauthorized' }), {
+      status: 401,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
   const SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
   const admin = createClient(Deno.env.get('SUPABASE_URL')!, SERVICE_KEY);
 

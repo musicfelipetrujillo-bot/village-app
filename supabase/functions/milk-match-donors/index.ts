@@ -9,6 +9,8 @@
 import Anthropic from 'npm:@anthropic-ai/sdk';
 import { createClient } from 'npm:@supabase/supabase-js';
 
+import { consumeQuota, tooManyRequests } from '../_shared/rate-limit.ts';
+
 const anthropic = new Anthropic();
 const supabase = createClient(
   Deno.env.get('SUPABASE_URL')!,
@@ -49,6 +51,13 @@ Deno.serve(async (req) => {
 
     const { data: { user } } = await supabase.auth.getUser(authHeader.replace('Bearer ', ''));
     if (!user) return new Response('Unauthorized', { status: 401, headers: CORS });
+
+    // Per-user quota (migration 135). Auth above establishes WHO; this bounds HOW
+    // MUCH. Placed immediately after auth and before any model call so it covers
+    // every downstream branch. Atomic in SQL. Fails OPEN on ledger error — a cost
+    // control must not block a mother mid-flow.
+    const quota = await consumeQuota(user.id, 'milk-match-donors');
+    if (!quota.allowed) return tooManyRequests(quota, CORS);
 
     const {
       lat, lng,

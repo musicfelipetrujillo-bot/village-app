@@ -4,3 +4,12 @@ packages:
   - "supabase/functions/*"
 patchedDependencies:
   '@sentry/react-native': patches/@sentry__react-native.patch
+# Security audit 2026-09-04 — transitive advisories that reach the SHIPPED app.
+# Ranges are deliberately narrow: `ws` also resolves at 6.x and 7.x for the Metro
+# and Expo dev servers, which are build-time only. A bare `ws` override would drag
+# those to 8.x and break them, so each override is pinned to the affected range.
+#   ws     >=8.0.0 <8.21.0  — via @supabase/supabase-js > @supabase/realtime-js
+#   nanoid <3.3.16          — via @react-navigation/native
+overrides:
+  'ws@>=8.0.0 <8.21.0': '^8.21.0'
+  'nanoid@<3.3.16': '^3.3.16'

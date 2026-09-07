@@ -1,3 +1,6 @@
+import { getCallerUserId } from '../_shared/user-auth.ts';
+import { consumeQuota, tooManyRequests } from '../_shared/rate-limit.ts';
+
 // Village agents bridge — /triage
 // POST /functions/v1/agents-triage
 //
@@ -36,6 +39,29 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: CORS });
   }
+
+  // AUTH (2026-09-05): the header above claimed "Callers must be authenticated
+  // (Supabase verifies JWT by default)". That premise is wrong, and it is the
+  // reason this whole class of function was unguarded: `verify_jwt` proves only
+  // that the bearer is signed by this project's JWT secret, and the anon
+  // publishable key IS such a token — it ships inside the mobile bundle. So the
+  // bridge to the internal agent runtime was reachable by anyone holding it.
+  const callerId = await getCallerUserId(req);
+  if (!callerId) {
+    return new Response(JSON.stringify({ error: 'unauthorized' }), {
+      status: 401,
+      headers: { ...CORS, 'Content-Type': 'application/json' },
+    });
+  }
+
+  // Per-user quota (migration 135 + _shared/rate-limit.ts). The gate above says
+  // WHO is calling; this says HOW MUCH they may have. Without it one real account
+  // could loop this endpoint and bill Villie without limit. Decided atomically in
+  // SQL, so concurrent requests cannot all pass the same check. Fails OPEN on a
+  // ledger error — this is a cost control, and a DB blip must not block a mother
+  // mid-flow.
+  const quota = await consumeQuota(callerId, 'agents-triage');
+  if (!quota.allowed) return tooManyRequests(quota, CORS);
 
   if (req.method !== 'POST') {
     return new Response(

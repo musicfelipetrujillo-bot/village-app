@@ -16,7 +16,29 @@
 // Called via pg_cron daily + via mobile `refreshHomeFeed` when cache is stale.
 // Fails-soft per card: a broken sub-call returns a null card, the feed still ships.
 
+// AUTH (2026-09-04): this function had no authorization of any kind, while running
+// entirely on the service-role client below. `verify_jwt = true` does not help —
+// the anon publishable key ships in the mobile bundle and satisfies the gateway.
+// Two distinct holes followed:
+//   * `{"mode":"batch"}` — fleet-wide re-curation on demand: a fan-out of Haiku
+//     calls per active user, billable by anyone who asks.
+//   * `{"mode":"single","user_id":"<anyone>"}` — an IDOR. `user_id` came straight
+//     off the body and was never checked against the caller, so any request could
+//     regenerate and OVERWRITE another user's home_feed_cache row.
+//
+// The gate has to be two-sided because this function has two legitimate callers:
+// pg_cron / GH Actions (service role, batch) and the mobile app's refreshHomeFeed
+// (a signed-in user refreshing her own feed, api/home.ts:257). So:
+//   batch  → service role only.
+//   single → service role for any user_id; otherwise a valid user JWT, and the
+//            target is forced to that caller's own id. A body user_id naming
+//            someone else is refused rather than silently retargeted, so a buggy
+//            client fails loudly instead of appearing to work.
 import { createClient } from 'jsr:@supabase/supabase-js@2';
+import { isServiceRoleRequest } from '../_shared/service-role.ts';
+import { getCallerUserId } from '../_shared/user-auth.ts';
+
+import { consumeQuota, tooManyRequests } from '../_shared/rate-limit.ts';
 
 const supabase = createClient(
   Deno.env.get('SUPABASE_URL')!,
@@ -193,8 +215,48 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const mode: string = body?.mode ?? 'batch';
 
+    // gatewayVerifiesJwt: true matches `[functions.home-feed-curator] verify_jwt = true`
+    // in supabase/config.toml. Keep the two in sync.
+    const isService = isServiceRoleRequest(req, { gatewayVerifiesJwt: true });
+
+    // Batch is the fleet-wide LLM fan-out — cron only, no user has any business
+    // triggering it. Note `mode` defaults to 'batch', so this also covers a bare
+    // `{}` body, which is exactly what the cron sends.
+    if (mode !== 'single' && !isService) {
+      return new Response(JSON.stringify({ error: 'unauthorized' }), {
+        status: 401, headers: { ...CORS, 'Content-Type': 'application/json' },
+      });
+    }
+
     if (mode === 'single') {
-      const userId: string | null = body?.user_id ?? null;
+      let userId: string | null = body?.user_id ?? null;
+
+      if (!isService) {
+        // Not the cron ⇒ must be a signed-in user, and she may only refresh
+        // herself. This is the fix for the IDOR: previously `user_id` was taken
+        // on trust, letting any caller overwrite any user's cached feed.
+        const caller = await getCallerUserId(req);
+        if (!caller) {
+          return new Response(JSON.stringify({ error: 'unauthorized' }), {
+            status: 401, headers: { ...CORS, 'Content-Type': 'application/json' },
+          });
+        }
+        if (userId && userId !== caller) {
+          return new Response(JSON.stringify({ error: 'forbidden' }), {
+            status: 403, headers: { ...CORS, 'Content-Type': 'application/json' },
+          });
+        }
+        userId = caller;
+
+        // Per-user quota (migration 135) — USER path only; the nightly batch runs
+        // as service role and must not be throttled. A single 'single' call fans
+        // out to several model endpoints to rebuild one feed, so this is one of
+        // the more expensive things a client can ask for: 10/hr, well above the
+        // stale-cache refresh the app actually performs.
+        const quota = await consumeQuota(caller, 'home-feed-curator');
+        if (!quota.allowed) return tooManyRequests(quota, CORS);
+      }
+
       if (!userId) {
         return new Response(JSON.stringify({ error: 'user_id required for single mode' }), {
           status: 400, headers: { ...CORS, 'Content-Type': 'application/json' },

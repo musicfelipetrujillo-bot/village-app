@@ -732,21 +732,27 @@ function WeekIntroCard({ data, onPress, lang = 'en', posterSource }: { data: Wee
   );
 }
 
-// TEMP placeholder so the week-intro card is visible on the early weeks before
-// real videos are uploaded. A real published `manual_week_intro` row always
-// takes precedence (per week). Uses a public Mux sample so tapping actually
-// plays something. Remove (or shrink the set) once real videos exist.
-const PLACEHOLDER_WEEKS = new Set([1, 2, 3, 4, 5, 6, 7, 8]);
-const PLACEHOLDER_WEEK_INTRO: WeekIntroVideo = {
-  id: 'placeholder-week-intro',
-  week_number: 1,
-  title: 'What to expect this week',
-  expert_name: 'Dr. Priya Nair, MD',
-  expert_role: 'pediatrician · villie',
-  mux_playback_id: 'DS00Spx1CV902MCtPj5WknGlR102V5HFkDe',
-  poster_url: null,
-  duration_seconds: 96,
-};
+// REMOVED 2026-09-04 — `PLACEHOLDER_WEEK_INTRO` / `PLACEHOLDER_WEEKS`.
+//
+// The placeholder presented a public Mux sample clip (DS00Spx1CV9…) under a
+// FABRICATED medical byline — "Dr. Priya Nair, MD · pediatrician · villie" — as
+// this week's expert guidance. Nobody by that name reviewed anything; the footage
+// was unrelated Mux test content.
+//
+// It was reached far more often than "the early weeks before real videos are
+// uploaded" implied. `getWeekIntroVideo` filters `locale` exactly with no `en`
+// fallback (110_villie_pro_entitlement.sql:184-187), so for a Spanish-speaking
+// user under the English-first Pro launch NO week ever resolves — she got the
+// fake pediatrician on all 52 weeks, and so did paying Pro subscribers, in place
+// of the content they bought. docs/PRO_VIDEO_LAUNCH_RUNBOOK.md already documents
+// the intended behaviour as "she gets no week-intro slot at all (it hides…)";
+// the code contradicted its own runbook.
+//
+// The render site is already `{weekIntro && (…)}`, so returning null simply hides
+// the hero — which is what the runbook promises and what an empty slot should do.
+// Do not reintroduce a playable stand-in with a named clinician attached. If a
+// visible placeholder is ever wanted, it must carry no expert name and no
+// playable asset.
 
 // TEMP grow demo placeholder (2026-08-12) — a real filmed clip's poster (from a
 // Grow "spinning objects" reel) so we can see how a filmed demo reads in the
@@ -1005,20 +1011,18 @@ export default function ManualScrollV3() {
   const [weekIntro, setWeekIntro] = useState<WeekIntroVideo | null>(null);
   useEffect(() => {
     let cancelled = false;
-    // The Manual is video-led (2026-08-12): EVERY week shows a video hero. Until
-    // real per-week footage is uploaded, a placeholder plays; a real published
-    // row always overrides it. (Was gated to weeks 1–8 — now always present so
-    // the video is the hero on every week.)
-    const fallback = {
-      ...PLACEHOLDER_WEEK_INTRO,
-      week_number: week,
-      title: lang === 'es' ? 'Qué esperar esta semana' : PLACEHOLDER_WEEK_INTRO.title,
-      expert_name: lang === 'es' ? 'Dra. Priya Nair' : PLACEHOLDER_WEEK_INTRO.expert_name,
-      expert_role: lang === 'es' ? 'pediatra · villie' : PLACEHOLDER_WEEK_INTRO.expert_role,
-    };
+    // No published row for this week/locale ⇒ no hero. The card is rendered under
+    // `{weekIntro && …}`, so null hides the slot cleanly.
+    //
+    // The `.catch` deliberately clears to null as well. It previously substituted a
+    // playable placeholder, which also defeated the Pro paywall: `openWeekIntro`
+    // routes to Paywall only when `is_locked` is set, and the fabricated object
+    // carried no `is_locked`, so a transient network error handed any free-tier
+    // user a playable card instead of the gate. Failing closed here means a fetch
+    // error shows nothing — correct for a paywalled, clinically-attributed surface.
     getWeekIntroVideo(who, week, lang)
-      .then((v) => { if (!cancelled) setWeekIntro(v ?? fallback); })
-      .catch(() => { if (!cancelled) setWeekIntro(fallback); });
+      .then((v) => { if (!cancelled) setWeekIntro(v ?? null); })
+      .catch(() => { if (!cancelled) setWeekIntro(null); });
     return () => { cancelled = true; };
   }, [who, week, lang]);
 

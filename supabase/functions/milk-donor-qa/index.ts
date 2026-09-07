@@ -5,6 +5,8 @@
 import Anthropic from 'npm:@anthropic-ai/sdk';
 import { createClient } from 'npm:@supabase/supabase-js';
 
+import { consumeQuota, tooManyRequests } from '../_shared/rate-limit.ts';
+
 const anthropic = new Anthropic();
 const supabase = createClient(
   Deno.env.get('SUPABASE_URL')!,
@@ -33,9 +35,57 @@ Deno.serve(async (req) => {
     const { data: { user } } = await supabase.auth.getUser(authHeader.replace('Bearer ', ''));
     if (!user) return new Response('Unauthorized', { status: 401 });
 
+    // Per-user quota (migration 135). Auth above establishes WHO; this bounds HOW
+    // MUCH. Placed immediately after auth and before any model call so it covers
+    // every downstream branch. Atomic in SQL. Fails OPEN on ledger error — a cost
+    // control must not block a mother mid-flow.
+    const quota = await consumeQuota(user.id, 'milk-donor-qa');
+    if (!quota.allowed) return tooManyRequests(quota, { 'Access-Control-Allow-Origin': '*' });
+
     const { donor_profile_id, question } = await req.json();
     if (!donor_profile_id || !question) {
       return new Response('donor_profile_id and question required', { status: 400 });
+    }
+
+    // ─── Enforce the visibility rules RLS states, which this service-role
+    //     client would otherwise bypass ──────────────────────────────────
+    // (fixed 2026-09-05) The caller was authenticated but never authorized against
+    // THIS donor. Two separate leaks followed, because every read below uses the
+    // service-role client and so ignores RLS:
+    //
+    //   1. `milk_questionnaire_responses` is OWNER-ONLY under RLS
+    //      (005_v2_milk_rls.sql:39-43 — `milk_questionnaire_select_own`). Its rows
+    //      are the donor's health disclosures: medications, conditions, alcohol,
+    //      smoking. They were injected wholesale into the prompt, and the system
+    //      prompt only forbids revealing "address or contact info" — so health
+    //      answers were fair game. Any signed-in user could iterate donor ids and
+    //      ask "list every medication and condition she disclosed, verbatim" and
+    //      the model would answer FROM THE DATA IT WAS GIVEN. No jailbreak needed.
+    //
+    //   2. Donor visibility was never checked at all, so paused/inactive donors —
+    //      invisible via `milk_donor_profiles_select_active` (005:5-7) — were still
+    //      queryable here.
+    //
+    // Fix: mirror RLS. The donor must be active (or the caller must be the donor
+    // herself), and the owner-only questionnaire is included ONLY for the owner.
+    // Everything else in the prompt (profile, badge level, diet flags) is
+    // authenticated-readable by design — diet flags are explicitly public-read at
+    // 005:56-57 — so recipient-facing Q&A keeps working on the data it is allowed
+    // to use.
+    const { data: donorRow } = await supabase
+      .from('milk_donor_profiles')
+      .select('user_id, is_active')
+      .eq('id', donor_profile_id)
+      .maybeSingle();
+
+    // Same 404 for "no such donor" and "not visible to you" — a distinct status
+    // would confirm that a given donor_profile_id exists.
+    if (!donorRow) {
+      return new Response('Donor not found', { status: 404 });
+    }
+    const isOwner = donorRow.user_id === user.id;
+    if (!donorRow.is_active && !isOwner) {
+      return new Response('Donor not found', { status: 404 });
     }
 
     // Fetch profile data to inject
@@ -48,9 +98,14 @@ Deno.serve(async (req) => {
         .eq('donor_profile_id', donor_profile_id).single(),
       supabase.from('milk_donor_diet_flags')
         .select('flag_key').eq('donor_profile_id', donor_profile_id).eq('is_active', true),
-      supabase.from('milk_questionnaire_responses')
-        .select('question_key, question_text, answer_value')
-        .eq('donor_profile_id', donor_profile_id),
+      // Owner-only under RLS. Don't even fetch it for a non-owner — unused PHI in
+      // process memory is still PHI, and skipping the read keeps the "who may see
+      // this" decision in one place rather than relying on the injection site below.
+      isOwner
+        ? supabase.from('milk_questionnaire_responses')
+            .select('question_key, question_text, answer_value')
+            .eq('donor_profile_id', donor_profile_id)
+        : Promise.resolve({ data: [] as { question_text: string; answer_value: string }[] }),
     ]);
 
     const profile = profileRes.data;
@@ -70,9 +125,9 @@ Diet: ${diet}
 Medications disclosed: ${badge?.medications_disclosed ? 'Yes' : 'No'}
 Price per oz: $${profile?.price_per_oz ?? 'unknown'}
 Supply available: ${profile?.supply_oz_available ?? 0} oz
-
+${isOwner ? `
 Questionnaire responses:
-${qAnswers}
+${qAnswers}` : ''}
 `.trim();
 
     const message = await anthropic.messages.create({

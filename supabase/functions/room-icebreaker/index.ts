@@ -16,6 +16,11 @@
 import Anthropic from 'npm:@anthropic-ai/sdk';
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 
+import { isServiceRoleRequest } from '../_shared/service-role.ts';
+import { resolveTargetUser } from '../_shared/user-auth.ts';
+
+import { consumeQuota, tooManyRequests } from '../_shared/rate-limit.ts';
+
 const anthropic = new Anthropic({ apiKey: Deno.env.get('ANTHROPIC_API_KEY')! });
 const supabase = createClient(
   Deno.env.get('SUPABASE_URL')!,
@@ -53,11 +58,33 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: CORS });
 
   try {
-    const { room_id: roomId, user_id: userId } = await req.json();
-    if (!roomId || !userId) {
-      return new Response(JSON.stringify({ error: 'room_id and user_id required' }),
+    const { room_id: roomId, user_id: bodyUserId } = await req.json();
+    if (!roomId) {
+      return new Response(JSON.stringify({ error: 'room_id required' }),
         { status: 400, headers: { ...CORS, 'Content-Type': 'application/json' } });
     }
+
+    // IDOR (fixed 2026-09-05): `user_id` was taken on trust, and the upsert at the
+    // end is keyed on (user_id, room_id) — so any anon-key holder could overwrite
+    // another user's icebreaker suggestion for any room.
+    const target = await resolveTargetUser(
+      req,
+      bodyUserId,
+      isServiceRoleRequest(req, { gatewayVerifiesJwt: true }),
+    );
+    if (!target.ok) {
+      return new Response(JSON.stringify({ error: target.error }),
+        { status: target.status, headers: { ...CORS, 'Content-Type': 'application/json' } });
+    }
+    const userId = target.userId;
+    
+    // Per-user quota (migration 135). The gate above establishes WHO; this bounds
+    // HOW MUCH. Placed immediately after auth and before any model call so it
+    // covers every downstream branch — deferring it deeper risks a path that skips
+    // it. Atomic in SQL, so concurrent requests cannot all pass the same check.
+    // Fails OPEN on ledger error: a cost control must not block a mother mid-flow.
+    const quota = await consumeQuota(userId, 'room-icebreaker');
+    if (!quota.allowed) return tooManyRequests(quota, CORS);
 
     const { data: room } = await supabase
       .from('rooms')

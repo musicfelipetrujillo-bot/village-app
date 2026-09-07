@@ -14,6 +14,8 @@
 import Anthropic from 'npm:@anthropic-ai/sdk';
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 
+import { isServiceRoleRequest } from '../_shared/service-role.ts';
+
 const anthropic = new Anthropic({ apiKey: Deno.env.get('ANTHROPIC_API_KEY')! });
 const supabase = createClient(
   Deno.env.get('SUPABASE_URL')!,
@@ -90,6 +92,21 @@ Write the 2-paragraph summary per style rules. End with the disclaimer sentence.
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: CORS });
+
+  // AUTH (2026-09-05): no authorization check existed, and `verify_jwt = true` is
+  // not one — the anon publishable key ships in the mobile bundle and satisfies the
+  // gateway. This function fills milestone_library.ai_summary_cache via Sonnet, so it was a billable model endpoint open to the
+  // internet (and, where it writes, a way to churn shared content on demand).
+  //
+  // Only caller: pg_cron (service_role_key) — service role. No mobile code calls it.
+  //
+  // gatewayVerifiesJwt: true matches this function's verify_jwt pin in config.toml.
+  if (!isServiceRoleRequest(req, { gatewayVerifiesJwt: true })) {
+    return new Response(JSON.stringify({ error: 'unauthorized' }), {
+      status: 401,
+      headers: { ...CORS, 'Content-Type': 'application/json' },
+    });
+  }
 
   // Edge Function wall time is 60s; Sonnet calls average 5-15s each. Process
   // as many rows as fit under WALL_BUDGET_MS, then exit cleanly so the GH

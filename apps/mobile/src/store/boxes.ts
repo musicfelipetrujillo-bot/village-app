@@ -56,6 +56,8 @@ interface BoxesState {
   cart: CartLine[];
 
   // ----- actions -----
+  /** Clear cart + selections on sign-out. */
+  reset: () => void;
   setHubLayout: (l: HubLayout) => void;
   setContentsLayout: (l: ContentsLayout) => void;
   setCustomizeMode: (on: boolean) => void;
@@ -81,6 +83,11 @@ export const useBoxesStore = create<BoxesState>((set, get) => ({
   customizeMode: false,
   customize: initialCustomize(),
   cart: [],
+
+  // Sign-out teardown. Clears the cart and per-box selections (what she was
+  // about to buy) but leaves the purely cosmetic layout toggles alone —
+  // those carry no personal data.
+  reset: () => set({ customizeMode: false, customize: initialCustomize(), cart: [] }),
 
   setHubLayout: (l) => set({ hubLayout: l }),
   setContentsLayout: (l) => set({ contentsLayout: l }),

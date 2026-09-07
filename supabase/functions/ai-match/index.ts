@@ -6,6 +6,11 @@
 import Anthropic from 'npm:@anthropic-ai/sdk';
 import { createClient } from 'npm:@supabase/supabase-js';
 
+import { isServiceRoleRequest } from '../_shared/service-role.ts';
+import { resolveTargetUser } from '../_shared/user-auth.ts';
+
+import { consumeQuota, tooManyRequests } from '../_shared/rate-limit.ts';
+
 const anthropic = new Anthropic({ apiKey: Deno.env.get('ANTHROPIC_API_KEY')! });
 const supabase = createClient(
   Deno.env.get('SUPABASE_URL')!,
@@ -28,7 +33,33 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { user_id, lat, lng, radius_miles = 10, specialty } = await req.json();
+    const { user_id: bodyUserId, lat, lng, radius_miles = 10, specialty } = await req.json();
+
+    // IDOR (fixed 2026-09-05): `user_id` was taken on trust and the profile read
+    // below uses the service-role client, bypassing RLS. Any anon-key holder could
+    // pass another mother's id and have her pregnancy_stage and insurance_provider
+    // fed into the LLM prompt — then read them back out of the returned match
+    // reasons. An inference leak of health and insurance data.
+    const target = await resolveTargetUser(
+      req,
+      bodyUserId,
+      isServiceRoleRequest(req, { gatewayVerifiesJwt: true }),
+    );
+    if (!target.ok) {
+      return new Response(JSON.stringify({ error: target.error }), {
+        status: target.status,
+        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+      });
+    }
+    const user_id = target.userId;
+    
+    // Per-user quota (migration 135). The gate above establishes WHO; this bounds
+    // HOW MUCH. Placed immediately after auth and before any model call so it
+    // covers every downstream branch — deferring it deeper risks a path that skips
+    // it. Atomic in SQL, so concurrent requests cannot all pass the same check.
+    // Fails OPEN on ledger error: a cost control must not block a mother mid-flow.
+    const quota = await consumeQuota(user_id, 'ai-match');
+    if (!quota.allowed) return tooManyRequests(quota, { 'Access-Control-Allow-Origin': '*' });
 
     // Fetch user profile
     const { data: user } = await supabase

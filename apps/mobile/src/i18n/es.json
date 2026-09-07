@@ -1449,7 +1449,9 @@
     "dayWe": "Mi",
     "dayTh": "Ju",
     "dayFr": "Vi",
-    "daySa": "Sa"
+    "daySa": "Sa",
+    "saveErrorTitle": "No pudimos agendar la cita",
+    "saveErrorBody": "Tu cita no se guardó. Tu horario sigue seleccionado — toca de nuevo para reintentar."
   },
   "expertsHome": {
     "eyebrow": "VERIFICADOS · CERCA DE TI",
@@ -2306,5 +2308,8 @@
     "soonBody": "El impulso llega con la próxima actualización de la app. Un poquito de paciencia.",
     "errorTitle": "Algo salió mal",
     "errorBody": "Inténtalo de nuevo."
+  },
+  "errors": {
+    "rateLimited": "Villie necesita un respiro — inténtalo de nuevo en unos {{minutes}} min."
   }
 }

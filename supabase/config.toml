@@ -258,6 +258,15 @@ verify_jwt = true
 [functions.playbook-parse-note]
 verify_jwt = true
 
+# Added 2026-09-06. This function was the ONLY one missing from this registry —
+# which is precisely why its in-code gate (an unverified `role` claim decode) was
+# unsafe: with no pin, nothing guaranteed the gateway had checked the signature.
+# The gate now uses _shared/service-role.ts with gatewayVerifiesJwt: true, which
+# is sound ONLY while this pin exists. Never deploy this function with
+# --no-verify-jwt.
+[functions.pro-entitlement-reconcile]
+verify_jwt = true
+
 [functions.push-notify]
 verify_jwt = true
 

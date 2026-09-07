@@ -9,6 +9,8 @@
 import Anthropic from 'npm:@anthropic-ai/sdk';
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 
+import { isServiceRoleRequest } from '../_shared/service-role.ts';
+
 const anthropic = new Anthropic({ apiKey: Deno.env.get('ANTHROPIC_API_KEY')! });
 const supabase = createClient(
   Deno.env.get('SUPABASE_URL')!,
@@ -32,6 +34,23 @@ const SYSTEM_PROMPT = `You order upcoming baby/maternal events by fit for this s
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: CORS });
+
+  // AUTH (2026-09-05): no authorization check existed, and `verify_jwt = true` is
+  // not one — the anon publishable key ships in the mobile bundle and satisfies the
+  // gateway. This function ranks events for a caller-supplied `user_id` and returns reasons derived from her profile, so an unchecked `user_id` was both an inference
+  // leak about another mother and a free Haiku endpoint.
+  //
+  // Only caller is home-feed-curator, which fans out server-side with
+  // `Authorization: Bearer ${SERVICE_KEY}` (home-feed-curator/index.ts:59). No
+  // mobile code calls this directly, so service-role-only is the exact contract —
+  // and with the target now supplied only by trusted server code, `user_id` no
+  // longer needs a per-caller ownership check.
+  if (!isServiceRoleRequest(req, { gatewayVerifiesJwt: true })) {
+    return new Response(JSON.stringify({ error: 'unauthorized' }), {
+      status: 401,
+      headers: { ...CORS, 'Content-Type': 'application/json' },
+    });
+  }
 
   try {
     const body = await req.json();

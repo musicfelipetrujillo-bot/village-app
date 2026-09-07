@@ -19,8 +19,27 @@
 // (admin-approve-specialist, room-message-scan moderator alerts) MUST set
 // `bypass_prefs: true` to skip both gates entirely.
 
+// AUTH (2026-09-04): "Auth: service role only" above was documentation, not enforcement —
+// the handler ran no authorization check at all. `verify_jwt = true` in config.toml does not
+// cover this: it proves only that the bearer is signed by this project's JWT secret, and the
+// anon publishable key is exactly such a token (it ships in the mobile bundle). Anyone who
+// extracted it could fan out arbitrary push to any external_id list — and because
+// `bypass_prefs` is caller-supplied (see line ~20), they could set it TRUE to punch straight
+// through notification preferences AND quiet hours. A phishing push with an attacker-chosen
+// `url` deep link, at 3am, to every user, from a maternal-health app the recipient trusts.
+//
+// `isServiceRoleRequest` restores the documented posture: an anon token carries `role:"anon"`
+// and is rejected before any OneSignal call. The pref/quiet-hours gates below are unchanged —
+// they are a defence-in-depth layer for legitimate callers, never the authorization boundary.
+//
+// gatewayVerifiesJwt: true matches `[functions.push-notify] verify_jwt = true` in
+// supabase/config.toml. Change one and you must change the other.
+//
+// Callers (all verified to send SUPABASE_SERVICE_ROLE_KEY as the bearer): appointment-reminder,
+// gear-moderation-pager, room-weekly-summary, week-nudge-notify (×2), trending-publish-notify.
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 import { isQuietHoursActive } from '../_shared/quiet-hours.ts';
+import { isServiceRoleRequest } from '../_shared/service-role.ts';
 
 const ONESIGNAL_APP_ID = Deno.env.get('ONESIGNAL_APP_ID')!;
 const ONESIGNAL_API_KEY = Deno.env.get('ONESIGNAL_API_KEY')!;
@@ -104,6 +123,15 @@ async function filterByPrefs(
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: CORS });
+  }
+
+  // Must run before the body is parsed — an unauthorized caller gets nothing, not even
+  // validation feedback that would help them shape a working payload.
+  if (!isServiceRoleRequest(req, { gatewayVerifiesJwt: true })) {
+    return new Response(JSON.stringify({ error: 'unauthorized' }), {
+      status: 401,
+      headers: { ...CORS, 'Content-Type': 'application/json' },
+    });
   }
 
   try {

@@ -4,6 +4,9 @@
 
 import Anthropic from 'npm:@anthropic-ai/sdk';
 
+import { getCallerUserId } from '../_shared/user-auth.ts';
+import { consumeQuota } from '../_shared/rate-limit.ts';
+
 const anthropic = new Anthropic();
 
 const SYSTEM_PROMPT = `You are a warm, knowledgeable guide helping breast milk donors complete a safety questionnaire.
@@ -27,8 +30,34 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) return new Response('Unauthorized', { status: 401 });
+    // AUTH (2026-09-05): this was a PRESENCE check — any non-empty Authorization
+    // header passed. Combined with `verify_jwt = true`, which the anon publishable
+    // key (shipped in the mobile bundle) already satisfies, it authenticated
+    // nobody: it just confirmed the gateway had let the request through. That made
+    // this a free Haiku endpoint billed to Villie.
+    //
+    // Now validates the token against Supabase Auth and requires a real user. The
+    // caller is the donor filling in her own questionnaire (api/milk.ts:482), so
+    // she is always signed in. The quota below covers the remaining case: a
+    // signed-in user looping the endpoint.
+    const callerId = await getCallerUserId(req);
+    if (!callerId) {
+      return new Response('Unauthorized', { status: 401 });
+    }
+
+    // Per-user quota (migration 135). Limit is deliberately generous (80/hr): the
+    // donor questionnaire is ~12 questions and coaches EACH answer, so one honest
+    // sitting is already a dozen calls and she may revise several.
+    const quota = await consumeQuota(callerId, 'milk-questionnaire-coach');
+    if (!quota.allowed) {
+      return new Response(
+        JSON.stringify({ error: 'rate_limited', retry_after_seconds: quota.retryAfterSeconds }),
+        {
+          status: 429,
+          headers: { 'Content-Type': 'application/json', 'Retry-After': String(quota.retryAfterSeconds) },
+        },
+      );
+    }
 
     const { question_key, question_text, answer_value } = await req.json();
     if (!question_text || !answer_value) {

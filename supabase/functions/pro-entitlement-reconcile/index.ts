@@ -19,6 +19,7 @@
 
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 import { fetchProEntitlement } from '../_shared/revenuecat.ts';
+import { isServiceRoleRequest } from '../_shared/service-role.ts';
 
 const RC_SECRET_KEY = Deno.env.get('REVENUECAT_SECRET_KEY');
 const DEFAULT_LIMIT = 200;
@@ -33,27 +34,41 @@ function json(status: number, body: Record<string, unknown>): Response {
   });
 }
 
-/** The gateway verifies the JWT signature; we only need to know WHICH role
- *  signed in. Reading the claim (rather than comparing to the service-role
- *  key) keeps this working across key rotations while still refusing anon
- *  and ordinary authenticated callers. */
-function isServiceRole(req: Request): boolean {
-  const token = (req.headers.get('authorization') ?? '').replace(/^Bearer\s+/i, '');
-  const payload = token.split('.')[1];
-  if (!payload) return false;
-  try {
-    const decoded = JSON.parse(
-      atob(payload.replace(/-/g, '+').replace(/_/g, '/')),
-    ) as { role?: string };
-    return decoded.role === 'service_role';
-  } catch {
-    return false;
-  }
-}
-
+// AUTH (2026-09-06) — the last unverified-JWT gate in the codebase.
+//
+// What stood here decoded the bearer's payload and returned `role === 'service_role'`
+// WITHOUT VERIFYING THE SIGNATURE, justified by: "The gateway verifies the JWT
+// signature; we only need to know WHICH role signed in." That premise was false
+// for this function specifically — it was the ONLY function absent from the
+// `verify_jwt` registry in supabase/config.toml (75 pinned, this one missing), so
+// nothing established that the gateway was checking signatures at all. A JWT is
+// three base64 segments joined by dots and the signature segment was never read,
+// so anyone could send
+//
+//     Authorization: Bearer x.eyJyb2xlIjoic2VydmljZV9yb2xlIn0.x
+//
+// and drive a fleet-wide entitlement sweep against the RevenueCat API. This is the
+// identical defect that _shared/service-role.ts was written to kill after the
+// 2026-08-14 incident; five of the six affected functions were migrated then, and
+// this one was missed.
+//
+// The stated reason for reading the claim rather than comparing keys was real:
+// this project has more than one valid service-role key in circulation (the GH
+// Actions secret and the runtime-injected key are both correctly signed but not
+// byte-identical), so a strict equality check 401s this nightly cron. That is
+// exactly why the shared helper is TWO-MODE — it accepts the injected key OR an
+// authentic `service_role` claim — so rotation tolerance is kept without trusting
+// an unverified token.
+//
+// gatewayVerifiesJwt: true is sound ONLY because this commit also adds the
+// [functions.pro-entitlement-reconcile] verify_jwt pin to supabase/config.toml.
+// The two must ship together, and this function must never be deployed with
+// --no-verify-jwt.
 Deno.serve(async (req) => {
   if (req.method !== 'POST') return json(405, { error: 'method_not_allowed' });
-  if (!isServiceRole(req)) return json(403, { error: 'service_role_required' });
+  if (!isServiceRoleRequest(req, { gatewayVerifiesJwt: true })) {
+    return json(403, { error: 'service_role_required' });
+  }
 
   if (!RC_SECRET_KEY) {
     // Expected before the Build 14 secrets land — surface it as a healthy

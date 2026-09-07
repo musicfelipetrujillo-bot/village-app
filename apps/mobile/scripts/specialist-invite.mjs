@@ -10,9 +10,11 @@
 //   pnpm specialist:invite -- --email='dr@x' --name='Dr Reyes' --specialty=midwife
 //   pnpm specialist:invite -- --csv invites.csv  # batch mode (one row per invite)
 //
-// Required env (read from apps/mobile/.env or process env):
+// Required env (read from supabase/.env.local, or your shell):
 //   EXPO_PUBLIC_SUPABASE_URL              — Supabase project URL
-//   SUPABASE_SERVICE_ROLE_KEY             — service role key (NOT the anon key)
+//   SUPABASE_SERVICE_ROLE_KEY             — service role key (NOT the anon key).
+//                                           Do NOT put this in apps/mobile/.env —
+//                                           see the ENV_PATHS note below.
 //
 // On success, prints:
 //   - the full invite URL (https://villieapp.com/onboard/<token>) so the
@@ -30,21 +32,47 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const ENV_PATH = path.resolve(__dirname, '..', '.env');
+
+// ── Where the service-role key should live (security audit 2026-09-04) ──
+// `supabase/.env.local` FIRST, `apps/mobile/.env` only as a deprecated fallback.
+//
+// WHY: SUPABASE_SERVICE_ROLE_KEY bypasses RLS on the entire database — every
+// mother's check-ins, baby profiles, messages. Keeping it in the MOBILE APP's env
+// file put it one `EXPO_PUBLIC_` rename, or one careless build script, away from
+// shipping inside the app bundle that we hand to users. It is not read by any
+// mobile code (verified) — this admin script is its only consumer — so it has no
+// business living in that tree.
+//
+// `supabase/.env.local` is already the established home for server-side secrets
+// here (it mirrors the Edge Function Secrets and is gitignored), so this moves the
+// key next to its peers instead of next to the client bundle.
+//
+// The mobile fallback stays so nothing breaks the day this lands, and shell env
+// still wins over both (the `!process.env[...]` guard below). Remove the fallback
+// once the key has been rotated and relocated.
+const ENV_PATHS = [
+  path.resolve(__dirname, '..', '..', '..', 'supabase', '.env.local'), // preferred
+  path.resolve(__dirname, '..', '.env'),                               // deprecated
+];
 
 // ── Minimal .env loader so we don't add a dep ──
 async function loadEnv() {
-  try {
-    const txt = await readFile(ENV_PATH, 'utf8');
-    for (const line of txt.split('\n')) {
-      const m = line.match(/^\s*([A-Z_][A-Z0-9_]*)\s*=\s*(.*)\s*$/);
-      if (m && !process.env[m[1]]) {
-        // Strip surrounding quotes if present
-        process.env[m[1]] = m[2].replace(/^["']|["']$/g, '');
+  for (const envPath of ENV_PATHS) {
+    try {
+      const txt = await readFile(envPath, 'utf8');
+      for (const line of txt.split('\n')) {
+        const m = line.match(/^\s*([A-Z_][A-Z0-9_]*)\s*=\s*(.*)\s*$/);
+        // First writer wins: shell env, then supabase/.env.local, then the
+        // deprecated mobile .env. So relocating the key takes effect immediately
+        // and the stale copy can never shadow it.
+        if (m && !process.env[m[1]]) {
+          // Strip surrounding quotes if present
+          process.env[m[1]] = m[2].replace(/^["']|["']$/g, '');
+        }
       }
+    } catch {
+      // Each path is optional — caller might have exported in shell instead.
     }
-  } catch {
-    // .env optional — caller might have exported in shell
   }
 }
 

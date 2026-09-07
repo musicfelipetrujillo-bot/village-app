@@ -17,6 +17,8 @@
 import Anthropic from 'npm:@anthropic-ai/sdk';
 import { createClient } from 'npm:@supabase/supabase-js';
 
+import { isServiceRoleRequest } from '../_shared/service-role.ts';
+
 const supabase = createClient(
   Deno.env.get('SUPABASE_URL')!,
   Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
@@ -134,10 +136,80 @@ interface HarvestedEvent {
 // Direct fetch stays first: it is free, fast, and sufficient for the sources
 // that do server-render (postpartum.net, theunderline.org). The proxy is only
 // paid for when the cheap path comes back empty — see harvestFeed().
+// ── SSRF guard ──────────────────────────────────────────────────────────
+// (added 2026-09-05) This function fetches attacker-influenceable URLs from
+// inside Supabase's network: `body.probe.url` is taken straight off the request,
+// and registered feed URLs are ops-supplied. Combined with the missing auth gate
+// (now fixed in the handler), that was a server-side request forgery primitive
+// pointed at whatever the edge runtime can reach — including cloud metadata at
+// 169.254.169.254 and any internal service on a private range.
+//
+// Blocks non-http(s) schemes (file:, data:, gopher:) and hosts that are not
+// plausibly public: loopback, RFC1918, CGNAT, link-local (metadata), and IPv6
+// loopback / unique-local.
+//
+// HONEST LIMITATION: this is a hostname/IP-literal check, not a resolved-address
+// check. A hostname that RESOLVES to a private address still passes, and DNS
+// rebinding between our check and the fetch is not defeated. Deno's edge runtime
+// gives no hook to pin the resolved IP for a fetch, so closing that fully means
+// resolving first and connecting by IP with a Host header — more machinery than
+// this ops tool warrants now that it is service-role gated. The gate is the
+// primary control; this is defence in depth.
+const BLOCKED_HOST_PATTERNS: RegExp[] = [
+  /^localhost$/i,
+  /\.local$/i,
+  /^127\./,                                   // loopback
+  /^0\./,                                     // "this" network
+  /^10\./,                                    // RFC1918
+  /^192\.168\./,                              // RFC1918
+  /^172\.(1[6-9]|2\d|3[01])\./,               // RFC1918
+  /^169\.254\./,                              // link-local — cloud metadata
+  /^100\.(6[4-9]|[7-9]\d|1[01]\d|12[0-7])\./, // CGNAT
+  /^\[?::1\]?$/,                              // IPv6 loopback
+  /^\[?f[cd][0-9a-f]{2}:/i,                   // IPv6 unique-local
+  /^\[?fe80:/i,                               // IPv6 link-local
+];
+
+function assertPublicHttpUrl(raw: string): URL {
+  let u: URL;
+  try {
+    u = new URL(raw);
+  } catch {
+    throw new Error('url_invalid');
+  }
+  if (u.protocol !== 'http:' && u.protocol !== 'https:') throw new Error('url_scheme_blocked');
+  const host = u.hostname;
+  if (!host) throw new Error('url_invalid');
+  if (BLOCKED_HOST_PATTERNS.some((re) => re.test(host))) throw new Error('url_host_blocked');
+  return u;
+}
+
+const MAX_REDIRECT_HOPS = 5;
+
+// Follows redirects MANUALLY so every hop is re-validated. `redirect: 'follow'`
+// would let a public URL bounce to 169.254.169.254 and the guard above would
+// never see it — first-hop-only validation is the classic way an SSRF check gets
+// bypassed. This applies to registered feeds too, not just probe URLs: a
+// legitimate source that later redirects somewhere internal is the same hazard.
 async function fetchDirect(url: string): Promise<string> {
-  const res = await fetch(url, { headers: { 'User-Agent': UA }, redirect: 'follow' });
-  if (!res.ok) throw new Error(`fetch_${res.status}`);
-  return htmlToText(await res.text());
+  let current = assertPublicHttpUrl(url);
+
+  for (let hop = 0; hop <= MAX_REDIRECT_HOPS; hop++) {
+    const res = await fetch(current, { headers: { 'User-Agent': UA }, redirect: 'manual' });
+
+    if (res.status >= 300 && res.status < 400) {
+      const location = res.headers.get('location');
+      if (!location) throw new Error(`fetch_${res.status}`);
+      // Cancel the body so the connection isn't left dangling.
+      await res.body?.cancel();
+      current = assertPublicHttpUrl(new URL(location, current).toString());
+      continue;
+    }
+
+    if (!res.ok) throw new Error(`fetch_${res.status}`);
+    return htmlToText(await res.text());
+  }
+  throw new Error('too_many_redirects');
 }
 
 // Renders the page (JS executed) and returns readable text. Uses r.jina.ai,
@@ -146,6 +218,11 @@ async function fetchDirect(url: string): Promise<string> {
 // "direct-fetch only" rather than failing the whole feed.
 async function fetchRendered(url: string): Promise<string | null> {
   try {
+    // Validate before interpolating into the proxy path below. r.jina.ai does the
+    // actual fetching, so this is not our network being probed — but an unvalidated
+    // string spliced into a URL can also steer the proxy request itself, and there
+    // is no reason to launder a blocked host through a third party.
+    assertPublicHttpUrl(url);
     const key = Deno.env.get('RENDER_PROXY_KEY');
     const headers: Record<string, string> = { 'User-Agent': UA };
     if (key) headers['Authorization'] = `Bearer ${key}`;
@@ -406,6 +483,27 @@ async function harvestFeed(feed: any): Promise<{ found: number; upserted: number
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: CORS });
+
+  // AUTH (2026-09-05): this function had no authorization check, and `verify_jwt
+  // = true` is not one — the anon publishable key ships in the mobile bundle and
+  // satisfies the gateway. Two things were therefore internet-reachable:
+  //   * the SSRF probe below (`body.probe.url` → a server-side fetch from inside
+  //     Supabase's network), and
+  //   * the full harvest pipeline, which runs Haiku over every registered feed —
+  //     a billable fan-out anyone could trigger at will.
+  //
+  // Both legitimate callers are service role: the daily GH Actions cron
+  // (.github/workflows/supabase-crons.yml:57, BODY='{}') and ops running a probe
+  // by hand per docs/OPS_RUNBOOK.md:75. No mobile code calls this.
+  //
+  // gatewayVerifiesJwt: true matches this function's verify_jwt pin in config.toml.
+  if (!isServiceRoleRequest(req, { gatewayVerifiesJwt: true })) {
+    return new Response(JSON.stringify({ error: 'unauthorized' }), {
+      status: 401,
+      headers: { ...CORS, 'Content-Type': 'application/json' },
+    });
+  }
+
   try {
     const body = await req.json().catch(() => ({}));
 
@@ -419,6 +517,20 @@ Deno.serve(async (req) => {
     if (body.probe?.url) {
       const url = String(body.probe.url);
       const tz = body.probe.timezone ?? 'America/New_York';
+
+      // Validate up front rather than letting the guard surface as a generic
+      // fetch failure. Both fetchDirect and fetchRendered swallow errors into
+      // "no events extracted", so a blocked host would otherwise read as "this
+      // source yields nothing" — which is exactly the signal ops uses to decide
+      // NOT to register a feed. Say plainly that the URL was refused.
+      try {
+        assertPublicHttpUrl(url);
+      } catch (e) {
+        return new Response(
+          JSON.stringify({ error: e instanceof Error ? e.message : 'url_rejected', url }),
+          { status: 400, headers: { ...CORS, 'Content-Type': 'application/json' } },
+        );
+      }
       let direct = '';
       let directErr: string | null = null;
       try {

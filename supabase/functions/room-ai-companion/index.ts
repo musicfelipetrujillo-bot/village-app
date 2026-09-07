@@ -29,6 +29,9 @@
 import Anthropic from 'npm:@anthropic-ai/sdk';
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 
+import { isServiceRoleRequest } from '../_shared/service-role.ts';
+import { getCallerUserId } from '../_shared/user-auth.ts';
+
 const anthropic = new Anthropic({ apiKey: Deno.env.get('ANTHROPIC_API_KEY')! });
 const supabase = createClient(
   Deno.env.get('SUPABASE_URL')!,
@@ -118,6 +121,33 @@ Deno.serve(async (req) => {
     if (!trigger.sender_user_id) {
       return new Response(JSON.stringify({ posted: false, reason: 'no_sender' }),
         { headers: { ...CORS, 'Content-Type': 'application/json' } });
+    }
+
+    // ─── The caller must be the sender of the triggering message ───────
+    // IDOR (fixed 2026-09-05): `message_id` was taken on trust. The read above uses
+    // the service-role client, so any anon-key holder could name ANY message and:
+    //   * cause an AI companion reply to be posted into a room they are not a
+    //     member of, under the trusted gold "✨ Villie · AI companion" badge; and
+    //   * burn another user's quota — the rate limit below is keyed to
+    //     `sender_user_id`, not to the caller, so someone else's @village budget
+    //     could be exhausted on demand.
+    // The legitimate client calls this for its OWN just-sent message, right after
+    // the C4 scan clears (apps/mobile/src/api/community.ts:385), so "caller is the
+    // sender" is the exact contract.
+    //
+    // Same 404 as not-found, deliberately: a distinct 403 would confirm that a
+    // given message id exists in a private room.
+    const isService = isServiceRoleRequest(req, { gatewayVerifiesJwt: true });
+    if (!isService) {
+      const callerId = await getCallerUserId(req);
+      if (!callerId) {
+        return new Response(JSON.stringify({ error: 'unauthorized' }),
+          { status: 401, headers: { ...CORS, 'Content-Type': 'application/json' } });
+      }
+      if (callerId !== trigger.sender_user_id) {
+        return new Response(JSON.stringify({ error: 'message not found' }),
+          { status: 404, headers: { ...CORS, 'Content-Type': 'application/json' } });
+      }
     }
 
     // C4 hand-off: if the sender's message is crisis-classified, suppress.
