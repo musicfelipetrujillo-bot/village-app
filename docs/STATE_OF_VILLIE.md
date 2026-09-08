@@ -255,11 +255,13 @@ The load-bearing channel has **no signed pilot, no LOI, no named target.** Get *
 - A2.c account-delete retention policy (which tables are PII-scrubbed vs row-deleted).
 
 ### 6b. Felipe-only (MCP is read-only)
-- **Apply migrations:** **098 + 099 (both merged, unapplied)**, verify 094. (~~100~~ done — applied 2026-07-10.)
-- **Deploy:** `milk-vault-scan`, `calendly-webhook` (fail-closed), `appointment-reminder` (push-only).
-- **Delete:** 5 dead milk-Stripe edge fns (PR #1 now merged).
+
+✅ **The apply/deploy/delete items that used to live here are DONE** — verified against prod 2026-09-08, not assumed (see §4). Migrations 098+099 applied, `milk-vault-scan` + `appointment-reminder` + `calendly-webhook` deployed, all 5 dead milk-Stripe fns gone. They sat in this list for weeks after shipping.
+
+Genuinely still open:
+- 🔑 **Rotate the service_role key** (dashboard). This is the last open item from the 2026-08 security review **and it retires the 3-key trap** — three validly-signed `service_role` keys circulate, which is why strict-equality gates 401 the crons, which is why someone once deleted an auth check rather than reconcile them. Root cause, not hygiene.
 - **Native builds (not OTA):** Playbook Phase 4 iOS widget; Gear Boost (RevenueCat IAP, Build 14, behind `EXPO_PUBLIC_GEAR_BOOST_ENABLED`).
-- **Config/secrets:** `RESEND_WEBHOOK_SECRET` + Resend endpoint; Calendly webhook subscription; add co-founder UUID to `GEAR_MODERATOR_EXTERNAL_IDS` when the 2nd-moderator trigger fires.
+- **Config/secrets** *(unverified — no way to read Supabase secrets from here)*: `RESEND_WEBHOOK_SECRET` + Resend endpoint; Calendly webhook subscription; add co-founder UUID to `GEAR_MODERATOR_EXTERNAL_IDS` when the 2nd-moderator trigger fires.
 - **Rotation reminder:** Apple Sign-In client-secret JWT expires **~2026-11-16** — set a late-Oct reminder.
 
 ### 6c. Founder-input-needed
