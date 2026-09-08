@@ -1,0 +1,7 @@
+{
+  "//": "Deno config root for the edge functions. Its ONLY job is to stop Deno from walking up into the pnpm workspace: without it, `deno check` finds the repo-root package.json, tries to resolve the npm: specifiers through node_modules, and rewrites that package.json in the process (audit 2026-09-04, open item 2). `nodeModulesDir: none` keeps npm: specifiers in Deno's own global cache, which is also what the deployed Supabase runtime does.",
+  "nodeModulesDir": "none",
+  "lint": {
+    "exclude": ["_shared/*.test.ts"]
+  }
+}
