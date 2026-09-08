@@ -70,12 +70,14 @@ jobs:
   database:
     name: database policy tests
     runs-on: ubuntu-latest
-    # Only when the schema or the tests change: this job starts Postgres and
-    # applies all 136 migrations, which costs minutes rather than seconds.
-    if: >-
-      github.event_name == 'workflow_dispatch' ||
-      contains(join(github.event.commits.*.modified, ','), 'supabase/') ||
-      github.event_name == 'pull_request'
+    # Runs unconditionally. The first version gated this on
+    # `github.event.commits.*.modified` containing 'supabase/' — which SKIPPED
+    # the job on the very commit that added these tests, because that field
+    # lists modified files and says nothing about ADDED ones. A path filter that
+    # silently skips is worse than no filter: the run goes green having tested
+    # nothing, which is the same class of defect as a migration that revokes
+    # nothing. This repo is public, so Actions minutes are unmetered and there
+    # is no cost argument for the optimisation.
     steps:
       - uses: actions/checkout@v4
 
