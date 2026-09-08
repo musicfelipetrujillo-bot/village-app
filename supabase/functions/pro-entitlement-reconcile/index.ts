@@ -21,6 +21,7 @@ import { createClient } from 'jsr:@supabase/supabase-js@2.115.0';
 import { fetchProEntitlement } from '../_shared/revenuecat.ts';
 import { isServiceRoleRequest } from '../_shared/service-role.ts';
 
+import { secretKey } from '../_shared/keys.ts';
 const RC_SECRET_KEY = Deno.env.get('REVENUECAT_SECRET_KEY');
 const DEFAULT_LIMIT = 200;
 // RevenueCat lookups are ~200-400ms each; 5-wide keeps a 200-user sweep near
@@ -86,7 +87,7 @@ Deno.serve(async (req) => {
 
   const supabase = createClient(
     Deno.env.get('SUPABASE_URL')!,
-    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+    secretKey(),
   );
 
   // Candidate set: currently-flagged users + anyone who has ever produced a

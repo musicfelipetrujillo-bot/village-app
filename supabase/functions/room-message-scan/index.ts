@@ -21,10 +21,11 @@ import { createClient } from 'jsr:@supabase/supabase-js@2.115.0';
 
 import { isServiceRoleRequest } from '../_shared/service-role.ts';
 
+import { secretKey } from '../_shared/keys.ts';
 const anthropic = new Anthropic({ apiKey: Deno.env.get('ANTHROPIC_API_KEY')! });
 const supabase = createClient(
   Deno.env.get('SUPABASE_URL')!,
-  Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+  secretKey(),
 );
 
 const CORS = {
@@ -146,7 +147,7 @@ async function notifyModerators(roomId: string, severity: string, messageBody: s
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
+        Authorization: `Bearer ${secretKey()}`,
       },
       body: JSON.stringify({ to, body: smsBody }),
     }).catch(() => null)

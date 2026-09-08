@@ -22,6 +22,7 @@
 import Stripe from 'https://esm.sh/stripe@13.0.0?target=deno';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.115.0';
 
+import { secretKey } from '../_shared/keys.ts';
 const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY')!, {
   apiVersion: '2023-10-16',
   httpClient: Stripe.createFetchHttpClient(),
@@ -33,7 +34,7 @@ const WEBHOOK_SECRET = Deno.env.get('STRIPE_WEBHOOK_SECRET') ?? '';
 function service() {
   return createClient(
     Deno.env.get('SUPABASE_URL')!,
-    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+    secretKey(),
   );
 }
 

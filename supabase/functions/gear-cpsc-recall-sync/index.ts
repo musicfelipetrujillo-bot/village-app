@@ -19,6 +19,7 @@
 import { createClient } from 'jsr:@supabase/supabase-js@2.115.0';
 import { isServiceRoleRequest } from '../_shared/service-role.ts';
 
+import { secretKey } from '../_shared/keys.ts';
 const SAFER_PRODUCTS_URL = 'https://www.saferproducts.gov/RestWebServices/Recall';
 const FETCH_TIMEOUT_MS = 20000;
 const LOOKBACK_DAYS = 365;
@@ -90,7 +91,7 @@ Deno.serve(async (req) => {
     });
   }
 
-  const SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+  const SERVICE_KEY = secretKey();
   const admin = createClient(Deno.env.get('SUPABASE_URL')!, SERVICE_KEY);
 
   let recalls: CPSCRecall[] = [];

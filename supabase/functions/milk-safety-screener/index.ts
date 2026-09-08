@@ -6,10 +6,11 @@
 import Anthropic from 'npm:@anthropic-ai/sdk@0.124.0';
 import { createClient } from 'npm:@supabase/supabase-js@2.115.0';
 
+import { secretKey } from '../_shared/keys.ts';
 const anthropic = new Anthropic();
 const supabase = createClient(
   Deno.env.get('SUPABASE_URL')!,
-  Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+  secretKey()
 );
 
 const SYSTEM_PROMPT = `You are a safety screener for a peer breast milk donation platform.
@@ -163,7 +164,7 @@ Please evaluate for infant safety risks.`;
         const smsBody = `Hi ${donorUser.full_name ?? 'there'}, your Village Milk listing has been paused for a safety review. Our team will reach out within 24 hours. Questions? Email support@thevillage.app`;
         await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/twilio-sms`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}` },
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${secretKey()}` },
           body: JSON.stringify({ to: donorUser.phone, body: smsBody }),
         });
       }

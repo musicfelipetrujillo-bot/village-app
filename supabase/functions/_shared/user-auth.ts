@@ -20,6 +20,7 @@
 
 import { createClient } from 'jsr:@supabase/supabase-js@2.115.0';
 
+import { publishableKey } from './keys.ts';
 /**
  * Resolves the signed-in caller from the request's own Authorization header,
  * or null when there isn't a valid user behind it.
@@ -37,7 +38,7 @@ export async function getCallerUserId(req: Request): Promise<string | null> {
   try {
     const scoped = createClient(
       Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_ANON_KEY')!,
+      publishableKey(),
       { global: { headers: { Authorization: authHeader } } },
     );
     const { data, error } = await scoped.auth.getUser();

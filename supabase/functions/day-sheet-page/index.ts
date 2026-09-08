@@ -10,9 +10,10 @@
 
 import { createClient } from 'npm:@supabase/supabase-js@2.115.0';
 
+import { secretKey } from '../_shared/keys.ts';
 const supabase = createClient(
   Deno.env.get('SUPABASE_URL')!,
-  Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+  secretKey(),
 );
 
 type RowKind = 'wake' | 'bottle' | 'nap' | 'meal' | 'bath' | 'bed' | 'note';

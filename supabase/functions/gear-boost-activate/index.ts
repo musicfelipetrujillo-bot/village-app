@@ -23,9 +23,10 @@
 
 import { createClient } from 'jsr:@supabase/supabase-js@2.115.0';
 
+import { secretKey, publishableKey } from '../_shared/keys.ts';
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
-const SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-const ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')!;
+const SERVICE_ROLE_KEY = secretKey();
+const ANON_KEY = publishableKey();
 const REVENUECAT_SECRET_KEY = Deno.env.get('REVENUECAT_SECRET_KEY') ?? '';
 const ALLOW_UNVERIFIED = Deno.env.get('BOOST_ALLOW_UNVERIFIED') === '1';
 

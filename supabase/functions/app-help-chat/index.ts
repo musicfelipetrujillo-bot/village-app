@@ -12,6 +12,7 @@ import { isNavigate } from './tools/types.ts';
 import type { BabyCtx, Loc } from './tools/types.ts';
 import { NAV_TARGETS } from './tools/navigate.ts';
 
+import { publishableKey } from '../_shared/keys.ts';
 const anthropic = new Anthropic({ apiKey: Deno.env.get('ANTHROPIC_API_KEY')! });
 
 // Haiku occasionally answers in prose instead of the JSON envelope — usually on
@@ -182,7 +183,7 @@ Deno.serve(async (req) => {
     const authHeader = req.headers.get('Authorization') ?? '';
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_ANON_KEY')!,
+      publishableKey(),
       { global: { headers: { Authorization: authHeader } } },
     );
 

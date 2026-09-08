@@ -20,6 +20,7 @@
 
 import { createClient } from 'jsr:@supabase/supabase-js@2.115.0';
 
+import { secretKey } from './keys.ts';
 /** Per-hour call budgets, keyed by edge-function name.
  *
  *  Sizing principle: comfortably above the busiest REAL session, low enough that
@@ -75,7 +76,7 @@ function admin() {
   if (!cachedAdmin) {
     cachedAdmin = createClient(
       Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+      secretKey(),
       { auth: { persistSession: false } },
     );
   }

@@ -36,8 +36,9 @@
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.115.0';
 
+import { secretKey } from '../_shared/keys.ts';
 const SUPABASE_URL       = Deno.env.get('SUPABASE_URL')!;
-const SERVICE_ROLE_KEY   = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+const SERVICE_ROLE_KEY   = secretKey();
 const LANDING_PAGE_BASE  = 'https://villieapp.com/m/';
 
 // Conservative crawler list. False positives are fine (a real browser

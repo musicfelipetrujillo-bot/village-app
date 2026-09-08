@@ -13,9 +13,10 @@ import { createClient } from 'npm:@supabase/supabase-js@2.115.0';
 import { isQuietHoursActive } from '../_shared/quiet-hours.ts';
 import { isServiceRoleRequest } from '../_shared/service-role.ts';
 
+import { secretKey } from '../_shared/keys.ts';
 const supabase = createClient(
   Deno.env.get('SUPABASE_URL')!,
-  Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+  secretKey(),
 );
 
 const CORS = {
@@ -126,7 +127,7 @@ Deno.serve(async (req) => {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
+            Authorization: `Bearer ${secretKey()}`,
           },
           body: JSON.stringify({
             user_id: userId,

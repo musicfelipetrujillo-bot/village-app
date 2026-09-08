@@ -43,6 +43,7 @@
 
 import { timingSafeEqual } from 'node:crypto';
 
+import { secretKey } from './keys.ts';
 export interface ServiceRoleGateOptions {
   /**
    * Does the Supabase gateway verify the JWT signature for THIS function?
@@ -68,7 +69,7 @@ export function isServiceRoleRequest(
   const presented = match[1].trim();
 
   // 1. Exact match against the injected key — always sufficient, always safe.
-  const expected = (Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '').trim();
+  const expected = secretKey();
   if (expected && constantTimeEquals(presented, expected)) return true;
 
   // 2. Only when the gateway has already authenticated the signature may we

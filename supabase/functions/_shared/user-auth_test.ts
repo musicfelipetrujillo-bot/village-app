@@ -58,6 +58,12 @@ async function withStub(fn: () => Promise<void>) {
   const stub = startAuthStub();
   const priorUrl = Deno.env.get('SUPABASE_URL');
   const priorKey = Deno.env.get('SUPABASE_ANON_KEY');
+  // See the note in service-role_test.ts: publishableKey() prefers these, so a
+  // developer's exported values would shadow the stub if left in place.
+  const priorDict = Deno.env.get('SUPABASE_PUBLISHABLE_KEYS');
+  const priorSingle = Deno.env.get('SUPABASE_PUBLISHABLE_KEY');
+  Deno.env.delete('SUPABASE_PUBLISHABLE_KEYS');
+  Deno.env.delete('SUPABASE_PUBLISHABLE_KEY');
   Deno.env.set('SUPABASE_URL', stub.url);
   Deno.env.set('SUPABASE_ANON_KEY', 'stub-anon-key');
   try {
@@ -65,6 +71,8 @@ async function withStub(fn: () => Promise<void>) {
   } finally {
     if (priorUrl === undefined) Deno.env.delete('SUPABASE_URL'); else Deno.env.set('SUPABASE_URL', priorUrl);
     if (priorKey === undefined) Deno.env.delete('SUPABASE_ANON_KEY'); else Deno.env.set('SUPABASE_ANON_KEY', priorKey);
+    if (priorDict !== undefined) Deno.env.set('SUPABASE_PUBLISHABLE_KEYS', priorDict);
+    if (priorSingle !== undefined) Deno.env.set('SUPABASE_PUBLISHABLE_KEY', priorSingle);
     await stub.stop();
   }
 }

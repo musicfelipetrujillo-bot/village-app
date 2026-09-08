@@ -33,11 +33,20 @@ function reqWith(authorization?: string): Request {
 }
 
 function withKey(key: string, fn: () => void) {
+  // `secretKey()` prefers SUPABASE_SECRET_KEYS over the legacy name, so those
+  // must be cleared or a developer with them exported would silently test their
+  // own key instead of this stub — a green run proving nothing.
+  const priorDict = Deno.env.get('SUPABASE_SECRET_KEYS');
+  const priorSingle = Deno.env.get('SUPABASE_SECRET_KEY');
   const prior = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+  Deno.env.delete('SUPABASE_SECRET_KEYS');
+  Deno.env.delete('SUPABASE_SECRET_KEY');
   Deno.env.set('SUPABASE_SERVICE_ROLE_KEY', key);
   try { fn(); } finally {
     if (prior === undefined) Deno.env.delete('SUPABASE_SERVICE_ROLE_KEY');
     else Deno.env.set('SUPABASE_SERVICE_ROLE_KEY', prior);
+    if (priorDict !== undefined) Deno.env.set('SUPABASE_SECRET_KEYS', priorDict);
+    if (priorSingle !== undefined) Deno.env.set('SUPABASE_SECRET_KEY', priorSingle);
   }
 }
 

@@ -36,6 +36,7 @@
 
 import { createClient } from 'npm:@supabase/supabase-js@2.115.0';
 
+import { secretKey } from '../_shared/keys.ts';
 const CORS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers':
@@ -230,7 +231,7 @@ Deno.serve(async (req) => {
 
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+      secretKey(),
     );
 
     // Match on subid (unique per click) — idempotent on repeated webhooks.

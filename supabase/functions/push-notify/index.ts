@@ -41,12 +41,13 @@ import { createClient } from 'jsr:@supabase/supabase-js@2.115.0';
 import { isQuietHoursActive } from '../_shared/quiet-hours.ts';
 import { isServiceRoleRequest } from '../_shared/service-role.ts';
 
+import { secretKey } from '../_shared/keys.ts';
 const ONESIGNAL_APP_ID = Deno.env.get('ONESIGNAL_APP_ID')!;
 const ONESIGNAL_API_KEY = Deno.env.get('ONESIGNAL_API_KEY')!;
 
 const supabase = createClient(
   Deno.env.get('SUPABASE_URL')!,
-  Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+  secretKey(),
 );
 
 const CORS = {
