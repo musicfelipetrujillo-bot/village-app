@@ -33,7 +33,7 @@
 // bearer is signed by this project, and the anon publishable key (shipped in the
 // mobile bundle) satisfies it.
 
-import Anthropic from 'https://esm.sh/@anthropic-ai/sdk@0.27.0';
+import Anthropic from 'npm:@anthropic-ai/sdk@0.124.0';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.115.0';
 
 import { getCallerUserId } from '../_shared/user-auth.ts';
@@ -109,13 +109,20 @@ async function generateAlias(takenAliases: string[]): Promise<string | null> {
         model: 'claude-haiku-4-5-20251001',
         max_tokens: 30,
         temperature: 0.9,
-        // `npm:@anthropic-ai/sdk` is imported unpinned, and the version that
-        // resolves today has no cache_control on TextBlockParam even though the
-        // API accepts it. Same cast as `systemBlocks as any` in app-help-chat.
-        system: [{ type: 'text', text: sys, cache_control: { type: 'ephemeral' } } as any],
+        // No `as any` here any more. At 0.27.0 the SDK's TextBlockParam omitted
+        // cache_control even though the API accepted and billed it, so the cast
+        // was covering for the types being behind the service; at 0.124.0 the
+        // field is declared and the object type-checks as written. Removing the
+        // cast is the point of the bump — an `as any` on a request body silences
+        // every future mistake in it, not just the one it was added for.
+        // app-help-chat still carries the same cast and can lose it too.
+        system: [{ type: 'text', text: sys, cache_control: { type: 'ephemeral' } }],
         messages: [{ role: 'user', content: 'Generate one alias now.' }],
       });
-      const raw = (res.content[0] as any)?.text?.trim() ?? '';
+      // Narrowed rather than `any`: newer SDKs widen ContentBlock to include
+      // thinking and tool-use blocks, which carry no `text`. With these params
+      // the first block is always text, and the optional chain covers the rest.
+      const raw = (res.content[0] as { text?: string } | undefined)?.text?.trim() ?? '';
       // Strip code fences, quotes, trailing punctuation defensively.
       const candidate = raw.replace(/^["'`]+|["'`]+$/g, '').split(/\s/)[0];
       if (ALIAS_RE.test(candidate) && !takenAliases.includes(candidate)) {
