@@ -128,9 +128,10 @@ All four were local-only (never pushed), 0 commits ahead of `main`, with each ti
 
 **This is the section that stops sessions from stepping on each other. Claim your number HERE before you create the file.**
 
-- **Highest APPLIED on prod:** **131** (re-verified 2026-08-15 via `list_migrations`). ⚠️ **126 and 128 were claimed by a concurrent session mid-work this session** — the re-check-before-writing rule caught it twice. Re-run `list_migrations` immediately before you create the file, not at planning time. **ALL of `001`→`131` are applied** — including 098/099 (retire milk Stripe, Milk Vault), 101–105 (Care/day sheets/daycares/RLS backfill/The Buzz), 106–108 (reviewer flags), 109–116, 117 (`zip_centroids`), 120–124 (Mom Tips), 125–126, 128 (Mom Tips ES), and this session's **127** (donor location), **129** (first purge job), **130+131** (advisor closeout). The apply queue is **empty**.
-- **Highest ON DISK (`main`):** **131.**
-- **Highest CLAIMED:** **131. → NEXT FREE = 132.**
+- **Highest APPLIED on prod:** **136** — ⚠️ this bullet said `131` until 2026-09-08 and was five migrations stale. Re-verified by probing prod directly with the app anon key (the MCP was down): `milk_vault_bags` resolves (099 applied), `pro_launch_targets.locales` resolves (132 applied), `ai_rate_limits` returns `42703` not `PGRST205` — a *column* error, meaning the **table** exists (135 applied). Controls returned `PGRST205` / `42703` as expected, so the probe discriminates. **Re-run `list_migrations` immediately before you create a file** — this doc lags by weeks, not hours.
+  🚨 **132 was applied on prod while its `.sql` existed only on an unmerged branch** — the classic `db push` blocker. Resolved 2026-09-08 when `feat/pro-locale-gate` merged. **Sequence `130 → 136` is now unbroken on `main`.**
+- **Highest ON DISK (`main`):** **136.**
+- **Highest CLAIMED:** **136. → NEXT FREE = 137.**
 - ⚠️ **MCP is read-only** — `apply_migration` fails. Apply with the authenticated CLI: `supabase db push` from the repo root.
 - ⚠️ **106–110 were claimed + applied by a parallel session on 2026-07-29/30** while another session was mid-OTA. Re-run `list_migrations` before claiming a number — this doc can lag by hours when sessions run concurrently.
 
@@ -150,11 +151,11 @@ All four were local-only (never pushed), 0 commits ahead of `main`, with each ti
 | **131** | `131_security_trending_revoke_public.sql` | Fixes 130 — revokes the **PUBLIC** grant anon inherited | ✅ **APPLIED to prod** (2026-08-15). |
 | **100** | `100_waitlist.sql` | Marketing-site waitlist (anon INSERT only, no anon SELECT) | ✅ **MERGED (PR #5) + APPLIED to prod** (2026-07-10). Fully shipped. |
 
-### ➡️ NEXT FREE MIGRATION NUMBER: **132**
+### ➡️ NEXT FREE MIGRATION NUMBER: **137**
 
 **Rule (enforced):**
 1. Before creating any migration, add a row to the table above with your number, name, and "CLAIMED — <branch>".
-2. Use the **next free number** (currently **132**). Never reuse 001–131 — all are on disk in `main` and applied to prod. **Verify with `list_migrations` first** — a concurrent session may have claimed numbers since this doc was written.
+2. Use the **next free number** (currently **137**). Never reuse 001–136 — all are on disk in `main` and applied to prod. **Verify with `list_migrations` first** — a concurrent session may have claimed numbers since this doc was written.
 3. Filenames are **numeric-prefix only** (`101_...sql`) — the CLI silently skips `101b`.
 4. After your PR merges + the migration applies, update the row to ✅ APPLIED.
 
@@ -165,20 +166,25 @@ All four were local-only (never pushed), 0 commits ahead of `main`, with each ti
 MCP Supabase access is **read-only** — **only Felipe** can apply migrations, deploy/delete edge functions, or ship native builds. Claude writes the exact commands; Felipe runs them.
 
 ### 4a. Migrations to apply
-| Migration | Trigger | Command |
+
+✅ **EMPTY — verified 2026-09-08.** Everything this table used to list has been applied for weeks; it was telling Felipe to do work that was already done.
+
+| Migration | Old claim | Verified reality (2026-09-08) |
 |---|---|---|
-| **098** (retire Stripe) | ✅ merged — apply now | `supabase db push` (or run 098 in SQL editor) |
-| **099** (Milk Vault) | ✅ merged — apply now | `supabase db push` |
-| ~~100 (waitlist)~~ | ✅ **applied 2026-07-10** — done | — |
-| 094 (manual week intro) | verify not-yet-applied | `supabase db push` catches it up |
+| ~~098 (retire Stripe)~~ | "merged — apply now" | ✅ Applied. All 5 Stripe fns return `404 NOT_FOUND` on prod. |
+| ~~099 (Milk Vault)~~ | "merged — apply now" | ✅ Applied. `milk_vault_bags` resolves via PostgREST. |
+| ~~094 (manual week intro)~~ | "verify not-yet-applied" | ✅ Covered — 001→136 are on prod. |
 
 ### 4b. Edge functions Felipe must deploy / delete
-| Function | Action | Why |
+
+✅ **EMPTY — verified 2026-09-08** by POSTing each function with the anon key (`404` = gone, our own `401/403` = deployed and its gate ran).
+
+| Function | Old claim | Verified reality |
 |---|---|---|
-| `milk-vault-scan` | **DEPLOY** | Milk Vault AI scanner; feature dead until deployed (PR #3 merged, fn still not live). |
-| milk-stripe-connect, milk-purchase-intent, milk-purchase-confirmed, milk-dispute-open, milk-shippo-label | **DELETE** (5 fns) | Dead now that PR #1 (retire Stripe) is merged. |
-| ~~`calendly-webhook`~~ | ✅ **DONE 2026-08-15** | Prod ran the **old fail-open** version for five weeks after the fix landed on `main`. Now **v23, hardened, fail-closed + replay guard** — verified against the deployed artifact. This is the canonical example of why you check what's deployed, not what's committed. |
-| `appointment-reminder` | **DEPLOY** | SMS leg removed (Twilio A2P dropping texts → push-only decided 2026-07-09). Repo change not yet deployed. |
+| `milk-vault-scan` | "DEPLOY — feature dead until deployed" | ✅ **Deployed** — returns our `401 {"error":"unauthorized"}`. |
+| `appointment-reminder` | "DEPLOY — SMS leg removed" | ✅ **Deployed** — returns our `401`. |
+| 5 milk-Stripe fns | "DELETE" | ✅ **Already deleted** — all 5 return `404 NOT_FOUND`. |
+| ~~`calendly-webhook`~~ | ✅ DONE 2026-08-15 | Prod ran the **old fail-open** version for five weeks after the fix landed on `main`. The canonical reason to check what is DEPLOYED, not what is committed. |
 
 ### 4c. OTA / bundle ships
 | Item | Why |
