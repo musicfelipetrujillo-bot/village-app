@@ -2,8 +2,7 @@
 // Backed by supabase/functions/app-help-chat.
 
 import { supabase } from '@/lib/supabase';
-
-const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL ?? '';
+import { callEdgeFunction } from '@/lib/edgeFunction';
 
 export interface HelpMessage {
   role: 'user' | 'assistant';
@@ -43,23 +42,18 @@ export const appHelpApi = {
     location?: { lat: number; lng: number } | null,
     availability?: { start: string; end: string }[] | null,
   ): Promise<HelpChatResponse> {
-    const { data: { session } } = await supabase.auth.getSession();
-    const res = await fetch(`${SUPABASE_URL}/functions/v1/app-help-chat`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${session?.access_token ?? ''}`,
-      },
-      body: JSON.stringify({
-        messages,
-        user_context: userContext,
-        user_location: location ?? null,
-        user_availability: availability && availability.length ? { busy: availability } : null,
-      }),
+    // callEdgeFunction, not a bare fetch: app-help-chat became quota'd at 40/hr
+    // (05699a2, `_shared/rate-limit.ts`). Without the shared caller a mother who
+    // hits the ceiling sees the raw wire error instead of the translated
+    // "try again in N min" — the same defect the 2026-09-04 audit's item 3
+    // recorded for gear and milk-vault. It also parses defensively, so a
+    // cold-start 502 no longer surfaces as a JSON SyntaxError.
+    return await callEdgeFunction<HelpChatResponse>('app-help-chat', {
+      messages,
+      user_context: userContext,
+      user_location: location ?? null,
+      user_availability: availability && availability.length ? { busy: availability } : null,
     });
-    const json = await res.json();
-    if (!res.ok) throw new Error(json.error ?? 'app-help-chat failed');
-    return json as HelpChatResponse;
   },
 
   async fetchUserContext(userId: string): Promise<HelpUserContext> {
