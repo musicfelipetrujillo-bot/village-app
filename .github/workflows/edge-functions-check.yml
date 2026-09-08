@@ -1,0 +1,54 @@
+name: Edge function typecheck
+
+# WHY (security audit 2026-09-04, open item 2):
+# Edge functions are the only code in this repo with no type gate. `tsc` covers
+# apps/mobile and packages/*, but supabase/functions/** is Deno — different
+# runtime, different module resolution, not in any tsconfig. That is how a
+# missing import reached a commit, and it is why the audit's symbol-resolution
+# checks had to be re-run BY HAND after every bulk edit.
+#
+# The blocker was never Deno itself, it was that `deno check` walked up out of
+# supabase/functions into the pnpm workspace and rewrote the root package.json
+# trying to resolve npm: specifiers. `supabase/functions/deno.json` with
+# `nodeModulesDir: none` is the fix — Deno stops at that config and keeps npm:
+# in its own cache, the same way the deployed runtime does.
+
+on:
+  pull_request:
+    paths:
+      - 'supabase/functions/**'
+      - '.github/workflows/edge-functions-check.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'supabase/functions/**'
+      - '.github/workflows/edge-functions-check.yml'
+  workflow_dispatch:
+
+jobs:
+  check:
+    name: deno check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      # One `deno check` over every function at once, so a symbol that a
+      # neighbouring file stopped exporting is caught here rather than at
+      # deploy time. Entry points are listed explicitly instead of relying on
+      # shell globbing so an empty match fails loudly rather than checking
+      # nothing and reporting success.
+      - name: Type-check every edge function
+        working-directory: supabase/functions
+        run: |
+          set -euo pipefail
+          mapfile -t FILES < <(find . -name '*.ts' -not -path './node_modules/*' | sort)
+          if [ "${#FILES[@]}" -eq 0 ]; then
+            echo "::error::no .ts files found under supabase/functions — check the path"
+            exit 1
+          fi
+          echo "Checking ${#FILES[@]} files"
+          deno check "${FILES[@]}"
