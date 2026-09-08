@@ -9,6 +9,7 @@
 // without ever re-asking.
 
 import { supabase } from '@/lib/supabase';
+import { callEdgeFunction } from '@/lib/edgeFunction';
 import { getMyDonorProfile, getDietFlags, type DietFlagKey } from '@api/milk';
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -450,10 +451,13 @@ export async function scanBagPhoto(args: {
   image_base64: string;
   image_media_type?: 'image/jpeg' | 'image/png' | 'image/webp';
 }): Promise<ScanResult> {
-  const { data, error } = await supabase.functions.invoke('milk-vault-scan', {
-    body: { image_base64: args.image_base64, image_media_type: args.image_media_type ?? 'image/jpeg' },
+  // callEdgeFunction, not functions.invoke: milk-vault-scan is quota'd at 20/hr
+  // (`_shared/rate-limit.ts`) and `invoke` collapses the 429 into a generic
+  // non-2xx error, so she'd see wire noise instead of "try again in N min".
+  const data = await callEdgeFunction<ScanResult>('milk-vault-scan', {
+    image_base64: args.image_base64,
+    image_media_type: args.image_media_type ?? 'image/jpeg',
   });
-  if (error) throw error;
   return (data ?? {
     ounces: null, pumped_date: null, frozen_date: null, notes: null, confidence: 0, reasoning: '',
   }) as ScanResult;

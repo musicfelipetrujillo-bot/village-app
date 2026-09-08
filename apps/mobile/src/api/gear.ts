@@ -2,6 +2,7 @@
 // Compliance: prohibited categories excluded at the DB enum level.
 // CPSC check, AI vision assist, messaging, and payments ship in later phases (G5/G6/G8).
 import { supabase } from '@/lib/supabase';
+import { callEdgeFunction } from '@/lib/edgeFunction';
 import { sessionReady } from '@/lib/requireSession';
 import { getPreferredRadiusKm } from '@store/user';
 import type { AgeTag } from '@api/events';
@@ -304,10 +305,10 @@ export const gearApi = {
   async upcLookup(upc: string): Promise<UpcLookupResult> {
     const clean = upc.replace(/\D/g, '');
     if (!clean) throw new Error('Invalid UPC');
-    const { data, error } = await supabase.functions.invoke('gear-upc-lookup', {
-      body: { upc: clean },
-    });
-    if (error) throw new Error(error.message);
+    // callEdgeFunction, not functions.invoke: these three are quota'd
+    // (`_shared/rate-limit.ts`) and only the fetch path surfaces the 429 as a
+    // translated "try again in N min" instead of a generic non-2xx message.
+    const data = await callEdgeFunction<UpcLookupResult>('gear-upc-lookup', { upc: clean });
     return (data ?? { found: false }) as UpcLookupResult;
   },
 
@@ -316,11 +317,7 @@ export const gearApi = {
    * no round-trip upload) or `image_url` (if already uploaded to Storage).
    */
   async visionIdentify(input: VisionIdentifyInput): Promise<VisionIdentifyResult> {
-    const { data, error } = await supabase.functions.invoke('gear-vision-identify', {
-      body: input,
-    });
-    if (error) throw new Error(error.message);
-    return data as VisionIdentifyResult;
+    return await callEdgeFunction<VisionIdentifyResult>('gear-vision-identify', input);
   },
 
   /**
@@ -329,11 +326,7 @@ export const gearApi = {
    * persisted server-side via mark_listing_cpsc (RLS-scoped to owner).
    */
   async cpscCheck(input: CpscCheckInput): Promise<CpscCheckResult> {
-    const { data, error } = await supabase.functions.invoke('gear-cpsc-check', {
-      body: input,
-    });
-    if (error) throw new Error(error.message);
-    return data as CpscCheckResult;
+    return await callEdgeFunction<CpscCheckResult>('gear-cpsc-check', input);
   },
 };
 
