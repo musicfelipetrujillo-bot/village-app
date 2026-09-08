@@ -112,7 +112,7 @@ async function filterByPrefs(
     .filter((u: { notif_prefs: Record<string, unknown> | null }) => {
       const prefs = u.notif_prefs ?? {};
       if ((prefs as Record<string, unknown>)[pref_key] === false) return false;
-      if (respectQuietHours && isQuietHoursActive(prefs as { quiet_hours?: unknown })) {
+      if (respectQuietHours && isQuietHoursActive(prefs as Parameters<typeof isQuietHoursActive>[0])) {
         return false;
       }
       return true;

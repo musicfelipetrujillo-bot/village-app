@@ -61,3 +61,12 @@ yarn-error.*
 # Never deliverables, and seeded-log-ids.json is the only way to clean up a
 # seeded account, so it must not be shared or overwritten via git.
 scratchpad/
+
+# Deno lockfile for the edge functions — deliberately NOT committed.
+# `supabase functions deploy` does not use it: the deployed runtime resolves the
+# npm:/jsr: specifiers itself, and 50 of those imports carry no version. Pinning
+# CI to a lockfile would make CI green against versions prod is not running, so
+# the type-check would stop being an early warning that the next upstream
+# release breaks a live function. Commit this file once the specifiers
+# themselves are pinned — at that point the lock and the deploy agree.
+supabase/functions/deno.lock

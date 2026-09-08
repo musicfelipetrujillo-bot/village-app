@@ -113,7 +113,9 @@ Deno.serve(async (req) => {
 
     // 3) Insert structured rows (RLS-scoped to this user via the JWT client).
     const counts = { sleep: 0, feed: 0, diaper: 0 };
-    const inserts: Promise<unknown>[] = [];
+    // PromiseLike, not Promise: supabase-js builders are thenable but do not
+    // implement the full Promise surface. Promise.allSettled accepts thenables.
+    const inserts: PromiseLike<unknown>[] = [];
     for (const e of events) {
       if (e.type === 'sleep') {
         inserts.push(supabase.from('baby_sleep_logs').insert({ user_id: uid, baby_profile_id, started_at: e.started_at, ended_at: e.ended_at, source: 'note', note_id: noteId }));

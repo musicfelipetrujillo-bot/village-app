@@ -76,7 +76,7 @@ async function verifySvix(req: Request, rawBody: string): Promise<boolean> {
   // Compute the expected HMAC.
   const payload = `${id}.${ts}.${rawBody}`;
   const key = await crypto.subtle.importKey(
-    'raw', SVIX_SECRET_KEY, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign'],
+    'raw', new Uint8Array(SVIX_SECRET_KEY), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign'],
   );
   const expectedBuf = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(payload));
   const expected = new Uint8Array(expectedBuf);

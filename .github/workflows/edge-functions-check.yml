@@ -37,18 +37,30 @@ jobs:
           deno-version: v2.x
 
       # One `deno check` over every function at once, so a symbol that a
-      # neighbouring file stopped exporting is caught here rather than at
-      # deploy time. Entry points are listed explicitly instead of relying on
-      # shell globbing so an empty match fails loudly rather than checking
-      # nothing and reporting success.
+      # neighbouring file stopped exporting is caught here rather than at deploy
+      # time. The file count is asserted non-empty first: a glob that matched
+      # nothing would otherwise exit 0 and report a green check over zero files,
+      # which is worse than having no check at all.
+      #
+      # NOTE: this is the exact pipeline that was run locally to take the tree
+      # from 17 errors to 0 — deliberately not `mapfile`, which needs bash 4+ and
+      # so cannot be verified on a macOS dev machine before it reaches CI.
+      #
+      # EXPECT OCCASIONAL UNRELATED FAILURES until the npm: specifiers are
+      # pinned. 20 functions import `npm:@supabase/supabase-js` and 30 import
+      # `npm:@anthropic-ai/sdk` with no version, so this job resolves whatever
+      # is latest on the day it runs and a new upstream release can turn it red
+      # without anyone touching this repo.
       - name: Type-check every edge function
         working-directory: supabase/functions
         run: |
           set -euo pipefail
-          mapfile -t FILES < <(find . -name '*.ts' -not -path './node_modules/*' | sort)
-          if [ "${#FILES[@]}" -eq 0 ]; then
+          COUNT=$(find . -name '*.ts' -not -path './node_modules/*' | wc -l | tr -d ' ')
+          if [ "$COUNT" -eq 0 ]; then
             echo "::error::no .ts files found under supabase/functions — check the path"
             exit 1
           fi
-          echo "Checking ${#FILES[@]} files"
-          deno check "${FILES[@]}"
+          echo "Checking $COUNT files"
+          find . -name '*.ts' -not -path './node_modules/*' -print0 \
+            | sort -z \
+            | xargs -0 deno check

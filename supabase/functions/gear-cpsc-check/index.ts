@@ -148,8 +148,20 @@ async function queryCPSC(params: { productName?: string; brand?: string; upc?: s
   return hits;
 }
 
+/** Just the slice of the Supabase client this helper uses. The client is built
+ *  without generated Database types, so `from('cpsc_recall_cache')` otherwise
+ *  narrows to `never` and every column is rejected. */
+type CacheUpsertClient = {
+  from: (table: string) => {
+    upsert: (
+      row: Record<string, unknown>,
+      options?: { onConflict?: string },
+    ) => PromiseLike<{ error: unknown }>;
+  };
+};
+
 async function upsertCache(
-  admin: ReturnType<typeof createClient>,
+  admin: CacheUpsertClient,
   hit: RecallHit,
 ): Promise<void> {
   const { error } = await admin.from('cpsc_recall_cache').upsert({
