@@ -163,12 +163,30 @@ Supabase labels it "safe to share publicly" — so it is written here deliberate
 - `auth/v1/settings` → **200** — accepted as a client key
 - `prod-smoke-probe` workflow → **success**; its exit code 2 is reserved for "key not valid", so a pass proves the CI anon secret is good
 
-**Outstanding (founder):**
-1. **Deploy `village-website`.** The two edits are uncommitted and sit alongside an unrelated
-   pending font/typography sweep across 8 files. Pushing `main` auto-deploys via Vercel.
-2. **OTA the mobile app** so existing installs carry the publishable key. `.env.production` already
-   held it, so whether the *currently live* bundle does depends on when the last OTA was cut —
-   publish one to be certain before step 3.
+**✅ Website DEPLOYED 2026-09-08** (`village-website` e2e9384, live on Vercel). Verified live:
+
+- `/m/?v=…` and `/onboard/` both serve the publishable key; **zero** legacy literals remain
+- OG share path still healthy — **200 `text/html`**, 4 `og:` tags
+- The six security headers from `a64cfd7` are intact on the final 200. (They are absent from the
+  apex response only because `villieapp.com` 307-redirects to `www.villieapp.com` and Vercel does
+  not apply header rules to redirects — checked, not a regression.)
+
+Committed **key lines only**: both files also carried an unrelated, unfinished font/typography sweep
+(part of a change across 8 files). Since this repo auto-deploys from `main`, committing them together
+would have shipped someone else's in-progress design work. The sweep remains uncommitted.
+
+**Outstanding (founder):** **OTA the mobile app** so existing installs carry the publishable key.
+`.env.production` already held it, so whether the *currently live* bundle does depends on when the
+last OTA was cut — publish one to be certain before step 3.
+
+### F3. Unrelated finding — per-video OG cards are generic
+
+`m/index.html` fetches video metadata client-side, and crawlers do not run JS, so every shared video
+link renders the **same** static card ("villie · The Manual" / "Short videos for tired parents").
+The `manual-og` edge function exists to serve per-video OG HTML, but Supabase forces `text/plain` +
+`nosniff` on its responses (confirmed 2026-09-08; `day-sheet-page` behaves identically and predates
+any change), so crawlers will not parse it. Pre-existing, unrelated to this migration, and worth its
+own look — per-video share cards currently do not work by either route.
 
 ## G. Rollback
 
