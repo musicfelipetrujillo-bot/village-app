@@ -39,6 +39,7 @@
 
 import { createClient } from 'npm:@supabase/supabase-js@2.115.0';
 
+import { secretKey, publishableKey } from '../_shared/keys.ts';
 const CORS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -79,7 +80,7 @@ Deno.serve(async (req) => {
   }
   const userClient = createClient(
     Deno.env.get('SUPABASE_URL')!,
-    Deno.env.get('SUPABASE_ANON_KEY')!,
+    publishableKey(),
     { global: { headers: { Authorization: authHeader } } },
   );
   const { data: { user }, error: userErr } = await userClient.auth.getUser();
@@ -129,7 +130,7 @@ Deno.serve(async (req) => {
   // ─── 4. Service-role client for DB writes ────────────────────────────
   const admin = createClient(
     Deno.env.get('SUPABASE_URL')!,
-    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+    secretKey(),
   );
 
   // Refuse if specialist already exists for this email

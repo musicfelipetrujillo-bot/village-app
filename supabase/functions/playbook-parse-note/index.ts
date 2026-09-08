@@ -11,6 +11,7 @@
 import Anthropic from 'npm:@anthropic-ai/sdk@0.124.0';
 import { createClient } from 'npm:@supabase/supabase-js@2.115.0';
 
+import { publishableKey } from '../_shared/keys.ts';
 const anthropic = new Anthropic({ apiKey: Deno.env.get('ANTHROPIC_API_KEY')! });
 
 const CORS = {
@@ -77,7 +78,7 @@ Deno.serve(async (req) => {
     const authHeader = req.headers.get('Authorization') ?? '';
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_ANON_KEY')!,
+      publishableKey(),
       { global: { headers: { Authorization: authHeader } } },
     );
     const { data: userData } = await supabase.auth.getUser();

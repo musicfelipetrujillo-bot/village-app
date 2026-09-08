@@ -28,8 +28,9 @@
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.115.0';
 
+import { secretKey } from '../_shared/keys.ts';
 const SUPABASE_URL     = Deno.env.get('SUPABASE_URL')!;
-const SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+const SERVICE_ROLE_KEY = secretKey();
 const SVIX_SECRET_RAW  = Deno.env.get('RESEND_WEBHOOK_SECRET') ?? '';
 
 // The secret comes from Resend in the form `whsec_<base64>`. Strip the

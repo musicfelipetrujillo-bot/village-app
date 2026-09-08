@@ -257,8 +257,15 @@ its own controls green: *"bogus key rejected (401), public key accepted (200)"*.
 
 - `https://esm.sh/@anthropic-ai/sdk@0.27.0` — one call site, pinned but very old. Moving it changes
   behaviour and deserves its own commit + deploy.
-- §E2 optional hardening: read `SUPABASE_SECRET_KEYS['default']` explicitly rather than depending on
-  the undocumented aliasing found in §A2. Lower risk now that legacy is off, but the aliasing is
-  still undocumented behaviour that Supabase could change.
+- ~~§E2 optional hardening~~ ✅ **DONE 2026-09-08.** `_shared/keys.ts` now exposes `secretKey()` and
+  `publishableKey()`, which read the documented `SUPABASE_SECRET_KEYS` / `SUPABASE_PUBLISHABLE_KEYS`
+  dictionaries first, fall back to the local-CLI singular vars, and treat the legacy names as a last
+  resort. All **85** direct env reads across **68** functions now go through them; only the two test
+  files and `keys.ts` itself still name the legacy variables. Correct under both today's undocumented
+  aliasing and any future correction of it — which matters because the legacy keys are now disabled,
+  so a "fix" that restored documented behaviour would otherwise fail every function at once.
+  Both `_shared` test harnesses were made hermetic (they clear the new vars before stubbing the
+  legacy ones), or a developer with those exported would test their own key and get a green run
+  proving nothing. `deno check` 0, 26 deno tests pass, mobile untouched.
 - §F3: per-video OG cards do not work by either route.
 

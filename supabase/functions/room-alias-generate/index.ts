@@ -40,6 +40,7 @@ import { getCallerUserId } from '../_shared/user-auth.ts';
 
 import { consumeQuota, tooManyRequests } from '../_shared/rate-limit.ts';
 
+import { secretKey, publishableKey } from '../_shared/keys.ts';
 const CORS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -47,7 +48,7 @@ const CORS = {
 };
 
 const SUPABASE_URL     = Deno.env.get('SUPABASE_URL')!;
-const SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+const SERVICE_ROLE_KEY = secretKey();
 const ANTHROPIC_KEY    = Deno.env.get('ANTHROPIC_API_KEY') ?? '';
 
 const anthropic = ANTHROPIC_KEY ? new Anthropic({ apiKey: ANTHROPIC_KEY }) : null;
@@ -177,7 +178,7 @@ Deno.serve(async (req) => {
 
   // User-scoped client — RLS on upsert_anon_identity / get_my_anon_identity
   // does the auth.uid()-as-membership check.
-  const supabase = createClient(SUPABASE_URL, Deno.env.get('SUPABASE_ANON_KEY')!, {
+  const supabase = createClient(SUPABASE_URL, publishableKey(), {
     global: { headers: { Authorization: authHeader } },
     auth: { persistSession: false },
   });

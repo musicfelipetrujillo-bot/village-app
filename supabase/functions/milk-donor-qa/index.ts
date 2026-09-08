@@ -7,10 +7,11 @@ import { createClient } from 'npm:@supabase/supabase-js@2.115.0';
 
 import { consumeQuota, tooManyRequests } from '../_shared/rate-limit.ts';
 
+import { secretKey } from '../_shared/keys.ts';
 const anthropic = new Anthropic();
 const supabase = createClient(
   Deno.env.get('SUPABASE_URL')!,
-  Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+  secretKey()
 );
 
 const SYSTEM_PROMPT = `You answer questions recipients have about a specific breast milk donor.

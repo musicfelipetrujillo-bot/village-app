@@ -17,6 +17,7 @@ import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import Stripe from 'https://esm.sh/stripe@13.0.0?target=deno';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.115.0';
 
+import { secretKey, publishableKey } from '../_shared/keys.ts';
 const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY')!, {
   apiVersion: '2023-10-16',
   httpClient: Stripe.createFetchHttpClient(),
@@ -111,7 +112,7 @@ serve(async (req) => {
     // User-scoped client for auth; service client for the privileged writes.
     const userClient = createClient(
       Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_ANON_KEY')!,
+      publishableKey(),
       { global: { headers: { Authorization: authHeader } } },
     );
     const { data: { user }, error: authError } = await userClient.auth.getUser();
@@ -176,7 +177,7 @@ serve(async (req) => {
     // ── Persist the draft order (service role) ──────────────────────────
     const service = createClient(
       Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+      secretKey(),
     );
 
     const { data: order, error: orderErr } = await service

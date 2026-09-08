@@ -6,13 +6,14 @@
 import { createClient } from 'npm:@supabase/supabase-js@2.115.0';
 import { isServiceRoleRequest } from '../_shared/service-role.ts';
 
+import { secretKey } from '../_shared/keys.ts';
 const supabase = createClient(
   Deno.env.get('SUPABASE_URL')!,
-  Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+  secretKey(),
 );
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
-const SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+const SERVICE_ROLE_KEY = secretKey();
 
 // AUTH (2026-09-04): this function had no authorization check, and the handler did
 // not even accept the Request — so there was nothing to check it against.

@@ -20,10 +20,11 @@ import { getCallerUserId } from '../_shared/user-auth.ts';
 
 import { consumeQuota, tooManyRequests } from '../_shared/rate-limit.ts';
 
+import { secretKey } from '../_shared/keys.ts';
 const anthropic = new Anthropic({ apiKey: Deno.env.get('ANTHROPIC_API_KEY')! });
 const supabase = createClient(
   Deno.env.get('SUPABASE_URL')!,
-  Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+  secretKey(),
 );
 
 const CORS = {

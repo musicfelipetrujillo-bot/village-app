@@ -10,6 +10,7 @@ import { createClient } from 'npm:@supabase/supabase-js@2.115.0';
 import { getCallerUserId } from '../_shared/user-auth.ts';
 import { consumeQuota, tooManyRequests } from '../_shared/rate-limit.ts';
 
+import { secretKey } from '../_shared/keys.ts';
 const CORS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -49,7 +50,7 @@ async function enrichOne(r: DaycareResult): Promise<void> {
 }
 
 async function fetchMiamiDaycares(lat: number, lng: number, radiusMiles: number): Promise<DaycareResult[]> {
-  const supa = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!, { auth: { persistSession: false } });
+  const supa = createClient(Deno.env.get('SUPABASE_URL')!, secretKey(), { auth: { persistSession: false } });
   const { data, error } = await supa.rpc('list_daycares_near', { p_lat: lat, p_lng: lng, p_radius_miles: radiusMiles });
   if (error) throw new Error(error.message);
   const results: DaycareResult[] = ((data ?? []) as any[])

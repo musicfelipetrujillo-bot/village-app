@@ -31,6 +31,7 @@ import { createClient } from 'jsr:@supabase/supabase-js@2.115.0';
 import { getCallerUserId } from '../_shared/user-auth.ts';
 import { consumeQuota, tooManyRequests } from '../_shared/rate-limit.ts';
 
+import { secretKey, publishableKey } from '../_shared/keys.ts';
 const CORS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -214,8 +215,8 @@ Deno.serve(async (req) => {
   }
 
   const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
-  const SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-  const ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')!;
+  const SERVICE_KEY = secretKey();
+  const ANON_KEY = publishableKey();
 
   let body: Body;
   try { body = await req.json() as Body; }

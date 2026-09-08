@@ -7,9 +7,10 @@ import { createClient } from 'npm:@supabase/supabase-js@2.115.0';
 import { createHmac, timingSafeEqual } from 'node:crypto';
 import { Buffer } from 'node:buffer';
 
+import { secretKey } from '../_shared/keys.ts';
 const supabase = createClient(
   Deno.env.get('SUPABASE_URL')!,
-  Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+  secretKey(),
 );
 
 const WEBHOOK_SECRET = Deno.env.get('CALENDLY_WEBHOOK_SECRET') ?? '';

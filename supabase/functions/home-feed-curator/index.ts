@@ -40,12 +40,13 @@ import { getCallerUserId } from '../_shared/user-auth.ts';
 
 import { consumeQuota, tooManyRequests } from '../_shared/rate-limit.ts';
 
+import { secretKey } from '../_shared/keys.ts';
 const supabase = createClient(
   Deno.env.get('SUPABASE_URL')!,
-  Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+  secretKey(),
 );
 const FN_BASE = Deno.env.get('SUPABASE_URL')! + '/functions/v1';
-const SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+const SERVICE_KEY = secretKey();
 const CURATOR_VERSION = 'v1';
 
 const CORS = {

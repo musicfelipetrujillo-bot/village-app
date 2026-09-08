@@ -23,8 +23,9 @@
 import { createClient } from 'jsr:@supabase/supabase-js@2.115.0';
 import { isServiceRoleRequest } from '../_shared/service-role.ts';
 
+import { secretKey } from '../_shared/keys.ts';
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
-const SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+const SERVICE_ROLE_KEY = secretKey();
 
 const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
 
