@@ -106,9 +106,8 @@ the change in both directions. Recommended, not required, and safe to do at any 
 - [x] **0. Verify the runtime.** ✅ Done 2026-09-08 — see §A2. Result cancelled the largest work item.
 - [~] **1. Server-side callers → the `sb_secret_…` key.** ⏳ **local half DONE 2026-09-08**;
       GitHub Actions secret still outstanding (founder — see §F1).
-- [ ] **2. Clients → the `sb_publishable_…` key.** Mobile `.env`, `.env.production`, EAS env — then
-      **OTA**. Both `village-website` pages — then deploy Vercel. Do not skip the website: the
-      hardcoded key in `m/index.html` serves the OG share path.
+- [~] **2. Clients → the `sb_publishable_…` key.** ⏳ **all code done 2026-09-08**; website deploy
+      + OTA outstanding (founder — see §F2).
 - [ ] **3. Dashboard → Settings → API Keys → Legacy tab → "Disable JWT-based API keys".** Reversible.
 - [ ] **4. Optional:** §E2 hardening.
 
@@ -140,6 +139,36 @@ the key authenticated, cleared the service-role gate, and no SMS was sent. The `
 full RLS bypass, which anon correctly does not get. Both properties the crons and admin scripts need.
 
 The 7-function anon smoke test still returns 401 across the board after the swap.
+
+### F2. Step 2 results (2026-09-08)
+
+Publishable key: `sb_publishable_zBiBB7U-7BGuAcfMfivMcQ_IRuYo4yj` (46 chars). Public by design —
+Supabase labels it "safe to share publicly" — so it is written here deliberately.
+
+| Location | Before | After |
+|---|---|---|
+| `apps/mobile/.env` (local dev, gitignored) | legacy `eyJ…` 208 | ✅ changed |
+| `apps/mobile/.env.production` (OTA bundle) | — | ✅ **already publishable** |
+| `apps/mobile/eas.json` → `production` profile | — | ✅ **already publishable** |
+| `apps/mobile/eas.json` → `preview` profile | — | ✅ local CLI key, `127.0.0.1:54321`, correct as-is |
+| `village-website/m/index.html` (hardcoded) | legacy | ✅ changed, **uncommitted** |
+| `village-website/onboard/index.html` (hardcoded) | legacy | ✅ changed, **uncommitted** |
+| GitHub secret `SUPABASE_ANON_KEY` | updated 18:28Z by someone else | ✅ valid — probe green |
+
+**Verified against production with the publishable key, not assumed:**
+
+- `rpc/get_manual_video_share_meta` (the exact call `m/index.html` makes) → **200, 1 row**, same as legacy
+- `functions/v1/specialist-invite-accept` (the call `onboard/index.html` makes) → **400 `token is required`**, i.e. past the gateway and into validation, not 401
+- `GET /rest/v1/users?limit=1` → **200, 0 rows** — RLS still blocks it, exactly like the legacy anon key
+- `auth/v1/settings` → **200** — accepted as a client key
+- `prod-smoke-probe` workflow → **success**; its exit code 2 is reserved for "key not valid", so a pass proves the CI anon secret is good
+
+**Outstanding (founder):**
+1. **Deploy `village-website`.** The two edits are uncommitted and sit alongside an unrelated
+   pending font/typography sweep across 8 files. Pushing `main` auto-deploys via Vercel.
+2. **OTA the mobile app** so existing installs carry the publishable key. `.env.production` already
+   held it, so whether the *currently live* bundle does depends on when the last OTA was cut —
+   publish one to be certain before step 3.
 
 ## G. Rollback
 
