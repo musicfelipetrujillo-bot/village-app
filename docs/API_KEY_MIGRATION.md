@@ -108,7 +108,7 @@ the change in both directions. Recommended, not required, and safe to do at any 
       GitHub Actions secret still outstanding (founder — see §F1).
 - [~] **2. Clients → the `sb_publishable_…` key.** ⏳ **all code done 2026-09-08**; website deploy
       + OTA outstanding (founder — see §F2).
-- [ ] **3. Dashboard → Settings → API Keys → Legacy tab → "Disable JWT-based API keys".** Reversible.
+- [x] **3. Disable JWT-based API keys.** ✅ **DONE 2026-09-08** — see §F4. Audit item 1 is CLOSED.
 - [ ] **4. Optional:** §E2 hardening.
 
 > **Order matters.** Step 3 before steps 1–2 takes down the app, the website and every cron at once.
@@ -210,3 +210,55 @@ crawler UA and confirm **200 `text/html`** with `og:` tags, and trigger one GH A
 - [Migrating to publishable and secret API keys](https://supabase.com/docs/guides/getting-started/migrating-to-new-api-keys)
 - [Edge Function environment variables](https://supabase.com/docs/guides/functions/secrets)
 - [supabase#37648 — edge env vars not refreshed after migration](https://github.com/supabase/supabase/issues/37648)
+
+---
+
+## J. §F4 — Step 3 complete, 2026-09-08. Migration finished.
+
+**Legacy keys are off.** Confirmed directly, using the legacy `anon` key recovered from
+`village-website` git history: `GET /rest/v1/users` now returns
+`401 {"message":"Legacy API keys are disabled"}`. `auth/v1/settings` and `functions/v1/*` also 401.
+
+**This is what closes audit open item 1.** The exposed key was the legacy `service_role` JWT — the
+one that had been living in `apps/mobile/.env`. It is now permanently rejected by the platform. There
+was never a rotate button; disabling legacy keys *is* the rotation.
+
+### Post-disable verification (all green)
+
+| Check | Result |
+|---|---|
+| `auth/v1/settings` with publishable | 200 |
+| `rest/v1/users` with publishable | 200, **0 rows** — RLS still enforced |
+| `rpc/get_manual_video_share_meta` (website `/m`) | 200, 1 row |
+| `twilio-sms` with `sb_secret_` | 400 validation — gate cleared |
+| `rest/v1/users` with `sb_secret_` | 1 row — RLS bypass intact |
+| 7 gated functions vs publishable | **7/7 → 401** |
+| GitHub Actions cron | success, `HTTP 200` |
+| `prod-smoke-probe` | success — controls green |
+| Live website `/m` + `/onboard` | 200, publishable, zero legacy literals |
+| `deno check` · `tsc` · tests | 0 · 0 · **83 passing** |
+| Migrations | **137/137**, local = remote |
+
+### The one thing that broke, and why that was good
+
+The first `prod-smoke-probe` run after disabling **failed with exit code 2**, not 1. Its GitHub secret
+`SUPABASE_ANON_KEY` still held the legacy key, which had just been switched off.
+
+Exit 2 means *"cannot verify — the key is not valid"* and is deliberately distinct from exit 1,
+*"an endpoint accepted the key"*. Without that distinction the run would have looked like a **pass**:
+every gated endpoint did return 401, but only because the key was dead, not because the gates worked.
+Whoever wrote that exit-code split earned it here.
+
+Fixed by setting the secret to the publishable key — public by design, already in this public repo,
+the app bundle and the live site, so it is not a secret in any meaningful sense. Re-run passed with
+its own controls green: *"bogus key rejected (401), public key accepted (200)"*.
+
+### Still open, unrelated to this migration
+
+- `https://esm.sh/@anthropic-ai/sdk@0.27.0` — one call site, pinned but very old. Moving it changes
+  behaviour and deserves its own commit + deploy.
+- §E2 optional hardening: read `SUPABASE_SECRET_KEYS['default']` explicitly rather than depending on
+  the undocumented aliasing found in §A2. Lower risk now that legacy is off, but the aliasing is
+  still undocumented behaviour that Supabase could change.
+- §F3: per-video OG cards do not work by either route.
+
