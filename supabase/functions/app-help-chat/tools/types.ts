@@ -1,3 +1,4 @@
+import type Anthropic from 'npm:@anthropic-ai/sdk@0.124.0';
 // Shared tool contract for the app-help-chat tool-use loop.
 import type { SupabaseClient } from 'npm:@supabase/supabase-js@2.115.0';
 
@@ -20,7 +21,7 @@ export interface ToolContext {
 // A do/read tool returns any JSON (becomes the tool_result the model reads).
 // A route tool returns a sentinel { __navigate } the loop lifts into the response.
 export interface ToolDef {
-  schema: { name: string; description: string; input_schema: Record<string, unknown> };
+  schema: Anthropic.Tool;
   tier: ToolTier;
   handler: (ctx: ToolContext, input: any) => Promise<unknown>;
 }

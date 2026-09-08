@@ -257,6 +257,12 @@ Reply with JSON only.`
     // one per hop would hit 5 and 400. Clearing the old marker costs nothing —
     // the cache entry it wrote survives and a later breakpoint still reads it
     // (within the 20-block lookback, which 4 hops stays well inside).
+    // `any[]` here is deliberate, not leftover. This function's whole job is to
+    // add and remove `cache_control` across the ContentBlockParam union, and not
+    // every member of that union declares the field — typing the parameter as
+    // Anthropic.MessageParam[] fails with TS2339 "Property 'cache_control' does
+    // not exist on type 'ContentBlockParam'". Tried on 2026-09-08; the caller
+    // (`convo`) IS typed, so the looseness stops at this boundary.
     const moveCacheBreakpoint = (turns: any[]) => {
       for (const m of turns) {
         if (Array.isArray(m.content)) {
@@ -278,8 +284,8 @@ Reply with JSON only.`
     // Tool-use loop — the model may call get_baby_tracking_stats (bounded to a few
     // hops), then must reply with the JSON contract. Non-tool questions break out
     // on the first turn, so how-to/crisis handling is unchanged.
-    const convo: any[] = trimmed;
-    let aiResponse: any = null;
+    const convo: Anthropic.MessageParam[] = trimmed;
+    let aiResponse: Anthropic.Message | null = null;
     let navigateAction: { screen: string; params?: Record<string, unknown> } | null = null;
     for (let hop = 0; hop < 4; hop++) {
       // Hop 0 writes the entry; every later hop reads everything up to the
@@ -289,15 +295,17 @@ Reply with JSON only.`
         model: 'claude-haiku-4-5-20251001',
         max_tokens: 700,
         system: systemBlocks,
-        tools: TOOLS as any,
+        tools: TOOLS,
         messages: convo,
       });
-      const toolUses = resp.content.filter((b: any) => b.type === 'tool_use');
+      const toolUses = resp.content.filter(
+        (b): b is Anthropic.ToolUseBlock => b.type === 'tool_use',
+      );
       if (toolUses.length === 0) { aiResponse = resp; break; }
       convo.push({ role: 'assistant', content: resp.content });
-      const toolResults: any[] = [];
+      const toolResults: Anthropic.ToolResultBlockParam[] = [];
       const ctx = { supabase, loc: userLocation, baby, userId, locale, tz };
-      for (const tu of toolUses as any[]) {
+      for (const tu of toolUses) {
         const out = await dispatch(tu.name, ctx, tu.input);
         if (isNavigate(out)) {
           navigateAction = out.__navigate;
@@ -316,7 +324,9 @@ Reply with JSON only.`
       });
     }
 
-    const textBlock = aiResponse.content.find((b: any) => b.type === 'text');
+    const textBlock = aiResponse.content.find(
+      (b): b is Anthropic.TextBlock => b.type === 'text',
+    );
     const raw = (textBlock?.text ?? '').trim();
     let parsed = extractJson(raw);
     if (!parsed) {
@@ -334,11 +344,13 @@ Reply with JSON only.`
           { role: 'user', content: 'That was not valid JSON. Send the SAME answer again as the required JSON object only — no prose, no code fences.' },
         ],
       });
-      // `.find` is typed to the ContentBlock union; ThinkingBlock has no `text`,
-      // so narrow to what this branch reads. The `?? ''` below already covers the
-      // case where no text block came back at all.
-      const repairText = repair.content.find((b: any) => b.type === 'text') as
-        { text?: string } | undefined;
+      // `.find` is typed to the ContentBlock union, and ThinkingBlock has no
+      // `text`. A type predicate narrows it properly, so the `as` is gone and
+      // `.text` is checked rather than assumed. The `?? ''` below still covers
+      // the case where no text block came back at all.
+      const repairText = repair.content.find(
+        (b): b is Anthropic.TextBlock => b.type === 'text',
+      );
       parsed = extractJson((repairText?.text ?? '').trim());
     }
     if (!parsed) throw new Error('unparseable_reply');
