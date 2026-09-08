@@ -104,9 +104,8 @@ the change in both directions. Recommended, not required, and safe to do at any 
 ## F. Ordered steps
 
 - [x] **0. Verify the runtime.** ✅ Done 2026-09-08 — see §A2. Result cancelled the largest work item.
-- [ ] **1. Server-side callers → the `sb_secret_…` key.** Replace the GitHub Actions secret
-      `SUPABASE_SERVICE_ROLE_KEY`, and the value in `supabase/.env.local`. This also restores the
-      gate's *exact-match* branch for CI, which currently never matches (§A3).
+- [~] **1. Server-side callers → the `sb_secret_…` key.** ⏳ **local half DONE 2026-09-08**;
+      GitHub Actions secret still outstanding (founder — see §F1).
 - [ ] **2. Clients → the `sb_publishable_…` key.** Mobile `.env`, `.env.production`, EAS env — then
       **OTA**. Both `village-website` pages — then deploy Vercel. Do not skip the website: the
       hardcoded key in `m/index.html` serves the OG share path.
@@ -114,6 +113,33 @@ the change in both directions. Recommended, not required, and safe to do at any 
 - [ ] **4. Optional:** §E2 hardening.
 
 > **Order matters.** Step 3 before steps 1–2 takes down the app, the website and every cron at once.
+
+### F1. Step 1 results (2026-09-08)
+
+**Done:** `supabase/.env.local`'s `SUPABASE_SERVICE_ROLE_KEY` now holds the **`sb_secret_default`**
+key (41 chars) instead of the legacy JWT (219 chars). The local admin scripts read it from there and
+both resolve.
+
+**Outstanding (founder):** the GitHub Actions repo secret `SUPABASE_SERVICE_ROLE_KEY` still holds the
+legacy JWT. Settings → Secrets and variables → Actions. Until then the crons authenticate via the
+gate's *claim* branch (§A3), which stops working at step 3.
+
+**Verified BEFORE switching — the question that could have killed every cron:**
+
+The crons send `Authorization: Bearer <key>` with **no `apikey` header**, against functions pinned
+`verify_jwt = true`. An `sb_secret_` key is **not a JWT**, so it was genuinely unclear whether the
+gateway would accept it. It does:
+
+| Test | New `sb_secret_` | Legacy JWT | Anon |
+|---|---|---|---|
+| `twilio-sms` + empty body | **400** `to and body required` | 400 | 401 |
+| `GET /rest/v1/users?limit=1` | **200, 1 row** | 200, 1 row | 200, **0 rows** |
+
+A **400** is the validation error at `twilio-sms:48`, reached only *after* the gate at line 38 — so
+the key authenticated, cleared the service-role gate, and no SMS was sent. The `users` read proves
+full RLS bypass, which anon correctly does not get. Both properties the crons and admin scripts need.
+
+The 7-function anon smoke test still returns 401 across the board after the swap.
 
 ## G. Rollback
 
