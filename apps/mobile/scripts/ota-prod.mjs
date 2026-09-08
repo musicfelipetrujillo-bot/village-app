@@ -102,6 +102,22 @@ if (appEnv !== 'production') {
   console.error(`✗ EXPO_PUBLIC_APP_ENV is "${appEnv}", expected "production". Aborting.`);
   process.exit(1);
 }
+// Villie Boxes gates a PAYMENT surface whose checkout does not work:
+// boxes-create-payment-intent is not deployed, stripe-webhook is still the 501
+// stub from April, and EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY is unset. On
+// 2026-09-08 eas.json was found carrying "1" — introduced by a `wip: checkpoint`
+// commit, not a decision — while .env.production said "0" and the docs said the
+// feature was dark. Since this script reads eas.json and ignores .env.production
+// entirely, that discrepancy was invisible and would have shipped on every
+// publish. Assert it, so lighting Boxes up has to be deliberate.
+const boxes = prodEnv.EXPO_PUBLIC_VILLIE_BOXES_ENABLED;
+if (boxes === '1' && process.env.OTA_ALLOW_BOXES !== '1') {
+  console.error('\n✗ EXPO_PUBLIC_VILLIE_BOXES_ENABLED is "1" in eas.json.');
+  console.error('  Boxes checkout is not shippable yet — see docs/BOXES_GOLIVE_CHECKLIST.md.');
+  console.error('  If this is the real go-live, re-run with:  OTA_ALLOW_BOXES=1 pnpm ota:prod "…"\n');
+  process.exit(1);
+}
+
 if (internalAgents === '1') {
   console.error('✗ EXPO_PUBLIC_INTERNAL_AGENTS_ENABLED is "1" — would expose internal tooling. Aborting.');
   process.exit(1);
