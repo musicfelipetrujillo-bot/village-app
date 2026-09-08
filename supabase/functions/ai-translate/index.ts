@@ -5,8 +5,8 @@
 // Caches by content_hash in specialist_translations table
 // Model: Haiku (fast, cost-effective for translation)
 
-import Anthropic from 'npm:@anthropic-ai/sdk';
-import { createClient } from 'npm:@supabase/supabase-js';
+import Anthropic from 'npm:@anthropic-ai/sdk@0.124.0';
+import { createClient } from 'npm:@supabase/supabase-js@2.115.0';
 import { createHash } from 'node:crypto';
 
 import { getCallerUserId } from '../_shared/user-auth.ts';

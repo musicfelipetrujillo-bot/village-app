@@ -18,7 +18,7 @@
 //
 // Both exist because "is the caller allowed" cannot be answered by the gateway.
 
-import { createClient } from 'jsr:@supabase/supabase-js@2';
+import { createClient } from 'jsr:@supabase/supabase-js@2.115.0';
 
 /**
  * Resolves the signed-in caller from the request's own Authorization header,

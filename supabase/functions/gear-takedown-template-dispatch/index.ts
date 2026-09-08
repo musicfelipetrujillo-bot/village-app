@@ -38,7 +38,7 @@
 //   listing — in that case we still write the audit log row (so the chain of
 //   custody is intact) but the seller will only see the withdrawal in their
 //   MyListings view, not as a message.
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.115.0';
 import { isServiceRoleRequest } from '../_shared/service-role.ts';
 
 const CORS = {

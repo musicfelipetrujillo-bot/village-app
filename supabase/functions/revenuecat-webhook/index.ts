@@ -30,7 +30,7 @@
 // Unknown/malformed users return 200 (logged) for the same reason — a 4xx/5xx
 // would put RevenueCat into a retry loop it can never win.
 
-import { createClient } from 'jsr:@supabase/supabase-js@2';
+import { createClient } from 'jsr:@supabase/supabase-js@2.115.0';
 import { fetchProEntitlement } from '../_shared/revenuecat.ts';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;

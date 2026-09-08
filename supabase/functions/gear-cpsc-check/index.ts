@@ -26,7 +26,7 @@
 //     — CreateListingScreen wants the verdict before it even has a listing row
 //     in some UX variants. But we won't write to the listing.
 
-import { createClient } from 'jsr:@supabase/supabase-js@2';
+import { createClient } from 'jsr:@supabase/supabase-js@2.115.0';
 
 import { getCallerUserId } from '../_shared/user-auth.ts';
 import { consumeQuota, tooManyRequests } from '../_shared/rate-limit.ts';

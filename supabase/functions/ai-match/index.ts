@@ -3,8 +3,8 @@
 // Body: { user_id, lat, lng, radius_miles?, specialty? }
 // Returns: { recommendations: [{ specialist_id, name, specialty, reason }] }
 
-import Anthropic from 'npm:@anthropic-ai/sdk';
-import { createClient } from 'npm:@supabase/supabase-js';
+import Anthropic from 'npm:@anthropic-ai/sdk@0.124.0';
+import { createClient } from 'npm:@supabase/supabase-js@2.115.0';
 
 import { isServiceRoleRequest } from '../_shared/service-role.ts';
 import { resolveTargetUser } from '../_shared/user-auth.ts';

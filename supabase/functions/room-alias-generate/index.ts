@@ -34,7 +34,7 @@
 // mobile bundle) satisfies it.
 
 import Anthropic from 'https://esm.sh/@anthropic-ai/sdk@0.27.0';
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.115.0';
 
 import { getCallerUserId } from '../_shared/user-auth.ts';
 

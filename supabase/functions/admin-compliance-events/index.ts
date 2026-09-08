@@ -25,7 +25,7 @@
 // Pagination is offset/limit (not cursor) because callers will typically
 // be exporting filtered slices for legal review, not infinite-scrolling.
 
-import { createClient } from 'jsr:@supabase/supabase-js@2';
+import { createClient } from 'jsr:@supabase/supabase-js@2.115.0';
 import { isServiceRoleRequest } from '../_shared/service-role.ts';
 
 const supabase = createClient(

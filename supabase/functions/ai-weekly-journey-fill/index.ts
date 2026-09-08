@@ -29,8 +29,8 @@
 // All modes respect `limit` (default 5) to stay inside Edge Function timeout
 // budget. Sequential AI calls average ~10–15s each → 5 weeks ≈ 60–80s.
 
-import Anthropic from 'npm:@anthropic-ai/sdk';
-import { createClient } from 'jsr:@supabase/supabase-js@2';
+import Anthropic from 'npm:@anthropic-ai/sdk@0.124.0';
+import { createClient } from 'jsr:@supabase/supabase-js@2.115.0';
 
 import { isServiceRoleRequest } from '../_shared/service-role.ts';
 

@@ -18,7 +18,7 @@
 // Auth: verify_jwt is on, so callers are signed-in users. The function does
 // not read any user data — it takes a ZIP and returns public postal coords.
 
-import { createClient } from 'npm:@supabase/supabase-js';
+import { createClient } from 'npm:@supabase/supabase-js@2.115.0';
 import { getCallerUserId } from '../_shared/user-auth.ts';
 import { consumeQuota, tooManyRequests } from '../_shared/rate-limit.ts';
 

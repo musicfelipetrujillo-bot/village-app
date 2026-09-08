@@ -36,7 +36,7 @@
 //   403 — wrong / missing auth
 //   500 — DB error
 
-import { createClient } from 'npm:@supabase/supabase-js@2';
+import { createClient } from 'npm:@supabase/supabase-js@2.115.0';
 import { isServiceRoleRequest } from '../_shared/service-role.ts';
 
 const supabase = createClient(

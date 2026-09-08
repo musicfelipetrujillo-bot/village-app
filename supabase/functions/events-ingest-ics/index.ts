@@ -33,7 +33,7 @@
 //   - A feed that 404s twice in a row gets `is_active=FALSE` (Pass 2 will
 //     emit a notification to admin_audit_log; Pass 1 just logs).
 
-import { createClient } from 'jsr:@supabase/supabase-js@2';
+import { createClient } from 'jsr:@supabase/supabase-js@2.115.0';
 import { isServiceRoleRequest } from '../_shared/service-role.ts';
 
 const supabase = createClient(

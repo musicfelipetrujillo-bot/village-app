@@ -27,7 +27,7 @@
 // after migration 063 adds the column). Once acknowledged, the report
 // won't re-fire from this pager — but the auto-withdraw cron will still
 // act if no human moves the status off 'open' in time.
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.115.0';
 import { isServiceRoleRequest } from '../_shared/service-role.ts';
 
 const CORS = {

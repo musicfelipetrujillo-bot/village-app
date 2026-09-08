@@ -1,5 +1,5 @@
 // Shared tool contract for the app-help-chat tool-use loop.
-import type { SupabaseClient } from 'npm:@supabase/supabase-js';
+import type { SupabaseClient } from 'npm:@supabase/supabase-js@2.115.0';
 
 export type ToolTier = 'read' | 'do' | 'route';
 export type Loc = { lat: number; lng: number } | null;

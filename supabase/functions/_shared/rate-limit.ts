@@ -18,7 +18,7 @@
 // Counterpart modules: `service-role.ts` (is this the cron?), `user-auth.ts`
 // (which user is this?), and this (how much may that user have?).
 
-import { createClient } from 'jsr:@supabase/supabase-js@2';
+import { createClient } from 'jsr:@supabase/supabase-js@2.115.0';
 
 /** Per-hour call budgets, keyed by edge-function name.
  *

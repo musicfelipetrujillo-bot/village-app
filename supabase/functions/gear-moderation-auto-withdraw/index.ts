@@ -10,7 +10,7 @@
 // Migration 063 also registers this on pg_cron with the same schedule, so
 // once we upgrade past Supabase Free Tier (where pg_cron HTTP callouts are
 // GUC-locked), the cron continues to fire regardless of GH Action presence.
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.115.0';
 import { isServiceRoleRequest } from '../_shared/service-role.ts';
 
 const CORS = {

@@ -9,7 +9,7 @@
 // the twilio-sms function remain for future re-enable (toll-free); the column
 // appointments.twilio_reminder_sent is now just the "reminder dispatched" flag.
 
-import { createClient } from 'npm:@supabase/supabase-js';
+import { createClient } from 'npm:@supabase/supabase-js@2.115.0';
 import { isQuietHoursActive } from '../_shared/quiet-hours.ts';
 import { isServiceRoleRequest } from '../_shared/service-role.ts';
 

@@ -32,7 +32,7 @@
 //   - Fail-soft: any error leaves the row unchanged. Never delete.
 //   - Cache layer is the events table itself — once geocoded, never re-asked.
 
-import { createClient } from 'jsr:@supabase/supabase-js@2';
+import { createClient } from 'jsr:@supabase/supabase-js@2.115.0';
 import { isServiceRoleRequest } from '../_shared/service-role.ts';
 
 const supabase = createClient(

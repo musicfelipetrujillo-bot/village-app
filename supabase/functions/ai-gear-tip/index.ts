@@ -10,8 +10,8 @@
 // This fuels the `gear_tip` card on the home feed; tapping it deeplinks to
 // the Gear tab pre-filtered to the suggested category.
 
-import Anthropic from 'npm:@anthropic-ai/sdk';
-import { createClient } from 'jsr:@supabase/supabase-js@2';
+import Anthropic from 'npm:@anthropic-ai/sdk@0.124.0';
+import { createClient } from 'jsr:@supabase/supabase-js@2.115.0';
 
 import { isServiceRoleRequest } from '../_shared/service-role.ts';
 

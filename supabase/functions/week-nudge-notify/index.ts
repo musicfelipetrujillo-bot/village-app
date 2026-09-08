@@ -20,7 +20,7 @@
 // central pref + quiet-hours gate applies on top of the RPC's own opt-out
 // filter (defense in depth — see push-notify's header).
 
-import { createClient } from 'jsr:@supabase/supabase-js@2';
+import { createClient } from 'jsr:@supabase/supabase-js@2.115.0';
 import { isServiceRoleRequest } from '../_shared/service-role.ts';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;

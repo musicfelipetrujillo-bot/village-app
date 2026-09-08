@@ -38,7 +38,7 @@
 //     (cron broke, not "nothing happened"). Configurable via the
 //     `send_when_empty` body param if you'd rather have silence on
 //     quiet days.
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.115.0';
 import { isServiceRoleRequest } from '../_shared/service-role.ts';
 
 const CORS = {

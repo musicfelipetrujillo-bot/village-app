@@ -3,7 +3,7 @@
 // POST /functions/v1/calendly-webhook
 // Upserts appointments table from Calendly events
 
-import { createClient } from 'npm:@supabase/supabase-js';
+import { createClient } from 'npm:@supabase/supabase-js@2.115.0';
 import { createHmac, timingSafeEqual } from 'node:crypto';
 import { Buffer } from 'node:buffer';
 

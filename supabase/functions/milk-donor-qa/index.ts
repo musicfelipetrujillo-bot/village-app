@@ -2,8 +2,8 @@
 // Only answers from provided profile data — never speculates. ≤100 words.
 // Called from the AI Q&A floating button on DonorProfileScreen.
 
-import Anthropic from 'npm:@anthropic-ai/sdk';
-import { createClient } from 'npm:@supabase/supabase-js';
+import Anthropic from 'npm:@anthropic-ai/sdk@0.124.0';
+import { createClient } from 'npm:@supabase/supabase-js@2.115.0';
 
 import { consumeQuota, tooManyRequests } from '../_shared/rate-limit.ts';
 

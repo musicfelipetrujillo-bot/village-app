@@ -8,7 +8,7 @@
 //
 // Env: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY (standard secrets).
 
-import { createClient } from 'npm:@supabase/supabase-js@2';
+import { createClient } from 'npm:@supabase/supabase-js@2.115.0';
 
 const supabase = createClient(
   Deno.env.get('SUPABASE_URL')!,

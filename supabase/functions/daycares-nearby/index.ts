@@ -6,7 +6,7 @@
 //
 // Env: GOOGLE_MAPS_API_KEY (must have the Places API enabled + be server-usable).
 
-import { createClient } from 'npm:@supabase/supabase-js';
+import { createClient } from 'npm:@supabase/supabase-js@2.115.0';
 import { getCallerUserId } from '../_shared/user-auth.ts';
 import { consumeQuota, tooManyRequests } from '../_shared/rate-limit.ts';
 

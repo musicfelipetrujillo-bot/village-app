@@ -24,8 +24,8 @@
 // Model: Haiku 4.5 — short, high-volume, deterministic-ish (temp 0.7 for copy
 // variety). Prompt-cached; ~104 calls for a full EN+ES 52-week fill.
 
-import Anthropic from 'npm:@anthropic-ai/sdk';
-import { createClient } from 'jsr:@supabase/supabase-js@2';
+import Anthropic from 'npm:@anthropic-ai/sdk@0.124.0';
+import { createClient } from 'jsr:@supabase/supabase-js@2.115.0';
 
 import { isServiceRoleRequest } from '../_shared/service-role.ts';
 

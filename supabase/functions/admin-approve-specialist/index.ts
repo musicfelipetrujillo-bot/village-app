@@ -4,7 +4,7 @@
 // Auth: Must be service role key (admin-only — never called from mobile)
 // Sets specialist.admin_approved + notifies via Twilio SMS
 
-import { createClient } from 'npm:@supabase/supabase-js';
+import { createClient } from 'npm:@supabase/supabase-js@2.115.0';
 import { isServiceRoleRequest } from '../_shared/service-role.ts';
 
 const supabase = createClient(

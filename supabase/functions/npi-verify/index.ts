@@ -6,7 +6,7 @@
 // updates specialist.npi_verified if matched.
 // Auth: service role or authenticated specialist claiming own profile.
 
-import { createClient } from 'npm:@supabase/supabase-js';
+import { createClient } from 'npm:@supabase/supabase-js@2.115.0';
 import { isServiceRoleRequest } from '../_shared/service-role.ts';
 
 const supabase = createClient(

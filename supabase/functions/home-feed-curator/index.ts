@@ -34,7 +34,7 @@
 //            target is forced to that caller's own id. A body user_id naming
 //            someone else is refused rather than silently retargeted, so a buggy
 //            client fails loudly instead of appearing to work.
-import { createClient } from 'jsr:@supabase/supabase-js@2';
+import { createClient } from 'jsr:@supabase/supabase-js@2.115.0';
 import { isServiceRoleRequest } from '../_shared/service-role.ts';
 import { getCallerUserId } from '../_shared/user-auth.ts';
 
