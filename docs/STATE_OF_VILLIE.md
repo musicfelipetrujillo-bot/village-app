@@ -4,8 +4,8 @@
 Read this first. Update it last. When sessions collide (duplicate migration numbers, duplicate
 feature builds, stepping on shared files), the fix is: everyone coordinates *here*.
 
-- **Last updated:** 2026-08-15 (security & privacy review CLOSED OUT · 5 PRs merged · migrations 127+129+130+131 applied · see §0 RELEASE LOG)
-- **`main` head:** `7c8d285` — all security/privacy work is merged AND applied to prod.
+- **Last updated:** 2026-09-08 (edge-fn auth registry CLOSED OUT — 75/75 `verify_jwt` pins, 0 forgeable gates · 6 spent branches deleted · see §0 RELEASE LOG)
+- **`main` head:** moves often — read it with `git log --oneline -1 main`. Pinning a SHA here goes stale within a day and has misled sessions before.
 - **Authoritative for:** in-flight work, migration numbers, deploy queue, launch sequence.
 - **NOT authoritative for:** per-phase build history (`CLAUDE.md`), env/key setup (`docs/OPS_RUNBOOK.md`), product intent (`docs/source/*`). This doc points at those; it doesn't replace them.
 
@@ -79,20 +79,33 @@ Villie is a **pre-launch** maternal-health platform (React Native + Expo + Supab
 
 ### 2b. Active workstreams / sessions (coordinate before touching)
 
-**Re-surveyed 2026-08-15 from `git worktree list` + per-branch ahead/behind.** Only **one** branch is genuinely active; the other four are spent worktrees whose work is already on `main`. Left mounted, they read like live sessions and invite exactly the collisions this doc exists to prevent.
+**Re-surveyed 2026-09-08 from `git worktree list` + per-branch `git cherry` (patch content, not ancestry).** Down from 9 worktrees to 3. **Six spent branches were deleted** — `sec/service-role-gate-pro-reconcile`, `sec/appsec-hardening-2026-08-14`, `sec/donor-location-coarsen`, `legal/app-wide-retention-ask`, `chore/home-feed-cache-purge`, `sec/advisor-closeout` — every one confirmed fully on `main` (`git branch -d` accepted all of them without complaint). An empty `.worktrees/the-buzz-trending` shell was removed too.
+
+> ⚠️ **Check by CONTENT, not ancestry.** `git branch --merged` said the service-role branch was unmerged; `git cherry main <branch>` and a content diff proved the fix had already landed on `main` by another route. Ancestry lies after cherry-picks and hand-mirrored edits.
 
 #### 🔴 LIVE — do not touch
 
 | Branch | State | Owns (don't collide) |
 |---|---|---|
-| **`feat/billy-capability-coverage`** | **This is the shared checkout at the repo root.** Last commit **~20 min ago**, **12 uncommitted files**, ahead 3 / **behind 104** of `main`, pushed. | `supabase/functions/app-help-chat/**`, `supabase/functions/_shared/service-role.ts`, `supabase/functions/specialist-invite-create/index.ts`, `docs/THE_BUZZ_TRENDING.md`, `docs/audits/buzz-discovery-*` |
-| **`feat/pro-locale-gate`** | Sibling worktree at `../village-app-pro-gate` — **not** under `.worktrees/`, so it is easy to miss. **1 ahead** / 2 behind, clean, last commit ~10h ago. Genuinely pending. | villie Pro launch-gate locale handling |
+| **`main`** | **This is the shared checkout at the repo root**, and it is **actively being edited right now** (2026-09-08 — files touched within the last 20 min, ~12 uncommitted). No longer parked on `feat/billy-capability-coverage`; the 104-commit drift is gone. | `apps/mobile/src/api/{ai,gear,milkVault}.ts`, `apps/mobile/src/lib/edgeFunction.ts`, `supabase/functions/admin-{approve-specialist,compliance-events}/**` |
+| **`feat/pro-locale-gate`** | Sibling worktree at `../village-app-pro-gate` — **not** under `.worktrees/`, so it is easy to miss. **1 ahead / 43 behind**, clean. Genuinely pending. | villie Pro launch-gate locale handling |
 
-**Do not `git switch` the root checkout — use a worktree.** Two live warnings on it:
+> 🚨 **MIGRATION 132 EXISTS ONLY ON `feat/pro-locale-gate`.** `main` runs `130 → 131 → **gap** → 133 → 134 → 135 → 136`. `132_pro_launch_locale_scope.sql` (239 lines) is committed nowhere else. Most likely a numbering gap rather than a live blocker — 133–136 pushed successfully, which could not happen if 132 were applied on prod but missing locally — **but this was not verified against the database** (the Supabase MCP was disconnected at the time). **Run `list_migrations` before writing any new migration**, and merge this branch or the gap becomes permanent.
 
-1. ⚠️ **Behind 104 with uncommitted work.** That is the same shape as the 62-commit drift incident in §0, where 44 commits existed only locally and prod schema wasn't reproducible from `main`. Merge `main` in soon.
-2. ⚠️ **It holds an uncommitted rewrite of `specialist-invite-create` + a new `_shared/service-role.ts`.** This is a **genuine improvement** on the 2026-08-15 Critical fix — a shared two-mode gate that solves the multi-key problem the strict-equality fix can't (`gatewayVerifiesJwt:false` → exact key only; `true` → exact key **or** a gateway-verified `service_role` claim, which tolerates key rotation). ✅ **Committed 2026-08-15 as `4e61ac9`** — no longer one working-tree deploy from being lost.
-   🚨 **Unfinished dependency:** the helper's comment says *"the flag is not a guess: `supabase/config.toml` pins `verify_jwt` for every function."* **That is not true yet** — `config.toml` exists but contains only local-dev ports/auth, with **no `[functions.*]` sections and no `verify_jwt` anywhere.** `gatewayVerifiesJwt:true` is *currently* correct only because `specialist-invite-create` was deployed with `verify_jwt` on (verified live). Nothing durable enforces that. **Land the `config.toml` pins in the same change**, or a future `--no-verify-jwt` deploy silently turns the flag into a lie and restores the Critical. Only 1 of the 6 functions has been migrated so far (the other 5 are `verify_jwt:true`, so not exploitable meanwhile). **As of `4e61ac9` the `config.toml` pins are still absent** — that commit carried only the helper plus the one call site.
+#### ⚪ MERGED 2026-09-08 — safe to unmount
+
+| Branch | State |
+|---|---|
+| **`sec/audit-fixes`** | Merged to `main`. Recorded the 2026-09-07 production deploy in `docs/audits/security-2026-09-04.md`. |
+| **`docs/state-of-villie-2026-08-15`** | Merged to `main` — it is what you are reading. Had sat unmerged for three weeks while its stale copy on `main` misled at least one session into redoing finished security work. |
+
+**Do not `git switch` the root checkout — use a worktree.** Both former warnings are now closed:
+
+1. ✅ **RESOLVED 2026-09-08 — the root checkout is on `main`.** The 104-commit drift that made this section's warnings true is gone; it is no longer parked on `feat/billy-capability-coverage`.
+2. ✅ **RESOLVED — the two-mode gate shipped AND the registry is complete.** `_shared/service-role.ts` is live (`gatewayVerifiesJwt:false` → exact key only; `true` → exact key **or** a gateway-verified `service_role` claim, which tolerates key rotation), and all **7** call sites pass an argument that matches that function's `config.toml` pin.
+   ✅ **The dependency is CLOSED — the helper's comment is now literally true.** `supabase/config.toml` pins `verify_jwt` for **75 of 75** functions, so a stray `--no-verify-jwt` deploy shows up as a reviewable diff instead of silent drift. **Zero** signature-blind `role === 'service_role'` gates remain in the tree. The last one, `pro-entitlement-reconcile`, was closed by `93243f8` (2026-09-06) out of `docs/audits/security-2026-09-04.md`.
+   💡 **Why that one hid so long:** it is the only function that exists in source but has **never been deployed**, so it appears in no `list_edge_functions` output and any review that walks the live surface is blind to it. **Audit edge functions by diffing `ls supabase/functions/` against the deployed list.**
+   ⚠️ **Lesson worth keeping:** this fix was written *twice*. It was correct on 2026-08-17 but sat in an unmerged worktree, so a fresh audit rediscovered the identical gap three weeks later and redid it. **Work that is not on `main` does not count as done.**
 
 #### ✅ SPENT — DELETED 2026-08-15
 
