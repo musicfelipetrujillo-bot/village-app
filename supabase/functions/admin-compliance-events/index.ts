@@ -26,6 +26,7 @@
 // be exporting filtered slices for legal review, not infinite-scrolling.
 
 import { createClient } from 'jsr:@supabase/supabase-js@2';
+import { isServiceRoleRequest } from '../_shared/service-role.ts';
 
 const supabase = createClient(
   Deno.env.get('SUPABASE_URL')!,
@@ -88,10 +89,10 @@ async function queryTable(
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: CORS });
 
-  // Service-role gate — same posture as admin-approve-specialist.
-  const authHeader = req.headers.get('Authorization') ?? '';
-  const token = authHeader.replace('Bearer ', '');
-  if (token !== Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')) {
+  // Service-role gate — same posture as admin-approve-specialist, and now the
+  // same shared implementation: constant-time compare plus rotation tolerance.
+  // `gatewayVerifiesJwt: true` matches `verify_jwt = true` in config.toml.
+  if (!isServiceRoleRequest(req, { gatewayVerifiesJwt: true })) {
     return new Response(JSON.stringify({ error: 'Forbidden' }), {
       status: 403,
       headers: { ...CORS, 'Content-Type': 'application/json' },

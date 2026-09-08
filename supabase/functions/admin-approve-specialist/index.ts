@@ -5,6 +5,7 @@
 // Sets specialist.admin_approved + notifies via Twilio SMS
 
 import { createClient } from 'npm:@supabase/supabase-js';
+import { isServiceRoleRequest } from '../_shared/service-role.ts';
 
 const supabase = createClient(
   Deno.env.get('SUPABASE_URL')!,
@@ -21,10 +22,12 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: CORS });
   }
 
-  // Only accept service role key — no anon or user JWT
-  const authHeader = req.headers.get('Authorization') ?? '';
-  const token = authHeader.replace('Bearer ', '');
-  if (token !== Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')) {
+  // Only accept service role key — no anon or user JWT.
+  // Was a bare `!==` string compare: not constant-time, and it carried the
+  // key-rotation failure mode that got authentication DELETED from six other
+  // functions (see `_shared/service-role.ts`). `gatewayVerifiesJwt: true`
+  // matches `verify_jwt = true` for this function in `supabase/config.toml`.
+  if (!isServiceRoleRequest(req, { gatewayVerifiesJwt: true })) {
     return new Response(JSON.stringify({ error: 'Forbidden' }), {
       status: 403,
       headers: { ...CORS, 'Content-Type': 'application/json' },
