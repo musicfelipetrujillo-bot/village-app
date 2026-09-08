@@ -18,11 +18,16 @@ on:
     paths:
       - 'supabase/functions/**'
       - '.github/workflows/edge-functions-check.yml'
+      # The job now shells out to this, so a change to it must re-run the job.
+      # Omitting it would be the same defect as the CI path filter that skipped
+      # itself on the commit that added its own tests.
+      - 'scripts/retry-on-network-error.sh'
   push:
     branches: [main]
     paths:
       - 'supabase/functions/**'
       - '.github/workflows/edge-functions-check.yml'
+      - 'scripts/retry-on-network-error.sh'
   workflow_dispatch:
 
 jobs:
@@ -46,11 +51,15 @@ jobs:
       # from 17 errors to 0 — deliberately not `mapfile`, which needs bash 4+ and
       # so cannot be verified on a macOS dev machine before it reaches CI.
       #
-      # EXPECT OCCASIONAL UNRELATED FAILURES until the npm: specifiers are
-      # pinned. 20 functions import `npm:@supabase/supabase-js` and 30 import
-      # `npm:@anthropic-ai/sdk` with no version, so this job resolves whatever
-      # is latest on the day it runs and a new upstream release can turn it red
-      # without anyone touching this repo.
+      # The specifiers ARE now all pinned to exact versions (2026-09-08), so this
+      # job no longer drifts on an upstream release. What it still does — by
+      # design — is resolve ~100 modules from esm.sh, jsr.io, deno.land and npm
+      # on every run, because `supabase functions deploy` does not use a
+      # lockfile and CI must check against what production actually resolves
+      # (see .gitignore). That leaves one real failure mode: a single connection
+      # reset anywhere in that fan-out reddens the job. Hence the retry wrapper,
+      # which retries TRANSPORT failures only and lets a genuine type error fail
+      # on the first attempt.
       - name: Type-check every edge function
         working-directory: supabase/functions
         run: |
@@ -63,7 +72,7 @@ jobs:
           echo "Checking $COUNT files"
           find . -name '*.ts' -not -path './node_modules/*' -print0 \
             | sort -z \
-            | xargs -0 deno check
+            | xargs -0 ../../scripts/retry-on-network-error.sh 3 -- deno check
 
       # The gate unit tests. 214 lines in _shared decide access for 52 of the 75
       # functions, so they get the only real unit coverage in the backend.
@@ -72,4 +81,4 @@ jobs:
       - name: Test the shared auth gates
         if: '!cancelled()'
         working-directory: supabase/functions
-        run: deno test --allow-env --allow-net _shared/
+        run: ../../scripts/retry-on-network-error.sh 3 -- deno test --allow-env --allow-net _shared/
