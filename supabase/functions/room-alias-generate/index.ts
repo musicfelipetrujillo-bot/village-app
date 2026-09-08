@@ -109,7 +109,10 @@ async function generateAlias(takenAliases: string[]): Promise<string | null> {
         model: 'claude-haiku-4-5-20251001',
         max_tokens: 30,
         temperature: 0.9,
-        system: [{ type: 'text', text: sys, cache_control: { type: 'ephemeral' } as any }],
+        // `npm:@anthropic-ai/sdk` is imported unpinned, and the version that
+        // resolves today has no cache_control on TextBlockParam even though the
+        // API accepts it. Same cast as `systemBlocks as any` in app-help-chat.
+        system: [{ type: 'text', text: sys, cache_control: { type: 'ephemeral' } } as any],
         messages: [{ role: 'user', content: 'Generate one alias now.' }],
       });
       const raw = (res.content[0] as any)?.text?.trim() ?? '';

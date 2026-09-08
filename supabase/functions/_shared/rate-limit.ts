@@ -82,6 +82,13 @@ function admin() {
   return cachedAdmin;
 }
 
+/** Shape returned by the `consume_ai_quota` RPC (migration 135). */
+interface QuotaRow {
+  allowed?: boolean;
+  remaining?: number;
+  retry_after_seconds?: number;
+}
+
 export interface QuotaResult {
   allowed: boolean;
   remaining: number;
@@ -119,7 +126,15 @@ export async function consumeQuota(
     return { allowed: true, remaining: -1, retryAfterSeconds: 0 };
   }
   try {
-    const { data, error } = await admin().rpc('consume_ai_quota', {
+    // The client is created without generated Database types, so supabase-js
+    // resolves an unknown RPC name to `never` and its args to `undefined`.
+    // Describing the one call we make keeps the row shape checked below rather
+    // than falling back to `any` for the whole result.
+    const rpc = admin().rpc as unknown as (
+      fn: string,
+      args: Record<string, unknown>,
+    ) => Promise<{ data: QuotaRow | QuotaRow[] | null; error: unknown }>;
+    const { data, error } = await rpc('consume_ai_quota', {
       p_user_id: userId,
       p_fn: fn,
       p_limit: limit,

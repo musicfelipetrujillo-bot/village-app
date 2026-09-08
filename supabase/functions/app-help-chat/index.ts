@@ -197,14 +197,14 @@ Deno.serve(async (req) => {
       supabase.from('baby_profiles_with_week')
         .select('id, baby_name, feeding_method, current_week_number')
         .order('created_at', { ascending: true }).limit(1).maybeSingle()
-        .then((r: any) => r?.data ?? null).catch(() => null),
+        .then((r: any) => r?.data ?? null, () => null),
       supabase.from('villie_memories')
         .select('fact').order('created_at', { ascending: false }).limit(20)
-        .then((r: any) => (r?.data ?? []) as { fact: string }[]).catch(() => []),
-      supabase.auth.getUser().then((r: any) => r?.data?.user ?? null).catch(() => null),
+        .then((r: any) => (r?.data ?? []) as { fact: string }[], (): { fact: string }[] => []),
+      supabase.auth.getUser().then((r: any) => r?.data?.user ?? null, () => null),
       supabase.from('users').select('preferred_language, notif_prefs')
         .limit(1).maybeSingle()
-        .then((r: any) => r?.data ?? null).catch(() => null),
+        .then((r: any) => r?.data ?? null, () => null),
     ]);
     const userId: string | null = authR?.id ?? null;
     const locale: 'en' | 'es' = prefR?.preferred_language === 'es' ? 'es' : 'en';
@@ -216,7 +216,7 @@ Deno.serve(async (req) => {
       ? `\n(her baby: name ${baby.name ?? 'not set'}, week ${baby.week ?? '?'}, feeding_method ${baby.feeding_method ?? 'unknown'} — a baby profile EXISTS; never ask whether she has one, and never re-ask anything listed here.)`
       : '';
     const memoryLine = memR.length
-      ? `\n(things you've learned about her from past chats — use naturally, never re-ask: ${memR.map((m) => m.fact).join(' | ')})`
+      ? `\n(things you've learned about her from past chats — use naturally, never re-ask: ${memR.map((m: { fact: string }) => m.fact).join(' | ')})`
       : '';
 
     // Keep last 12 turns to bound token cost
@@ -329,7 +329,11 @@ Reply with JSON only.`
           { role: 'user', content: 'That was not valid JSON. Send the SAME answer again as the required JSON object only — no prose, no code fences.' },
         ],
       });
-      const repairText = repair.content.find((b: any) => b.type === 'text');
+      // `.find` is typed to the ContentBlock union; ThinkingBlock has no `text`,
+      // so narrow to what this branch reads. The `?? ''` below already covers the
+      // case where no text block came back at all.
+      const repairText = repair.content.find((b: any) => b.type === 'text') as
+        { text?: string } | undefined;
       parsed = extractJson((repairText?.text ?? '').trim());
     }
     if (!parsed) throw new Error('unparseable_reply');
