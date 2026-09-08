@@ -108,23 +108,8 @@ Deno.serve(async (req) => {
         { status: 400, headers: { ...CORS, 'Content-Type': 'application/json' } });
     }
 
-    const { data: msg } = await supabase
-      .from('room_messages')
-      .select('id, room_id, sender_user_id, body, ai_scan_status, message_type')
-      .eq('id', messageId)
-      .maybeSingle();
-    if (!msg) {
-      return new Response(JSON.stringify({ error: 'message not found' }),
-        { status: 404, headers: { ...CORS, 'Content-Type': 'application/json' } });
-    }
-    const trigger = msg as TriggerMessage;
-    if (!trigger.sender_user_id) {
-      return new Response(JSON.stringify({ posted: false, reason: 'no_sender' }),
-        { headers: { ...CORS, 'Content-Type': 'application/json' } });
-    }
-
-    // ─── The caller must be the sender of the triggering message ───────
-    // IDOR (fixed 2026-09-05): `message_id` was taken on trust. The read above uses
+    // ─── Establish WHO is calling before reading ANYTHING ──────────────
+    // IDOR (fixed 2026-09-05): `message_id` was taken on trust. The read below uses
     // the service-role client, so any anon-key holder could name ANY message and:
     //   * cause an AI companion reply to be posted into a room they are not a
     //     member of, under the trusted gold "✨ Villie · AI companion" badge; and
@@ -135,19 +120,50 @@ Deno.serve(async (req) => {
     // the C4 scan clears (apps/mobile/src/api/community.ts:385), so "caller is the
     // sender" is the exact contract.
     //
-    // Same 404 as not-found, deliberately: a distinct 403 would confirm that a
-    // given message id exists in a private room.
+    // ORDERING (2026-09-08): the identity check used to sit BELOW the lookup, so an
+    // UNAUTHENTICATED request still drove a service-role read — and could tell a
+    // real message id from a fake one, because a real one reached the 401 while a
+    // fake one stopped at the 404. That is the same existence oracle the
+    // answer-404-for-not-yours rule below exists to prevent, one layer up. Surfaced
+    // by the production smoke probe on its first run. Resolving the caller first
+    // costs nothing: an unauthenticated request now cannot reach the database at
+    // all, and every failure it can produce is an identical 401.
     const isService = isServiceRoleRequest(req, { gatewayVerifiesJwt: true });
+    let callerId: string | null = null;
     if (!isService) {
-      const callerId = await getCallerUserId(req);
+      callerId = await getCallerUserId(req);
       if (!callerId) {
         return new Response(JSON.stringify({ error: 'unauthorized' }),
           { status: 401, headers: { ...CORS, 'Content-Type': 'application/json' } });
       }
-      if (callerId !== trigger.sender_user_id) {
-        return new Response(JSON.stringify({ error: 'message not found' }),
-          { status: 404, headers: { ...CORS, 'Content-Type': 'application/json' } });
-      }
+    }
+
+    const { data: msg } = await supabase
+      .from('room_messages')
+      .select('id, room_id, sender_user_id, body, ai_scan_status, message_type')
+      .eq('id', messageId)
+      .maybeSingle();
+    if (!msg) {
+      return new Response(JSON.stringify({ error: 'message not found' }),
+        { status: 404, headers: { ...CORS, 'Content-Type': 'application/json' } });
+    }
+    const trigger = msg as TriggerMessage;
+
+    // Same 404 as not-found, deliberately: a distinct 403 would confirm that a
+    // given message id exists in a private room. This also covers a null sender
+    // (system / ai_companion rows), so a signed-in caller cannot distinguish
+    // "someone else's message" from "a system message" from "no such message" —
+    // all three answer identically.
+    if (!isService && callerId !== trigger.sender_user_id) {
+      return new Response(JSON.stringify({ error: 'message not found' }),
+        { status: 404, headers: { ...CORS, 'Content-Type': 'application/json' } });
+    }
+
+    // Only reachable by service role now: a user caller with a null-sender message
+    // was already answered 404 above.
+    if (!trigger.sender_user_id) {
+      return new Response(JSON.stringify({ posted: false, reason: 'no_sender' }),
+        { headers: { ...CORS, 'Content-Type': 'application/json' } });
     }
 
     // C4 hand-off: if the sender's message is crisis-classified, suppress.

@@ -9,19 +9,20 @@
 -- The first two carry an explicit USING (false) policy, verified end-to-end when
 -- V3 C1 shipped. The third uses the "RLS on, no policy" shape.
 --
--- WHAT THIS TEST DELIBERATELY DOES NOT ASSERT: that a client is *denied* on
--- ai_rate_limits. It is not. Migration 135 revokes EXECUTE on consume_ai_quota
--- but never revokes table privileges, so anon and authenticated still hold
--- table-level grants and a SELECT returns ZERO ROWS rather than an error. The
--- effective invariant — no row is readable, no row is writable — is what is
--- asserted here, and it holds either way. Tightening the grant is tracked
--- separately; writing the test against the stricter claim would have made it
--- fail for a reason unrelated to the security property.
+-- A NOTE ON ai_rate_limits, AND WHY THIS FILE CHANGED.
+-- This test was first written to assert only that a client sees ZERO ROWS,
+-- because that was all that was true: migration 135 revoked EXECUTE on
+-- consume_ai_quota but never revoked table privileges, so anon and authenticated
+-- still held full table grants and only the empty RLS policy set stood in the
+-- way. Writing the test honestly is what exposed the gap — the stricter claim
+-- would have failed, and for a reason unrelated to the security property.
+-- Migration 137 closed it, so the assertion is now the stricter one: permission
+-- denied, at the grant layer, before RLS is even consulted.
 
 create extension if not exists pgtap;
 
 begin;
-select plan(9);
+select plan(11);
 
 -- ai_rate_limits.user_id references auth.users, so the fixture starts there;
 -- the migration-044 trigger mirrors the row into public.users.
@@ -43,10 +44,10 @@ select results_eq(
 set local role authenticated;
 set local request.jwt.claims = '{"sub":"44444444-4444-4444-4444-444444444441","role":"authenticated"}';
 
-select results_eq(
+select throws_ok(
   $q$ select count(*)::int from public.ai_rate_limits $q$,
-  $q$ values (0) $q$,
-  'a signed-in user sees no rows in her own quota ledger'
+  '42501', null,
+  'a signed-in user is DENIED on the quota ledger (migration 137, grant layer)'
 );
 
 select throws_ok(
@@ -90,6 +91,26 @@ select results_eq(
          and pg_get_expr(polqual, polrelid) = 'false' $q$,
   $q$ values (2) $q$,
   'both tables still carry an explicit USING(false) policy'
+);
+
+-- The ACL itself, checked directly. A REVOKE is not verified until the resulting
+-- ACL has been looked at: migrations 052, 130 and the first 133 all succeeded
+-- while enforcing nothing. An entry with an empty grantee IS PUBLIC.
+select is_empty(
+  $q$ select case when a.grantee = 0 then 'PUBLIC' else a.grantee::regrole::text end
+        from pg_class c cross join lateral aclexplode(c.relacl) a
+       where c.oid = 'public.ai_rate_limits'::regclass
+         and (a.grantee = 0 or a.grantee::regrole::text in ('anon', 'authenticated')) $q$,
+  'ai_rate_limits grants nothing to PUBLIC, anon or authenticated'
+);
+
+-- And the limiter still works. Without this, "nobody can touch the table" would
+-- look like a pass while the rate limiter was broken — the revoke is only safe
+-- because consume_ai_quota is SECURITY DEFINER and runs as the owner.
+select results_eq(
+  $q$ select prosecdef from pg_proc where proname = 'consume_ai_quota' $q$,
+  $q$ values (true) $q$,
+  'consume_ai_quota is SECURITY DEFINER, so the revoke cannot break the limiter'
 );
 
 select * from finish();
