@@ -267,5 +267,18 @@ its own controls green: *"bogus key rejected (401), public key accepted (200)"*.
   Both `_shared` test harnesses were made hermetic (they clear the new vars before stubbing the
   legacy ones), or a developer with those exported would test their own key and get a green run
   proving nothing. `deno check` 0, 26 deno tests pass, mobile untouched.
+
+  **DEPLOYED 2026-09-08** — 72 functions (71 changed, `auth-google-exchange` correctly skipped as
+  "No change found": it has no imports at all and was not in the diff). The three launch-gated
+  functions stayed excluded and were asserted absent from the deploy list beforehand:
+  `boxes-create-payment-intent` and `gear-boost-activate` (both still undeployed by design) and
+  `stripe-webhook` (still the April `501` stub — deploying it ships the Boxes webhook).
+
+  Verified live, exercising the new `fromDict('SUPABASE_SECRET_KEYS')` path for the first time:
+  `twilio-sms` → **400** (gate cleared, no SMS); `admin-compliance-events` → **200**, which is the
+  strongest single check because it builds a Supabase client from `secretKey()` and actually queries
+  the database; the `publishableKey()` path 401s the anon key on `agents-health`, `ai-translate` and
+  `home-feed-curator`; 7/7 anon smoke test 401; GitHub Actions cron `HTTP 200`; `prod-smoke-probe`
+  success; website share path 200 with 4 `og:` tags.
 - §F3: per-video OG cards do not work by either route.
 
