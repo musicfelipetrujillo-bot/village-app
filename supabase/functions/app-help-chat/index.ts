@@ -13,6 +13,8 @@ import type { BabyCtx, Loc } from './tools/types.ts';
 import { NAV_TARGETS } from './tools/navigate.ts';
 
 import { publishableKey } from '../_shared/keys.ts';
+import { getCallerUserId } from '../_shared/user-auth.ts';
+import { consumeQuota, tooManyRequests } from '../_shared/rate-limit.ts';
 const anthropic = new Anthropic({ apiKey: Deno.env.get('ANTHROPIC_API_KEY')! });
 
 // Haiku occasionally answers in prose instead of the JSON envelope — usually on
@@ -157,6 +159,32 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: CORS });
   }
 
+  // ─── Who is calling, and how much may they have ───────────────────────
+  // Added 2026-09-08. This endpoint was reachable by anyone holding the
+  // publishable key that ships inside the app: `verify_jwt = true` only proves
+  // the bearer is a validly signed project JWT, and that key is exactly such a
+  // token. The later `supabase.auth.getUser()` fails soft to null, so an
+  // unauthenticated request did not stop — it ran the whole tool loop with
+  // `userId = null`. RLS meant it read nobody's data, so this was never an
+  // exposure; it was an unmetered Anthropic bill and a tool-invocation surface.
+  // The same class the 2026-09-04 audit closed for 21 other functions; this one
+  // was missed. The help chat only overlays authenticated screens, so no real
+  // caller loses anything.
+  const callerId = await getCallerUserId(req);
+  if (!callerId) {
+    return new Response(JSON.stringify({ error: 'unauthorized' }), {
+      status: 401,
+      headers: { ...CORS, 'Content-Type': 'application/json' },
+    });
+  }
+
+  // Charged BEFORE the body is validated, per the placement rule in
+  // _shared/rate-limit.ts: uniform placement covers every downstream branch,
+  // and a malformed request consuming budget is correct for abuse control.
+  // Fails OPEN on a ledger error — a cost control must not block a mother.
+  const quota = await consumeQuota(callerId, 'app-help-chat');
+  if (!quota.allowed) return tooManyRequests(quota, CORS);
+
   try {
     const body = await req.json();
     const messages: InboundMessage[] = Array.isArray(body.messages) ? body.messages : [];
@@ -194,7 +222,7 @@ Deno.serve(async (req) => {
     // id (previously re-fetched by every tool that needed it) and her locale +
     // timezone, which the read tools need because the content RPCs are localized
     // and "today" has to mean HER today, not UTC's.
-    const [babyR, memR, authR, prefR] = await Promise.all([
+    const [babyR, memR, prefR] = await Promise.all([
       supabase.from('baby_profiles_with_week')
         .select('id, baby_name, feeding_method, current_week_number')
         .order('created_at', { ascending: true }).limit(1).maybeSingle()
@@ -202,12 +230,14 @@ Deno.serve(async (req) => {
       supabase.from('villie_memories')
         .select('fact').order('created_at', { ascending: false }).limit(20)
         .then((r: any) => (r?.data ?? []) as { fact: string }[], (): { fact: string }[] => []),
-      supabase.auth.getUser().then((r: any) => r?.data?.user ?? null, () => null),
       supabase.from('users').select('preferred_language, notif_prefs')
         .limit(1).maybeSingle()
         .then((r: any) => r?.data ?? null, () => null),
     ]);
-    const userId: string | null = authR?.id ?? null;
+    // The gate above already validated the token and resolved the id, so the
+    // duplicate `supabase.auth.getUser()` that used to sit in this Promise.all
+    // is gone — one fewer round-trip on every message.
+    const userId: string = callerId;
     const locale: 'en' | 'es' = prefR?.preferred_language === 'es' ? 'es' : 'en';
     const tz: string = prefR?.notif_prefs?.quiet_hours?.tz || 'America/New_York';
     const baby: BabyCtx = babyR?.id

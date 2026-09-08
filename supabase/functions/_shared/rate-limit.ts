@@ -53,6 +53,13 @@ export const HOURLY_LIMITS: Record<string, number> = {
   'room-auto-match': 20,
   'room-icebreaker': 20,
 
+  // The AI help chat. Tighter than the other text endpoints despite being the
+  // most conversational, because ONE call here is not one model call: the tool
+  // loop runs up to 6 hops at 700 max_tokens each, so a single request can cost
+  // six times what `ai-triage` does. 40/hr is well above a real sitting — a
+  // message every 90 seconds for an hour — and well below a script.
+  'app-help-chat': 40,
+
   // Expensive server-side fan-out (a full feed re-curation per call).
   'home-feed-curator': 10,
 
