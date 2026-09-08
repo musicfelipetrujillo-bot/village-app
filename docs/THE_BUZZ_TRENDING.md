@@ -46,7 +46,26 @@ The clarification item is the same shape: *"everyone's posting about X — here'
 
 ### Voice (2026-07-14)
 
-All Buzz copy — item titles, summaries, the "ask your provider" line — is written in the **V10 Gen Z voice** (lowercase, casual, group-chat tone; see `docs/V10_GENZ_REBRAND.md`): reads like a friend texting you the tea, not a health-article headline. **Exception:** the standing disclaimer stays sober and clearly legible as a disclaimer — same carve-out V10 already makes for crisis/legal copy elsewhere in the app. This is copy-only; no schema impact.
+All Buzz copy — item titles, summaries, the "ask your provider" line — is written in the **V10 Gen Z voice** (lowercase, casual, group-chat tone; see `docs/V10_GENZ_REBRAND.md`): reads like a friend texting you the tea, not a health-article headline. **Exceptions:** the standing disclaimer stays sober and clearly legible as a disclaimer, and any item whose subject is a psychiatric or medical emergency (postpartum psychosis, crisis, self-harm) is written plain and sober too — same carve-out V10 already makes for crisis/legal copy elsewhere in the app. This is copy-only; no schema impact.
+
+### Editorial neutrality — no advice, no opinion (founder, 2026-08-12)
+
+Added after reviewing the first full issue (`838665cd`, 2026-08-12). **The Buzz presents trending information in an opinion-free, unbiased way. It never gives unsolicited advice.** This is the copy-level expression of the §1 "conversation, never directive" posture — and the thing a hospital partner or counsel will read first.
+
+**The house pattern** (what worked: the Nara Organics recall item and the postpartum psychosis item): take the trending news event → report it matter-of-factly → use it as the hook to *educate* about the underlying condition → name the red-flag symptoms and when to seek help → give resources. The news peg earns the attention; the education is the payload.
+
+**What went wrong** (the RSV item, rank 1 of that issue): it drifted into telling moms *when* babies should get the RSV shot and framed the maternal-vaccine-vs-infant-antibody question as "the thing to sort out at your next visit." That steers an elective medical decision.
+
+**The line** — note this is *not* "no imperatives," since the recall item's "that combination is an emergency-room call, not a wait-for-the-morning call" is exactly right:
+
+| | |
+|---|---|
+| ✅ **Report** | facts with attribution ("ACOG's guideline says X", "CDC is investigating Y"); what happened; red-flag symptoms; **when to seek urgent/emergency help**; crisis resources |
+| ⛔ **Never** | second-person steering on *elective* choices — what to pick, when to schedule, what's "worth" doing, urgency framing on a non-urgent decision |
+
+**Safety escalation is not advice. Elective-decision steering is.** Vaccines are the highest-risk surface for this — report the trend and the published facts, never the choice.
+
+`ask_provider_*` stays (it's the item template's third beat) but must be a **neutral question the mom asks her provider**, never a leading one that implies the answer. Applies equally to EN and ES. Enforced in the `villie-buzz-sourcing-ingest-weekly` scheduled task so unattended runs inherit it.
 
 ---
 
