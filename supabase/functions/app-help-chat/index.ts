@@ -236,7 +236,12 @@ Reply with JSON only.`
     // SYSTEM_PROMPT cached the tool schemas + SYSTEM_PROMPT and left TOOL_GUIDE
     // (~2k tokens) to be reprocessed at full price on every request AND on every
     // hop of the tool loop — up to 6 model calls for one user message.
-    const systemBlocks = [
+    // Typed rather than cast. At 0.27.0 the SDK's TextBlockParam omitted
+    // cache_control, so `as any` was the only way past the compiler; 0.124.0
+    // declares it, so the array can carry its real type. The annotation is what
+    // removes the cast — without it the literals infer `type: string` instead of
+    // the required `'text'`.
+    const systemBlocks: Anthropic.TextBlockParam[] = [
       { type: 'text', text: SYSTEM_PROMPT },
       { type: 'text', text: TOOL_GUIDE, cache_control: { type: 'ephemeral' } },
     ];
@@ -283,7 +288,7 @@ Reply with JSON only.`
       const resp = await anthropic.messages.create({
         model: 'claude-haiku-4-5-20251001',
         max_tokens: 700,
-        system: systemBlocks as any,
+        system: systemBlocks,
         tools: TOOLS as any,
         messages: convo,
       });
@@ -307,7 +312,7 @@ Reply with JSON only.`
     if (!aiResponse) {
       aiResponse = await anthropic.messages.create({
         model: 'claude-haiku-4-5-20251001', max_tokens: 500,
-        system: systemBlocks as any, messages: convo,
+        system: systemBlocks, messages: convo,
       });
     }
 
@@ -322,7 +327,7 @@ Reply with JSON only.`
       // only on the rare turns that miss the format.
       const repair = await anthropic.messages.create({
         model: 'claude-haiku-4-5-20251001', max_tokens: 700,
-        system: systemBlocks as any,
+        system: systemBlocks,
         messages: [
           ...convo,
           { role: 'assistant', content: raw || '(empty)' },
