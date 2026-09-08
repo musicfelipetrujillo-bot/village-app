@@ -10,8 +10,8 @@
 // NEVER set as `primary_room` — they belong in `secondary_room_ids` at most.
 // The user must always opt into a support room themselves.
 
-import Anthropic from 'npm:@anthropic-ai/sdk';
-import { createClient } from 'jsr:@supabase/supabase-js@2';
+import Anthropic from 'npm:@anthropic-ai/sdk@0.124.0';
+import { createClient } from 'jsr:@supabase/supabase-js@2.115.0';
 
 import { isServiceRoleRequest } from '../_shared/service-role.ts';
 import { resolveTargetUser } from '../_shared/user-auth.ts';

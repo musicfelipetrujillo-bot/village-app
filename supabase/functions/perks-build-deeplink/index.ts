@@ -15,7 +15,7 @@
 // Body: { deal_id: string }
 // Returns: { click_url: string, subid: string }
 
-import { createClient } from 'npm:@supabase/supabase-js@2';
+import { createClient } from 'npm:@supabase/supabase-js@2.115.0';
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',

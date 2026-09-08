@@ -14,8 +14,8 @@
 // Invoked by the GH Actions cron (service-role Bearer) daily at 08:50 UTC,
 // ahead of the 09:30 ai-event-screen sweep that mops up anything unscreened.
 
-import Anthropic from 'npm:@anthropic-ai/sdk';
-import { createClient } from 'npm:@supabase/supabase-js';
+import Anthropic from 'npm:@anthropic-ai/sdk@0.124.0';
+import { createClient } from 'npm:@supabase/supabase-js@2.115.0';
 
 import { isServiceRoleRequest } from '../_shared/service-role.ts';
 

@@ -4,8 +4,8 @@
 // Returns: { questions: string[] }
 // Model: Haiku (real-time)
 
-import Anthropic from 'npm:@anthropic-ai/sdk';
-import { createClient } from 'npm:@supabase/supabase-js';
+import Anthropic from 'npm:@anthropic-ai/sdk@0.124.0';
+import { createClient } from 'npm:@supabase/supabase-js@2.115.0';
 
 import { getCallerUserId } from '../_shared/user-auth.ts';
 import { consumeQuota, tooManyRequests } from '../_shared/rate-limit.ts';

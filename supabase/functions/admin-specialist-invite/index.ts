@@ -37,7 +37,7 @@
 // Share Sheet which is more useful for one-off invites (the admin
 // hands the link over via text, Slack, or in-person).
 
-import { createClient } from 'npm:@supabase/supabase-js@2';
+import { createClient } from 'npm:@supabase/supabase-js@2.115.0';
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',

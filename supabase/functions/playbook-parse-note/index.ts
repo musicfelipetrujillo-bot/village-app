@@ -8,8 +8,8 @@
 //
 // Body: { raw_text: string, baby_profile_id: string, now?: ISO }
 // Returns: { ok, note_id, counts: {sleep,feed,diaper}, events }
-import Anthropic from 'npm:@anthropic-ai/sdk';
-import { createClient } from 'npm:@supabase/supabase-js';
+import Anthropic from 'npm:@anthropic-ai/sdk@0.124.0';
+import { createClient } from 'npm:@supabase/supabase-js@2.115.0';
 
 const anthropic = new Anthropic({ apiKey: Deno.env.get('ANTHROPIC_API_KEY')! });
 

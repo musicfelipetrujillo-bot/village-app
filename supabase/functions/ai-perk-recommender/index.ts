@@ -9,8 +9,8 @@
 // FTC disclosure is rendered in the UI (PerkDetail/PerkClaim already do this);
 // this endpoint does not add affiliate disclosures to `reason`.
 
-import Anthropic from 'npm:@anthropic-ai/sdk';
-import { createClient } from 'jsr:@supabase/supabase-js@2';
+import Anthropic from 'npm:@anthropic-ai/sdk@0.124.0';
+import { createClient } from 'jsr:@supabase/supabase-js@2.115.0';
 
 import { isServiceRoleRequest } from '../_shared/service-role.ts';
 

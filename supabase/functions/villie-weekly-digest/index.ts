@@ -43,7 +43,7 @@
 //   - Empty recipient list → 200 with reason='no_recipients'.
 //   - Per-user send errors are caught + logged; the batch continues.
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.115.0';
 import { isServiceRoleRequest } from '../_shared/service-role.ts';
 
 const CORS = {

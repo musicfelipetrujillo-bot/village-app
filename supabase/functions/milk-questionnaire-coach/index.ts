@@ -2,7 +2,7 @@
 // Returns { why_it_matters, concern? }
 // Called after each question is answered in DonorQuestionnaireScreen.
 
-import Anthropic from 'npm:@anthropic-ai/sdk';
+import Anthropic from 'npm:@anthropic-ai/sdk@0.124.0';
 
 import { getCallerUserId } from '../_shared/user-auth.ts';
 import { consumeQuota } from '../_shared/rate-limit.ts';

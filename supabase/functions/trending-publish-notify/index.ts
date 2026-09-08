@@ -7,7 +7,7 @@
 // broadcast-to-everyone addressing mode — this function supplies the full
 // external_ids list, and push-notify's central pref/quiet-hours gate still
 // re-checks each one as the safety net.
-import { createClient } from 'jsr:@supabase/supabase-js@2';
+import { createClient } from 'jsr:@supabase/supabase-js@2.115.0';
 import { isServiceRoleRequest } from '../_shared/service-role.ts';
 
 const supabase = createClient(

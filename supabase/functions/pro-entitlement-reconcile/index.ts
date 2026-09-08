@@ -17,7 +17,7 @@
 //
 // Scheduled from .github/workflows/supabase-crons.yml (40 6 * * * — 02:40 ET).
 
-import { createClient } from 'jsr:@supabase/supabase-js@2';
+import { createClient } from 'jsr:@supabase/supabase-js@2.115.0';
 import { fetchProEntitlement } from '../_shared/revenuecat.ts';
 import { isServiceRoleRequest } from '../_shared/service-role.ts';
 

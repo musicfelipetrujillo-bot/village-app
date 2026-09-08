@@ -6,8 +6,8 @@
 // with the purchase funnel; the callMatchDonors() client in api/milk.ts stays
 // available for a future cash-only re-wire of AI discovery.
 
-import Anthropic from 'npm:@anthropic-ai/sdk';
-import { createClient } from 'npm:@supabase/supabase-js';
+import Anthropic from 'npm:@anthropic-ai/sdk@0.124.0';
+import { createClient } from 'npm:@supabase/supabase-js@2.115.0';
 
 import { consumeQuota, tooManyRequests } from '../_shared/rate-limit.ts';
 

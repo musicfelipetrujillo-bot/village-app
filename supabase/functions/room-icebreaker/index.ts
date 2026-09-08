@@ -13,8 +13,8 @@
 // with "Did you" (too leading). If the model misbehaves, we fall back to a
 // hardcoded generic opener keyed on room_type.
 
-import Anthropic from 'npm:@anthropic-ai/sdk';
-import { createClient } from 'jsr:@supabase/supabase-js@2';
+import Anthropic from 'npm:@anthropic-ai/sdk@0.124.0';
+import { createClient } from 'jsr:@supabase/supabase-js@2.115.0';
 
 import { isServiceRoleRequest } from '../_shared/service-role.ts';
 import { resolveTargetUser } from '../_shared/user-auth.ts';

@@ -3,8 +3,8 @@
 // Cached 24h on milk_trust_badges.ai_trust_narrative.
 // Called when recipient views DonorProfileScreen.
 
-import Anthropic from 'npm:@anthropic-ai/sdk';
-import { createClient } from 'npm:@supabase/supabase-js';
+import Anthropic from 'npm:@anthropic-ai/sdk@0.124.0';
+import { createClient } from 'npm:@supabase/supabase-js@2.115.0';
 
 import { consumeQuota, tooManyRequests } from '../_shared/rate-limit.ts';
 

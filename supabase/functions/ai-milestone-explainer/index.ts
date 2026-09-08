@@ -11,8 +11,8 @@
 // queries in the prompt to 988/911/PSI. Every summary passes through a
 // deterministic sanity check (contains_disclaimer) before writing.
 
-import Anthropic from 'npm:@anthropic-ai/sdk';
-import { createClient } from 'jsr:@supabase/supabase-js@2';
+import Anthropic from 'npm:@anthropic-ai/sdk@0.124.0';
+import { createClient } from 'jsr:@supabase/supabase-js@2.115.0';
 
 import { isServiceRoleRequest } from '../_shared/service-role.ts';
 

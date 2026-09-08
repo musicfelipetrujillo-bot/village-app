@@ -33,7 +33,7 @@
 // pill ("Similar items go for $20–$35 → use $25?") with a tap-to-fill
 // affordance. Never auto-fill or block submit.
 
-import { createClient } from 'jsr:@supabase/supabase-js@2';
+import { createClient } from 'jsr:@supabase/supabase-js@2.115.0';
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',

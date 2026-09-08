@@ -21,7 +21,7 @@
 // Required Edge Function secrets (prod): REVENUECAT_SECRET_KEY
 // Dev/sandbox escape hatch: BOOST_ALLOW_UNVERIFIED='1'
 
-import { createClient } from 'jsr:@supabase/supabase-js@2';
+import { createClient } from 'jsr:@supabase/supabase-js@2.115.0';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;

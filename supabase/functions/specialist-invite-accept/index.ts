@@ -42,7 +42,7 @@
 //   409 — email collision (auth.users already exists somehow)
 //   500 — DB or auth failure (best-effort rollback attempted)
 
-import { createClient } from 'npm:@supabase/supabase-js@2';
+import { createClient } from 'npm:@supabase/supabase-js@2.115.0';
 
 const supabase = createClient(
   Deno.env.get('SUPABASE_URL')!,

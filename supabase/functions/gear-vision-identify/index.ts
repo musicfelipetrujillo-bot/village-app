@@ -16,7 +16,7 @@
 // The GearSwap ToolStack doc lists GPT-4o Vision as primary, but the Village
 // stack standardizes on Claude per `docs/source/Village_App_Tech_Spec.md`.
 
-import Anthropic from 'npm:@anthropic-ai/sdk';
+import Anthropic from 'npm:@anthropic-ai/sdk@0.124.0';
 
 import { getCallerUserId } from '../_shared/user-auth.ts';
 import { consumeQuota, tooManyRequests } from '../_shared/rate-limit.ts';

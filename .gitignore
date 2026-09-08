@@ -64,9 +64,13 @@ scratchpad/
 
 # Deno lockfile for the edge functions — deliberately NOT committed.
 # `supabase functions deploy` does not use it: the deployed runtime resolves the
-# npm:/jsr: specifiers itself, and 50 of those imports carry no version. Pinning
-# CI to a lockfile would make CI green against versions prod is not running, so
-# the type-check would stop being an early warning that the next upstream
-# release breaks a live function. Commit this file once the specifiers
-# themselves are pinned — at that point the lock and the deploy agree.
+# specifiers itself. Locking CI would therefore make CI green against versions
+# prod is not running, so the type-check would stop being an early warning that
+# an upstream release breaks a live function.
+#
+# An earlier version of this note said to commit the lock once the specifiers
+# were pinned. They now are (2026-09-08) and the note was wrong: exact pins close
+# the DIRECT dependency gap, but supabase-js and the Anthropic SDK still resolve
+# their own transitive deps by range at deploy time. The same argument applies
+# one level down, so the lock stays out.
 supabase/functions/deno.lock

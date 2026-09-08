@@ -3,7 +3,7 @@
 // Finds specialists with new reviews in past 24h → regenerates AI review summary
 // Uses get_specialists_needing_summary_refresh() SQL function
 
-import { createClient } from 'npm:@supabase/supabase-js';
+import { createClient } from 'npm:@supabase/supabase-js@2.115.0';
 import { isServiceRoleRequest } from '../_shared/service-role.ts';
 
 const supabase = createClient(

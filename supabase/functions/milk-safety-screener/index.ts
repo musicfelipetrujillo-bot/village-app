@@ -3,8 +3,8 @@
 // Returns { safety_score, flags[], auto_deactivate }
 // block severity → auto-deactivates listing + sends Twilio SMS to donor.
 
-import Anthropic from 'npm:@anthropic-ai/sdk';
-import { createClient } from 'npm:@supabase/supabase-js';
+import Anthropic from 'npm:@anthropic-ai/sdk@0.124.0';
+import { createClient } from 'npm:@supabase/supabase-js@2.115.0';
 
 const anthropic = new Anthropic();
 const supabase = createClient(

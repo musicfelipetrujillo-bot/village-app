@@ -19,7 +19,7 @@
 // Model: Claude Haiku 4.5 (multimodal, real-time). Prompt cached per
 // CLAUDE.md rule 6. Env: ANTHROPIC_API_KEY in Supabase Edge Function Secrets.
 
-import Anthropic from 'npm:@anthropic-ai/sdk';
+import Anthropic from 'npm:@anthropic-ai/sdk@0.124.0';
 
 import { getCallerUserId } from '../_shared/user-auth.ts';
 import { consumeQuota, tooManyRequests } from '../_shared/rate-limit.ts';

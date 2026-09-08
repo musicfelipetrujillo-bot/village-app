@@ -16,7 +16,7 @@
 // pg_cron doesn't panic; the next run will retry. We never half-apply a sync —
 // individual upserts are idempotent.
 
-import { createClient } from 'jsr:@supabase/supabase-js@2';
+import { createClient } from 'jsr:@supabase/supabase-js@2.115.0';
 import { isServiceRoleRequest } from '../_shared/service-role.ts';
 
 const SAFER_PRODUCTS_URL = 'https://www.saferproducts.gov/RestWebServices/Recall';

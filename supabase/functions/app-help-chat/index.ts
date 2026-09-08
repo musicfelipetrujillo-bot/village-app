@@ -5,8 +5,8 @@
 // SAFETY: If user describes medical symptoms or crisis, punt to 988/911/PSI and suggest booking a specialist.
 // Model: Haiku (real-time).
 
-import Anthropic from 'npm:@anthropic-ai/sdk';
-import { createClient } from 'npm:@supabase/supabase-js';
+import Anthropic from 'npm:@anthropic-ai/sdk@0.124.0';
+import { createClient } from 'npm:@supabase/supabase-js@2.115.0';
 import { dispatch, TOOLS } from './tools/registry.ts';
 import { isNavigate } from './tools/types.ts';
 import type { BabyCtx, Loc } from './tools/types.ts';

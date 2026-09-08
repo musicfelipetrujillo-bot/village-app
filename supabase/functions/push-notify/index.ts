@@ -37,7 +37,7 @@
 //
 // Callers (all verified to send SUPABASE_SERVICE_ROLE_KEY as the bearer): appointment-reminder,
 // gear-moderation-pager, room-weekly-summary, week-nudge-notify (×2), trending-publish-notify.
-import { createClient } from 'jsr:@supabase/supabase-js@2';
+import { createClient } from 'jsr:@supabase/supabase-js@2.115.0';
 import { isQuietHoursActive } from '../_shared/quiet-hours.ts';
 import { isServiceRoleRequest } from '../_shared/service-role.ts';
 
