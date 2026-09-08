@@ -12,7 +12,12 @@
     "supabase:reset": "supabase db reset && ./scripts/setup-local-gucs.sh",
     "supabase:types": "supabase gen types typescript --local > packages/shared/src/types/supabase.ts",
     "logs:seed": "node scripts/seed-baby-logs.mjs",
-    "logs:unseed": "node scripts/seed-baby-logs.mjs --unseed"
+    "logs:unseed": "node scripts/seed-baby-logs.mjs --unseed",
+    "test": "pnpm --filter mobile test",
+    "test:db": "supabase test db",
+    "check:i18n": "node scripts/check-i18n-parity.mjs",
+    "check:migrations": "node scripts/check-migrations.mjs",
+    "check:all": "pnpm type-check && pnpm test && pnpm check:i18n && pnpm check:migrations"
   },
   "devDependencies": {
     "turbo": "^2.5.3",

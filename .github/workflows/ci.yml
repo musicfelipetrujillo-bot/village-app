@@ -1,0 +1,100 @@
+name: CI
+
+# WHY THIS EXISTS (test coverage plan, tier 0):
+# Before this workflow, NOTHING ran automatically on a change. The repo already
+# had a working test runner and a type-checker; both only ran when a human
+# remembered to type the command. `edge-functions-check.yml` covered Deno and
+# nothing else, so `tsc`, `vitest`, i18n key parity and migration numbering were
+# all manual — and the last two were re-done BY HAND in every audit and release
+# pass. This is that work, enforced.
+#
+# Two jobs, split by cost:
+#   checks    — seconds, runs on every change
+#   database  — spins up Postgres and applies all migrations, so it runs only
+#               when migrations or the database tests actually change
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: types, tests, i18n, migrations
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.33.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      # Each step runs even if an earlier one failed, so a pull request gets the
+      # FULL list of what is wrong in one pass instead of one error per push.
+      - name: Type-check
+        id: types
+        if: '!cancelled()'
+        run: pnpm type-check
+
+      - name: Unit tests
+        if: '!cancelled()'
+        run: pnpm --filter mobile test
+
+      # Guards a user-visible failure that neither tsc nor the runtime catches:
+      # a key present in one locale and missing from the other renders the raw
+      # key path, or nothing, to the user.
+      - name: i18n key parity (en / es)
+        if: '!cancelled()'
+        run: node scripts/check-i18n-parity.mjs
+
+      # Guards three silent migration mistakes, the worst being a GAP — which
+      # means a migration applied on production has no local file, and blocks
+      # `supabase db push` for everyone.
+      - name: Migration numbering
+        if: '!cancelled()'
+        run: node scripts/check-migrations.mjs
+
+  database:
+    name: database policy tests
+    runs-on: ubuntu-latest
+    # Only when the schema or the tests change: this job starts Postgres and
+    # applies all 136 migrations, which costs minutes rather than seconds.
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      contains(join(github.event.commits.*.modified, ','), 'supabase/') ||
+      github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      # `supabase start` applies every migration in order, so this doubles as a
+      # check that the migration chain still applies cleanly from scratch —
+      # something otherwise only discovered when someone runs a local reset.
+      - name: Start Supabase and apply all migrations
+        run: supabase start -x studio,imgproxy,edge-runtime,logflare,vector,pooler
+
+      # The tests create the pgtap extension themselves, so no bootstrap step is
+      # needed here. Each file runs inside its own transaction and rolls back, so
+      # fixtures never persist between files.
+      - name: Run policy and permission tests
+        run: supabase test db
+
+      - name: Stop Supabase
+        if: always()
+        run: supabase stop --no-backup
