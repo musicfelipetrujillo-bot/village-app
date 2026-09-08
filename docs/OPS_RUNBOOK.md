@@ -393,7 +393,7 @@ Set calendar reminders for these.
 | Apple Sign In with Apple client_secret JWT | every 180 days | **~2026-11-16** | Python snippet in `memory/project_oauth_setup.md` — generates JWT from the `.p8` at `/Users/gp/The Village App/villie-apple-signin-key.p8`. Paste new JWT into Supabase → Auth → Providers → Apple → Secret Key |
 | Resend webhook signing secret | yearly or if leaked | — | Resend → Webhooks → Rotate. Update `RESEND_WEBHOOK_SECRET` in Supabase Edge Secrets |
 | Resend API key | only if leaked | — | Resend → API Keys → Rotate. Update `RESEND_API_KEY` in Supabase Edge Secrets |
-| Supabase service role key | only if leaked (paranoid) | — | Supabase → API → Rotate. Update apps/mobile/.env AND GitHub Actions secret |
+| Supabase `service_role` / `anon` keys | ⛔ **not rotatable — see §9** | — | Supabase removed legacy key rotation; the only lever left signs out every user AND breaks the shipped app. Do not attempt. The replacement is the `sb_secret_` migration in §9.3, which needs a code change first. |
 | Google OAuth client secret | only if leaked | — | Google Cloud → Credentials → Villie Web → Rotate. Update Supabase → Auth → Providers → Google → Secret |
 
 ---
@@ -463,43 +463,72 @@ You'll also need:
 
 ---
 
-_Last updated: 2026-05-22 by Claude during a verification sprint. When you add new env vars or smoke tests, **update this file** — that's how it stays usable._
+_Last updated: 2026-09-08 (§9 rewritten — legacy key rotation no longer exists; see §9.2). When you add new env vars or smoke tests, **update this file** — that's how it stays usable._
 
 ---
 
-## 9 · ⚠️ Service-role key reconciliation (open, 2026-08-15)
+## 9 · Service-role keys + the API-key migration (rewritten 2026-09-08)
 
-**There are three service-role keys in circulation and they are not the same string.** All three are validly signed by the project's JWT secret, so all three pass the API gateway — but only one matches the `SUPABASE_SERVICE_ROLE_KEY` that Supabase injects into the edge-function runtime. This is consistent with an API-key rotation that kept the same signing secret: old keys stay signature-valid, only the newest matches the injected value.
+**In one line:** the three-key breakage this section used to describe is **fixed**; "rotate the service_role key" is **no longer a thing you can do**, and the old workaround for it causes a user-facing outage; what IS open is a scheduled migration to Supabase's new key format, which needs a code change before anyone touches the dashboard.
 
-| # | Where | Known state |
-|---|---|---|
-| 1 | Edge-function runtime (`Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')`) | the authoritative one |
-| 2 | GitHub Actions repo secret (every cron) | ✅ works — verified 2026-08-15 by dispatching `gear-moderation-pager` → HTTP 200 |
-| 3 | `apps/mobile/.env` (`pnpm specialist:invite`) | ❌ **stale** — issued 2026-04-19; rejected by `admin-compliance-events` |
+| | Status |
+|---|---|
+| Three mismatched service-role keys breaking crons + `pnpm specialist:invite` | ✅ **FIXED** in code (2026-08-15, `_shared/service-role.ts`). Nothing to do. |
+| "Rotate the service_role key in the dashboard" | ⛔ **DELETED — do not attempt.** See below. |
+| Migrate to `sb_publishable_` / `sb_secret_` keys | ⬜ **Open, not urgent.** Legacy keys are switched off end of 2026. |
 
-### Why it matters
+### 9.1 · Why the three-key problem is closed
 
-Functions that compare the caller's bearer against the injected key **by exact string** reject any of the other two. `admin-compliance-events` and `admin-approve-specialist` do exactly that, which is why the `.env` key fails there today and why `pnpm specialist:invite` has been unreliable.
+Three validly-signed service-role keys circulate (edge runtime, GitHub Actions secret, `apps/mobile/.env`). They are all signed by the project JWT secret but are not byte-identical — consistent with a past key rotation that kept the same signing secret. Functions that compared the caller's bearer to the injected key **by exact string** therefore 401'd two of the three.
 
-This is also the root cause of the 2026-08-14 Critical. Faced with "strict equality breaks things after a rotation," someone replaced the check with one that decoded the JWT and trusted its `role` claim without verifying the signature — deleting authentication rather than reconciling the keys. See `docs/audits/security-privacy-2026-08-14.md`.
+That is the root cause of the 2026-08-14 Critical: faced with "strict equality breaks things after a rotation", someone replaced the check with one that decoded the JWT and trusted its `role` claim **without verifying the signature** — deleting authentication rather than reconciling the keys (`docs/audits/security-privacy-2026-08-14.md`).
 
-### How to fix it (one action, two problems)
+`_shared/service-role.ts` resolved this properly with an explicit two-mode gate: exact-match always, plus — only where the gateway has already verified the signature — the `service_role` claim. All 37 callers pass `gatewayVerifiesJwt: true`, and none of them is pinned `verify_jwt = false` in `config.toml`, so every correctly-signed key is accepted.
 
-Rotating the service-role key was already recommended as assume-breach hygiene after the Critical. **Rotating also collapses the three keys into one**, so do it once and update everywhere:
+**Verified live 2026-09-08 against the DEPLOYED functions, not the source tree.** `npi-verify` gates first and validates its body second, which makes it a harmless discriminator — `POST {}` with no side effects either way:
 
-1. Supabase Dashboard → Project Settings → API → rotate the `service_role` key.
-2. Update **GitHub Actions** repo secret `SUPABASE_SERVICE_ROLE_KEY`.
-3. Update **`apps/mobile/.env`** (local only — never committed).
-4. Check Supabase **Edge Function Secrets** for any manually-set copy (the runtime injects its own, but a hand-set override would shadow it).
-5. Verify, in this order:
-   - `gh workflow run supabase-crons.yml -f function=gear-moderation-pager` → expect **HTTP 200** in the run log. The workflow fails loudly on any non-2xx, so a red run means a key is still wrong.
-   - `pnpm specialist:invite` → should no longer 403.
+```
+anon key         → 401 {"error":"unauthorized"}                              (gate rejects)
+.env service key → 400 {"verified":false,"error":"NPI must be a 10-digit …"} (gate PASSES)
+```
 
-### Diagnostic tip
+The `.env` key — the one this section previously called stale and rejected — is accepted. **Do not "fix" the key drift; it is already tolerated by design.**
+
+### 9.2 · ⛔ Do NOT rotate the legacy keys
+
+The instruction that used to live here ("Supabase Dashboard → Settings → API → rotate the `service_role` key") **no longer describes reality, and following its spirit would take the app down.**
+
+* Supabase has **removed rotation for the legacy `anon` / `service_role` keys.** They are JWTs signed by the project JWT secret, so the only remaining lever is rotating that secret.
+* **Rotating the JWT secret signs out every mother using the app** — every previously-issued user token becomes invalid at once.
+* It also **invalidates the `anon` key**, which is inlined into the shipped JS bundle at publish time (`apps/mobile/src/lib/supabase.ts:31` reads `process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY`). Every request 401s at the gateway until a bundle carrying the new key reaches the device. That recovery is an **OTA, not a native build** — but there is still a live window where the app is simply broken for everyone, on top of the forced re-login.
+
+There is no leak on record justifying that cost. The repo has been audited clean (no `.env` ever committed on any branch), and the August Critical was a code-authorization bug, not a key disclosure.
+
+### 9.3 · The actual open task: migrate to the new key format
+
+Supabase's replacement keys (`sb_publishable_…` / `sb_secret_…`) are **not JWTs**. They rotate in seconds without touching a single user session — which is the property we actually wanted. Both key systems run simultaneously, so this is a gradual swap, not a cutover.
+
+🚨 **Our code is not ready. Creating a new secret key and pasting it into GitHub Actions today would kill every nightly cron.** Three reasons, all in our code:
+
+1. `isServiceRoleRequest()` compares against `SUPABASE_SERVICE_ROLE_KEY` (legacy) or reads a `role` claim. A secret key matches neither — it is not that string, and it has no claims.
+2. Secret keys are **rejected on the `Authorization: Bearer` header**. `.github/workflows/supabase-crons.yml:168` sends exactly that.
+3. The new keys arrive in the runtime as **`SUPABASE_SECRET_KEYS`, a JSON object** — `JSON.parse(Deno.env.get('SUPABASE_SECRET_KEYS')!)['default']` — not a plain string.
+
+**Order of operations (code first, dashboard last):**
+
+1. **Code:** teach `_shared/service-role.ts` to also accept a secret key presented via the `apikey` header, checked constant-time against every value in `SUPABASE_SECRET_KEYS`. Keep the legacy paths — both must work during the overlap.
+2. **Code:** update the cron workflow to send the key as `apikey`, not `Authorization: Bearer`.
+3. Deploy the functions. **Verify BEFORE issuing any new key** — the legacy path must still pass: `gh workflow run supabase-crons.yml -f function=gear-moderation-pager` → expect HTTP 200 (the workflow fails loudly on any non-2xx).
+4. **Dashboard (founder):** Settings → API Keys → create a secret key.
+5. Update the GitHub Actions secret and `apps/mobile/.env`. Re-run the same cron probe → expect 200. Probe `npi-verify` per 9.1 with the new key → expect the 400, not a 401.
+6. Swap the mobile client to the publishable key — this is an **OTA**, and it changes what the shipped bundle carries, so read the `eas update` hazards in `memory/project_deploy_state_2026_07.md` first.
+7. Only once nothing has used the legacy keys for a full cron cycle: Settings → API Keys → **deactivate** the legacy keys (reversible, unlike deleting a secret key).
+
+### 9.4 · Diagnostic tip
 
 A **401** and a **403** mean different things here, and the difference tells you which layer rejected you:
 
 - **401** with `{"code":"UNAUTHORIZED_..."}` → the **gateway** refused it. The token's signature is invalid or absent.
-- **401/403** with the function's own error body → the gateway accepted it (so the token IS validly signed) and the **in-code** check refused it. That means a real key that simply isn't the injected one.
+- **401/403** with the function's own error body → the gateway accepted it (so the token IS validly signed) and the **in-code** check refused it.
 
-To isolate whether a change of yours is at fault, replay the same request against `admin-compliance-events` — it uses plain strict equality and has not been modified. If it rejects too, the key is stale, not your code.
+To isolate whether a change of yours is at fault, replay the request against **`npi-verify`** with `POST {}` (see 9.1). It gates before it validates and writes nothing, so a `400` proves the gate accepted your key and a `401` proves it did not. ⚠️ Do **not** use `admin-compliance-events` for this — the older text recommended it as "plain strict equality, unmodified", and that is no longer true: it now uses the shared two-mode gate like everything else, and it writes to `admin_audit_log`.
