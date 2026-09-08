@@ -67,6 +67,16 @@ jobs:
         if: '!cancelled()'
         run: node scripts/check-migrations.mjs
 
+      # Guards four defects that have each reached a commit here: a gate called
+      # but not imported (throws at runtime, passes a parse check), a gate
+      # imported but never called (looks gated, is not), a function missing from
+      # the verify_jwt registry, and a `gatewayVerifiesJwt` flag that disagrees
+      # with config.toml — which silently switches the gate into accepting an
+      # unverified service_role claim.
+      - name: Edge gate conformance
+        if: '!cancelled()'
+        run: node scripts/check-edge-gates.mjs
+
   database:
     name: database policy tests
     runs-on: ubuntu-latest

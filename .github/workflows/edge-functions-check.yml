@@ -64,3 +64,12 @@ jobs:
           find . -name '*.ts' -not -path './node_modules/*' -print0 \
             | sort -z \
             | xargs -0 deno check
+
+      # The gate unit tests. 214 lines in _shared decide access for 52 of the 75
+      # functions, so they get the only real unit coverage in the backend.
+      # --allow-net is for the local stub of the Supabase Auth endpoint that
+      # user-auth_test.ts starts on a random port; nothing reaches the network.
+      - name: Test the shared auth gates
+        if: '!cancelled()'
+        working-directory: supabase/functions
+        run: deno test --allow-env --allow-net _shared/
