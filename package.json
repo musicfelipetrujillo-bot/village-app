@@ -17,7 +17,8 @@
     "test:db": "supabase test db",
     "check:i18n": "node scripts/check-i18n-parity.mjs",
     "check:migrations": "node scripts/check-migrations.mjs",
-    "check:all": "pnpm type-check && pnpm test && pnpm check:i18n && pnpm check:migrations"
+    "check:all": "pnpm type-check && pnpm test && pnpm check:i18n && pnpm check:migrations",
+    "probe:prod": "node scripts/smoke-probe-prod.mjs"
   },
   "devDependencies": {
     "turbo": "^2.5.3",

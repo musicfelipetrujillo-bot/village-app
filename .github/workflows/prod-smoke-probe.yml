@@ -1,0 +1,71 @@
+name: Production smoke probe
+
+# Test coverage plan, tier 3.
+#
+# Presents the PUBLIC key that ships inside every copy of the mobile app to every
+# server-only endpoint on PRODUCTION, and requires each one to refuse it.
+#
+# This is deliberately the one check that does NOT run against a local database.
+# It exists for the failure class no unit test can catch: code that is correct on
+# main but not running in production. That has happened twice — a fix sat merged
+# and unshipped for five weeks while production served the vulnerable version,
+# and a later deploy ran from a tree 23 files behind main. `supabase functions
+# deploy` bundles the working tree, so a green source-side test says nothing
+# about what is actually deployed.
+#
+# It runs on a schedule rather than on push because deploys here are manual: the
+# drift being watched for appears BETWEEN commits, not at one.
+
+on:
+  schedule:
+    # 11:25 UTC daily (07:25 ET). Minute 25 is not used by any other workflow in
+    # this repo — every scheduled job in supabase-crons.yml lands on
+    # 0/5/15/20/30/35/45/50, so this never queues behind the cron fan-out.
+    - cron: '25 11 * * *'
+  workflow_dispatch:
+  # Also on any change to the probe itself, so a broken probe is caught here
+  # rather than silently at 07:25 the next morning.
+  pull_request:
+    paths:
+      - 'scripts/smoke-probe-prod.mjs'
+      - '.github/workflows/prod-smoke-probe.yml'
+
+concurrency:
+  group: prod-smoke-probe
+  cancel-in-progress: false
+
+jobs:
+  probe:
+    name: gated endpoints refuse the public key
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # No install step: the probe uses only node: builtins and global fetch, so
+      # it cannot be broken by a dependency change. That matters for something
+      # whose whole job is to be trustworthy when everything else is suspect.
+      - name: Probe production
+        env:
+          # The URL is derived from the project ref rather than stored twice, so
+          # the two can never drift apart.
+          SUPABASE_URL: https://${{ secrets.SUPABASE_PROJECT_REF }}.supabase.co
+          # Public by design — it ships in the app bundle and on the marketing
+          # site, and the probe is meaningless without the REAL key, since the
+          # whole point is that this key passes the platform's gateway check.
+          # Held as a secret rather than a variable only so it is masked in logs
+          # of a public repository.
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: node scripts/smoke-probe-prod.mjs
+
+      # Exit code 2 means the probe could not verify anything (project
+      # unreachable, or the key no longer valid) as opposed to exit 1, a real
+      # security failure. Both fail the job — but the log says which, and a
+      # "cannot verify" run must never be mistaken for a pass.
+      - name: Explain a failure
+        if: failure()
+        run: |
+          echo "::error::The production smoke probe failed. Exit 1 = an endpoint accepted the public app key. Exit 2 = the probe could not verify (project unreachable or key changed) — inconclusive, not a pass. See the step log above."
