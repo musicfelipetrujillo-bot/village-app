@@ -2,7 +2,8 @@
 // roster (DCF-sourced) into public.daycares. Idempotent (upsert on
 // source+external_id). Run: node scripts/import-daycares.mjs <path-to-csv>
 //
-// Reads EXPO_PUBLIC_SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY from apps/mobile/.env.
+// Reads SUPABASE_SERVICE_ROLE_KEY from `supabase/.env.local` (preferred), falling
+// back to `apps/mobile/.env` (deprecated). Shell env wins over both.
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
@@ -10,10 +11,45 @@ import { createClient } from '@supabase/supabase-js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
+// ── Where the service-role key lives (security audit 2026-09-04) ──
+// `supabase/.env.local` FIRST, `apps/mobile/.env` only as a deprecated fallback.
+// This script used to read the mobile .env directly, which is why deleting the
+// key from that file after a rotation would have broken it silently. Same
+// resolution order as `specialist-invite.mjs` — see the long note there for why
+// the key has no business living next to the client bundle.
+const ENV_PATHS = [
+  resolve(__dirname, '..', '..', '..', 'supabase', '.env.local'), // preferred
+  resolve(__dirname, '..', '.env'),                               // deprecated
+];
+
 function loadEnv() {
-  const env = readFileSync(resolve(__dirname, '../.env'), 'utf8');
-  const get = (k) => (env.match(new RegExp(`^${k}=(.*)$`, 'm'))?.[1] ?? '').trim().replace(/^["']|["']$/g, '');
-  return { url: get('EXPO_PUBLIC_SUPABASE_URL'), key: get('SUPABASE_SERVICE_ROLE_KEY') };
+  // First writer wins: shell env, then supabase/.env.local, then the deprecated
+  // mobile .env — so relocating the key takes effect immediately and a stale
+  // copy can never shadow the new one.
+  const found = { ...process.env };
+  for (const envPath of ENV_PATHS) {
+    let txt;
+    try {
+      txt = readFileSync(envPath, 'utf8');
+    } catch {
+      continue; // each path is optional
+    }
+    for (const line of txt.split('\n')) {
+      const m = line.match(/^\s*([A-Z_][A-Z0-9_]*)\s*=\s*(.*)\s*$/);
+      if (m && !found[m[1]]) found[m[1]] = m[2].trim().replace(/^["']|["']$/g, '');
+    }
+  }
+  const url = found.SUPABASE_URL || found.EXPO_PUBLIC_SUPABASE_URL || '';
+  const key = found.SUPABASE_SERVICE_ROLE_KEY || '';
+  if (!url || !key) {
+    const missing = [!url && 'SUPABASE_URL (or EXPO_PUBLIC_SUPABASE_URL)', !key && 'SUPABASE_SERVICE_ROLE_KEY']
+      .filter(Boolean).join(' + ');
+    throw new Error(
+      `import-daycares: missing ${missing}.\n` +
+      `Put the service-role key in supabase/.env.local, or export it in your shell.`,
+    );
+  }
+  return { url, key };
 }
 
 // Minimal RFC-4180-ish CSV parser (handles quoted fields + embedded commas/quotes).
