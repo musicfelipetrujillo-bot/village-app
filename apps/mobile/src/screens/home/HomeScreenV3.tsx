@@ -172,7 +172,7 @@ function WeekRing({ week, size = 250 }: { week: number; size?: number }) {
 
 // ─── Week-anchor hero — bold raspberry gradient + ring + tap→Manual ──────
 function WeekRingHero({ firstName, babyName, weekNumber, expecting, onOpenManual, onBeforeBaby, onMenu, onNotifications, hasNotifications }: {
-  firstName: string; babyName: string; weekNumber: number; expecting: boolean;
+  firstName: string | null; babyName: string; weekNumber: number; expecting: boolean;
   onOpenManual: () => void; onBeforeBaby: () => void;
   onMenu: () => void; onNotifications: () => void; hasNotifications?: boolean;
 }) {
@@ -210,7 +210,9 @@ function WeekRingHero({ firstName, babyName, weekNumber, expecting, onOpenManual
       </View>
 
       <Text style={styles.heroGreet} numberOfLines={1}>
-        {greet}, <Text style={styles.heroGreetName}>{firstName}</Text>
+        {firstName
+          ? <>{greet}, <Text style={styles.heroGreetName}>{firstName}</Text></>
+          : greet}
       </Text>
 
       <TouchableOpacity
@@ -424,7 +426,12 @@ export default function HomeScreenV3() {
   const fetchPicks = usePicksStore((s) => s.fetchPicks);
   React.useEffect(() => { fetchPicks(); }, [fetchPicks]);
 
-  const firstName = profile?.full_name?.split(' ')[0] ?? 'Alana';
+  // No placeholder name here, deliberately. This used to fall back to a
+  // hardcoded first name, so any user whose profile hadn't hydrated was
+  // greeted by a stranger's — the very first thing a mother saw on the
+  // discharge handoff. `null` renders the greeting on its own instead
+  // (see WeekRingHero), which is correct at every moment of the load.
+  const firstName = profile?.full_name?.split(' ')[0]?.trim() || null;
   const babyName = babyProfile?.baby_name ?? null;
   const weekNumber = babyProfile?.current_week_number ?? null;
 

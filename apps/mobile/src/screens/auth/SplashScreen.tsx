@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, Animated, Image } from 'react-native';
+import { View, Text, StyleSheet, Animated } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import Svg, { Path } from 'react-native-svg';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { COLORS, FONTS } from '@utils/constants';
 import { supabase } from '@/lib/supabase';
@@ -8,11 +9,19 @@ import { useAuthStore } from '@store/auth';
 import type { AuthStackParamList } from '@/navigation/AuthStack';
 import { useT } from '@/i18n';
 
-// Wordmark — "villie" logotype with bee mark.
-// v9 kit canon — villie-wordmark-v2.png is the canonical wordmark per
-// `memory/project_brand_kit_v2.md`. Splash previously used the OG (different
-// SHA); switched 2026-05-16 so the first-pixel-on-the-app is on-brand.
-const WORDMARK = require('../../../assets/brand/villie-wordmark-v2.png');
+// The roo — two kangaroo ears forming the "v" (the right ear folds over).
+// It is villie's initial and the animal that carries its baby, which is the
+// whole idea in one mark.
+//
+// Drawn as vector rather than loaded as a PNG so it inherits the palette
+// token instead of baking a colour into a raster. The retired asset this
+// replaced (`assets/brand/villie-wordmark-v2.png`) was the brown "villie"
+// logotype with a bee over the first i — that mark and the bee metaphor were
+// both dropped, but the splash kept serving it, so it was the first thing a
+// new mother saw. Same geometry as the native splash asset
+// (`assets/splash-roo.png`) and the app icon.
+const ROO_LEFT  = 'M100 158 C80 130 60 94 54 60 C50 40 62 30 76 42 C90 66 101 118 108 152 Z';
+const ROO_RIGHT = 'M100 158 C114 132 128 102 134 78 C137 64 146 58 151 68 C156 80 151 96 136 96 C129 96 124 90 122 82 C115 100 105 128 94 152 Z';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'Splash'>;
 
@@ -63,12 +72,13 @@ export default function SplashScreen({ navigation }: Props) {
         pointerEvents="none"
       />
       <Animated.View style={{ opacity: fadeAnim, alignItems: 'center' }}>
-        <Image
-          source={WORDMARK}
-          style={styles.wordmark}
-          resizeMode="contain"
-          accessibilityLabel="villie"
-        />
+        <View accessible accessibilityLabel="villie" accessibilityRole="image">
+          <Svg width={104} height={104} viewBox="54 24 102 140">
+            <Path d={ROO_LEFT} fill={COLORS.v2_cinnamon} />
+            <Path d={ROO_RIGHT} fill={COLORS.v2_cinnamon} />
+          </Svg>
+        </View>
+        <Text style={styles.wordmark}>villie</Text>
         <Text style={styles.tagline}>{t('splash.tagline')}</Text>
       </Animated.View>
     </View>
@@ -88,13 +98,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  // Stacked logo content is 1028×647 (≈1.59:1) after cream strip + tight
-  // crop. 240×168 reads as a confident Splash hero without overwhelming
-  // the tagline below.
+  // Typeset rather than a raster lockup: the roo sits above the word, and the
+  // word is set in the app's own display face so it can never drift from the
+  // rest of the UI the way a baked PNG did.
   wordmark: {
-    width: 240,
-    height: 168,
-    marginBottom: 0,
+    fontFamily: FONTS.v2_wordmark,
+    fontSize: 44,
+    lineHeight: 52,
+    letterSpacing: -1.4,
+    color: COLORS.v2_cocoa,
+    marginTop: 10,
   },
   // v2 eyebrow: JetBrains Mono 500, amber, tracking ~0.26em (≈2.6px at 10px).
   tagline: {
