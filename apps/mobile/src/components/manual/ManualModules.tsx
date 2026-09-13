@@ -10,7 +10,7 @@ import Svg, { Path, Circle, Defs, LinearGradient as SvgGrad, Stop } from 'react-
 import { useNavigation } from '@react-navigation/native';
 import { FONTS } from '@utils/constants';
 import { select, tap } from '@utils/haptics';
-import { tagAmazonUrl } from '@utils/amazon';
+import { tagAmazonUrl, AMAZON_DISCLOSURE } from '@utils/amazon';
 import { isProUser, isProEnabled } from '@/lib/pro';
 import DeepDiveVideoCard from './DeepDiveVideoCard';
 import type { CategoryContent, Checklist, Article, Info, Helps, StoryCard } from '@/manual/manualWeekContent';
@@ -361,6 +361,10 @@ function HelpsModule({ data, lang, embedded }: { data: Helps; lang: Lang; embedd
           </TouchableOpacity>
         ))}
         <Text style={s.helpsDisc}>{CH.helpsDisc[lang]}</Text>
+        {/* The Associates statement, verbatim and unlocalised. utils/amazon.ts
+            requires it "wherever we link out to Amazon"; the warm line above is
+            ours and stays, but it is NOT a substitute for this one. */}
+        <Text style={s.helpsDisc}>{AMAZON_DISCLOSURE}</Text>
       </View>
     </View>
   );
@@ -476,6 +480,9 @@ function StoryBody({ card, ink, lang }: { card: StoryCard; ink: string; lang: La
         <Text style={s.stFtc}>
           {lang === 'es' ? 'Enlace de afiliado — podemos ganar una comisión.' : 'Affiliate link — we may earn a small commission.'}
         </Text>
+      ) : null}
+      {card.link?.kind === 'shop' ? (
+        <Text style={s.stFtc}>{AMAZON_DISCLOSURE}</Text>
       ) : null}
     </>
   );

@@ -8,6 +8,10 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Linking } from 'react-native';
 import { FONTS, COLORS } from '@utils/constants';
 import type { StoryCard } from '@/manual/manualWeekContent';
+// NOTE: this component is currently not imported anywhere. Keeping it correct
+// so reviving it does not silently ship an untagged link or a missing
+// disclosure — both of which it had before 2026-09-13.
+import { tagAmazonUrl, AMAZON_DISCLOSURE } from '@utils/amazon';
 
 type Tint = { ink: string; border: string };
 const TINT: Record<string, Tint> = {
@@ -64,7 +68,7 @@ function StoryRow({ card, tint, lang, first, defaultOpen }: {
             <TouchableOpacity
               style={styles.link}
               activeOpacity={0.8}
-              onPress={() => Linking.openURL(card.link!.url).catch(() => {})}
+              onPress={() => Linking.openURL(tagAmazonUrl(card.link!.url)).catch(() => {})}
               accessibilityRole="link"
               accessibilityLabel={card.link.label}
             >
@@ -76,6 +80,9 @@ function StoryRow({ card, tint, lang, first, defaultOpen }: {
             <Text style={styles.ftc}>
               {lang === 'es' ? 'Enlace de afiliado — podemos ganar una comisión.' : 'Affiliate link — we may earn a small commission.'}
             </Text>
+          ) : null}
+          {card.link?.kind === 'shop' ? (
+            <Text style={styles.ftc}>{AMAZON_DISCLOSURE}</Text>
           ) : null}
         </View>
       ) : null}
