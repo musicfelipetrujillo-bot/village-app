@@ -29,7 +29,7 @@ import {
   Dimensions, findNodeHandle, UIManager, Share, Alert,
 } from 'react-native';
 import {
-  listManualPieces, formatDuration, getWeekIntroVideo,
+  listManualPieces, formatDuration, getWeekIntroVideo, hasWeekIntroInventory,
   type WeekIntroVideo, type ManualAudience, type ManualPiece,
 } from '@/api/manual';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -1101,20 +1101,35 @@ export default function ManualScrollV3() {
     return () => { cancelled = true; };
   }, [who, week, lang]);
 
-  // Show the empty card only where a video is actually expected to exist.
-  // The Pro library is English-first (migration 132) and `get_manual_week_intro`
-  // matches locale with no fallback, so for an es user NO week ever resolves —
-  // an empty card there would be a permanent dead slot on all 52 weeks, not an
-  // occasional gap. PRO_VIDEO_LAUNCH_RUNBOOK.md already fixes the intended
-  // behaviour for her as "no week-intro slot at all". Delete this gate the day
-  // Spanish week-intros ship (same day `pro_launch_targets.locales` gains 'es').
+  // Does the series exist at all for this audience+locale? Fetched once per
+  // audience+locale rather than per week — it does not change as she scrolls.
+  const [hasSeriesInventory, setHasSeriesInventory] = useState(false);
+  useEffect(() => {
+    let cancelled = false;
+    hasWeekIntroInventory(who, lang)
+      .then((v) => { if (!cancelled) setHasSeriesInventory(v); })
+      .catch(() => { if (!cancelled) setHasSeriesInventory(false); });
+    return () => { cancelled = true; };
+  }, [who, lang]);
+
+  // Show the empty card only where a video is genuinely expected to exist.
   //
-  // Past week 52 it hides for the same reason: the series ends there, so the
-  // slot would be a permanent dead element rather than an occasional gap. An
-  // honestly-worded "the series covers the first year" card was built and
-  // rejected — it is worth saying once, not on every week forever.
+  // `hasSeriesInventory` is the load-bearing one. "No video for this week yet"
+  // is only honest when the series exists and this week is a hole in it. With
+  // an empty library it would render on EVERY week for EVERY user — advertising
+  // missing content rather than explaining a gap, which is worse than the blank
+  // slot this card replaced. It also subsumes the English-only gate this
+  // replaced: a locale with no rows answers false today and true on its own the
+  // day it ships, with no TODO for anyone to miss.
+  //
+  // Past week 52 it hides because the series ends there (see
+  // WEEK_INTRO_SERIES_WEEKS) — not a gap, an ending. An honestly-worded "the
+  // series covers the first year" card was built and rejected: worth saying
+  // once, not on every week forever.
   const showWeekIntroEmpty =
-    weekIntroState === 'empty' && lang === 'en' && week <= WEEK_INTRO_SERIES_WEEKS;
+    weekIntroState === 'empty'
+    && hasSeriesInventory
+    && week <= WEEK_INTRO_SERIES_WEEKS;
 
   const openWeekIntro = () => {
     // Locked teaser row (free tier, pro_video_gate on) → paywall, never the

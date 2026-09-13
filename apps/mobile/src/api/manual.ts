@@ -258,6 +258,42 @@ export interface WeekIntroVideo {
   is_locked?: boolean;
 }
 
+// Does this audience+locale have ANY published week-intro at all?
+//
+// Gates the Manual's "no video for this week yet" card. That card is only
+// honest when the series exists and this week is a hole in it. While the
+// library is empty — `manual_week_intro` had 0 rows in every environment at
+// the time of writing — it would render on EVERY week for EVERY user, which
+// advertises the missing content rather than explaining a gap.
+//
+// Note the deliberate asymmetry with getWeekIntroVideo, which throws on
+// failure. Returning false here on error is correct: false only SUPPRESSES a
+// card, it never asserts anything to the user. Failing toward "say nothing" is
+// right for both, it just takes opposite return values to get there.
+//
+// This also subsumes the old English-only gate. The RPC matches locale exactly
+// with no fallback, so a locale with no rows answers false and the card hides;
+// the day Spanish week-intros ship it answers true on its own, with no code
+// change and no TODO for someone to miss.
+export async function hasWeekIntroInventory(
+  audience: ManualAudience,
+  locale: 'en' | 'es',
+): Promise<boolean> {
+  if (!(await sessionReady())) return false;
+  const { count, error } = await supabase
+    .from('manual_week_intro')
+    .select('id', { count: 'exact', head: true })
+    .eq('audience', audience)
+    .eq('locale', locale)
+    .eq('is_published', true)
+    .not('mux_playback_id', 'is', null);
+  if (error) {
+    console.warn('[manual] hasWeekIntroInventory', error.message);
+    return false;
+  }
+  return (count ?? 0) > 0;
+}
+
 export async function getWeekIntroVideo(
   audience: ManualAudience,
   week: number,
