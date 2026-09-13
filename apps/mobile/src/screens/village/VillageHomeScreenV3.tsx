@@ -31,6 +31,7 @@ import { useUserStore } from '@store/user';
 import { useEventsStore } from '@store/events';
 import { formatDistance, type EventCard } from '@api/events';
 import { HeroHoneycomb } from '@components/shared/HeroHoneycomb';
+import { getDeviceCoordsFast } from '@utils/devLocation';
 
 const VILLIE_BEE = require('../../../assets/brand/villie-bee.png');
 
@@ -177,11 +178,9 @@ export default function VillageHomeScreenV3() {
     let cancelled = false;
     (async () => {
       try {
-        const { status } = await Location.getForegroundPermissionsAsync();
-        if (status !== 'granted') return;
-        const pos = (await Location.getLastKnownPositionAsync()) ?? (await Location.getCurrentPositionAsync({}));
-        if (!pos) return;
-        const geos = await Location.reverseGeocodeAsync({ latitude: pos.coords.latitude, longitude: pos.coords.longitude });
+        const coords = await getDeviceCoordsFast();
+        if (!coords) return;
+        const geos = await Location.reverseGeocodeAsync({ latitude: coords.latitude, longitude: coords.longitude });
         const g = geos?.[0];
         const city = g?.city ?? g?.subregion;
         if (city && !cancelled) setGeoCity(g?.region ? `${city}, ${g.region}` : city);

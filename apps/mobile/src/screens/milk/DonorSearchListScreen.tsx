@@ -4,7 +4,6 @@ import {
   ActivityIndicator, RefreshControl,
 } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
-import * as Location from 'expo-location';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useAuthStore } from '@store/auth';
 import { searchDonorsNear, saveDonor, unsaveDonor, isSaved } from '@api/milk';
@@ -16,7 +15,7 @@ import { COLORS, FONTS } from '@utils/constants';
 import { V9PageBackdrop } from '@components/shared/V9PageBackdrop';
 import { BackButton } from '@components/shared/BackButton';
 import { LinearGradient } from 'expo-linear-gradient';
-import { getEffectiveCoords } from '@utils/devLocation';
+import { getEffectiveCoords, getDeviceCoordsSafely } from '@utils/devLocation';
 import { useT } from '@/i18n';
 import type { MilkStackParamList } from '@/navigation/MilkNavigator';
 
@@ -57,16 +56,9 @@ export default function DonorSearchListScreen({ navigation }: Props) {
   }, []);
 
   const init = useCallback(async () => {
-    let deviceCoords: { latitude: number; longitude: number } | null = null;
-    try {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status === 'granted') {
-        const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
-        deviceCoords = loc.coords;
-      }
-    } catch {
-      // permission/location failure — helper falls back to Miami below
-    }
+    // Bounded — see getDeviceCoordsSafely: an unbounded fix made the donor
+    // map claim "0 nearby" for half a minute with donors a few miles away.
+    const deviceCoords = await getDeviceCoordsSafely();
     // Dev-mode override: Simulator's Cupertino default is ignored in favor
     // of Miami so the donor list lines up with the launch market.
     const { lat, lng } = getEffectiveCoords(deviceCoords);
@@ -180,6 +172,7 @@ export default function DonorSearchListScreen({ navigation }: Props) {
           placeholder={t('donorSearch.searchPlaceholder')}
           value={search}
           onChangeText={setSearch}
+          autoCapitalize="none"
           placeholderTextColor="#7A4A24"
         />
         <TouchableOpacity

@@ -6,21 +6,17 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { FONTS } from '@utils/constants';
 import type { Specialist } from 'shared/src/types/v1';
+import { SPECIALTY_LABEL } from '@api/specialists';
 
-const ROLE_LABEL: Record<string, string> = {
-  ob_gyn: 'OB/GYN', midwife: 'Midwife', doula: 'Doula',
-  lactation_consultant: 'Lactation consultant', pediatrician: 'Pediatrician',
-  sleep_coach: 'Sleep coach', pelvic_floor_pt: 'Pelvic floor PT',
-  perinatal_dietitian: 'Dietitian', ppd_therapist: 'PPD therapist',
-  night_nurse: 'Night nurse', postpartum_doula: 'Postpartum doula',
-  nanny: 'Nanny', mothers_helper: "Mother's helper", babysitter: 'Babysitter',
-};
 const AV = [['#F3B9C8', '#8A3A54'], ['#FBE0A6', '#8A6A1E'], ['#D7E4C4', '#5B6B37'], ['#C9DCE4', '#4E6A7C']];
 
 export function CareCard({ specialist, index, onPress }: { specialist: Specialist; index: number; onPress: () => void }) {
   const isHelp = specialist.provider_kind === 'help';
   const [bg, fg] = AV[index % AV.length];
-  const role = ROLE_LABEL[specialist.specialty] ?? specialist.credentials;
+  // Known kind → its canonical label; anything unknown keeps the card's
+  // original behaviour of showing the provider's own credentials, which is
+  // better here than a prettified enum value.
+  const role = SPECIALTY_LABEL[specialist.specialty] ?? specialist.credentials;
   const place = specialist.city ?? null;
   const dist = specialist.distance_miles != null ? `${specialist.distance_miles.toFixed(1)} mi` : null;
   const meta = [place, dist, specialist.review_count > 0 ? `★ ${specialist.rating_avg.toFixed(1)}` : null].filter(Boolean).join(' · ');

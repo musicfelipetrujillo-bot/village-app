@@ -12,14 +12,13 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import MapView, { Marker, Callout, Region } from 'react-native-maps';
-import * as Location from 'expo-location';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { specialistsApi } from '@api/specialists';
+import { specialistsApi, specialtyLabel } from '@api/specialists';
 import type { Specialist, SpecialtyType } from 'shared/src/types/v1';
 import { COLORS, FONTS } from '@utils/constants';
 import { V9PageBackdrop } from '@components/shared/V9PageBackdrop';
 import { BackButton } from '@components/shared/BackButton';
-import { getEffectiveCoordsWithSource } from '@utils/devLocation';
+import { getEffectiveCoordsWithSource, getDeviceCoordsSafely } from '@utils/devLocation';
 import { getPreferredRadiusMiles } from '@store/user';
 import { useT } from '@/i18n';
 import type { ExpertsStackParamList } from '@/navigation/ExpertsNavigator';
@@ -38,19 +37,20 @@ const SPECIALTY_COLOR: Record<string, string> = {
   pelvic_floor_pt: '#E98A6A',       // moss
   perinatal_dietitian: '#7A4A24',   // amber
   ppd_therapist: '#7A4A28',         // walnut
+  // Care vertical — "extra hands". These had no entry at all, so their legend
+  // dot rendered transparent beside the clinical ones.
+  night_nurse: '#B48CC2',
+  postpartum_doula: '#D9789A',
+  nanny: '#8FA98A',
+  mothers_helper: '#DA9A2C',
+  babysitter: '#6E93A8',
 };
 
-// Short labels for the legend so it fits on a 130px card.
+// Short overrides where the canonical label is too long for a 130px card.
+// Anything not listed falls through to the shared specialtyLabel(), so a new
+// enum member can never print as a raw snake_case identifier again.
 const SPECIALTY_SHORT: Record<string, string> = {
-  ob_gyn: 'OB/GYN',
-  doula: 'Doula',
-  midwife: 'Midwife',
   lactation_consultant: 'Lactation',
-  pediatrician: 'Pediatrician',
-  sleep_coach: 'Sleep coach',
-  pelvic_floor_pt: 'Pelvic floor PT',
-  perinatal_dietitian: 'Dietitian',
-  ppd_therapist: 'PPD therapist',
 };
 
 // Miami default region — matches the milk side so the empty state is
@@ -83,16 +83,9 @@ export default function SpecialistsMapScreen({ navigation }: Props) {
 
   useEffect(() => {
     (async () => {
-      let deviceCoords: { latitude: number; longitude: number } | null = null;
-      try {
-        const { status } = await Location.requestForegroundPermissionsAsync();
-        if (status === 'granted') {
-          const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
-          deviceCoords = loc.coords;
-        }
-      } catch {
-        // Permission denied or location unavailable — fall through to Miami default.
-      }
+      // Bounded — an unbounded fix took 20-30s from cold on the donor map and
+      // the screen showed a confident, wrong "nothing near you" the whole time.
+      const deviceCoords = await getDeviceCoordsSafely();
       const { lat, lng, isRealFix } = getEffectiveCoordsWithSource(deviceCoords);
       if (isRealFix) setUserLocation({ lat, lng });
       setRegion({ latitude: lat, longitude: lng, latitudeDelta: 0.15, longitudeDelta: 0.15 });
@@ -172,7 +165,7 @@ export default function SpecialistsMapScreen({ navigation }: Props) {
           {presentSpecialties.slice(0, 5).map((sp) => (
             <View key={sp} style={styles.legendItem}>
               <View style={[styles.legendDot, { backgroundColor: SPECIALTY_COLOR[sp] }]} />
-              <Text style={styles.legendLabel}>{SPECIALTY_SHORT[sp] ?? sp}</Text>
+              <Text style={styles.legendLabel}>{SPECIALTY_SHORT[sp] ?? specialtyLabel(sp)}</Text>
             </View>
           ))}
           {presentSpecialties.length > 5 && (
@@ -224,6 +217,9 @@ const styles = StyleSheet.create({
   calloutTap: { fontSize: 11, color: '#7A4A24', fontFamily: FONTS.body },
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,
+    // Native MapView paints over un-layered siblings; without these the
+    // spinner rendered but was never visible. Same fix as DonorMapScreen.
+    zIndex: 5, elevation: 5,
     backgroundColor: 'rgba(245,240,232,0.8)',
     alignItems: 'center', justifyContent: 'center',
   },

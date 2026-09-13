@@ -5,9 +5,8 @@ import {
 import { FlashList } from '@shopify/flash-list';
 import { LinearGradient } from 'expo-linear-gradient';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import * as Location from 'expo-location';
 import { COLORS, FONTS } from '@utils/constants';
-import { getEffectiveCoords } from '@utils/devLocation';
+import { getEffectiveCoords, getDeviceCoordsSafely } from '@utils/devLocation';
 import { useT } from '@/i18n';
 import { useExpertsStore } from '@store/experts';
 import { useAuthStore } from '@store/auth';
@@ -109,14 +108,8 @@ export default function ExpertsHomeScreen({ navigation, route }: Props) {
   }, [insuranceProvider]);
 
   const resolveCoords = useCallback(async () => {
-    let deviceCoords: { latitude: number; longitude: number } | null = null;
-    try {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status === 'granted') {
-        const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
-        deviceCoords = loc.coords;
-      }
-    } catch {}
+    // Bounded — see getDeviceCoordsSafely.
+    const deviceCoords = await getDeviceCoordsSafely();
     // Dev-mode override: Simulator's Cupertino default is replaced with Miami.
     return getEffectiveCoords(deviceCoords);
   }, []);
@@ -224,6 +217,7 @@ export default function ExpertsHomeScreen({ navigation, route }: Props) {
           placeholderTextColor="#A6957F"
           value={query}
           onChangeText={setQuery}
+          autoCapitalize="none"
           returnKeyType="search"
         />
         {tier !== 'daycare' && (

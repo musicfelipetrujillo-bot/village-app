@@ -53,6 +53,44 @@ export async function issueSpecialistInvite(
   }
 }
 
+/**
+ * Human label for a `specialty` enum value.
+ *
+ * The enum carries fourteen kinds — nine clinical, five "extra hands" from the
+ * Care vertical — and every one of them is a snake_case database identifier.
+ * Screens that mapped them by hand drifted: the specialists map still had the
+ * original nine, so its legend printed a bare `night_nurse` and
+ * `mothers_helper` at mothers, next to properly-labelled entries. One map, one
+ * place to extend when the enum grows.
+ *
+ * Falls back to a de-underscored, sentence-cased form rather than the raw
+ * value, so a future enum member is merely unpolished instead of wrong.
+ */
+export const SPECIALTY_LABEL: Record<string, string> = {
+  ob_gyn: 'OB/GYN',
+  midwife: 'Midwife',
+  doula: 'Doula',
+  lactation_consultant: 'Lactation consultant',
+  pediatrician: 'Pediatrician',
+  sleep_coach: 'Sleep coach',
+  pelvic_floor_pt: 'Pelvic floor PT',
+  perinatal_dietitian: 'Dietitian',
+  ppd_therapist: 'PPD therapist',
+  night_nurse: 'Night nurse',
+  postpartum_doula: 'Postpartum doula',
+  nanny: 'Nanny',
+  mothers_helper: "Mother's helper",
+  babysitter: 'Babysitter',
+};
+
+export function specialtyLabel(specialty: string | null | undefined): string {
+  if (!specialty) return '';
+  const known = SPECIALTY_LABEL[specialty];
+  if (known) return known;
+  const words = specialty.replace(/_/g, ' ').trim();
+  return words.charAt(0).toUpperCase() + words.slice(1);
+}
+
 export interface SearchFilters {
   lat: number;
   lng: number;

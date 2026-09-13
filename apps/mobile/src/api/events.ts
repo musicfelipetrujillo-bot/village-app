@@ -2,6 +2,7 @@
 import { supabase } from '@/lib/supabase';
 import { sessionReady } from '@/lib/requireSession';
 import { getPreferredRadiusKm } from '@store/user';
+import { MILES_TO_KM } from '@utils/constants';
 
 export type EventType = 'local' | 'webinar';
 export type EventStatus = 'upcoming' | 'live' | 'ended' | 'cancelled';
@@ -254,10 +255,36 @@ export function formatEventWhen(starts_at: string, ends_at: string, timezone?: s
   return `${dateStr} · ${startTime} – ${endTime}`;
 }
 
+/**
+ * Distance for display, in MILES.
+ *
+ * The RPCs return kilometres because they're PostGIS, and the display layer
+ * used to pass that straight through — so Plans and Gear told a Miami mother
+ * a meet-up was "4.4 km away" while Care and Milk Hub, on the same data,
+ * said "4.4 mi". Her own saved search radius is in miles too. Convert once,
+ * here, and let the metric stay in the query layer where it belongs.
+ */
 export function formatDistance(km: number | null): string {
   if (km == null) return '';
-  if (km < 1) return `${Math.round(km * 1000)} m away`;
-  return `${km.toFixed(1)} km away`;
+  const miles = km / MILES_TO_KM;
+  // Under a tenth of a mile, feet reads better than "0.1 mi" — same intent as
+  // the metres branch this replaces.
+  if (miles < 0.1) return `${Math.round((miles * 5280) / 10) * 10} ft away`;
+  return `${miles.toFixed(1)} mi away`;
+}
+
+/**
+ * The compact form, for a card's meta line: "2.7 mi", no "away".
+ *
+ * Anything under a tenth of a mile says "nearby" rather than "0.0 mi" — a
+ * listing 160 ft down the road rendering as 0.0 reads like missing data, not
+ * like the closest thing on the page.
+ */
+export function formatDistanceShort(km: number | null | undefined): string {
+  if (km == null) return '';
+  const miles = km / MILES_TO_KM;
+  if (miles < 0.1) return 'nearby';
+  return `${miles.toFixed(1)} mi`;
 }
 
 /**

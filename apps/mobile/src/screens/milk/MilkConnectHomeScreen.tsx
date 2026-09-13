@@ -12,13 +12,12 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Path } from 'react-native-svg';
-import * as Location from 'expo-location';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useAuthStore } from '@store/auth';
 import { useUserStore } from '@store/user';
 import { useMilkStore } from '@store/milk';
 import { searchDonorsNear, type DonorSearchResult } from '@api/milk';
-import { getEffectiveCoords } from '@utils/devLocation';
+import { getEffectiveCoords, getDeviceCoordsFast } from '@utils/devLocation';
 import { FONTS } from '@utils/constants';
 import { useT } from '@/i18n';
 import type { MilkStackParamList } from '@/navigation/MilkNavigator';
@@ -113,12 +112,7 @@ export default function MilkConnectHomeScreen({ navigation }: Props) {
     let cancelled = false;
     (async () => {
       try {
-        let coords: { latitude: number; longitude: number } | null = null;
-        const { status } = await Location.getForegroundPermissionsAsync();
-        if (status === 'granted') {
-          const pos = (await Location.getLastKnownPositionAsync()) ?? (await Location.getCurrentPositionAsync({}));
-          if (pos) coords = pos.coords;
-        }
+        const coords = await getDeviceCoordsFast();
         const { lat, lng } = getEffectiveCoords(coords);
         const results = await searchDonorsNear(lat, lng, { radius_miles: 25 });
         if (!cancelled) setDonors(results.slice(0, 3));

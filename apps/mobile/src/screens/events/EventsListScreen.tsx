@@ -39,7 +39,7 @@ const AGE_FILTER_KEYS: { key: AgeTag; labelKey: string }[] = [
 export default function EventsListScreen() {
   const t = useT();
   const navigation = useNavigation<any>();
-  const { upcoming, loading, fetchUpcoming, savedIds, fetchSavedIds, toggleSave } = useEventsStore();
+  const { upcoming, loading, fetchUpcoming, savedIds, fetchSavedIds, toggleSave, error } = useEventsStore();
   const [typeFilter, setTypeFilter] = useState<EventType | 'all'>('all');
   const [ageFilter, setAgeFilter] = useState<AgeTag | null>(null);
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
@@ -194,10 +194,34 @@ export default function EventsListScreen() {
             />
           )}
           ListEmptyComponent={
-            <View style={styles.empty}>
-              <Text style={styles.emptyTitle}>{t('eventsList.emptyTitle')}</Text>
-              <Text style={styles.emptyBody}>{t('eventsList.emptyBody')}</Text>
-            </View>
+            /* Three different reasons the list can be empty, and they need
+               three different answers. A Gateway Timeout used to render as
+               "No events match your filters", which is both false and
+               actively unhelpful — there is no filter to loosen. */
+            error ? (
+              <View style={styles.empty}>
+                <Text style={styles.emptyTitle}>{t('eventsList.errorTitle')}</Text>
+                <Text style={styles.emptyBody}>{t('eventsList.errorBody')}</Text>
+                <TouchableOpacity
+                  style={styles.retryBtn}
+                  onPress={onRefresh}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('eventsList.retry')}
+                >
+                  <Text style={styles.retryText}>{t('eventsList.retry')}</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (typeFilter || ageFilter) ? (
+              <View style={styles.empty}>
+                <Text style={styles.emptyTitle}>{t('eventsList.emptyTitle')}</Text>
+                <Text style={styles.emptyBody}>{t('eventsList.emptyBody')}</Text>
+              </View>
+            ) : (
+              <View style={styles.empty}>
+                <Text style={styles.emptyTitle}>{t('eventsList.emptyNoneTitle')}</Text>
+                <Text style={styles.emptyBody}>{t('eventsList.emptyNoneBody')}</Text>
+              </View>
+            )
           }
           contentContainerStyle={{ padding: 18, paddingBottom: 120 }}
           refreshControl={<RefreshControl refreshing={loading} onRefresh={onRefresh} tintColor={COLORS.coco} />}
@@ -476,6 +500,12 @@ const styles = StyleSheet.create({
   arrow: { fontSize: 18, fontFamily: FONTS.bodySemiBold, color: COLORS.coco },
 
   empty: { alignItems: 'center', paddingVertical: 60 },
+  retryBtn: {
+    marginTop: 16, alignSelf: 'center',
+    backgroundColor: COLORS.rust, borderRadius: 14,
+    paddingVertical: 12, paddingHorizontal: 24,
+  },
+  retryText: { fontFamily: FONTS.bodySemiBold, fontSize: 14, color: '#FFFCF6' },
   emptyTitle: { fontSize: 15, fontFamily: FONTS.bodySemiBold, color: COLORS.bark, marginBottom: 4 },
   emptyBody: { fontSize: 13, color: COLORS.textLight, textAlign: 'center', fontFamily: FONTS.body },
 });

@@ -10,6 +10,13 @@ interface EventsState {
   savedEvents: EventCard[];
   loading: boolean;
   loadedAt: number | null;
+  /**
+   * Set when the last upcoming-events fetch failed. Load-bearing: without it
+   * a network failure is indistinguishable from "there are no events", and
+   * the screen told the user "No events match your filters" after a Gateway
+   * Timeout — sending her to fiddle with filters that cannot fix it.
+   */
+  error: string | null;
 
   fetchUpcoming: (params?: ListEventsParams) => Promise<void>;
   fetchMyRsvps: () => Promise<void>;
@@ -28,14 +35,18 @@ export const useEventsStore = create<EventsState>((set, get) => ({
   savedEvents: [],
   loading: false,
   loadedAt: null,
+  error: null,
 
   fetchUpcoming: async (params) => {
     set({ loading: true });
     try {
       const rows = await eventsApi.listUpcoming(params);
-      set({ upcoming: rows, loadedAt: Date.now() });
+      // Clear the error only on success, and keep whatever we already had if
+      // the call throws — a failed REFRESH should never blank a good list.
+      set({ upcoming: rows, loadedAt: Date.now(), error: null });
     } catch (err) {
       console.error('[events] fetchUpcoming', err);
+      set({ error: err instanceof Error ? err.message : 'fetch failed' });
     } finally {
       set({ loading: false });
     }
@@ -96,6 +107,6 @@ export const useEventsStore = create<EventsState>((set, get) => ({
 
   reset: () => set({
     upcoming: [], myRsvps: [], pastRsvps: [],
-    savedIds: new Set<string>(), savedEvents: [], loadedAt: null,
+    savedIds: new Set<string>(), savedEvents: [], loadedAt: null, error: null,
   }),
 }));
