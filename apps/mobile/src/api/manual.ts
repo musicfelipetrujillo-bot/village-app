@@ -358,21 +358,28 @@ export async function logManualShare(
 
 // Public-facing share URL for a Manual video.
 //
-// Points at the manual-og Supabase edge function (not villieapp.com/m/
-// directly) so social-media crawlers — Twitter, FB, Slack, Discord,
-// iMessage — get per-video OG previews (real thumbnail + title) instead
-// of the generic wordmark the static marketing page would serve.
+// Points at villieapp.com/watch, which serves BOTH audiences correctly.
 //
-// What the edge function does:
-//   - Crawler User-Agent → returns server-rendered HTML with per-video
-//     og:title / og:description / og:image
-//   - Real user → 302-redirects to villieapp.com/m/?v=<id> (the static
-//     interactive landing page), so the user-facing experience is
-//     unchanged. UTM params are preserved across the redirect.
+// This used to hand out the manual-og Supabase edge-function URL directly, so
+// that crawlers would reach the server-rendered per-video card. The markup was
+// always right and the preview was always generic, because Supabase serves every
+// edge-function response as `Content-Type: text/plain` with `nosniff` — a crawler
+// got valid OG tags and refused to parse them as HTML. Not fixable there (serving
+// arbitrary HTML from a shared *.supabase.co origin is a phishing vector).
 //
-// The villieapp.com landing page is still the canonical user destination;
-// the edge function URL is invisible to users (visible only in the
-// initial share-text payload and then to crawlers).
+// villieapp.com/watch is a Vercel function (`village-website` `api/og.js`) that
+// proxies that same manual-og response under `text/html`. manual-og is still the
+// single source of truth for what a card says, so the two cannot drift.
+//
+// It is /watch and not /m because Vercel applies `rewrites` AFTER the filesystem
+// check: `m/index.html` exists, so a rewrite on /m can never fire. /m stays the
+// static interactive page, untouched.
+//
+//   - Crawler  → per-video og:title / og:description / og:image, as intended
+//   - Real user → the static interactive landing page directly, no redirect hop
+//
+// Sharing the canonical page also means the link a mother sees in a message reads
+// `villieapp.com` rather than a random Supabase project ref.
 export function manualVideoShareUrl(videoId: string): string {
-  return `https://albyndcruwopulazvpjs.supabase.co/functions/v1/manual-og?v=${videoId}`;
+  return `${MANUAL_VIDEO_ORIGIN}/watch?v=${videoId}`;
 }
