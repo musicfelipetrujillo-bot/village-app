@@ -243,3 +243,37 @@ export function isClinicalReviewer(): boolean {
 export function isEventReviewer(): boolean {
   return useUserStore.getState().profile?.is_event_reviewer === true;
 }
+
+// ─── Self-start ────────────────────────────────────────────────────────────
+// Registered at module scope so it is impossible to forget: importing the store
+// is enough. Mirrors the identical listener in `store/home.ts`.
+//
+// THE BUG THIS EXISTS TO PREVENT
+// ------------------------------
+// `public.users` was only written to this store at the end of
+// OnboardingProfileScreen. For an already-onboarded user on cold launch,
+// nothing populated it — and the app opens on Home, not on Me, so `profile`
+// stayed null until the user happened to tap the Profile tab (MeRoot's mount
+// is the only other caller of `fetchProfile`). Home's greeting then fell
+// through to its placeholder and greeted every mother by the wrong name.
+//
+// `onAuthStateChange` emits INITIAL_SESSION on subscribe, so this covers cold
+// start as well as sign-in and account switches.
+//
+// The callback body is deferred with setTimeout(0) deliberately — Supabase runs
+// these callbacks while holding its auth lock, and calling back into
+// supabase.auth from inside one (which `fetchProfile` does, via getUser) can
+// deadlock. This is the same reason home.ts defers.
+let lastProfileAuthUserId: string | null = null;
+supabase.auth.onAuthStateChange((_event, session) => {
+  const userId = session?.user?.id ?? null;
+  if (userId === lastProfileAuthUserId) return;   // token refreshes are not new users
+  lastProfileAuthUserId = userId;
+  setTimeout(() => {
+    if (!userId) {
+      useUserStore.getState().setProfile(null);
+      return;
+    }
+    void useUserStore.getState().fetchProfile();
+  }, 0);
+});
