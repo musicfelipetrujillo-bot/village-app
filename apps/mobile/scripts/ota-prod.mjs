@@ -175,14 +175,52 @@ function assertNotBehindLive(cwd) {
 }
 
 /** `eas update` bundles the WORKING TREE, so a dirty tree ships something no
- *  commit describes — and the tag we then write would be a lie. Warn loudly;
- *  don't block, because a quick copy tweak is a legitimate way to ship. */
-function warnIfDirty(cwd) {
+ *  commit describes — and the tag we then write would be a lie.
+ *
+ *  This warned and continued, on the reasoning that a quick copy tweak is a
+ *  legitimate way to ship. That reasoning is right and is preserved. What it
+ *  missed is SCALE: on 2026-09-13 this checkout held 16 uncommitted files of an
+ *  in-flight roo-rebrand — new splash, new icon, a new HeroHoneycomb, 511 lines
+ *  of VillageHomeScreenV3 — and a one-line warning is not what stops someone
+ *  from shipping a half-finished redesign to every mother.
+ *
+ *  So: still a warning for a small edit, but it now NAMES the files that will
+ *  actually enter the bundle, and refuses once there are more than a tweak's
+ *  worth. Paths that cannot reach a JS bundle — docs, supabase/, .claude/, and
+ *  the native ios/ + android/ trees — are reported separately and never block,
+ *  which is why a stray .claude/settings.json has never been the problem. */
+const DIRTY_BLOCK_THRESHOLD = 3;
+
+function isBundled(path) {
+  if (!path.startsWith('apps/mobile/')) return false;
+  const rest = path.slice('apps/mobile/'.length);
+  return !rest.startsWith('ios/') && !rest.startsWith('android/');
+}
+
+function assertNotTooDirty(cwd) {
   const out = spawnSync('git', ['status', '--porcelain'], { cwd, encoding: 'utf8' }).stdout?.trim();
   if (!out) return;
-  const n = out.split('\n').length;
-  console.warn(`⚠ ${n} uncommitted change(s) in the tree. eas update bundles the WORKING TREE,`);
-  console.warn(`  so what ships is not exactly ${LIVE_TAG} will claim. Commit first if it matters.\n`);
+  const paths = out.split('\n').map((l) => l.slice(3).trim()).filter(Boolean);
+  const bundled = paths.filter(isBundled);
+  const ignored = paths.length - bundled.length;
+
+  if (!bundled.length) {
+    console.warn(`⚠ ${ignored} uncommitted change(s), none of which reach the JS bundle. Proceeding.\n`);
+    return;
+  }
+  console.warn(`⚠ ${bundled.length} uncommitted file(s) WILL be bundled by eas update:`);
+  for (const f of bundled) console.warn(`    ${f}`);
+  if (ignored) console.warn(`  (plus ${ignored} that cannot reach the bundle)`);
+
+  if (bundled.length > DIRTY_BLOCK_THRESHOLD && process.env.OTA_ALLOW_DIRTY !== '1') {
+    console.error(`\n✗ Refusing to publish: that is ${bundled.length} files of uncommitted work, not a tweak.`);
+    console.error('  eas update ships the WORKING TREE, so all of it reaches every user, and');
+    console.error(`  ${LIVE_TAG} would then point at a commit that does not contain what shipped.`);
+    console.error('  Fix:      commit or stash the work you did not mean to ship');
+    console.error('  Override: OTA_ALLOW_DIRTY=1 pnpm ota:prod "…"   (only if shipping it is the point)\n');
+    process.exit(1);
+  }
+  console.warn(`  so what ships is not exactly what ${LIVE_TAG} will claim. Commit first if it matters.\n`);
 }
 
 // Code invariant: never ship a bundle that silently rolls production back.
@@ -192,7 +230,7 @@ if (process.env.OTA_ALLOW_BEHIND_MAIN !== '1') {
 if (process.env.OTA_ALLOW_BEHIND_LIVE !== '1') {
   assertNotBehindLive(mobileDir);
 }
-warnIfDirty(mobileDir);
+assertNotTooDirty(mobileDir);
 
 // Verify the guards without publishing: OTA_CHECK_ONLY=1 pnpm ota:prod "x"
 if (process.env.OTA_CHECK_ONLY === '1') {
