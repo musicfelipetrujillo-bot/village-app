@@ -9,7 +9,7 @@ import { COLORS, FONTS } from '@utils/constants';
 import { V9PageBackdrop } from '@components/shared/V9PageBackdrop';
 import { LinearGradient } from 'expo-linear-gradient';
 import { confirm } from '@utils/haptics';
-import { eventsApi, formatEventWhen, formatDistance, timeUntilLabel, eventCost, type EventCard, type RsvpStatus } from '@api/events';
+import { eventsApi, formatEventWhen, formatDistance, timeUntilLabel, eventCost, platformLabel, type EventCard, type RsvpStatus } from '@api/events';
 import { useEventsStore } from '@store/events';
 import { useT } from '@/i18n';
 
@@ -184,7 +184,7 @@ export default function EventDetailScreen() {
         {isWebinar && (
           <View style={styles.section}>
             <Text style={styles.sectionLabel}>{t('eventDetail.sectionHowToJoin')}</Text>
-            <Text style={styles.sectionValue}>{event.platform?.toUpperCase() ?? t('eventDetail.platformOnline')}</Text>
+            <Text style={styles.sectionValue}>{platformLabel(event.platform, t('eventDetail.platformOnline'))}</Text>
             <TouchableOpacity
               style={[styles.secondaryBtn, !isLive && styles.secondaryBtnDisabled]}
               onPress={openStreamOrMap}

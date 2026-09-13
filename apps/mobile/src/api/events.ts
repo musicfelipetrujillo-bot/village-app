@@ -6,6 +6,28 @@ import { getPreferredRadiusKm } from '@store/user';
 export type EventType = 'local' | 'webinar';
 export type EventStatus = 'upcoming' | 'live' | 'ended' | 'cancelled';
 export type WebinarPlatform = 'zoom' | 'youtube' | 'teams' | 'other';
+
+/**
+ * Display label for a webinar's platform.
+ *
+ * `'other'` is a STORAGE BUCKET — "a platform we don't have a name for" — not a
+ * word a mother should ever read. Rendering it raw put a literal "OTHER" on
+ * every Plans card ("Sun, Sep 13 · 3:00 PM · OTHER") and under "HOW TO JOIN" on
+ * the event detail. It falls back to the same "Online" label `null` already
+ * used, which is what it actually means. Named platforms keep their brand
+ * casing.
+ *
+ * The caller passes the localised label so each screen keeps its own casing
+ * (the list and detail shout "ONLINE"; the calendar note says "Online").
+ */
+export function platformLabel(
+  platform: WebinarPlatform | null | undefined,
+  onlineLabel: string,
+): string {
+  if (!platform || platform === 'other') return onlineLabel;
+  return platform.toUpperCase();
+}
+
 export type RsvpStatus = 'going' | 'waitlist' | 'cancelled';
 export type AgeTag = 'pregnancy' | '0-3mo' | '3-6mo' | '6-12mo' | '12mo+';
 
