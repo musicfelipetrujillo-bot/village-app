@@ -16,7 +16,6 @@
 import React, { useRef } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, Image, Animated,
-  Dimensions,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Path, Circle, Polygon } from 'react-native-svg';
@@ -31,6 +30,7 @@ import { isExpecting } from '@/manual/beforeBaby';
 import { theBuzzApi, type TheBuzzArchiveRow } from '@api/theBuzz';
 import { useFocusEffect } from '@react-navigation/native';
 import VoiceDictationSheet from '@components/shared/VoiceDictationSheet';
+import { HeroHoneycomb } from '@components/shared/HeroHoneycomb';
 import { isVoiceDictationAvailable } from '@/lib/voiceDictation';
 
 const VILLIE_BEE = require('../../../assets/brand/villie-bee.png');
@@ -43,7 +43,6 @@ const SLEEP_MOON = require('../../../assets/home/sleep-moon.png');
 const FEED_BOTTLE = require('../../../assets/home/feed-bottle.png');
 const VILLIE_BOXES = require('../../../assets/home/villie-boxes.png');
 const BUZZ_BEE = require('../../../assets/home/buzz-bee.png');
-const SCREEN_W = Dimensions.get('window').width;
 
 // ─── Tokens (raspberry rebrand) ────────────────────────────────────────
 const T = {
@@ -107,40 +106,6 @@ function Glyph({ d, color = '#43260F', size = 22, sw = 2 }: { d: string; color?:
   );
 }
 
-// ─── Honeycomb texture over the raspberry hero — a faded white flat-top hex
-// lattice generated in JS, densest at the top and dissolving downward so it
-// reads as brand texture behind the ring, not a busy grid. ─────────────────
-function HeroHoneycomb({ height = 520 }: { height?: number }) {
-  const s = 30;
-  const h = Math.sqrt(3) * s;
-  const dx = 1.5 * s;
-  const paths: { d: string; o: number }[] = [];
-  for (let c = 0; c * dx <= SCREEN_W + s; c++) {
-    const cx = c * dx;
-    const yOff = c % 2 ? h / 2 : 0;
-    for (let r = -1; r * h + yOff <= height + h; r++) {
-      const cy = r * h + yOff;
-      const o = 0.17 * (1 - (cy - 10) / (height * 0.82));
-      if (o <= 0.015) continue;
-      const d =
-        `M${(cx + s).toFixed(1)},${cy.toFixed(1)} ` +
-        `L${(cx + s / 2).toFixed(1)},${(cy - h / 2).toFixed(1)} ` +
-        `L${(cx - s / 2).toFixed(1)},${(cy - h / 2).toFixed(1)} ` +
-        `L${(cx - s).toFixed(1)},${cy.toFixed(1)} ` +
-        `L${(cx - s / 2).toFixed(1)},${(cy + h / 2).toFixed(1)} ` +
-        `L${(cx + s / 2).toFixed(1)},${(cy + h / 2).toFixed(1)} Z`;
-      paths.push({ d, o: Math.min(0.22, o) });
-    }
-  }
-  return (
-    <Svg width={SCREEN_W} height={height} style={styles.heroHoneycomb} pointerEvents="none">
-      {paths.map((p, i) => (
-        <Path key={i} d={p.d} stroke="#C24A63" strokeOpacity={p.o * 0.6} strokeWidth={1} fill="none" />
-      ))}
-    </Svg>
-  );
-}
-
 // ─── The week "sun" — a 52-ray sunburst seal. Each ray is one week; lit
 // (scarlet) rays are the weeks lived, the rest a faint scarlet. A cream center
 // disc holds the number. Warm, retro, and the progress IS the ornament. ──────
@@ -172,7 +137,7 @@ function WeekRing({ week, size = 250 }: { week: number; size?: number }) {
 
 // ─── Week-anchor hero — bold raspberry gradient + ring + tap→Manual ──────
 function WeekRingHero({ firstName, babyName, weekNumber, expecting, onOpenManual, onBeforeBaby, onMenu, onNotifications, hasNotifications }: {
-  firstName: string; babyName: string; weekNumber: number; expecting: boolean;
+  firstName: string | null; babyName: string; weekNumber: number; expecting: boolean;
   onOpenManual: () => void; onBeforeBaby: () => void;
   onMenu: () => void; onNotifications: () => void; hasNotifications?: boolean;
 }) {
@@ -210,7 +175,9 @@ function WeekRingHero({ firstName, babyName, weekNumber, expecting, onOpenManual
       </View>
 
       <Text style={styles.heroGreet} numberOfLines={1}>
-        {greet}, <Text style={styles.heroGreetName}>{firstName}</Text>
+        {firstName
+          ? <>{greet}, <Text style={styles.heroGreetName}>{firstName}</Text></>
+          : greet}
       </Text>
 
       <TouchableOpacity
@@ -424,7 +391,12 @@ export default function HomeScreenV3() {
   const fetchPicks = usePicksStore((s) => s.fetchPicks);
   React.useEffect(() => { fetchPicks(); }, [fetchPicks]);
 
-  const firstName = profile?.full_name?.split(' ')[0] ?? 'Alana';
+  // No placeholder name here, deliberately. This used to fall back to a
+  // hardcoded first name, so any user whose profile hadn't hydrated was
+  // greeted by a stranger's — the very first thing a mother saw on the
+  // discharge handoff. `null` renders the greeting on its own instead
+  // (see WeekRingHero), which is correct at every moment of the load.
+  const firstName = profile?.full_name?.split(' ')[0]?.trim() || null;
   const babyName = babyProfile?.baby_name ?? null;
   const weekNumber = babyProfile?.current_week_number ?? null;
 
@@ -650,7 +622,6 @@ const styles = StyleSheet.create({
   hero: {
     alignItems: 'center', paddingBottom: 46, paddingHorizontal: 22, overflow: 'hidden',
   },
-  heroHoneycomb: { position: 'absolute', top: 0, left: -22 },
   heroBee: { position: 'absolute', top: 104, right: 40, flexDirection: 'row', alignItems: 'flex-start' },
   heroBeeImg: { width: 24, height: 24, marginLeft: -6, marginTop: -2 },
   topBar: { width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 },

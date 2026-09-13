@@ -7,7 +7,7 @@ import * as Calendar from 'expo-calendar';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import { COLORS, FONTS } from '@utils/constants';
 import { V9PageBackdrop } from '@components/shared/V9PageBackdrop';
-import { eventsApi, formatEventWhen, type EventCard } from '@api/events';
+import { eventsApi, formatEventWhen, platformLabel, type EventCard } from '@api/events';
 import { useT } from '@/i18n';
 
 type ParamList = { RsvpConfirm: { eventId: string } };
@@ -50,7 +50,7 @@ export default function RsvpConfirmScreen() {
         endDate: new Date(event.ends_at),
         location: event.type === 'local'
           ? `${event.venue_name ?? ''}${event.address ? `, ${event.address}` : ''}`
-          : `${event.platform?.toUpperCase() ?? t('rsvpConfirm.platformOnline')}: ${event.stream_url ?? ''}`,
+          : `${platformLabel(event.platform, t('rsvpConfirm.platformOnline'))}: ${event.stream_url ?? ''}`,
         notes: event.description,
         timeZone: event.timezone,
       });

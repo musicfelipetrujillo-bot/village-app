@@ -12,7 +12,7 @@ import { COLORS, FONTS } from '@utils/constants';
 import { cardLift, cardLiftBorder } from '@utils/cardLift';
 import { getEffectiveCoords } from '@utils/devLocation';
 import { useEventsStore } from '@store/events';
-import { formatDistance, type EventCard, type EventType, type AgeTag } from '@api/events';
+import { formatDistance, platformLabel, type EventCard, type EventType, type AgeTag } from '@api/events';
 import { EventCardSkeleton } from '@components/shared/SkeletonLoader';
 import { KenBurnsImage } from '@components/shared/KenBurnsImage';
 import { WarmGlowBackdrop } from '@components/shared/WarmGlowBackdrop';
@@ -223,7 +223,7 @@ export function EventCardView({ event, onPress, isSaved, onToggleSave, t }: {
   // meta + footer chips. Mirrors SpecialistCard / DonorCard / PerkCardView.
   const meta: string[] = [`${whenShort} · ${timeStr}`];
   if (isWebinar) {
-    meta.push(event.platform?.toUpperCase() ?? t('eventsList.platformOnline'));
+    meta.push(platformLabel(event.platform, t('eventsList.platformOnline')));
   } else if (event.venue_name) {
     meta.push(event.venue_name);
   }

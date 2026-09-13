@@ -732,6 +732,57 @@ function WeekIntroCard({ data, onPress, lang = 'en', posterSource }: { data: Wee
   );
 }
 
+// ─── Week-intro empty state ────────────────────────────────────────────
+// Why this exists: before it, a week with no published row simply dropped the
+// hero, and the Manual silently lost its lead element. That reads as a bug even
+// though the data behaviour is correct — the slot should say it is empty, not
+// vanish.
+//
+// Deliberately NOT a TouchableOpacity and deliberately carrying no expert name,
+// no poster and no playback id. This is the shape acc143c left room for: "if a
+// visible placeholder is ever wanted, it must carry no expert name and no
+// playable asset."
+//
+// Copy is inventory-safe. It must never promise a cadence ("new video every
+// week") or a locale we do not have — that is exactly the paywall-copy failure
+// PRO_VIDEO_LAUNCH_RUNBOOK.md was written to prevent. It states absence and
+// points down the page instead of dead-ending.
+
+// The week-intro series is a first-year run: `pro_launch_targets.week_intro_weeks`
+// is 52 (114_pro_launch_readiness.sql:29, deliberately NOT lowered by 132).
+// `current_week_number` clamps at 104, so roughly half the addressable weeks sit
+// past the end of the series and will never have a row — not "not yet", ever.
+// Those weeks don't get this card at all; see `showWeekIntroEmpty`.
+const WEEK_INTRO_SERIES_WEEKS = 52;
+
+function WeekIntroEmptyCard({ lang = 'en' }: { lang?: 'en' | 'es' }) {
+  // Safe to say "yet" unconditionally: this card only renders inside the
+  // 52-week series window, where a row genuinely is still pending.
+  const title = lang === 'es' ? 'Aún no hay video para esta semana' : 'No video for this week yet';
+  const sub = lang === 'es'
+    ? 'El resto del manual de esta semana está abajo.'
+    : "The rest of this week's manual is below.";
+  return (
+    <View style={styles.wiEmptyCard} accessible accessibilityLabel={`${title}. ${sub}`}>
+      <View style={styles.wiEmptyHero}>
+        <Svg width={26} height={26} viewBox="0 0 24 24" opacity={0.45}>
+          <Path
+            d="M4 6h11a1 1 0 0 1 1 1v3.2l4-2.4v8.4l-4-2.4V17a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1z"
+            fill="none"
+            stroke={T.walnut}
+            strokeWidth={1.6}
+            strokeLinejoin="round"
+          />
+        </Svg>
+      </View>
+      <View style={styles.wiBody}>
+        <Text style={styles.wiEmptyTitle}>{title}</Text>
+        <Text style={styles.wiEmptySub}>{sub}</Text>
+      </View>
+    </View>
+  );
+}
+
 // REMOVED 2026-09-04 — `PLACEHOLDER_WEEK_INTRO` / `PLACEHOLDER_WEEKS`.
 //
 // The placeholder presented a public Mux sample clip (DS00Spx1CV9…) under a
@@ -1009,6 +1060,21 @@ export default function ManualScrollV3() {
   // identical regardless of selected chapter. Hidden until a published video
   // exists for this week (migration 094 + an upload).
   const [weekIntro, setWeekIntro] = useState<WeekIntroVideo | null>(null);
+  // `weekIntro === null` used to mean three different things — still loading, no
+  // published row, and the fetch blew up — and all three rendered identically
+  // (nothing). That is why an empty week was indistinguishable from a bug.
+  // Split them so the empty state can show for "no row" ONLY:
+  //   loading → render nothing (no flash of "no video" before the card lands)
+  //   empty   → render WeekIntroEmptyCard
+  //   unknown → render nothing, same fail-closed behaviour as before
+  //
+  // `unknown`, not `error`: the point is that we could not establish anything,
+  // so we must not draw a card that asserts this week has no video. This only
+  // works because getWeekIntroVideo now THROWS instead of returning null when
+  // it cannot ask — a dropped fetch used to arrive here as a plain null and got
+  // reported to the user as "no video for this week yet".
+  const [weekIntroState, setWeekIntroState] =
+    useState<'loading' | 'ready' | 'empty' | 'unknown'>('loading');
   useEffect(() => {
     let cancelled = false;
     // No published row for this week/locale ⇒ no hero. The card is rendered under
@@ -1020,11 +1086,35 @@ export default function ManualScrollV3() {
     // carried no `is_locked`, so a transient network error handed any free-tier
     // user a playable card instead of the gate. Failing closed here means a fetch
     // error shows nothing — correct for a paywalled, clinically-attributed surface.
+    setWeekIntroState('loading');
     getWeekIntroVideo(who, week, lang)
-      .then((v) => { if (!cancelled) setWeekIntro(v ?? null); })
-      .catch(() => { if (!cancelled) setWeekIntro(null); });
+      .then((v) => {
+        if (cancelled) return;
+        setWeekIntro(v ?? null);
+        setWeekIntroState(v ? 'ready' : 'empty');
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setWeekIntro(null);
+        setWeekIntroState('unknown');
+      });
     return () => { cancelled = true; };
   }, [who, week, lang]);
+
+  // Show the empty card only where a video is actually expected to exist.
+  // The Pro library is English-first (migration 132) and `get_manual_week_intro`
+  // matches locale with no fallback, so for an es user NO week ever resolves —
+  // an empty card there would be a permanent dead slot on all 52 weeks, not an
+  // occasional gap. PRO_VIDEO_LAUNCH_RUNBOOK.md already fixes the intended
+  // behaviour for her as "no week-intro slot at all". Delete this gate the day
+  // Spanish week-intros ship (same day `pro_launch_targets.locales` gains 'es').
+  //
+  // Past week 52 it hides for the same reason: the series ends there, so the
+  // slot would be a permanent dead element rather than an occasional gap. An
+  // honestly-worded "the series covers the first year" card was built and
+  // rejected — it is worth saying once, not on every week forever.
+  const showWeekIntroEmpty =
+    weekIntroState === 'empty' && lang === 'en' && week <= WEEK_INTRO_SERIES_WEEKS;
 
   const openWeekIntro = () => {
     // Locked teaser row (free tier, pro_video_gate on) → paywall, never the
@@ -1397,7 +1487,14 @@ export default function ManualScrollV3() {
           </View>
         )}
         {/* Week-level "this week" specialist video — above the chips, same spot
-            every week. Hidden until a published video exists for this week. */}
+            every week. A week with no published video falls back to an explicit
+            empty card, but only inside the series window and only in English;
+            outside that the slot stays hidden. See `showWeekIntroEmpty`. */}
+        {showWeekIntroEmpty && (
+          <View style={{ paddingHorizontal: 20 }}>
+            <WeekIntroEmptyCard lang={lang} />
+          </View>
+        )}
         {weekIntro && (
           <View style={{ paddingHorizontal: 20 }}>
             <WeekIntroCard
@@ -1583,6 +1680,20 @@ const styles = StyleSheet.create({
   wiBody: { backgroundColor: T.paper, padding: 13 },
   wiTitle: { fontFamily: FONTS.v3_display, fontSize: 16, color: T.cocoa, letterSpacing: -0.4 },
   wiExpert: { fontFamily: FONTS.v2_body, fontSize: 11, color: T.walnut, marginTop: 4 },
+
+  // Empty-state twin of the wiCard block. Same radius/margin so the slot keeps
+  // its place in the scroll, but muted border, a shorter hero and no play
+  // affordance — it should read as "nothing here", never as a tappable video.
+  wiEmptyCard: {
+    marginTop: 18, borderRadius: 18, overflow: 'hidden',
+    borderWidth: 2, borderColor: 'rgba(158,47,76,0.22)',
+  },
+  wiEmptyHero: {
+    height: 104, alignItems: 'center', justifyContent: 'center',
+    backgroundColor: T.parchment,
+  },
+  wiEmptyTitle: { fontFamily: FONTS.v3_display, fontSize: 15, color: T.walnut, letterSpacing: -0.3 },
+  wiEmptySub: { fontFamily: FONTS.v2_body, fontSize: 11, color: T.walnut, opacity: 0.75, marginTop: 4 },
 
   marigoldHaloUnused: {
     position: 'absolute', top: 30, right: -110,

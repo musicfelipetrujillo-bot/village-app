@@ -9,9 +9,9 @@
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/icon.png",
+      "image": "./assets/splash-roo.png",
       "resizeMode": "contain",
-      "backgroundColor": "#F4ECD8"
+      "backgroundColor": "#FCF7EF"
     },
     "ios": {
       "supportsTablet": false,
@@ -47,8 +47,8 @@
       "package": "com.villieapp.mobile",
       "versionCode": 1,
       "adaptiveIcon": {
-        "foregroundImage": "./assets/icon.png",
-        "backgroundColor": "#F4ECD8"
+        "foregroundImage": "./assets/adaptive-icon-roo.png",
+        "backgroundColor": "#FCF7EF"
       },
       "intentFilters": [
         {
