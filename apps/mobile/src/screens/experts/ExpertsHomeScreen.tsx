@@ -224,6 +224,7 @@ export default function ExpertsHomeScreen({ navigation, route }: Props) {
           placeholderTextColor="#A6957F"
           value={query}
           onChangeText={setQuery}
+          autoCapitalize="none"
           returnKeyType="search"
         />
         {tier !== 'daycare' && (

@@ -137,6 +137,7 @@ export default function GearBrowseScreen() {
                 placeholderTextColor="#A6957F"
                 value={query}
                 onChangeText={setQuery}
+                autoCapitalize="none"
                 returnKeyType="search"
               />
             </View>
