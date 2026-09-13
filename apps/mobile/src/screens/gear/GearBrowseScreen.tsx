@@ -22,6 +22,7 @@ import { BackButton } from '@components/shared/BackButton';
 import { HubHeader } from '@components/shared/HubHeader';
 import { WarmGlowBackdrop } from '@components/shared/WarmGlowBackdrop';
 import { HoneycombBackdrop } from '@components/shared/HoneycombBackdrop';
+import { formatDistanceShort } from '@api/events';
 
 type TFn = (key: string, params?: Record<string, string | number>) => string;
 
@@ -217,8 +218,9 @@ function ListingCardView({ listing, onPress, t }: { listing: GearCard; onPress: 
     conditionLabel(listing.condition),
     listing.brand,
   ].filter(Boolean).join(' · ');
+  // Miles, like Care and Milk Hub — the km came straight off the PostGIS RPC.
   const locText = listing.distance_km != null
-    ? `${listing.distance_km.toFixed(1)} km`
+    ? formatDistanceShort(listing.distance_km)
     : (listing.pickup_city ?? '');
 
   return (
