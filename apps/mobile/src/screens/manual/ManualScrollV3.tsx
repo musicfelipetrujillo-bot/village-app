@@ -1066,9 +1066,15 @@ export default function ManualScrollV3() {
   // Split them so the empty state can show for "no row" ONLY:
   //   loading → render nothing (no flash of "no video" before the card lands)
   //   empty   → render WeekIntroEmptyCard
-  //   error   → render nothing, same fail-closed behaviour as before
+  //   unknown → render nothing, same fail-closed behaviour as before
+  //
+  // `unknown`, not `error`: the point is that we could not establish anything,
+  // so we must not draw a card that asserts this week has no video. This only
+  // works because getWeekIntroVideo now THROWS instead of returning null when
+  // it cannot ask — a dropped fetch used to arrive here as a plain null and got
+  // reported to the user as "no video for this week yet".
   const [weekIntroState, setWeekIntroState] =
-    useState<'loading' | 'ready' | 'empty' | 'error'>('loading');
+    useState<'loading' | 'ready' | 'empty' | 'unknown'>('loading');
   useEffect(() => {
     let cancelled = false;
     // No published row for this week/locale ⇒ no hero. The card is rendered under
@@ -1090,7 +1096,7 @@ export default function ManualScrollV3() {
       .catch(() => {
         if (cancelled) return;
         setWeekIntro(null);
-        setWeekIntroState('error');
+        setWeekIntroState('unknown');
       });
     return () => { cancelled = true; };
   }, [who, week, lang]);

@@ -263,7 +263,13 @@ export async function getWeekIntroVideo(
   week: number,
   locale: 'en' | 'es',
 ): Promise<WeekIntroVideo | null> {
-  if (!(await sessionReady())) return null;
+  // Throws rather than returning null on every non-answer below. The caller
+  // renders an explicit "no video this week" card for null, so null MUST mean
+  // "the RPC answered and had no row" — never "we could not ask". Returning
+  // null for a dropped connection made a transient `Network request failed`
+  // indistinguishable from missing content and asserted absence that had not
+  // been established. Callers still fail soft; they just do it knowingly.
+  if (!(await sessionReady())) throw new Error('getWeekIntroVideo: no session');
   // RPC (migration 110) instead of a direct table select: it returns teaser
   // metadata + is_locked for free-tier users once the pro_video_gate flag is
   // on, which the RLS path can't express (it can only hide whole rows).
@@ -275,9 +281,11 @@ export async function getWeekIntroVideo(
     })
     .maybeSingle();
   if (error) {
-    // RPC may not be deployed yet — fail soft so the Manual just hides the slot.
+    // Covers both "RPC not deployed yet" and transport failure — supabase-js
+    // reports a dropped fetch here as `error`, it does not reject. The Manual
+    // still hides the slot, via the caller's catch.
     console.warn('[manual] getWeekIntroVideo', error.message);
-    return null;
+    throw new Error(error.message);
   }
   const row = data as WeekIntroVideo | null;
   if (!row) return null;
