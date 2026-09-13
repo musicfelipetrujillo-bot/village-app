@@ -180,6 +180,7 @@ export default function DonorSearchListScreen({ navigation }: Props) {
           placeholder={t('donorSearch.searchPlaceholder')}
           value={search}
           onChangeText={setSearch}
+          autoCapitalize="none"
           placeholderTextColor="#7A4A24"
         />
         <TouchableOpacity

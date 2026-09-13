@@ -131,6 +131,7 @@ export default function SearchScreen() {
           placeholder={es ? 'busca o pregunta lo que sea…' : 'search or ask anything…'}
           placeholderTextColor={MUTED}
           autoFocus
+          autoCapitalize="none"
           autoCorrect={false}
           returnKeyType="search"
           onSubmitEditing={() => { if (q.trim()) askVillie(); }}
