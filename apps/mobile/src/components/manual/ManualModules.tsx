@@ -517,7 +517,7 @@ function QuickAnswer({ data, first, lang }: { data: Article; first?: boolean; la
   );
 }
 
-// "Tools" tab — a Vili tool as a full-width row (icon + label + chevron).
+// "Tools" tab — a villie tool as a full-width row (icon + label + chevron).
 function ToolRow({ glyph, label, onPress }: { glyph: string; label: string; onPress: () => void }) {
   return (
     <TouchableOpacity
@@ -689,8 +689,8 @@ export default function ManualModules({ content, story, onAskVillie, lang = 'en'
           <Text style={s.stripGl}>✦</Text><Text style={s.stripT}>{L('Plan', 'Planea')}</Text>
         </TouchableOpacity>
         {onAskVillie ? (
-          <TouchableOpacity style={s.stripBtn} activeOpacity={0.85} onPress={() => { tap(); onAskVillie(); }} accessibilityRole="button" accessibilityLabel={L('Ask Vili', 'Pregúntale a Vili')}>
-            <Text style={s.stripGl}>✎</Text><Text style={s.stripT}>{L('Ask Vili', 'Vili')}</Text>
+          <TouchableOpacity style={s.stripBtn} activeOpacity={0.85} onPress={() => { tap(); onAskVillie(); }} accessibilityRole="button" accessibilityLabel={L('Ask villie', 'Pregúntale a villie')}>
+            <Text style={s.stripGl}>✎</Text><Text style={s.stripT}>{L('Ask villie', 'villie')}</Text>
           </TouchableOpacity>
         ) : null}
       </View>

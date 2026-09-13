@@ -54,7 +54,10 @@ export default function MilkVaultAddBagScreen() {
   const [saving, setSaving] = useState(false);
 
   const ozNum = parseFloat(ounces);
-  const ozValid = Number.isFinite(ozNum) && ozNum > 0 && ozNum <= 100;
+  // Lower bound is 0.1, not 0: the value is rounded to one decimal on save
+  // (see `ounces:` below), so anything under 0.05 passed a bare `> 0` check
+  // and then stored a 0 oz bag — exactly what this validation exists to stop.
+  const ozValid = Number.isFinite(ozNum) && ozNum >= 0.1 && ozNum <= 100;
   const pumpedValid = isPastOrToday(pumped);
   const frozenValid = frozen.trim() === '' || isPastOrToday(frozen);
   const canSave = ozValid && pumpedValid && frozenValid;
@@ -111,7 +114,7 @@ export default function MilkVaultAddBagScreen() {
             )}
 
             {/* Ounces */}
-            <Field label="Ounces" required error={ounces !== '' && !ozValid ? 'Enter ounces between 0 and 100' : undefined}>
+            <Field label="Ounces" required error={ounces !== '' && !ozValid ? 'Enter ounces between 0.1 and 100' : undefined}>
               <View style={styles.ozRow}>
                 <TextInput
                   style={[styles.input, styles.ozInput, ounces !== '' && !ozValid && styles.inputError]}
