@@ -10,22 +10,164 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useNavigation } from '@react-navigation/native';
+import Svg, { Path, Circle, G } from 'react-native-svg';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { COLORS, FONTS } from '@utils/constants';
 import { WarmGlowBackdrop } from '@components/shared/WarmGlowBackdrop';
 import { BackButton } from '@components/shared/BackButton';
 import { useUserStore } from '@store/user';
+import { useHomeStore } from '@store/home';
 import { tap } from '@utils/haptics';
+import { getCalendarPermission, getTodayBusyBlocks } from '@utils/calendar';
+import {
+  getPumpCadence, buildDayPlan, fmtTime, meridiem,
+  type PlanSlot, type SlotKind,
+} from '@utils/dayPlan';
 
 const VILLIE_BEE = require('../../../assets/brand/villie-bee.png');
 
 const ROSE = '#C24A63', ROSE_DEEP = '#9E2F4C';
 const INK = '#43260F', INKSOFT = '#7A5A3A';
 
+// ─── The day arc ───────────────────────────────────────────────────────
+// Plan-my-day used to be a flat gradient with a 🗓️ emoji in the corner: it
+// announced a feature instead of showing one, and next to "i need a sec" —
+// which previews its own breathing rings — it read as the duller of the pair.
+//
+// It now draws TODAY. A sunrise-to-bedtime arc (the 7am→7pm window buildDayPlan
+// itself works in) carries a mark per planned block — naps in cream, pumps in
+// honey, her own calendar as a thin tick — with a lit pip for where she is right
+// now. Everything on it is real: the same plan the Day Plan screen builds, from
+// her saved pump cadence, her baby's week and (only if she's already granted it)
+// her calendar. No cadence saved yet → the arc stays a ghost and the card asks
+// for the one thing it needs.
+// Geometry note: the control point sits well ABOVE the box so the curve's apex
+// lands near its top edge (apex y = (p0y + p2y)/4·2 + p1y/2 = 8 here). A gentler
+// control point drew a shallow arc floating in the middle of its own box, which
+// read as a dead band of gradient rather than a day.
+const ARC = { w: 300, h: 72, p0: [10, 62], p1: [150, -46], p2: [290, 62] } as const;
+const DAY_START_H = 7, DAY_END_H = 19;
+
+function arcPoint(t: number): { x: number; y: number } {
+  const u = 1 - t;
+  return {
+    x: u * u * ARC.p0[0] + 2 * u * t * ARC.p1[0] + t * t * ARC.p2[0],
+    y: u * u * ARC.p0[1] + 2 * u * t * ARC.p1[1] + t * t * ARC.p2[1],
+  };
+}
+/** Where a moment sits on the arc, 0 = wake-up, 1 = bedtime. null if outside. */
+function dayFraction(d: Date): number | null {
+  const h = d.getHours() + d.getMinutes() / 60;
+  if (h < DAY_START_H || h > DAY_END_H) return null;
+  return (h - DAY_START_H) / (DAY_END_H - DAY_START_H);
+}
+
+const MARK: Record<SlotKind, { r: number; fill: string; stroke?: string }> = {
+  nap:      { r: 5,   fill: '#FFFDF8' },
+  pump:     { r: 4.5, fill: '#F6D27A' },
+  feed:     { r: 3,   fill: 'rgba(255,253,248,0.62)' },
+  calendar: { r: 2.5, fill: 'rgba(255,253,248,0.45)' },
+};
+
+function DayArc({ slots, ghost }: { slots: PlanSlot[]; ghost: boolean }) {
+  const now = React.useMemo(() => dayFraction(new Date()), []);
+  const marks = ghost
+    ? []
+    : slots
+        .map((s) => ({ slot: s, t: dayFraction(s.start) }))
+        .filter((m): m is { slot: PlanSlot; t: number } => m.t !== null);
+  const d = `M${ARC.p0[0]} ${ARC.p0[1]} Q${ARC.p1[0]} ${ARC.p1[1]} ${ARC.p2[0]} ${ARC.p2[1]}`;
+  const nowPt = now === null ? null : arcPoint(now);
+  return (
+    // `key` forces a remount whenever the arc's content changes. Without it the
+    // SVG subtree went stale on the ghost→live flip: the footer switched to the
+    // live pill but the path kept its dashed stroke and no marks ever mounted.
+    <Svg
+      key={`arc-${ghost ? 'ghost' : 'live'}-${marks.length}`}
+      width="100%" height={ARC.h} viewBox={`0 0 ${ARC.w} ${ARC.h}`} pointerEvents="none"
+    >
+      <Path
+        d={d} fill="none" strokeLinecap="round"
+        stroke={ghost ? 'rgba(255,253,248,0.26)' : 'rgba(255,253,248,0.42)'}
+        strokeWidth={1.6}
+        strokeDasharray={ghost ? '3 5' : '0'}
+      />
+      {marks.map(({ slot, t }) => {
+        const p = arcPoint(t);
+        const m = MARK[slot.kind];
+        // Blocks already behind her sit back; what's still ahead reads at full
+        // strength, so the arc shows progress through the day, not just a list.
+        const past = now !== null && t < now;
+        return (
+          <Circle
+            key={slot.id} cx={p.x} cy={p.y} r={m.r} fill={m.fill}
+            opacity={past ? 0.42 : 1}
+          />
+        );
+      })}
+      {nowPt && !ghost ? (
+        <G>
+          <Circle cx={nowPt.x} cy={nowPt.y} r={11} fill="rgba(255,253,248,0.20)" />
+          <Circle cx={nowPt.x} cy={nowPt.y} r={6.5} fill="none" stroke="#FFFDF8" strokeWidth={1.6} />
+          <Circle cx={nowPt.x} cy={nowPt.y} r={2.6} fill="#FFFDF8" />
+        </G>
+      ) : null}
+    </Svg>
+  );
+}
+
+type DayPreview = { cadenceSet: boolean; slots: PlanSlot[] };
+
 export default function MomHubScreen() {
   const navigation = useNavigation<any>();
   const lang = useUserStore((s) => (s.profile?.preferred_language ?? 'en')) as 'en' | 'es';
   const es = lang === 'es';
+  // The hub subscribes to the baby profile now that the hero previews today —
+  // buildDayPlan needs the week (for wake windows) and the baby's name.
+  const baby = useHomeStore((s) => s.babyProfile);
+  const babyName = baby?.baby_name ?? 'baby';
+  const week = baby?.current_week_number ?? 8;
+
+  // Rebuilt on every focus so coming back from the Day Plan screen (where she
+  // may have just picked a cadence) shows the real arc immediately.
+  const [preview, setPreview] = React.useState<DayPreview | null>(null);
+  useFocusEffect(React.useCallback(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const cadence = await getPumpCadence();
+        if (cancelled) return;
+        if (!cadence) { setPreview({ cadenceSet: false, slots: [] }); return; }
+        // Only read the calendar when she has ALREADY granted it — the hub must
+        // never be the screen that pops a permission dialog at her.
+        const busy = (await getCalendarPermission()) === 'granted'
+          ? await getTodayBusyBlocks().catch(() => [])
+          : [];
+        if (cancelled) return;
+        // buildDayPlan drops slots that have already passed — right for the Day
+        // Plan timeline, wrong for an arc, which is the shape of the whole day.
+        // Seeding `now` at dawn keeps every block (its cutoff is now-20min), and
+        // the real clock is still what drives the "now" pip and "next up".
+        const dawn = new Date(); dawn.setHours(6, 0, 0, 0);
+        setPreview({
+          cadenceSet: true,
+          slots: buildDayPlan({ busy, weekNumber: week, cadence, babyName, now: dawn }).slots,
+        });
+      } catch {
+        if (!cancelled) setPreview({ cadenceSet: false, slots: [] });
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [week, babyName]));
+
+  const ghost = !preview?.cadenceSet;
+  const nextSlot = React.useMemo(() => {
+    if (!preview?.cadenceSet) return null;
+    const now = Date.now();
+    return preview.slots
+      .filter((s) => s.kind !== 'calendar' && s.start.getTime() > now)
+      .sort((a, b) => a.start.getTime() - b.start.getTime())[0] ?? null;
+  }, [preview]);
 
   const goDayPlan = () => { tap(); navigation.navigate('DayPlan'); };
   const goDaySheet = () => { tap(); navigation.navigate('DaySheetList'); };
@@ -62,14 +204,64 @@ export default function MomHubScreen() {
         {/* one calm line — the whole intent, no editorial stack */}
         <Text style={styles.intro}>{es ? 'La parte que es tuya.' : "The part that's yours."}</Text>
 
-        {/* the one warm moment — plan my day */}
+        {/* the one warm moment — plan my day, now showing TODAY on an arc */}
         <TouchableOpacity style={styles.planCard} activeOpacity={0.92} onPress={goDayPlan}
-          accessibilityRole="button" accessibilityLabel={es ? 'Planear mi día' : 'Plan my day'}>
+          accessibilityRole="button"
+          accessibilityLabel={es ? 'Planear mi día' : 'Plan my day'}
+          accessibilityHint={
+            ghost
+              ? (es ? 'Elige tu ritmo de extracción para ver el día trazado' : 'Pick your pump rhythm to see the day mapped out')
+              : nextSlot
+                ? (es ? `Lo próximo: ${nextSlot.title} a las ${fmtTime(nextSlot.start)} ${meridiem(nextSlot.start)}`
+                      : `Next up: ${nextSlot.title} at ${fmtTime(nextSlot.start)} ${meridiem(nextSlot.start)}`)
+                : undefined
+          }>
           <LinearGradient colors={[ROSE, '#E894AC']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.planInner}>
-            <Text style={styles.planGlyph}>🗓️</Text>
-            <Text style={styles.planTitle}>{es ? 'Planea mi día' : 'Plan my day'}</Text>
-            <Text style={styles.planSub}>{es ? 'siestas y pumps alrededor de tu agenda' : 'naps + pumps around your schedule'}</Text>
-            <View style={styles.planPill}><Text style={styles.planPillText}>{es ? 'abrir ›' : 'open ›'}</Text></View>
+            <View style={styles.planHead}>
+              <View style={{ flex: 1, minWidth: 0 }}>
+                <Text style={styles.planTitle}>{es ? 'Planea mi día' : 'Plan my day'}</Text>
+                <Text style={styles.planSub}>{es ? 'siestas y pumps alrededor de tu agenda' : 'naps + pumps around your schedule'}</Text>
+              </View>
+              <View style={styles.planArrow}><Text style={styles.planArrowText}>›</Text></View>
+            </View>
+
+            <View style={styles.planArcWrap}>
+              <DayArc slots={preview?.slots ?? []} ghost={ghost} />
+              <View style={styles.planArcEnds} pointerEvents="none">
+                <Text style={styles.planArcEnd}>{es ? '7 am · despertar' : '7am · wake'}</Text>
+                <Text style={styles.planArcEnd}>{es ? 'dormir · 7 pm' : 'bed · 7pm'}</Text>
+              </View>
+            </View>
+
+            {ghost ? (
+              <View style={styles.planFootRow}>
+                <View style={styles.planPill}>
+                  <Text style={styles.planPillText}>
+                    {es ? 'elige tu ritmo ›' : 'pick your rhythm ›'}
+                  </Text>
+                </View>
+              </View>
+            ) : (
+              <View style={styles.planFootRow}>
+                {nextSlot ? (
+                  <View style={styles.planPill}>
+                    <Text style={styles.planPillText} numberOfLines={1}>
+                      {es ? 'lo próximo' : 'next up'} · {nextSlot.title.replace(/^[^\p{L}\d]+/u, '')} {fmtTime(nextSlot.start)}{meridiem(nextSlot.start)}
+                    </Text>
+                  </View>
+                ) : (
+                  <View style={styles.planPill}>
+                    <Text style={styles.planPillText}>{es ? 'el día está hecho ✓' : "today's done ✓"}</Text>
+                  </View>
+                )}
+                <View style={styles.planKey}>
+                  <View style={[styles.planKeyDot, { backgroundColor: '#FFFDF8' }]} />
+                  <Text style={styles.planKeyText}>{es ? 'siestas' : 'naps'}</Text>
+                  <View style={[styles.planKeyDot, { backgroundColor: '#F6D27A', marginLeft: 9 }]} />
+                  <Text style={styles.planKeyText}>{es ? 'pumps' : 'pumps'}</Text>
+                </View>
+              </View>
+            )}
           </LinearGradient>
         </TouchableOpacity>
 
@@ -180,12 +372,32 @@ const styles = StyleSheet.create({
     marginHorizontal: 22, marginTop: 18, borderRadius: 20,
     shadowColor: ROSE_DEEP, shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.20, shadowRadius: 20, elevation: 4,
   },
-  planInner: { borderRadius: 20, paddingVertical: 18, paddingHorizontal: 18, minHeight: 128, overflow: 'hidden' },
-  planGlyph: { position: 'absolute', top: 14, right: 16, fontSize: 26, opacity: 0.9 },
+  planInner: { borderRadius: 20, paddingVertical: 18, paddingHorizontal: 18, overflow: 'hidden' },
+  planHead: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
+  planArrow: {
+    width: 28, height: 28, borderRadius: 14, backgroundColor: 'rgba(255,255,255,0.22)',
+    alignItems: 'center', justifyContent: 'center',
+  },
+  planArrowText: { fontFamily: FONTS.v2_link, fontSize: 19, color: '#FFFDF8', marginTop: -2 },
   planTitle: { fontFamily: FONTS.v3_display, fontSize: 22, color: '#FFFDF8', letterSpacing: -0.4 },
-  planSub: { fontFamily: FONTS.v2_body, fontSize: 13, color: 'rgba(255,253,248,0.92)', marginTop: 4, maxWidth: '82%' },
-  planPill: { marginTop: 14, alignSelf: 'flex-start', backgroundColor: 'rgba(255,255,255,0.24)', borderRadius: 999, paddingHorizontal: 14, paddingVertical: 7 },
+  planSub: { fontFamily: FONTS.v2_body, fontSize: 13, color: 'rgba(255,253,248,0.92)', marginTop: 4, maxWidth: '92%' },
+  // The arc sits full-bleed-ish inside the card, with its two ends labelled so
+  // the marks read as a day rather than decoration.
+  planArcWrap: { marginTop: 4, marginHorizontal: -4 },
+  planArcEnds: { flexDirection: 'row', justifyContent: 'space-between', marginTop: -2, paddingHorizontal: 2 },
+  planArcEnd: {
+    fontFamily: FONTS.v2_mono, fontSize: 8.5, letterSpacing: 1.1,
+    textTransform: 'uppercase', color: 'rgba(255,253,248,0.66)',
+  },
+  planFootRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginTop: 12 },
+  planPill: { flexShrink: 1, backgroundColor: 'rgba(255,255,255,0.24)', borderRadius: 999, paddingHorizontal: 14, paddingVertical: 7 },
   planPillText: { fontFamily: FONTS.v2_bold, fontSize: 12, color: '#fff', letterSpacing: 0.3 },
+  planKey: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  planKeyDot: { width: 7, height: 7, borderRadius: 4 },
+  planKeyText: {
+    fontFamily: FONTS.v2_mono, fontSize: 9, letterSpacing: 0.8,
+    textTransform: 'uppercase', color: 'rgba(255,253,248,0.8)',
+  },
 
   // Quiet list — everything else, one calm group
   // Sage, not rose: the corner already has one gradient spark (plan my day).
