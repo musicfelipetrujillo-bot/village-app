@@ -8,11 +8,11 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Linking, Dimensions } from 'react-native';
 import MapView, { Marker, Callout, type Region } from 'react-native-maps';
-import * as Location from 'expo-location';
 import { useNavigation } from '@react-navigation/native';
 import { COLORS, FONTS } from '@utils/constants';
 import { ScreenHeader } from '@components/shared/ScreenHeader';
 import { PARKS, AGE_TONE, parkTone, parkDirectionsUrl, intelChips, type Park } from '@utils/parks';
+import { getDeviceCoordsFast } from '@utils/devLocation';
 
 const T = {
   cream: COLORS.v2_cream,
@@ -51,12 +51,10 @@ export default function ParksMapScreen() {
     let cancelled = false;
     (async () => {
       try {
-        const { status } = await Location.getForegroundPermissionsAsync();
-        if (status !== 'granted') return;
-        const pos = (await Location.getLastKnownPositionAsync()) ?? (await Location.getCurrentPositionAsync({}));
-        if (!pos || cancelled) return;
+        const coords = await getDeviceCoordsFast();
+        if (!coords || cancelled) return;
         setHasUser(true);
-        setRegion((r) => ({ ...r, latitude: pos.coords.latitude, longitude: pos.coords.longitude }));
+        setRegion((r) => ({ ...r, latitude: coords.latitude, longitude: coords.longitude }));
       } catch { /* best-effort */ }
     })();
     return () => { cancelled = true; };

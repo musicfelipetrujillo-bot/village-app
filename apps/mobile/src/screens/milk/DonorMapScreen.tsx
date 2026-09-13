@@ -1,13 +1,12 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import MapView, { Marker, Callout, Region } from 'react-native-maps';
-import * as Location from 'expo-location';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { searchDonorsNear } from '@api/milk';
 import type { DonorSearchResult } from '@api/milk';
 import { COLORS, FONTS } from '@utils/constants';
 import { V9PageBackdrop } from '@components/shared/V9PageBackdrop';
-import { getEffectiveCoordsWithSource } from '@utils/devLocation';
+import { getEffectiveCoordsWithSource, getDeviceCoordsSafely } from '@utils/devLocation';
 import { useT } from '@/i18n';
 import type { MilkStackParamList } from '@/navigation/MilkNavigator';
 
@@ -49,16 +48,11 @@ export default function DonorMapScreen({ navigation }: Props) {
 
   useEffect(() => {
     (async () => {
-      let deviceCoords: { latitude: number; longitude: number } | null = null;
-      try {
-        const { status } = await Location.requestForegroundPermissionsAsync();
-        if (status === 'granted') {
-          const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
-          deviceCoords = loc.coords;
-        }
-      } catch {
-        // permission/location failure — fall through to Miami via helper
-      }
+      // Bounded: a cold-start fix took 20-30s here, and the screen spent all
+      // of it telling the user "0 nearby" while three donors sat a few miles
+      // away. getDeviceCoordsSafely gives up after a few seconds and lets the
+      // fallback chain (her ZIP, else the launch market) answer instead.
+      const deviceCoords = await getDeviceCoordsSafely();
       // In dev (Simulator) the helper hands back Miami so the Cupertino
       // default doesn't pollute the map. Real devices in prod keep real GPS.
       const { lat, lng, isRealFix } = getEffectiveCoordsWithSource(deviceCoords);
@@ -81,7 +75,7 @@ export default function DonorMapScreen({ navigation }: Props) {
           <Text style={styles.backText}>{t('donorMap.backLabel')}</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{t('donorMap.headerTitle')}</Text>
-        <Text style={styles.donorCount}>{t('donorMap.donorCount', { count: donors.length })}</Text>
+        <Text style={styles.donorCount}>{loading ? '\u2026' : t('donorMap.donorCount', { count: donors.length })}</Text>
       </View>
 
       {/* Map */}
@@ -180,6 +174,10 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(245,240,232,0.8)',
     alignItems: 'center', justifyContent: 'center',
+    // A native MapView paints over plain absolutely-positioned siblings, so
+    // without these the spinner rendered but was never seen — the screen had
+    // no visible pending state at all.
+    zIndex: 5, elevation: 5,
   },
   legend: {
     position: 'absolute', top: 120, right: 12,

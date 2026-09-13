@@ -9,7 +9,6 @@ import {
 
 const VILLIE_BEE = require('../../../assets/brand/villie-bee.png');
 import { StackActions, useNavigation, useRoute } from '@react-navigation/native';
-import * as Location from 'expo-location';
 import { getUpcomingBusy } from '@utils/calendar';
 import { useAuthStore } from '@store/auth';
 import { useUserStore } from '@store/user';
@@ -31,6 +30,7 @@ const SUGGESTIONS: { en: string; es: string }[] = [
 import { COLORS, FONTS } from '@utils/constants';
 import { cardLift, cardLiftBorder } from '@utils/cardLift';
 import { useT } from '@/i18n';
+import { getDeviceCoordsFast } from '@utils/devLocation';
 
 interface UIMessage {
   id: string;
@@ -198,10 +198,8 @@ export default function AIHelpChatScreen() {
     let cancelled = false;
     (async () => {
       try {
-        const { status } = await Location.getForegroundPermissionsAsync();
-        if (status !== 'granted') return;
-        const pos = (await Location.getLastKnownPositionAsync()) ?? (await Location.getCurrentPositionAsync({}));
-        if (pos && !cancelled) setLoc({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        const coords = await getDeviceCoordsFast();
+        if (coords && !cancelled) setLoc({ lat: coords.latitude, lng: coords.longitude });
       } catch { /* best-effort */ }
     })();
     return () => { cancelled = true; };
