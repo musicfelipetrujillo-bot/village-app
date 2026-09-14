@@ -1,6 +1,7 @@
 // V4 Phase G2 — Events store (upcoming feed + my RSVPs)
 import { create } from 'zustand';
 import { eventsApi, type EventCard, type MyRsvpRow, type ListEventsParams } from '@api/events';
+import { reportApiError } from '@/lib/reportApiError';
 
 interface EventsState {
   upcoming: EventCard[];
@@ -35,7 +36,7 @@ export const useEventsStore = create<EventsState>((set, get) => ({
       const rows = await eventsApi.listUpcoming(params);
       set({ upcoming: rows, loadedAt: Date.now() });
     } catch (err) {
-      console.error('[events] fetchUpcoming', err);
+      reportApiError('events.fetchUpcoming', err);
     } finally {
       set({ loading: false });
     }
@@ -46,7 +47,7 @@ export const useEventsStore = create<EventsState>((set, get) => ({
       const rows = await eventsApi.listMyRsvps(false);
       set({ myRsvps: rows });
     } catch (err) {
-      console.error('[events] fetchMyRsvps', err);
+      reportApiError('events.fetchMyRsvps', err);
     }
   },
 
@@ -55,7 +56,7 @@ export const useEventsStore = create<EventsState>((set, get) => ({
       const rows = await eventsApi.listMyRsvps(true);
       set({ pastRsvps: rows });
     } catch (err) {
-      console.error('[events] fetchPastRsvps', err);
+      reportApiError('events.fetchPastRsvps', err);
     }
   },
 
@@ -64,7 +65,7 @@ export const useEventsStore = create<EventsState>((set, get) => ({
       const ids = await eventsApi.listMySavedEventIds();
       set({ savedIds: new Set(ids) });
     } catch (err) {
-      console.error('[events] fetchSavedIds', err);
+      reportApiError('events.fetchSavedIds', err);
     }
   },
 
@@ -73,7 +74,7 @@ export const useEventsStore = create<EventsState>((set, get) => ({
       const rows = await eventsApi.listMySavedEvents();
       set({ savedEvents: rows, savedIds: new Set(rows.map((r) => r.id)) });
     } catch (err) {
-      console.error('[events] fetchSavedEvents', err);
+      reportApiError('events.fetchSavedEvents', err);
     }
   },
 
@@ -89,7 +90,7 @@ export const useEventsStore = create<EventsState>((set, get) => ({
       if (wasSaved) await eventsApi.unsaveEvent(eventId);
       else await eventsApi.saveEvent(eventId);
     } catch (err) {
-      console.error('[events] toggleSave', err);
+      reportApiError('events.toggleSave', err);
       set({ savedIds: cur }); // revert
     }
   },

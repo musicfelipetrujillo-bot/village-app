@@ -12,6 +12,7 @@
 // stays on disk (not dropped) since it carries no data dependency.
 import { supabase } from '@/lib/supabase';
 import { sessionReady } from '@/lib/requireSession';
+import { reportApiError } from '@/lib/reportApiError';
 
 // One (audience, category) bucket maps to one tile. The 10 valid pairs are
 // CHECK-enforced in the DB; mismatched calls return an empty list.
@@ -219,7 +220,7 @@ export async function listManualPieces(
     p_locale:   locale,
   });
   if (error) {
-    console.warn('listManualPieces failed', error.message);
+    reportApiError('manual.listManualPieces', error);
     return [];   // bucket-missing / RLS-fail → fall back to hand-authored
   }
   return (data ?? []) as ManualPiece[];
@@ -284,7 +285,7 @@ export async function getWeekIntroVideo(
     // Covers both "RPC not deployed yet" and transport failure — supabase-js
     // reports a dropped fetch here as `error`, it does not reject. The Manual
     // still hides the slot, via the caller's catch.
-    console.warn('[manual] getWeekIntroVideo', error.message);
+    reportApiError('manual.getWeekIntroVideo', error);
     throw new Error(error.message);
   }
   const row = data as WeekIntroVideo | null;
